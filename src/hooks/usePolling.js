@@ -1,39 +1,41 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 
 export default function usePolling(fn, interval = 2000, active = true) {
   const fnRef = useRef(fn);
   fnRef.current = fn;
 
-  const tick = useCallback(() => {
-    fnRef.current();
-  }, []);
-
   useEffect(() => {
     if (!active) return;
 
-    // Fire immediately
+    function tick() {
+      fnRef.current();
+    }
+
+    // Fire immediately on mount
     tick();
 
-    // Then every interval
+    // Regular interval
     const timer = setInterval(tick, interval);
 
-    // Fire immediately when tab/phone becomes visible again
+    // Fire immediately when phone unlocks or tab becomes visible
     function handleVisibility() {
       if (document.visibilityState === 'visible') tick();
     }
 
-    // Fire when window regains focus (covers phone unlock edge case)
+    // Fire when window regains focus
     function handleFocus() {
       tick();
     }
 
     document.addEventListener('visibilitychange', handleVisibility);
     window.addEventListener('focus', handleFocus);
+    window.addEventListener('pageshow', handleFocus);
 
     return () => {
       clearInterval(timer);
       document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('pageshow', handleFocus);
     };
-  }, [active, interval, tick]);
+  }, [active, interval]);
 }
