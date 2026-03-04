@@ -51,9 +51,11 @@ export default function PlayerView() {
     if (!combatant || !initiativeInput) return;
     const total = parseInt(initiativeInput);
     if (isNaN(total)) return;
+    // Update initiative_total directly — avoids the DB trigger
+    // which would recalculate from initiative_roll + mod
     await supabase
       .from('combatants')
-      .update({ initiative_roll: total, initiative_total: total })
+      .update({ initiative_total: total })
       .eq('id', combatant.id);
     refreshAll();
   }
@@ -112,6 +114,11 @@ export default function PlayerView() {
                 disabled={!initiativeInput}
               >Submit</button>
             </div>
+            {combatant.initiative_total != null && (
+              <div style={{ marginTop: 8, fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
+                Current: <strong style={{ color: 'var(--accent-blue)' }}>{combatant.initiative_total}</strong>
+              </div>
+            )}
           </div>
         )}
 
