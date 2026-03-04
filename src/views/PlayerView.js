@@ -51,8 +51,6 @@ export default function PlayerView() {
     if (!combatant || !initiativeInput) return;
     const total = parseInt(initiativeInput);
     if (isNaN(total)) return;
-    // Update initiative_total directly — avoids the DB trigger
-    // which would recalculate from initiative_roll + mod
     await supabase
       .from('combatants')
       .update({ initiative_total: total })
@@ -93,7 +91,6 @@ export default function PlayerView() {
           />
         )}
 
-        {/* Initiative entry — always visible, type and submit any time */}
         {combatant && (
           <div className="panel">
             <div className="panel-title">Initiative</div>
@@ -102,7 +99,6 @@ export default function PlayerView() {
                 className="form-input"
                 type="number"
                 inputMode="numeric"
-                placeholder="Enter your total…"
                 value={initiativeInput}
                 onChange={e => setInitiativeInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSubmitInitiative()}

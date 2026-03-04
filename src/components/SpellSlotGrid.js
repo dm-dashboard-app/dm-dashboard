@@ -6,19 +6,15 @@ export default function SpellSlotGrid({ profile, state, readOnly, onUpdate }) {
   const activeLevels = levels.filter(l => (profile[`slots_max_${l}`] || 0) > 0);
   if (activeLevels.length === 0) return null;
 
-  async function handlePipClick(level, index) {
+  async function handlePipClick(level, isUsed) {
     if (readOnly || !state) return;
     const used = state[`slots_used_${level}`] || 0;
     const max = profile[`slots_max_${level}`] || 0;
 
-    let newUsed;
-    if (index < used) {
-      // Clicking a used pip — restore it (reduce used count to this index)
-      newUsed = index;
-    } else {
-      // Clicking an available pip — use it
-      newUsed = Math.min(max, index + 1);
-    }
+    // Used pip — restore one slot. Available pip — use one slot.
+    const newUsed = isUsed
+      ? Math.max(0, used - 1)
+      : Math.min(max, used + 1);
 
     await supabase
       .from('player_encounter_state')
@@ -46,21 +42,23 @@ export default function SpellSlotGrid({ profile, state, readOnly, onUpdate }) {
         return (
           <div key={level} className="slots-row">
             <span className="slots-label">{level}</span>
-            {Array.from({ length: max }).map((_, i) => (
-              <button
-                key={i}
-                className={`slot-pip ${i < used ? 'used' : 'available'}`}
-                onClick={() => handlePipClick(level, i)}
-                disabled={readOnly}
-                title={i < used ? `Restore level ${level} slot` : `Use level ${level} slot`}
-              />
-            ))}
-            {/* Reset button — only shows when at least one slot is used */}
+            {Array.from({ length: max }).map((_, i) => {
+              const isUsed = i < used;
+              return (
+                <button
+                  key={i}
+                  className={`slot-pip ${isUsed ? 'used' : 'available'}`}
+                  onClick={() => handlePipClick(level, isUsed)}
+                  disabled={readOnly}
+                  title={isUsed ? 'Restore slot' : 'Use slot'}
+                />
+              );
+            })}
             {!readOnly && used > 0 && (
               <button
                 className="slots-reset-btn"
                 onClick={() => resetLevel(level)}
-                title={`Restore all level ${level} slots`}
+                title="Restore all slots"
               >↺</button>
             )}
             {allUsed && !readOnly && (
