@@ -1,17 +1,18 @@
 import React from 'react';
 import { supabase } from '../supabaseClient';
 
-export default function SpellSlotGrid({ profile, state, readOnly, onUpdate }) {
+export default function SpellSlotGrid({ profile, state, readOnly, canRestore = false, onUpdate }) {
   const levels = [1,2,3,4,5,6,7,8,9];
   const activeLevels = levels.filter(l => (profile[`slots_max_${l}`] || 0) > 0);
   if (activeLevels.length === 0) return null;
 
   async function handlePipClick(level, isUsed) {
     if (readOnly || !state) return;
+    if (isUsed && !canRestore) return;
+
     const used = state[`slots_used_${level}`] || 0;
     const max = profile[`slots_max_${level}`] || 0;
 
-    // Used pip — restore one slot. Available pip — use one slot.
     const newUsed = isUsed
       ? Math.max(0, used - 1)
       : Math.min(max, used + 1);
@@ -24,7 +25,7 @@ export default function SpellSlotGrid({ profile, state, readOnly, onUpdate }) {
   }
 
   async function resetLevel(level) {
-    if (readOnly || !state) return;
+    if (readOnly || !state || !canRestore) return;
     await supabase
       .from('player_encounter_state')
       .update({ [`slots_used_${level}`]: 0 })
@@ -49,12 +50,12 @@ export default function SpellSlotGrid({ profile, state, readOnly, onUpdate }) {
                   key={i}
                   className={`slot-pip ${isUsed ? 'used' : 'available'}`}
                   onClick={() => handlePipClick(level, isUsed)}
-                  disabled={readOnly}
-                  title={isUsed ? 'Restore slot' : 'Use slot'}
+                  disabled={readOnly || (isUsed && !canRestore)}
+                  title={isUsed ? (canRestore ? 'Restore slot' : 'DM can restore') : 'Use slot'}
                 />
               );
             })}
-            {!readOnly && used > 0 && (
+            {canRestore && !readOnly && used > 0 && (
               <button
                 className="slots-reset-btn"
                 onClick={() => resetLevel(level)}

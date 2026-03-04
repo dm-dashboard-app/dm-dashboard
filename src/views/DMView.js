@@ -73,6 +73,13 @@ export default function DMView() {
     setDisplayToken(null);
   }
 
+  async function handleLongRest() {
+    if (!encounter) return;
+    if (!window.confirm('Long Rest — restore all player HP, spell slots, and wild shape uses?')) return;
+    await supabase.rpc('long_rest', { p_encounter_id: encounter.id });
+    refreshAll();
+  }
+
   function handleNewEncounter() {
     setEncounter(null); setEncounterId(null);
     setCombatants([]); setPlayerStates([]);
@@ -175,6 +182,7 @@ export default function DMView() {
             <div className="panel">
               <div className="form-row">
                 <button className="btn btn-ghost" onClick={handleNewEncounter}>New Encounter</button>
+                <button className="btn btn-ghost" onClick={handleLongRest}>🌙 Long Rest</button>
                 <button className="btn btn-ghost" onClick={signOut}>Sign Out</button>
               </div>
             </div>

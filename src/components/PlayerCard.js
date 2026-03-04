@@ -8,8 +8,8 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   const profile = state?.profiles_players;
   const canEdit = role === 'dm' || role === 'player';
   const readOnly = role === 'display';
+  const canRestore = role === 'dm';
 
-  // Local HP state for optimistic updates
   const [localHp, setLocalHp] = useState(null);
 
   const dbHp = state?.current_hp ?? combatant?.hp_current ?? 0;
@@ -18,7 +18,6 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   const tempHp = state?.temp_hp ?? 0;
   const hpPercent = Math.max(0, Math.min(100, (hp / maxHp) * 100));
 
-  // Sync local HP when DB value changes
   useEffect(() => {
     setLocalHp(null);
   }, [dbHp]);
@@ -32,7 +31,7 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   async function adjustHp(delta) {
     if (!state || readOnly) return;
     const newHp = Math.max(0, Math.min(maxHp, hp + delta));
-    setLocalHp(newHp); // optimistic update
+    setLocalHp(newHp);
     await supabase
       .from('player_encounter_state')
       .update({ current_hp: newHp })
@@ -47,6 +46,16 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
     await supabase
       .from('player_encounter_state')
       .update({ current_hp: newHp })
+      .eq('id', state.id);
+    onUpdate();
+  }
+
+  async function setTempHpDirect(val) {
+    if (!state || readOnly) return;
+    const newTemp = Math.max(0, parseInt(val) || 0);
+    await supabase
+      .from('player_encounter_state')
+      .update({ temp_hp: newTemp })
       .eq('id', state.id);
     onUpdate();
   }
@@ -132,10 +141,13 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
                 <HpInput value={hp} max={maxHp} onChange={setHpDirect} />
                 <button className="btn btn-icon btn-success" onClick={() => adjustHp(1)}>+</button>
                 <span className="hp-max-label">/ {maxHp}</span>
-                {tempHp > 0 && <span className="temp-hp-label">+{tempHp} tmp</span>}
+                <TempHpControl tempHp={tempHp} onSet={setTempHpDirect} />
               </>
             ) : (
-              <span className="hp-value">{hp} <span className="hp-max-label">/ {maxHp}</span></span>
+              <>
+                <span className="hp-value">{hp} <span className="hp-max-label">/ {maxHp}</span></span>
+                {tempHp > 0 && <span className="temp-hp-label">+{tempHp} tmp</span>}
+              </>
             )}
           </div>
         </div>
@@ -165,6 +177,7 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
             profile={profile}
             state={state}
             readOnly={readOnly}
+            canRestore={canRestore}
             onUpdate={onUpdate}
           />
         )}
@@ -188,6 +201,44 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
         )}
       </div>
     </div>
+  );
+}
+
+function TempHpControl({ tempHp, onSet }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(String(tempHp));
+
+  useEffect(() => {
+    if (!editing) setDraft(String(tempHp));
+  }, [tempHp, editing]);
+
+  if (!editing) {
+    return (
+      <span
+        className="temp-hp-label hp-editable"
+        onClick={() => { setDraft(String(tempHp)); setEditing(true); }}
+        title="Set temp HP"
+      >
+        {tempHp > 0 ? `+${tempHp} tmp` : '+TMP'}
+      </span>
+    );
+  }
+
+  return (
+    <input
+      className="hp-inline-input"
+      type="number"
+      value={draft}
+      min={0}
+      autoFocus
+      style={{ width: 48 }}
+      onChange={e => setDraft(e.target.value)}
+      onBlur={() => { onSet(draft); setEditing(false); }}
+      onKeyDown={e => {
+        if (e.key === 'Enter') { onSet(draft); setEditing(false); }
+        if (e.key === 'Escape') setEditing(false);
+      }}
+    />
   );
 }
 
