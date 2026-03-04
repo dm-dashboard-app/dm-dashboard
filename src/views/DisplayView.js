@@ -63,6 +63,22 @@ export default function DisplayView() {
         <div className="display-header">
           <span className="display-encounter-name">{encounter?.name}</span>
           <span className="display-round">Round {encounter?.round || 1}</span>
+          <button
+            onClick={() => { clearPlayerSession(); window.location.reload(); }}
+            title="Exit Display Mode"
+            style={{
+              opacity: 0.2,
+              fontSize: 11,
+              color: 'var(--text-muted)',
+              padding: '2px 6px',
+              border: '1px solid var(--border)',
+              borderRadius: 4,
+              cursor: 'pointer',
+              transition: 'opacity 0.2s',
+            }}
+            onMouseEnter={e => e.target.style.opacity = 0.8}
+            onMouseLeave={e => e.target.style.opacity = 0.2}
+          >exit</button>
         </div>
         {slots.map((c, i) => {
           if (!c) return <EmptySlot key={i} />;
