@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { supabase, detectRole, signInDM } from './supabaseClient';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { supabase, detectRole } from './supabaseClient';
 import DMView from './views/DMView';
 import PlayerView from './views/PlayerView';
 import DisplayView from './views/DisplayView';
@@ -11,6 +11,12 @@ export default function App() {
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const roleRef = useRef(null);
+
+  // Keep ref in sync so visibility handler can read it without stale closure
+  useEffect(() => {
+    roleRef.current = role;
+  }, [role]);
 
   const init = useCallback(async () => {
     setLoading(true);
@@ -28,15 +34,18 @@ export default function App() {
   useEffect(() => {
     init();
 
-    // Listen for auth changes (DM login/logout)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async () => {
-      const detectedRole = await detectRole();
-      setRole(detectedRole);
+    // Only re-detect on explicit sign-in/out, not token refreshes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+        const detectedRole = await detectRole();
+        setRole(detectedRole);
+      }
     });
 
-    // Re-run role detection when phone wakes — recovers DM session after sleep
+    // On wake, only re-init if we don't already have a role
+    // Prevents kicking logged-in users back to the join screen
     function handleVisibility() {
-      if (document.visibilityState === 'visible' && loading === false) {
+      if (document.visibilityState === 'visible' && roleRef.current === null) {
         init();
       }
     }
