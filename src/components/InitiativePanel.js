@@ -1,21 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
 const CONDITIONS = [
-  { code: 'BLD', label: 'Blinded' },
-  { code: 'CHM', label: 'Charmed' },
-  { code: 'DEF', label: 'Deafened' },
-  { code: 'FRI', label: 'Frightened' },
-  { code: 'GRP', label: 'Grappled' },
-  { code: 'INC', label: 'Incapacitated' },
-  { code: 'INV', label: 'Invisible' },
-  { code: 'PAR', label: 'Paralyzed' },
-  { code: 'PET', label: 'Petrified' },
-  { code: 'POI', label: 'Poisoned' },
-  { code: 'PRN', label: 'Prone' },
-  { code: 'RES', label: 'Restrained' },
-  { code: 'STN', label: 'Stunned' },
-  { code: 'UNC', label: 'Unconscious' },
+  { code: 'BLD' }, { code: 'CHM' }, { code: 'DEF' },
+  { code: 'FRI' }, { code: 'GRP' }, { code: 'INC' },
+  { code: 'INV' }, { code: 'PAR' }, { code: 'PET' },
+  { code: 'POI' }, { code: 'PRN' }, { code: 'RES' },
+  { code: 'STN' }, { code: 'UNC' },
 ];
 
 const CONDITION_COLOURS = {
@@ -26,16 +17,27 @@ const CONDITION_COLOURS = {
   STN: '#5a3a2a', UNC: '#2a2a2a',
 };
 
+// Sort combatants: highest initiative first, nulls at bottom
+function sortCombatants(list) {
+  return [...list].sort((a, b) => {
+    if (a.initiative_total == null && b.initiative_total == null) return 0;
+    if (a.initiative_total == null) return 1;
+    if (b.initiative_total == null) return -1;
+    return b.initiative_total - a.initiative_total;
+  });
+}
+
 export default function InitiativePanel({ encounter, combatants, role, onUpdate }) {
   const isDM = role === 'dm';
+  const sorted = sortCombatants(combatants);
   const activeTurnIndex = encounter?.turn_index ?? 0;
 
   return (
     <div className="panel">
       <div className="panel-title">Initiative Order</div>
       <div className="initiative-list">
-        {combatants.length === 0 && <div className="empty-state">No combatants yet.</div>}
-        {combatants.map((c, idx) => (
+        {sorted.length === 0 && <div className="empty-state">No combatants yet.</div>}
+        {sorted.map((c, idx) => (
           <InitiativeRow
             key={c.id}
             combatant={c}
@@ -57,21 +59,35 @@ export default function InitiativePanel({ encounter, combatants, role, onUpdate 
 function InitiativeRow({ combatant, isActive, isDM, onUpdate }) {
   const [expanded, setExpanded] = useState(false);
   const [condPickerOpen, setCondPickerOpen] = useState(false);
-  // Draft input — separate from combatant prop so typing doesn't fight re-renders
-  const [draft, setDraft] = useState('');
-  const [editing, setEditing] = useState(false);
+  const [inputValue, setInputValue] = useState(
+    combatant.initiative_total != null ? String(combatant.initiative_total) : ''
+  );
+  // Track whether the input is focused so polling doesn't overwrite mid-edit
+  const isFocused = useRef(false);
+  const savingRef = useRef(false);
+
+  // Sync input value from incoming props, but only when the field isn't focused
+  useEffect(() => {
+    if (!isFocused.current) {
+      setInputValue(
+        combatant.initiative_total != null ? String(combatant.initiative_total) : ''
+      );
+    }
+  }, [combatant.initiative_total]);
 
   const isEnemy = combatant.side === 'ENEMY' || combatant.side === 'NPC';
   const conditions = combatant.conditions || [];
 
-  async function commitInitiative(val) {
-    const total = parseInt(val);
-    if (isNaN(total)) { setEditing(false); return; }
+  async function saveInitiative() {
+    if (savingRef.current) return;
+    const total = parseInt(inputValue, 10);
+    if (isNaN(total)) return;
+    savingRef.current = true;
     await supabase.rpc('set_initiative', {
       p_combatant_id: combatant.id,
       p_total: total,
     });
-    setEditing(false);
+    savingRef.current = false;
     onUpdate();
   }
 
@@ -95,59 +111,48 @@ function InitiativeRow({ combatant, isActive, isDM, onUpdate }) {
     onUpdate();
   }
 
-  const showBlooded = combatant.public_status === 'BLOODIED';
-
   return (
     <div className={`initiative-row ${isActive ? 'active-turn' : ''}`}>
       <div className="initiative-row-main" onClick={() => isDM && isEnemy && setExpanded(e => !e)}>
 
-        {/* Initiative number — DM gets editable input */}
         {isDM ? (
-          editing ? (
-            <input
-              className="initiative-number-input"
-              type="number"
-              value={draft}
-              autoFocus
-              onChange={e => setDraft(e.target.value)}
-              onBlur={() => commitInitiative(draft)}
-              onKeyDown={e => {
-                if (e.key === 'Enter') commitInitiative(draft);
-                if (e.key === 'Escape') setEditing(false);
-              }}
-              onClick={e => e.stopPropagation()}
-            />
-          ) : (
-            <span
-              className="initiative-number"
-              onClick={e => {
-                e.stopPropagation();
-                setDraft(combatant.initiative_total != null ? String(combatant.initiative_total) : '');
-                setEditing(true);
-              }}
-              style={{ cursor: 'text', minWidth: 32, display: 'inline-block', textAlign: 'center' }}
-            >
-              {combatant.initiative_total ?? '—'}
-            </span>
-          )
+          <input
+            className="initiative-number-input"
+            type="number"
+            value={inputValue}
+            onChange={e => setInputValue(e.target.value)}
+            onFocus={() => { isFocused.current = true; }}
+            onBlur={() => {
+              isFocused.current = false;
+              saveInitiative();
+            }}
+            onKeyDown={e => {
+              if (e.key === 'Enter') { e.target.blur(); }
+              e.stopPropagation();
+            }}
+            onClick={e => e.stopPropagation()}
+            placeholder="—"
+          />
         ) : (
           <span className="initiative-number">{combatant.initiative_total ?? '—'}</span>
         )}
 
-        {/* Name + badges */}
         <div className="initiative-name-block">
           <span className="initiative-name">{combatant.name}</span>
           <div className="initiative-badges">
             <span className={`badge badge-${combatant.side.toLowerCase()}`}>{combatant.side}</span>
-            {showBlooded && <span className="badge badge-bloodied">BLOODIED</span>}
-            {combatant.concentration && <span className="condition-chip condition-chip-con">CON</span>}
+            {combatant.public_status === 'BLOODIED' && (
+              <span className="badge badge-bloodied">BLOODIED</span>
+            )}
+            {combatant.concentration && (
+              <span className="condition-chip condition-chip-con">CON</span>
+            )}
             {conditions.map(cond => (
               <span
                 key={cond}
                 className="condition-chip"
                 style={{ background: CONDITION_COLOURS[cond] || 'var(--cond-default)', cursor: isDM ? 'pointer' : 'default' }}
                 onClick={e => { e.stopPropagation(); isDM && toggleCondition(cond); }}
-                title={isDM ? `Remove ${cond}` : cond}
               >{cond}</span>
             ))}
           </div>
@@ -158,7 +163,6 @@ function InitiativeRow({ combatant, isActive, isDM, onUpdate }) {
         )}
       </div>
 
-      {/* DM expanded monster controls */}
       {isDM && isEnemy && expanded && (
         <div className="monster-dm-controls">
           <div className="hp-controls" style={{ marginBottom: 8 }}>
