@@ -14,7 +14,6 @@ export default function EncounterSetup({ onEncounterCreated }) {
     supabase.from('profiles_players').select('*').then(({ data }) => {
       const profiles = data || [];
       setPlayers(profiles);
-      // Auto-select all players by default
       setSelectedPlayers(profiles.map(p => p.id));
     });
     supabase.from('profiles_monsters').select('*').then(({ data }) => setMonsters(data || []));
@@ -64,6 +63,8 @@ export default function EncounterSetup({ onEncounterCreated }) {
             ac: profile.ac,
             hp_max: profile.max_hp,
             hp_current: profile.max_hp,
+            // Store initiative_mod for tiebreaking — not added to player-entered totals
+            initiative_mod: profile.initiative_mod ?? 0,
           })
           .select()
           .single();
@@ -88,11 +89,11 @@ export default function EncounterSetup({ onEncounterCreated }) {
           await supabase.from('combatants').insert({
             encounter_id: enc.id,
             name: qty > 1 ? `${template.name} ${LABELS[i]}` : template.name,
-            side: 'ENEMY',
+            side: template.side || 'ENEMY',
             ac: template.ac,
             hp_max: template.hp_max,
             hp_current: template.hp_max,
-            initiative_mod: template.initiative_mod,
+            initiative_mod: template.initiative_mod ?? 0,
             notes: template.notes,
           });
         }

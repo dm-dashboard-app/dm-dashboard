@@ -17,12 +17,30 @@ const CONDITION_COLOURS = {
   STN: '#5a3a2a', UNC: '#2a2a2a',
 };
 
+// Sort by initiative_total DESC, then initiative_mod DESC (RAW tiebreaker),
+// then id ASC as a final stable tiebreaker so equal combatants never shuffle on refresh.
+// Nulls always go to the bottom.
 function sortCombatants(list) {
   return [...list].sort((a, b) => {
-    if (a.initiative_total == null && b.initiative_total == null) return 0;
+    // Nulls to bottom
+    if (a.initiative_total == null && b.initiative_total == null) {
+      return a.id < b.id ? -1 : 1;
+    }
     if (a.initiative_total == null) return 1;
     if (b.initiative_total == null) return -1;
-    return b.initiative_total - a.initiative_total;
+
+    // Primary: highest initiative total first
+    if (b.initiative_total !== a.initiative_total) {
+      return b.initiative_total - a.initiative_total;
+    }
+
+    // Secondary: highest initiative modifier first (RAW tiebreaker)
+    const aMod = a.initiative_mod ?? 0;
+    const bMod = b.initiative_mod ?? 0;
+    if (bMod !== aMod) return bMod - aMod;
+
+    // Tertiary: stable UUID sort so order never changes on refresh
+    return a.id < b.id ? -1 : 1;
   });
 }
 
@@ -257,12 +275,11 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
 
 function AddCombatantInline({ encounterId, onUpdate }) {
   const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState('template'); // 'template' | 'manual'
+  const [mode, setMode] = useState('template');
   const [templates, setTemplates] = useState([]);
   const [templateFilter, setTemplateFilter] = useState('ALL');
   const [adding, setAdding] = useState(false);
 
-  // Manual fields
   const [name, setName] = useState('');
   const [ac, setAc] = useState(10);
   const [hp, setHp] = useState(10);
@@ -321,7 +338,6 @@ function AddCombatantInline({ encounterId, onUpdate }) {
 
   return (
     <div className="add-combatant-form">
-      {/* Mode toggle */}
       <div style={{ display: 'flex', gap: 8 }}>
         <button className="btn btn-ghost" style={{ flex: 1, borderColor: mode === 'template' ? 'var(--accent-blue)' : 'var(--border)', color: mode === 'template' ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
           onClick={() => setMode('template')}>From Template</button>
@@ -332,7 +348,6 @@ function AddCombatantInline({ encounterId, onUpdate }) {
 
       {mode === 'template' && (
         <>
-          {/* Filter */}
           <div style={{ display: 'flex', gap: 6 }}>
             {['ALL', 'ENEMY', 'NPC'].map(f => (
               <button key={f} className="btn btn-ghost"

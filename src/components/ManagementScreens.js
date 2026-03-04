@@ -98,6 +98,7 @@ function PlayerProfileManager() {
 function PlayerProfileForm({ initial, onSave, onCancel }) {
   const [f, setF] = useState({
     name: '', max_hp: 10, ac: 10,
+    initiative_mod: 0,
     save_str: 0, save_dex: 0, save_con: 0, save_int: 0, save_wis: 0, save_cha: 0,
     spell_save_dc: 8, spell_attack_bonus: 0,
     skill_perception: 0, skill_insight: 0, skill_investigation: 0, skill_survival: 0,
@@ -148,6 +149,9 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
       </Field>
       <Field label="Max HP"><NumInput value={f.max_hp} onChange={v => set('max_hp', v)} /></Field>
       <Field label="AC"><NumInput value={f.ac} onChange={v => set('ac', v)} /></Field>
+      <Field label="Initiative Mod (tiebreaker only — not added to rolls)">
+        <NumInput value={f.initiative_mod ?? 0} onChange={v => set('initiative_mod', v)} />
+      </Field>
       <Field label="Spell Save DC"><NumInput value={f.spell_save_dc} onChange={v => set('spell_save_dc', v)} /></Field>
       <Field label="Spell Attack Bonus"><NumInput value={f.spell_attack_bonus} onChange={v => set('spell_attack_bonus', v)} /></Field>
       <div className="panel-title" style={{ marginTop: 12 }}>Saving Throws</div>
@@ -225,19 +229,11 @@ function MonsterTemplateManager() {
 
   return (
     <div>
-      {/* Filter tabs */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 12, marginTop: 8 }}>
         {['ALL', 'ENEMY', 'NPC'].map(f => (
-          <button
-            key={f}
-            className={`btn btn-ghost`}
-            style={{
-              fontSize: 11, padding: '2px 10px',
-              borderColor: filter === f ? 'var(--accent-blue)' : 'var(--border)',
-              color: filter === f ? 'var(--accent-blue)' : 'var(--text-secondary)',
-            }}
-            onClick={() => setFilter(f)}
-          >{f}</button>
+          <button key={f} className="btn btn-ghost"
+            style={{ fontSize: 11, padding: '2px 10px', borderColor: filter === f ? 'var(--accent-blue)' : 'var(--border)', color: filter === f ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
+            onClick={() => setFilter(f)}>{f}</button>
         ))}
       </div>
       {filtered.map(m => (
@@ -269,16 +265,9 @@ function MonsterForm({ initial, onSave, onCancel }) {
       <Field label="Type">
         <div style={{ display: 'flex', gap: 8 }}>
           {['ENEMY', 'NPC'].map(s => (
-            <button
-              key={s}
-              className="btn btn-ghost"
-              style={{
-                flex: 1,
-                borderColor: f.side === s ? 'var(--accent-blue)' : 'var(--border)',
-                color: f.side === s ? 'var(--accent-blue)' : 'var(--text-secondary)',
-              }}
-              onClick={() => set('side', s)}
-            >{s}</button>
+            <button key={s} className="btn btn-ghost"
+              style={{ flex: 1, borderColor: f.side === s ? 'var(--accent-blue)' : 'var(--border)', color: f.side === s ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
+              onClick={() => set('side', s)}>{s}</button>
           ))}
         </div>
       </Field>
