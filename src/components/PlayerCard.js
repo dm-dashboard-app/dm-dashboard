@@ -124,10 +124,9 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
               >CON</span>
             )}
 
-            {/* Reaction — icon badge for DM/display, button for player */}
             {isPlayer ? (
               <button
-                className={`btn ${reactionUsed ? 'btn-ghost' : 'btn-ghost'}`}
+                className="btn btn-ghost"
                 style={{
                   fontSize: 11,
                   padding: '2px 7px',
@@ -189,8 +188,8 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
         {/* Core stats */}
         <div className="stats-row">
           <StatPill label="AC" value={profile?.ac ?? combatant?.ac ?? '—'} />
-          {profile?.spell_save_dc > 0 && <StatPill label="DC" value={profile.spell_save_dc} />}
-          {!!profile?.spell_attack_bonus && <StatPill label="ATK" value={`+${profile.spell_attack_bonus}`} />}
+          {profile?.spell_save_dc > 0 && <StatPill label="Spell DC" value={profile.spell_save_dc} />}
+          {!!profile?.spell_attack_bonus && <StatPill label="Spell ATK" value={`+${profile.spell_attack_bonus}`} />}
         </div>
 
         {/* Saves */}
