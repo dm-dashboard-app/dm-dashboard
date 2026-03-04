@@ -1,24 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
+import usePolling from '../hooks/usePolling';
 
 export default function SecretRollInbox({ encounterId }) {
   const [rolls, setRolls] = useState([]);
 
-  useEffect(() => {
-    loadRolls();
-
-    const channel = supabase
-      .channel('secret-rolls')
-      .on('postgres_changes', {
-        event: 'INSERT', schema: 'public', table: 'secret_rolls',
-        filter: `encounter_id=eq.${encounterId}`
-      }, () => loadRolls())
-      .subscribe();
-
-    return () => supabase.removeChannel(channel);
-  }, [encounterId]);
-
-  async function loadRolls() {
+  const loadRolls = useCallback(async () => {
     const { data } = await supabase
       .from('secret_rolls')
       .select('*, profiles_players(name)')
@@ -26,14 +13,14 @@ export default function SecretRollInbox({ encounterId }) {
       .order('created_at', { ascending: false })
       .limit(20);
     setRolls(data || []);
-  }
+  }, [encounterId]);
+
+  usePolling(loadRolls, 2000, !!encounterId);
 
   return (
     <div className="panel">
       <div className="panel-title">Secret Roll Inbox</div>
-      {rolls.length === 0 && (
-        <div className="empty-state">No secret rolls yet.</div>
-      )}
+      {rolls.length === 0 && <div className="empty-state">No secret rolls yet.</div>}
       <div className="secret-roll-list">
         {rolls.map(r => (
           <div key={r.id} className="secret-roll-item">

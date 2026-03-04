@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import ConditionChipRow from './ConditionChipRow';
 import SpellSlotGrid from './SpellSlotGrid';
@@ -6,15 +6,22 @@ import WildShapeBlock from './WildShapeBlock';
 
 export default function PlayerCard({ combatant, state, role, isEditMode, encounterId, onUpdate }) {
   const profile = state?.profiles_players;
-  const isOwner = role === 'player' || role === 'dm';
-  const canEdit = role === 'dm' || (role === 'player');
-  const canEditProfile = role === 'dm' || (role === 'player' && isEditMode);
+  const canEdit = role === 'dm' || role === 'player';
   const readOnly = role === 'display';
 
-  const hp = state?.current_hp ?? combatant?.hp_current ?? 0;
+  // Local HP state for optimistic updates
+  const [localHp, setLocalHp] = useState(null);
+
+  const dbHp = state?.current_hp ?? combatant?.hp_current ?? 0;
+  const hp = localHp !== null ? localHp : dbHp;
   const maxHp = profile?.max_hp ?? combatant?.hp_max ?? 1;
   const tempHp = state?.temp_hp ?? 0;
   const hpPercent = Math.max(0, Math.min(100, (hp / maxHp) * 100));
+
+  // Sync local HP when DB value changes
+  useEffect(() => {
+    setLocalHp(null);
+  }, [dbHp]);
 
   function hpColor(pct) {
     if (pct > 50) return 'var(--hp-high)';
@@ -25,6 +32,7 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   async function adjustHp(delta) {
     if (!state || readOnly) return;
     const newHp = Math.max(0, Math.min(maxHp, hp + delta));
+    setLocalHp(newHp); // optimistic update
     await supabase
       .from('player_encounter_state')
       .update({ current_hp: newHp })
@@ -35,6 +43,7 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   async function setHpDirect(val) {
     if (!state || readOnly) return;
     const newHp = Math.max(0, Math.min(maxHp, parseInt(val) || 0));
+    setLocalHp(newHp);
     await supabase
       .from('player_encounter_state')
       .update({ current_hp: newHp })
@@ -43,19 +52,19 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   }
 
   async function toggleReaction() {
-    if (readOnly) return;
+    if (readOnly || !state) return;
     await supabase
       .from('player_encounter_state')
-      .update({ reaction_used: !state?.reaction_used })
+      .update({ reaction_used: !state.reaction_used })
       .eq('id', state.id);
     onUpdate();
   }
 
   async function toggleConcentration() {
-    if (readOnly) return;
+    if (readOnly || !state) return;
     await supabase
       .from('player_encounter_state')
-      .update({ concentration: !state?.concentration })
+      .update({ concentration: !state.concentration })
       .eq('id', state.id);
     onUpdate();
   }
@@ -69,7 +78,6 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
 
   return (
     <div className="player-card">
-      {/* Portrait strip */}
       <div className="portrait-strip">
         {profile?.portrait_url ? (
           <img src={profile.portrait_url} alt={combatant.name} className="portrait-img" />
@@ -80,25 +88,23 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
         )}
       </div>
 
-      {/* Card body */}
       <div className="card-body">
-        {/* Header row */}
         <div className="card-header-row">
           <span className="card-name">{combatant?.name}</span>
           <div className="card-header-badges">
             {state?.concentration && (
-              <span className="condition-chip condition-chip-con" onClick={canEdit ? toggleConcentration : undefined}>
-                CON
-              </span>
+              <span
+                className="condition-chip condition-chip-con"
+                onClick={canEdit ? toggleConcentration : undefined}
+                style={{ cursor: canEdit ? 'pointer' : 'default' }}
+              >CON</span>
             )}
             <button
               className={`reaction-badge ${state?.reaction_used ? 'used' : 'available'}`}
               onClick={canEdit ? toggleReaction : undefined}
               disabled={readOnly}
               title="Reaction"
-            >
-              ⚡
-            </button>
+            >⚡</button>
           </div>
         </div>
 
@@ -112,7 +118,10 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
             {tempHp > 0 && (
               <div
                 className="hp-bar-temp"
-                style={{ left: `${hpPercent}%`, width: `${Math.min(100 - hpPercent, (tempHp / maxHp) * 100)}%` }}
+                style={{
+                  left: `${hpPercent}%`,
+                  width: `${Math.min(100 - hpPercent, (tempHp / maxHp) * 100)}%`
+                }}
               />
             )}
           </div>
@@ -131,18 +140,14 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
           </div>
         </div>
 
-        {/* Core stats row */}
+        {/* Core stats */}
         <div className="stats-row">
           <StatPill label="AC" value={profile?.ac ?? combatant?.ac ?? '—'} />
-          {profile?.spell_save_dc > 0 && (
-            <StatPill label="DC" value={profile.spell_save_dc} />
-          )}
-          {profile?.spell_attack_bonus !== undefined && profile.spell_attack_bonus !== 0 && (
-            <StatPill label="ATK" value={`+${profile.spell_attack_bonus}`} />
-          )}
+          {profile?.spell_save_dc > 0 && <StatPill label="DC" value={profile.spell_save_dc} />}
+          {!!profile?.spell_attack_bonus && <StatPill label="ATK" value={`+${profile.spell_attack_bonus}`} />}
         </div>
 
-        {/* Saves grid — only show if we have profile data */}
+        {/* Saves */}
         {profile && (
           <div className="saves-grid">
             {['str','dex','con','int','wis','cha'].map(s => (
@@ -188,14 +193,15 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
 
 function HpInput({ value, max, onChange }) {
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(value);
+  const [draft, setDraft] = useState(String(value));
+
+  useEffect(() => {
+    if (!editing) setDraft(String(value));
+  }, [value, editing]);
 
   if (!editing) {
     return (
-      <span
-        className="hp-value hp-editable"
-        onClick={() => { setDraft(value); setEditing(true); }}
-      >
+      <span className="hp-value hp-editable" onClick={() => { setDraft(String(value)); setEditing(true); }}>
         {value}
       </span>
     );

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase, clearPlayerSession } from '../supabaseClient';
+import usePolling from '../hooks/usePolling';
 import PlayerCard from '../components/PlayerCard';
 import InitiativePanel from '../components/InitiativePanel';
 
@@ -12,104 +13,52 @@ export default function DisplayView() {
 
   const encounterId = localStorage.getItem('display_encounter_id');
 
+  const refreshAll = useCallback(async () => {
+    if (!encounterId) return;
+    try {
+      const [enc, combs, states] = await Promise.all([
+        supabase.from('encounters').select('*').eq('id', encounterId).maybeSingle(),
+        supabase.from('combatants').select('*').eq('encounter_id', encounterId).order('initiative_total', { ascending: false }),
+        supabase.from('player_encounter_state').select('*, profiles_players(*)').eq('encounter_id', encounterId),
+      ]);
+      if (enc.data) setEncounter(enc.data);
+      setCombatants(combs.data || []);
+      setPlayerStates(states.data || []);
+    } catch (err) {
+      setError(err.message);
+    }
+  }, [encounterId]);
+
   useEffect(() => {
     if (!encounterId) {
       setError('No display session found.');
       setLoading(false);
       return;
     }
-    loadData();
-  }, []);
+    refreshAll().then(() => setLoading(false));
+  }, [refreshAll]);
 
-  useEffect(() => {
-    if (!encounterId) return;
-
-    const channel = supabase
-      .channel('display-encounter')
-      .on('postgres_changes', {
-        event: '*', schema: 'public', table: 'encounters',
-        filter: `id=eq.${encounterId}`
-      }, payload => {
-        if (payload.new) setEncounter(payload.new);
-      })
-      .on('postgres_changes', {
-        event: '*', schema: 'public', table: 'combatants',
-        filter: `encounter_id=eq.${encounterId}`
-      }, () => loadCombatants())
-      .on('postgres_changes', {
-        event: '*', schema: 'public', table: 'player_encounter_state',
-        filter: `encounter_id=eq.${encounterId}`
-      }, () => loadPlayerStates())
-      .subscribe();
-
-    return () => supabase.removeChannel(channel);
-  }, [encounterId]);
-
-  async function loadData() {
-    setLoading(true);
-    try {
-      await Promise.all([loadEncounter(), loadCombatants(), loadPlayerStates()]);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function loadEncounter() {
-    const { data } = await supabase
-      .from('encounters')
-      .select('*')
-      .eq('id', encounterId)
-      .single();
-    setEncounter(data);
-  }
-
-  async function loadCombatants() {
-    const { data } = await supabase
-      .from('combatants_public')
-      .select('*')
-      .eq('encounter_id', encounterId)
-      .order('initiative_total', { ascending: false });
-    setCombatants(data || []);
-  }
-
-  async function loadPlayerStates() {
-    const { data } = await supabase
-      .from('player_encounter_state')
-      .select('*, profiles_players(*)')
-      .eq('encounter_id', encounterId);
-    setPlayerStates(data || []);
-  }
-
-  function handleDisconnect() {
-    clearPlayerSession();
-    window.location.reload();
-  }
+  usePolling(refreshAll, 2000, !!encounterId);
 
   if (loading) return (
     <div className="splash">
       <div className="splash-logo">📺</div>
-      <div className="splash-text">Connecting to encounter…</div>
+      <div className="splash-text">Connecting…</div>
     </div>
   );
 
   if (error) return (
     <div className="splash">
       <div className="splash-text">⚠ {error}</div>
-      <button className="btn btn-ghost" onClick={handleDisconnect}>
-        Back
-      </button>
+      <button className="btn btn-ghost" onClick={() => { clearPlayerSession(); window.location.reload(); }}>Back</button>
     </div>
   );
 
-  // Always show exactly 4 player card slots
   const pcCombatants = combatants.filter(c => c.side === 'PC');
   const slots = [0, 1, 2, 3].map(i => pcCombatants[i] || null);
 
   return (
     <div className="display-layout">
-      {/* Left: 4 player card slots */}
       <div className="display-player-cards">
         <div className="display-header">
           <span className="display-encounter-name">{encounter?.name}</span>
@@ -131,8 +80,6 @@ export default function DisplayView() {
           );
         })}
       </div>
-
-      {/* Right: Initiative panel */}
       <div className="display-initiative">
         <InitiativePanel
           encounter={encounter}
