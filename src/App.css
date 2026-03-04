@@ -67,6 +67,31 @@
   white-space: nowrap;
 }
 
+/* Tab bar — sticky just below the top bar */
+.tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+  position: sticky;
+  top: 56px;
+  z-index: 99;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: var(--space-3) var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.tab-btn.active {
+  color: var(--accent-blue);
+  border-bottom-color: var(--accent-blue);
+}
+
 /* Main content area */
 .main-content {
   flex: 1;

@@ -21,11 +21,6 @@
 .join-back { align-self: flex-start; color: var(--text-secondary); font-size: var(--font-size-sm); padding: var(--space-2); }
 .join-code-input { font-size: var(--font-size-xl); font-weight: 700; letter-spacing: 0.1em; text-align: center; text-transform: uppercase; }
 
-/* ---- Tab Bar ---- */
-.tab-bar { display: flex; border-bottom: 1px solid var(--border); background: var(--bg-panel); }
-.tab-btn { flex: 1; padding: var(--space-3) var(--space-2); font-size: var(--font-size-sm); font-weight: 600; color: var(--text-secondary); border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s; }
-.tab-btn.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
-
 /* ---- Player Card ---- */
 .player-card {
   display: flex;
