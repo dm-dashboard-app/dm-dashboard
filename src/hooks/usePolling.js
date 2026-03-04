@@ -7,6 +7,8 @@ export default function usePolling(fn, interval = 2000, active = true) {
   useEffect(() => {
     if (!active) return;
 
+    let wakeTimer = null;
+
     function tick() {
       fnRef.current();
     }
@@ -14,17 +16,19 @@ export default function usePolling(fn, interval = 2000, active = true) {
     // Fire immediately on mount
     tick();
 
-    // Regular interval
     const timer = setInterval(tick, interval);
 
-    // Fire immediately when phone unlocks or tab becomes visible
+    // On wake/focus, wait 800ms for network to be ready before polling
     function handleVisibility() {
-      if (document.visibilityState === 'visible') tick();
+      if (document.visibilityState === 'visible') {
+        clearTimeout(wakeTimer);
+        wakeTimer = setTimeout(tick, 800);
+      }
     }
 
-    // Fire when window regains focus
     function handleFocus() {
-      tick();
+      clearTimeout(wakeTimer);
+      wakeTimer = setTimeout(tick, 800);
     }
 
     document.addEventListener('visibilitychange', handleVisibility);
@@ -33,6 +37,7 @@ export default function usePolling(fn, interval = 2000, active = true) {
 
     return () => {
       clearInterval(timer);
+      clearTimeout(wakeTimer);
       document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('pageshow', handleFocus);

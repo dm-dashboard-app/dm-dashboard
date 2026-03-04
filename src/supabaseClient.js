@@ -20,6 +20,18 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 });
 
 // ============================================================
+// TIMEOUT HELPER — prevents getSession hanging on mobile wake
+// ============================================================
+function withTimeout(promise, ms = 4000) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), ms)
+    ),
+  ]);
+}
+
+// ============================================================
 // AUTH HELPERS
 // ============================================================
 
@@ -35,7 +47,6 @@ export async function signOut() {
   window.location.reload();
 }
 
-// Use getSession() instead of getUser() — reads from localStorage instantly, no network call
 export async function getCurrentUser() {
   const { data: { session } } = await supabase.auth.getSession();
   return session?.user || null;
@@ -66,17 +77,25 @@ export function getDisplayToken() {
 }
 
 // ============================================================
-// ROLE DETECTION — fast, no hanging
+// ROLE DETECTION — fast, with timeout so it never hangs
 // ============================================================
 export async function detectRole() {
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user) return 'dm';
-  } catch (e) {
-    // session check failed, fall through
-  }
+  // Check localStorage first — instant, no network needed
   if (localStorage.getItem('display_token')) return 'display';
   if (localStorage.getItem('player_join_code')) return 'player';
+
+  // Only hit the network for DM session check, with timeout
+  try {
+    const { data: { session } } = await withTimeout(
+      supabase.auth.getSession(),
+      4000
+    );
+    if (session?.user) return 'dm';
+  } catch (e) {
+    // Timed out or failed — if they had a session it'll recover on next poll
+    console.warn('Session check timed out or failed:', e.message);
+  }
+
   return null;
 }
 
