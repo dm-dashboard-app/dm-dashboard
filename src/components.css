@@ -155,3 +155,6 @@
 /* ---- Display Token ---- */
 .display-token-row { display: flex; align-items: center; gap: var(--space-3); }
 .display-token-value { font-size: var(--font-size-lg); font-weight: 700; letter-spacing: 0.12em; color: var(--accent-gold); font-family: monospace; }
+.slots-reset-btn { font-size: 13px; color: var(--accent-blue); opacity: 0.6; padding: 0 3px; cursor: pointer; transition: opacity 0.15s; }
+.slots-reset-btn:hover { opacity: 1; }
+.slots-empty-label { font-size: var(--font-size-xs); color: var(--text-muted); font-style: italic; margin-left: 4px; }

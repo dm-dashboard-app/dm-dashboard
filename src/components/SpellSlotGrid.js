@@ -3,17 +3,23 @@ import { supabase } from '../supabaseClient';
 
 export default function SpellSlotGrid({ profile, state, readOnly, onUpdate }) {
   const levels = [1,2,3,4,5,6,7,8,9];
+  const activeLevels = levels.filter(l => (profile[`slots_max_${l}`] || 0) > 0);
+  if (activeLevels.length === 0) return null;
 
-  // Only show levels where max slots > 0
-  const activelevels = levels.filter(l => (profile[`slots_max_${l}`] || 0) > 0);
-  if (activelevels.length === 0) return null;
-
-  async function toggleSlot(level, index) {
+  async function handlePipClick(level, index) {
     if (readOnly || !state) return;
     const used = state[`slots_used_${level}`] || 0;
     const max = profile[`slots_max_${level}`] || 0;
-    // clicking a used slot restores it, clicking available uses it
-    const newUsed = index < used ? index : Math.min(max, index + 1);
+
+    let newUsed;
+    if (index < used) {
+      // Clicking a used pip — restore it (reduce used count to this index)
+      newUsed = index;
+    } else {
+      // Clicking an available pip — use it
+      newUsed = Math.min(max, index + 1);
+    }
+
     await supabase
       .from('player_encounter_state')
       .update({ [`slots_used_${level}`]: newUsed })
@@ -21,11 +27,22 @@ export default function SpellSlotGrid({ profile, state, readOnly, onUpdate }) {
     onUpdate();
   }
 
+  async function resetLevel(level) {
+    if (readOnly || !state) return;
+    await supabase
+      .from('player_encounter_state')
+      .update({ [`slots_used_${level}`]: 0 })
+      .eq('id', state.id);
+    onUpdate();
+  }
+
   return (
     <div className="slots-grid">
-      {activelevels.map(level => {
+      {activeLevels.map(level => {
         const max = profile[`slots_max_${level}`] || 0;
         const used = state?.[`slots_used_${level}`] || 0;
+        const allUsed = used >= max;
+
         return (
           <div key={level} className="slots-row">
             <span className="slots-label">{level}</span>
@@ -33,11 +50,22 @@ export default function SpellSlotGrid({ profile, state, readOnly, onUpdate }) {
               <button
                 key={i}
                 className={`slot-pip ${i < used ? 'used' : 'available'}`}
-                onClick={() => toggleSlot(level, i)}
+                onClick={() => handlePipClick(level, i)}
                 disabled={readOnly}
-                title={`Level ${level} slot ${i + 1}`}
+                title={i < used ? `Restore level ${level} slot` : `Use level ${level} slot`}
               />
             ))}
+            {/* Reset button — only shows when at least one slot is used */}
+            {!readOnly && used > 0 && (
+              <button
+                className="slots-reset-btn"
+                onClick={() => resetLevel(level)}
+                title={`Restore all level ${level} slots`}
+              >↺</button>
+            )}
+            {allUsed && !readOnly && (
+              <span className="slots-empty-label">expended</span>
+            )}
           </div>
         );
       })}
