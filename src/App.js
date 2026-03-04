@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { supabase, detectRole } from './supabaseClient';
+import { detectRole } from './supabaseClient';
 import DMView from './views/DMView';
 import PlayerView from './views/PlayerView';
 import DisplayView from './views/DisplayView';
@@ -13,6 +13,7 @@ export default function App() {
   const [error, setError] = useState(null);
   const roleRef = useRef(null);
 
+  // Keep ref in sync so the visibility handler never reads a stale closure
   useEffect(() => {
     roleRef.current = role;
   }, [role]);
@@ -33,16 +34,8 @@ export default function App() {
   useEffect(() => {
     init();
 
-    // Only re-detect on explicit sign-in/out — not token refreshes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
-      if (event === 'SIGNED_OUT') {
-        setRole(null);
-      }
-      // SIGNED_IN is handled by JoinScreen calling onRoleSet directly,
-      // so we don't need to re-detect here and risk a race condition
-    });
-
-    // On wake, only re-init if no role is set yet (first load or after sign-out)
+    // On wake, only re-init if we have no role yet (first load or after sign-out)
+    // If role is already set, polling in each view handles data refresh
     function handleVisibility() {
       if (document.visibilityState === 'visible' && roleRef.current === null) {
         init();
@@ -50,12 +43,12 @@ export default function App() {
     }
 
     document.addEventListener('visibilitychange', handleVisibility);
-
-    return () => {
-      subscription.unsubscribe();
-      document.removeEventListener('visibilitychange', handleVisibility);
-    };
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
   }, [init]);
+
+  // Note: onAuthStateChange deliberately removed — Supabase fires SIGNED_OUT
+  // on token refresh failures during wake, which was causing phantom logouts.
+  // Role is now fully managed via localStorage. signOut() clears it explicitly.
 
   if (loading) return <SplashScreen onRetry={init} />;
   if (error) return <ErrorScreen message={error} onRetry={init} />;
