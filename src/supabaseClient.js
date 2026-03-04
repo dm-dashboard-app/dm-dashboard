@@ -34,16 +34,20 @@ export async function signOut() {
   if (error) throw error;
 }
 
+// Use getSession() instead of getUser() — reads from localStorage instantly, no network call
 export async function getCurrentUser() {
-  const { data: { user } } = await supabase.auth.getUser();
-  return user;
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.user || null;
 }
 
-// ============================================================
-// JOIN CODE / DISPLAY TOKEN HELPERS
-// ============================================================
+export function clearPlayerSession() {
+  localStorage.removeItem('player_join_code');
+  localStorage.removeItem('player_profile_id');
+  localStorage.removeItem('player_encounter_id');
+  localStorage.removeItem('display_token');
+  localStorage.removeItem('display_encounter_id');
+}
 
-// Player joins via join code — stores code in localStorage for session
 export function joinAsPlayer(joinCode) {
   localStorage.setItem('player_join_code', joinCode);
 }
@@ -52,12 +56,6 @@ export function getPlayerJoinCode() {
   return localStorage.getItem('player_join_code');
 }
 
-export function clearPlayerSession() {
-  localStorage.removeItem('player_join_code');
-  localStorage.removeItem('display_token');
-}
-
-// Display joins via display token
 export function joinAsDisplay(token) {
   localStorage.setItem('display_token', token);
 }
@@ -67,13 +65,30 @@ export function getDisplayToken() {
 }
 
 // ============================================================
-// ROLE DETECTION
-// Returns: 'dm' | 'player' | 'display' | null
+// ROLE DETECTION — fast, no hanging
 // ============================================================
 export async function detectRole() {
-  const user = await getCurrentUser();
-  if (user) return 'dm';
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) return 'dm';
+  } catch (e) {
+    // session check failed, fall through
+  }
   if (localStorage.getItem('display_token')) return 'display';
   if (localStorage.getItem('player_join_code')) return 'player';
   return null;
+}
+
+// ============================================================
+// PORTRAIT UPLOAD
+// ============================================================
+export async function uploadPortrait(file, playerName) {
+  const ext = file.name.split('.').pop();
+  const filename = `${playerName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.${ext}`;
+  const { error } = await supabase.storage
+    .from('portraits')
+    .upload(filename, file, { upsert: true });
+  if (error) throw error;
+  const { data } = supabase.storage.from('portraits').getPublicUrl(filename);
+  return data.publicUrl;
 }

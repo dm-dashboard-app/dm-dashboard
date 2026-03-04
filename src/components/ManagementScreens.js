@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../supabaseClient';
+import { supabase, uploadPortrait } from '../supabaseClient';
 
 export default function ManagementScreens() {
   const [tab, setTab] = useState('players');
@@ -16,6 +16,33 @@ export default function ManagementScreens() {
       {tab === 'monsters'  && <MonsterTemplateManager />}
       {tab === 'wildshape' && <WildShapeLibrary />}
     </div>
+  );
+}
+
+// ============================================================
+// NUM INPUT — stays empty while typing, converts on blur
+// ============================================================
+function NumInput({ value, onChange, ...props }) {
+  const [draft, setDraft] = useState(value === 0 ? '' : String(value));
+
+  useEffect(() => {
+    setDraft(value === 0 ? '' : String(value));
+  }, [value]);
+
+  return (
+    <input
+      {...props}
+      className="form-input"
+      type="number"
+      value={draft}
+      onChange={e => setDraft(e.target.value)}
+      onBlur={() => {
+        const n = parseInt(draft);
+        const final = isNaN(n) ? 0 : n;
+        setDraft(final === 0 ? '' : String(final));
+        onChange(final);
+      }}
+    />
   );
 }
 
@@ -44,6 +71,7 @@ function PlayerProfileManager() {
   }
 
   async function remove(id) {
+    if (!window.confirm('Delete this player profile?')) return;
     await supabase.from('profiles_players').delete().eq('id', id);
     load();
   }
@@ -79,34 +107,84 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
     slots_max_1: 0, slots_max_2: 0, slots_max_3: 0, slots_max_4: 0, slots_max_5: 0,
     slots_max_6: 0, slots_max_7: 0, slots_max_8: 0, slots_max_9: 0,
     wildshape_enabled: false,
+    portrait_url: '',
     ...initial,
   });
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
 
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
-  const num = (k, v) => set(k, parseInt(v) || 0);
+
+  async function handlePortraitUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!f.name.trim()) {
+      setUploadError('Enter the player name first before uploading a portrait.');
+      return;
+    }
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const url = await uploadPortrait(file, f.name);
+      set('portrait_url', url);
+    } catch (err) {
+      setUploadError('Upload failed: ' + err.message);
+    } finally {
+      setUploading(false);
+    }
+  }
 
   return (
     <div className="profile-form">
-      <Field label="Name"><input className="form-input" value={f.name} onChange={e => set('name', e.target.value)} /></Field>
-      <Field label="Max HP"><input className="form-input" type="number" value={f.max_hp} onChange={e => num('max_hp', e.target.value)} /></Field>
-      <Field label="AC"><input className="form-input" type="number" value={f.ac} onChange={e => num('ac', e.target.value)} /></Field>
-      <Field label="Spell Save DC"><input className="form-input" type="number" value={f.spell_save_dc} onChange={e => num('spell_save_dc', e.target.value)} /></Field>
-      <Field label="Spell Attack Bonus"><input className="form-input" type="number" value={f.spell_attack_bonus} onChange={e => num('spell_attack_bonus', e.target.value)} /></Field>
+      <Field label="Name">
+        <input className="form-input" value={f.name} onChange={e => set('name', e.target.value)} />
+      </Field>
+
+      {/* Portrait upload */}
+      <Field label="Portrait">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {f.portrait_url && (
+            <img src={f.portrait_url} alt="Portrait" style={{ width: 64, height: 80, objectFit: 'cover', borderRadius: 6 }} />
+          )}
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handlePortraitUpload}
+            disabled={uploading}
+            style={{ fontSize: 13 }}
+          />
+          {uploading && <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Uploading…</span>}
+          {uploadError && <span style={{ fontSize: 12, color: 'var(--accent-red)' }}>{uploadError}</span>}
+        </div>
+      </Field>
+
+      <Field label="Max HP">
+        <NumInput value={f.max_hp} onChange={v => set('max_hp', v)} />
+      </Field>
+      <Field label="AC">
+        <NumInput value={f.ac} onChange={v => set('ac', v)} />
+      </Field>
+      <Field label="Spell Save DC">
+        <NumInput value={f.spell_save_dc} onChange={v => set('spell_save_dc', v)} />
+      </Field>
+      <Field label="Spell Attack Bonus">
+        <NumInput value={f.spell_attack_bonus} onChange={v => set('spell_attack_bonus', v)} />
+      </Field>
 
       <div className="panel-title" style={{ marginTop: 12 }}>Saving Throws</div>
       <div className="saves-grid">
         {['str','dex','con','int','wis','cha'].map(s => (
           <div key={s} className="form-group">
             <label className="form-label">{s.toUpperCase()}</label>
-            <input className="form-input" type="number" value={f[`save_${s}`]} onChange={e => num(`save_${s}`, e.target.value)} />
+            <NumInput value={f[`save_${s}`]} onChange={v => set(`save_${s}`, v)} />
           </div>
         ))}
       </div>
 
       <div className="panel-title" style={{ marginTop: 12 }}>Skills</div>
       {['perception','insight','survival'].map(sk => (
-        <Field key={sk} label={sk.charAt(0).toUpperCase()+sk.slice(1)}>
-          <input className="form-input" type="number" value={f[`skill_${sk}`]} onChange={e => num(`skill_${sk}`, e.target.value)} />
+        <Field key={sk} label={sk.charAt(0).toUpperCase() + sk.slice(1)}>
+          <NumInput value={f[`skill_${sk}`]} onChange={v => set(`skill_${sk}`, v)} />
         </Field>
       ))}
 
@@ -115,7 +193,7 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
         {[1,2,3,4,5,6,7,8,9].map(l => (
           <div key={l} className="form-group">
             <label className="form-label">L{l}</label>
-            <input className="form-input" type="number" value={f[`slots_max_${l}`]} onChange={e => num(`slots_max_${l}`, e.target.value)} />
+            <NumInput value={f[`slots_max_${l}`]} onChange={v => set(`slots_max_${l}`, v)} />
           </div>
         ))}
       </div>
@@ -126,7 +204,7 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
       </label>
 
       <div className="form-row" style={{ marginTop: 16 }}>
-        <button className="btn btn-primary" onClick={() => onSave(f)} disabled={!f.name}>Save</button>
+        <button className="btn btn-primary" onClick={() => onSave(f)} disabled={!f.name || uploading}>Save</button>
         <button className="btn btn-ghost" onClick={onCancel}>Cancel</button>
       </div>
     </div>
@@ -158,6 +236,7 @@ function MonsterTemplateManager() {
   }
 
   async function remove(id) {
+    if (!window.confirm('Delete this monster template?')) return;
     await supabase.from('profiles_monsters').delete().eq('id', id);
     load();
   }
@@ -191,10 +270,10 @@ function MonsterForm({ initial, onSave, onCancel }) {
   return (
     <div className="profile-form">
       <Field label="Name"><input className="form-input" value={f.name} onChange={e => set('name', e.target.value)} /></Field>
-      <Field label="AC"><input className="form-input" type="number" value={f.ac} onChange={e => set('ac', parseInt(e.target.value)||0)} /></Field>
-      <Field label="HP Max"><input className="form-input" type="number" value={f.hp_max} onChange={e => set('hp_max', parseInt(e.target.value)||0)} /></Field>
-      <Field label="Initiative Mod"><input className="form-input" type="number" value={f.initiative_mod} onChange={e => set('initiative_mod', parseInt(e.target.value)||0)} /></Field>
-      <Field label="Notes (DM only)"><textarea className="form-input" value={f.notes||''} onChange={e => set('notes', e.target.value)} rows={2} /></Field>
+      <Field label="AC"><NumInput value={f.ac} onChange={v => set('ac', v)} /></Field>
+      <Field label="HP Max"><NumInput value={f.hp_max} onChange={v => set('hp_max', v)} /></Field>
+      <Field label="Initiative Mod"><NumInput value={f.initiative_mod} onChange={v => set('initiative_mod', v)} /></Field>
+      <Field label="Notes (DM only)"><textarea className="form-input" value={f.notes || ''} onChange={e => set('notes', e.target.value)} rows={2} /></Field>
       <div className="form-row" style={{ marginTop: 12 }}>
         <button className="btn btn-primary" onClick={() => onSave(f)} disabled={!f.name}>Save</button>
         <button className="btn btn-ghost" onClick={onCancel}>Cancel</button>
@@ -228,6 +307,7 @@ function WildShapeLibrary() {
   }
 
   async function remove(id) {
+    if (!window.confirm('Delete this wild shape form?')) return;
     await supabase.from('profiles_wildshape').delete().eq('id', id);
     load();
   }
@@ -262,24 +342,23 @@ function WildShapeForm({ initial, onSave, onCancel }) {
     ...initial,
   });
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
-  const num = (k, v) => set(k, parseInt(v)||0);
 
   return (
     <div className="profile-form">
       <Field label="Form Name"><input className="form-input" value={f.form_name} onChange={e => set('form_name', e.target.value)} /></Field>
-      <Field label="AC"><input className="form-input" type="number" value={f.ac} onChange={e => num('ac', e.target.value)} /></Field>
-      <Field label="HP Max"><input className="form-input" type="number" value={f.hp_max} onChange={e => num('hp_max', e.target.value)} /></Field>
+      <Field label="AC"><NumInput value={f.ac} onChange={v => set('ac', v)} /></Field>
+      <Field label="HP Max"><NumInput value={f.hp_max} onChange={v => set('hp_max', v)} /></Field>
       <div className="panel-title" style={{ marginTop: 12 }}>Saving Throws</div>
       <div className="saves-grid">
         {['str','dex','con','int','wis','cha'].map(s => (
           <div key={s} className="form-group">
             <label className="form-label">{s.toUpperCase()}</label>
-            <input className="form-input" type="number" value={f[`save_${s}`]} onChange={e => num(`save_${s}`, e.target.value)} />
+            <NumInput value={f[`save_${s}`]} onChange={v => set(`save_${s}`, v)} />
           </div>
         ))}
       </div>
-      <Field label="Speed (optional)"><input className="form-input" value={f.speed||''} onChange={e => set('speed', e.target.value)} /></Field>
-      <Field label="Notes (optional)"><textarea className="form-input" value={f.notes||''} onChange={e => set('notes', e.target.value)} rows={2} /></Field>
+      <Field label="Speed (optional)"><input className="form-input" value={f.speed || ''} onChange={e => set('speed', e.target.value)} /></Field>
+      <Field label="Notes (optional)"><textarea className="form-input" value={f.notes || ''} onChange={e => set('notes', e.target.value)} rows={2} /></Field>
       <div className="form-row" style={{ marginTop: 12 }}>
         <button className="btn btn-primary" onClick={() => onSave(f)} disabled={!f.form_name}>Save</button>
         <button className="btn btn-ghost" onClick={onCancel}>Cancel</button>
@@ -288,7 +367,6 @@ function WildShapeForm({ initial, onSave, onCancel }) {
   );
 }
 
-// Shared helper
 function Field({ label, children }) {
   return (
     <div className="form-group" style={{ marginBottom: 8 }}>
