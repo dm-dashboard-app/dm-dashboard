@@ -13,7 +13,6 @@ export default function PlayerView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [initiativeInput, setInitiativeInput] = useState('');
-  const [initSubmitted, setInitSubmitted] = useState(false);
 
   const profileId = localStorage.getItem('player_profile_id');
   const encounterId = localStorage.getItem('player_encounter_id');
@@ -32,12 +31,6 @@ export default function PlayerView() {
       const mine = all.find(c => c.owner_player_id === profileId);
       setCombatant(mine || null);
       if (myState.data) setState(myState.data);
-
-      // Pre-fill initiative if already set
-      if (mine?.initiative_total != null) {
-        setInitiativeInput(String(mine.initiative_total));
-        setInitSubmitted(true);
-      }
     } catch (err) {
       setError(err.message);
     }
@@ -62,7 +55,6 @@ export default function PlayerView() {
       .from('combatants')
       .update({ initiative_roll: total, initiative_total: total })
       .eq('id', combatant.id);
-    setInitSubmitted(true);
     refreshAll();
   }
 
@@ -88,7 +80,6 @@ export default function PlayerView() {
       </div>
 
       <div className="main-content">
-        {/* My character card */}
         {combatant && state && (
           <PlayerCard
             combatant={combatant}
@@ -100,48 +91,34 @@ export default function PlayerView() {
           />
         )}
 
-        {/* Initiative entry */}
+        {/* Initiative entry — always visible, type and submit any time */}
         {combatant && (
           <div className="panel">
             <div className="panel-title">Initiative</div>
-            {initSubmitted ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, color: 'var(--accent-blue)' }}>
-                  {combatant.initiative_total ?? '—'}
-                </span>
-                <button
-                  className="btn btn-ghost"
-                  style={{ marginLeft: 'auto', fontSize: 12 }}
-                  onClick={() => setInitSubmitted(false)}
-                >Change</button>
-              </div>
-            ) : (
-              <div className="form-row">
-                <input
-                  className="form-input"
-                  type="number"
-                  placeholder="Enter total…"
-                  value={initiativeInput}
-                  onChange={e => setInitiativeInput(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleSubmitInitiative()}
-                  style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, width: 120, textAlign: 'center' }}
-                />
-                <button
-                  className="btn btn-primary btn-lg"
-                  onClick={handleSubmitInitiative}
-                  disabled={!initiativeInput}
-                >Submit</button>
-              </div>
-            )}
+            <div className="form-row">
+              <input
+                className="form-input"
+                type="number"
+                inputMode="numeric"
+                placeholder="Enter your total…"
+                value={initiativeInput}
+                onChange={e => setInitiativeInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSubmitInitiative()}
+                style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, width: 140, textAlign: 'center' }}
+              />
+              <button
+                className="btn btn-primary btn-lg"
+                onClick={handleSubmitInitiative}
+                disabled={!initiativeInput}
+              >Submit</button>
+            </div>
           </div>
         )}
 
-        {/* Secret rolls */}
         {profileId && encounterId && (
           <SecretRollPanel encounterId={encounterId} playerProfileId={profileId} />
         )}
 
-        {/* Initiative list */}
         <InitiativePanel
           encounter={encounter}
           combatants={combatants}

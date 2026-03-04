@@ -2,16 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
 export default function EncounterSetup({ onEncounterCreated }) {
-  const [name, setName] = useState('');
+  const [name, setName] = useState('Exploration');
   const [players, setPlayers] = useState([]);
   const [monsters, setMonsters] = useState([]);
   const [selectedPlayers, setSelectedPlayers] = useState([]);
-  const [monsterQueue, setMonsterQueue] = useState([]); // [{template, qty}]
+  const [monsterQueue, setMonsterQueue] = useState([]);
   const [saving, setSaving] = useState(false);
   const [joinCodes, setJoinCodes] = useState({});
 
   useEffect(() => {
-    supabase.from('profiles_players').select('*').then(({ data }) => setPlayers(data || []));
+    supabase.from('profiles_players').select('*').then(({ data }) => {
+      const profiles = data || [];
+      setPlayers(profiles);
+      // Auto-select all players by default
+      setSelectedPlayers(profiles.map(p => p.id));
+    });
     supabase.from('profiles_monsters').select('*').then(({ data }) => setMonsters(data || []));
   }, []);
 
@@ -37,7 +42,6 @@ export default function EncounterSetup({ onEncounterCreated }) {
     if (!name.trim()) return;
     setSaving(true);
     try {
-      // Create encounter
       const { data: enc } = await supabase
         .from('encounters')
         .insert({ name: name.trim() })
@@ -46,7 +50,6 @@ export default function EncounterSetup({ onEncounterCreated }) {
 
       const codes = {};
 
-      // Add PC combatants + generate join codes
       for (const pid of selectedPlayers) {
         const profile = players.find(p => p.id === pid);
         if (!profile) continue;
@@ -65,7 +68,6 @@ export default function EncounterSetup({ onEncounterCreated }) {
           .select()
           .single();
 
-        // Init player encounter state
         await supabase.from('player_encounter_state').insert({
           combatant_id: combatant.id,
           encounter_id: enc.id,
@@ -73,7 +75,6 @@ export default function EncounterSetup({ onEncounterCreated }) {
           current_hp: profile.max_hp,
         });
 
-        // Generate join code
         const { data: code } = await supabase.rpc('generate_join_code', {
           p_encounter_id: enc.id,
           p_player_profile_id: pid,
@@ -81,7 +82,6 @@ export default function EncounterSetup({ onEncounterCreated }) {
         codes[profile.name] = code;
       }
 
-      // Add monster combatants
       const LABELS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
       for (const { template, qty } of monsterQueue) {
         for (let i = 0; i < qty; i++) {
