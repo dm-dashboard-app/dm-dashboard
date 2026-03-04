@@ -84,7 +84,12 @@ export async function detectRole() {
 // ============================================================
 export async function uploadPortrait(file, playerName) {
   const ext = file.name.split('.').pop();
-  const filename = `${playerName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.${ext}`;
+  const safeName = playerName
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '-')  // replace anything that isn't a letter or number
+    .replace(/-+/g, '-')          // collapse multiple dashes
+    .replace(/^-|-$/g, '');       // trim leading/trailing dashes
+  const filename = `${safeName}-${Date.now()}.${ext}`;
   const { error } = await supabase.storage
     .from('portraits')
     .upload(filename, file, { upsert: true });

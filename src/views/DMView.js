@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase, signOut } from '../supabaseClient';
 import PlayerCard from '../components/PlayerCard';
 import InitiativePanel from '../components/InitiativePanel';
@@ -10,16 +10,41 @@ export default function DMView() {
   const [encounter, setEncounter] = useState(null);
   const [combatants, setCombatants] = useState([]);
   const [playerStates, setPlayerStates] = useState([]);
-  const [tab, setTab] = useState('combat'); // 'combat' | 'rolls' | 'manage'
+  const [tab, setTab] = useState('combat');
   const [loading, setLoading] = useState(true);
   const [displayToken, setDisplayToken] = useState(null);
+  const [joinCodes, setJoinCodes] = useState([]);
+  const [showJoinCodes, setShowJoinCodes] = useState(false);
 
-  // Load most recent active encounter on mount
   useEffect(() => {
     loadLatestEncounter();
   }, []);
 
-  // Realtime subscriptions
+  const loadCombatants = useCallback(async (encId) => {
+    const { data } = await supabase
+      .from('combatants')
+      .select('*')
+      .eq('encounter_id', encId)
+      .order('initiative_total', { ascending: false });
+    setCombatants(data || []);
+  }, []);
+
+  const loadPlayerStates = useCallback(async (encId) => {
+    const { data } = await supabase
+      .from('player_encounter_state')
+      .select('*, profiles_players(*)')
+      .eq('encounter_id', encId);
+    setPlayerStates(data || []);
+  }, []);
+
+  const loadJoinCodes = useCallback(async (encId) => {
+    const { data } = await supabase
+      .from('player_sessions')
+      .select('join_code, profiles_players(name)')
+      .eq('encounter_id', encId);
+    setJoinCodes(data || []);
+  }, []);
+
   useEffect(() => {
     if (!encounter) return;
 
@@ -44,9 +69,10 @@ export default function DMView() {
     loadCombatants(encounter.id);
     loadPlayerStates(encounter.id);
     loadDisplayToken(encounter.id);
+    loadJoinCodes(encounter.id);
 
     return () => supabase.removeChannel(enc);
-  }, [encounter?.id]);
+  }, [encounter?.id, loadCombatants, loadPlayerStates, loadJoinCodes]);
 
   async function loadLatestEncounter() {
     setLoading(true);
@@ -58,23 +84,6 @@ export default function DMView() {
       .single();
     setEncounter(data || null);
     setLoading(false);
-  }
-
-  async function loadCombatants(encId) {
-    const { data } = await supabase
-      .from('combatants')
-      .select('*')
-      .eq('encounter_id', encId)
-      .order('initiative_total', { ascending: false });
-    setCombatants(data || []);
-  }
-
-  async function loadPlayerStates(encId) {
-    const { data } = await supabase
-      .from('player_encounter_state')
-      .select('*, profiles_players(*)')
-      .eq('encounter_id', encId);
-    setPlayerStates(data || []);
   }
 
   async function loadDisplayToken(encId) {
@@ -118,7 +127,6 @@ export default function DMView() {
 
   if (loading) return <div className="splash"><div className="splash-text">Loading…</div></div>;
 
-  // No encounter yet — show setup
   if (!encounter) {
     return (
       <div className="app-shell">
@@ -127,7 +135,7 @@ export default function DMView() {
           <button className="btn btn-ghost" onClick={signOut}>Sign Out</button>
         </div>
         <div className="main-content">
-          <EncounterSetup onEncounterCreated={setEncounter} />
+          <EncounterSetup onEncounterCreated={enc => { setEncounter(enc); }} />
           <ManagementScreens />
         </div>
       </div>
@@ -142,32 +150,19 @@ export default function DMView() {
       <div className="top-bar">
         <div className="top-bar-round">R{encounter.round}</div>
         <button className="btn btn-primary" onClick={handleNextTurn}>
-          ▶ Next Turn
+          ▶ Next
         </button>
         <span className="top-bar-title">{encounter.name}</span>
-        <button
-          className={`btn btn-ghost`}
-          onClick={handleToggleEditMode}
-          title="Player Edit Mode"
-        >
-          {encounter.player_edit_mode ? '✏️ Edit ON' : '🔒 Edit OFF'}
+        <button className="btn btn-ghost" onClick={handleToggleEditMode} title="Player Edit Mode">
+          {encounter.player_edit_mode ? '✏️' : '🔒'}
         </button>
       </div>
 
       {/* Tab Bar */}
       <div className="tab-bar">
-        <button
-          className={`tab-btn ${tab === 'combat' ? 'active' : ''}`}
-          onClick={() => setTab('combat')}
-        >⚔ Combat</button>
-        <button
-          className={`tab-btn ${tab === 'rolls' ? 'active' : ''}`}
-          onClick={() => setTab('rolls')}
-        >🎲 Secret Rolls</button>
-        <button
-          className={`tab-btn ${tab === 'manage' ? 'active' : ''}`}
-          onClick={() => setTab('manage')}
-        >⚙ Manage</button>
+        <button className={`tab-btn ${tab === 'combat' ? 'active' : ''}`} onClick={() => setTab('combat')}>⚔ Combat</button>
+        <button className={`tab-btn ${tab === 'rolls' ? 'active' : ''}`} onClick={() => setTab('rolls')}>🎲 Rolls</button>
+        <button className={`tab-btn ${tab === 'manage' ? 'active' : ''}`} onClick={() => setTab('manage')}>⚙ Manage</button>
       </div>
 
       <div className="main-content">
@@ -179,14 +174,35 @@ export default function DMView() {
               {displayToken ? (
                 <div className="display-token-row">
                   <span className="display-token-value">{displayToken}</span>
-                  <button className="btn btn-danger" onClick={handleRevokeDisplayToken}>
-                    Revoke
-                  </button>
+                  <button className="btn btn-danger" onClick={handleRevokeDisplayToken}>Revoke</button>
                 </div>
               ) : (
                 <button className="btn btn-ghost" onClick={handleGenerateDisplayToken}>
                   Generate Display Token
                 </button>
+              )}
+            </div>
+
+            {/* Join Codes */}
+            <div className="panel">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="panel-title" style={{ marginBottom: 0 }}>Player Join Codes</div>
+                <button className="btn btn-ghost" onClick={() => setShowJoinCodes(s => !s)}>
+                  {showJoinCodes ? 'Hide' : 'Show'}
+                </button>
+              </div>
+              {showJoinCodes && (
+                <div style={{ marginTop: 12 }}>
+                  {joinCodes.length === 0 && (
+                    <div className="empty-state">No join codes yet. Create an encounter with players first.</div>
+                  )}
+                  {joinCodes.map((s, i) => (
+                    <div key={i} className="join-code-row">
+                      <span className="join-code-name">{s.profiles_players?.name || 'Player'}</span>
+                      <span className="join-code-value">{s.join_code}</span>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
 
@@ -221,7 +237,7 @@ export default function DMView() {
             <div className="panel">
               <div className="panel-title">Encounter</div>
               <div className="form-row">
-                <button className="btn btn-ghost" onClick={() => setEncounter(null)}>
+                <button className="btn btn-ghost" onClick={() => { setEncounter(null); setCombatants([]); setPlayerStates([]); }}>
                   New Encounter
                 </button>
                 <button className="btn btn-ghost" onClick={signOut}>
