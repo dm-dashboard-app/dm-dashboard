@@ -1,40 +1,39 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 
-// Polls a function every `interval` ms while the page is visible.
-// Immediately calls on mount and when page becomes visible again.
 export default function usePolling(fn, interval = 2000, active = true) {
   const fnRef = useRef(fn);
   fnRef.current = fn;
 
+  const tick = useCallback(() => {
+    fnRef.current();
+  }, []);
+
   useEffect(() => {
     if (!active) return;
 
-    let timer;
-
-    function tick() {
-      fnRef.current();
-    }
-
-    function schedule() {
-      timer = setInterval(tick, interval);
-    }
-
-    function handleVisibility() {
-      if (document.visibilityState === 'visible') {
-        tick();         // immediate refresh on unlock
-        schedule();
-      } else {
-        clearInterval(timer);
-      }
-    }
-
+    // Fire immediately
     tick();
-    schedule();
+
+    // Then every interval
+    const timer = setInterval(tick, interval);
+
+    // Fire immediately when tab/phone becomes visible again
+    function handleVisibility() {
+      if (document.visibilityState === 'visible') tick();
+    }
+
+    // Fire when window regains focus (covers phone unlock edge case)
+    function handleFocus() {
+      tick();
+    }
+
     document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', handleFocus);
 
     return () => {
       clearInterval(timer);
       document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', handleFocus);
     };
-  }, [active, interval]);
+  }, [active, interval, tick]);
 }

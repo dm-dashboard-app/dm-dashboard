@@ -97,7 +97,7 @@ export default function DMView() {
       <div className="app-shell">
         <div className="top-bar">
           <span className="top-bar-title">DM Dashboard</span>
-          <button className="btn btn-ghost" onClick={signOut}>Sign Out</button>
+          <button className="btn btn-ghost" onClick={async () => { await signOut(); window.location.reload(); }}>Sign Out</button>
         </div>
         <div className="main-content">
           <EncounterSetup onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); }} />
