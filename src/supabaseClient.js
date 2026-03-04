@@ -30,8 +30,9 @@ export async function signInDM(email, password) {
 }
 
 export async function signOut() {
-  const { error } = await supabase.auth.signOut();
-  if (error) throw error;
+  await supabase.auth.signOut();
+  localStorage.clear();
+  window.location.reload();
 }
 
 // Use getSession() instead of getUser() — reads from localStorage instantly, no network call
@@ -84,12 +85,7 @@ export async function detectRole() {
 // ============================================================
 export async function uploadPortrait(file, playerName) {
   const ext = file.name.split('.').pop();
-  const safeName = playerName
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '-')  // replace anything that isn't a letter or number
-    .replace(/-+/g, '-')          // collapse multiple dashes
-    .replace(/^-|-$/g, '');       // trim leading/trailing dashes
-  const filename = `${safeName}-${Date.now()}.${ext}`;
+  const filename = `${playerName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.${ext}`;
   const { error } = await supabase.storage
     .from('portraits')
     .upload(filename, file, { upsert: true });

@@ -18,23 +18,15 @@ export default function DMView() {
   const [showJoinCodes, setShowJoinCodes] = useState(false);
   const [encounterId, setEncounterId] = useState(null);
 
-  // Load latest encounter on mount
-  useEffect(() => {
-    loadLatestEncounter();
-  }, []);
+  useEffect(() => { loadLatestEncounter(); }, []);
 
   async function loadLatestEncounter() {
     setLoading(true);
     const { data } = await supabase
-      .from('encounters')
-      .select('*')
+      .from('encounters').select('*')
       .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (data) {
-      setEncounter(data);
-      setEncounterId(data.id);
-    }
+      .limit(1).maybeSingle();
+    if (data) { setEncounter(data); setEncounterId(data.id); }
     setLoading(false);
   }
 
@@ -54,7 +46,6 @@ export default function DMView() {
     setJoinCodes(codes.data || []);
   }, [encounterId]);
 
-  // Poll every 2 seconds while an encounter is active
   usePolling(refreshAll, 2000, !!encounterId);
 
   async function handleNextTurn() {
@@ -82,12 +73,9 @@ export default function DMView() {
   }
 
   function handleNewEncounter() {
-    setEncounter(null);
-    setEncounterId(null);
-    setCombatants([]);
-    setPlayerStates([]);
-    setDisplayToken(null);
-    setJoinCodes([]);
+    setEncounter(null); setEncounterId(null);
+    setCombatants([]); setPlayerStates([]);
+    setDisplayToken(null); setJoinCodes([]);
   }
 
   if (loading) return <div className="splash"><div className="splash-text">Loading…</div></div>;
@@ -97,7 +85,7 @@ export default function DMView() {
       <div className="app-shell">
         <div className="top-bar">
           <span className="top-bar-title">DM Dashboard</span>
-          <button className="btn btn-ghost" onClick={async () => { await signOut(); window.location.reload(); }}>Sign Out</button>
+          <button className="btn btn-ghost" onClick={signOut}>Sign Out</button>
         </div>
         <div className="main-content">
           <EncounterSetup onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); }} />
@@ -129,6 +117,31 @@ export default function DMView() {
       <div className="main-content">
         {tab === 'combat' && (
           <>
+            {/* Player Cards */}
+            {pcCombatants.map(c => {
+              const state = playerStates.find(s => s.combatant_id === c.id);
+              return (
+                <PlayerCard
+                  key={c.id}
+                  combatant={c}
+                  state={state}
+                  role="dm"
+                  isEditMode={encounter.player_edit_mode}
+                  encounterId={encounter.id}
+                  onUpdate={refreshAll}
+                />
+              );
+            })}
+
+            {/* Initiative Panel */}
+            <InitiativePanel
+              encounter={encounter}
+              combatants={combatants}
+              role="dm"
+              onUpdate={refreshAll}
+            />
+
+            {/* Session controls — at the bottom */}
             <div className="panel">
               <div className="panel-title">Display Token</div>
               {displayToken ? (
@@ -161,30 +174,7 @@ export default function DMView() {
               )}
             </div>
 
-            {pcCombatants.map(c => {
-              const state = playerStates.find(s => s.combatant_id === c.id);
-              return (
-                <PlayerCard
-                  key={c.id}
-                  combatant={c}
-                  state={state}
-                  role="dm"
-                  isEditMode={encounter.player_edit_mode}
-                  encounterId={encounter.id}
-                  onUpdate={refreshAll}
-                />
-              );
-            })}
-
-            <InitiativePanel
-              encounter={encounter}
-              combatants={combatants}
-              role="dm"
-              onUpdate={refreshAll}
-            />
-
             <div className="panel">
-              <div className="panel-title">Encounter</div>
               <div className="form-row">
                 <button className="btn btn-ghost" onClick={handleNewEncounter}>New Encounter</button>
                 <button className="btn btn-ghost" onClick={signOut}>Sign Out</button>

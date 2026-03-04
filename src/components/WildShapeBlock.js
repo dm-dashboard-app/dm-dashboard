@@ -56,7 +56,7 @@ export default function WildShapeBlock({ state, readOnly, onUpdate }) {
   }
 
   async function adjustUses(delta) {
-    const newUses = Math.max(0, Math.min(4, localUses + delta));
+    const newUses = Math.max(0, Math.min(2, localUses + delta));
     setLocalUses(newUses);
     await supabase.from('player_encounter_state').update({
       wildshape_uses_remaining: newUses,

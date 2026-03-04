@@ -163,7 +163,7 @@ function DisplayJoin({ setMode, onRoleSet }) {
           onChange={e => setToken(e.target.value.toUpperCase())}
           placeholder="ABC123XYZ789" maxLength={12} autoComplete="off" autoCapitalize="characters" />
         <button className="btn btn-primary btn-lg" onClick={handleJoin}
-          disabled={loading || token.length < 6}>
+          disabled={loading || token.length < 4}>
           {loading ? 'Connecting…' : 'Connect Display'}
         </button>
       </div>
