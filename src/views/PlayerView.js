@@ -12,6 +12,8 @@ export default function PlayerView() {
   const [combatants, setCombatants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [initiativeInput, setInitiativeInput] = useState('');
+  const [initSubmitted, setInitSubmitted] = useState(false);
 
   const profileId = localStorage.getItem('player_profile_id');
   const encounterId = localStorage.getItem('player_encounter_id');
@@ -25,10 +27,17 @@ export default function PlayerView() {
         supabase.from('player_encounter_state').select('*, profiles_players(*)').eq('encounter_id', encounterId).eq('player_profile_id', profileId).maybeSingle(),
       ]);
       if (enc.data) setEncounter(enc.data);
-      const allCombatants = combs.data || [];
-      setCombatants(allCombatants);
-      setCombatant(allCombatants.find(c => c.owner_player_id === profileId) || null);
+      const all = combs.data || [];
+      setCombatants(all);
+      const mine = all.find(c => c.owner_player_id === profileId);
+      setCombatant(mine || null);
       if (myState.data) setState(myState.data);
+
+      // Pre-fill initiative if already set
+      if (mine?.initiative_roll != null) {
+        setInitiativeInput(String(mine.initiative_roll));
+        setInitSubmitted(true);
+      }
     } catch (err) {
       setError(err.message);
     }
@@ -44,6 +53,18 @@ export default function PlayerView() {
   }, [refreshAll]);
 
   usePolling(refreshAll, 2000, !!encounterId);
+
+  async function handleSubmitInitiative() {
+    if (!combatant || !initiativeInput) return;
+    const roll = parseInt(initiativeInput);
+    if (isNaN(roll)) return;
+    await supabase
+      .from('combatants')
+      .update({ initiative_roll: roll })
+      .eq('id', combatant.id);
+    setInitSubmitted(true);
+    refreshAll();
+  }
 
   function handleLeave() {
     clearPlayerSession();
@@ -65,7 +86,9 @@ export default function PlayerView() {
         <span className="top-bar-title">{encounter?.name || 'Encounter'}</span>
         <span className="top-bar-round">R{encounter?.round || 1}</span>
       </div>
+
       <div className="main-content">
+        {/* My character card */}
         {combatant && state && (
           <PlayerCard
             combatant={combatant}
@@ -76,15 +99,59 @@ export default function PlayerView() {
             onUpdate={refreshAll}
           />
         )}
+
+        {/* Initiative entry */}
+        {combatant && (
+          <div className="panel">
+            <div className="panel-title">Initiative</div>
+            {initSubmitted ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, color: 'var(--accent-blue)' }}>
+                  {combatant.initiative_total ?? '—'}
+                </span>
+                <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
+                  (roll: {combatant.initiative_roll}, mod: {combatant.initiative_mod >= 0 ? '+' : ''}{combatant.initiative_mod})
+                </span>
+                <button
+                  className="btn btn-ghost"
+                  style={{ marginLeft: 'auto', fontSize: 12 }}
+                  onClick={() => setInitSubmitted(false)}
+                >Change</button>
+              </div>
+            ) : (
+              <div className="form-row">
+                <input
+                  className="form-input"
+                  type="number"
+                  placeholder="Roll d20…"
+                  value={initiativeInput}
+                  onChange={e => setInitiativeInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleSubmitInitiative()}
+                  style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, width: 100, textAlign: 'center' }}
+                />
+                <button
+                  className="btn btn-primary btn-lg"
+                  onClick={handleSubmitInitiative}
+                  disabled={!initiativeInput}
+                >Submit</button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Secret rolls */}
         {profileId && encounterId && (
           <SecretRollPanel encounterId={encounterId} playerProfileId={profileId} />
         )}
+
+        {/* Initiative list */}
         <InitiativePanel
           encounter={encounter}
           combatants={combatants}
           role="player"
           onUpdate={() => {}}
         />
+
         <button className="btn btn-ghost" onClick={handleLeave}>Leave Session</button>
       </div>
     </div>
