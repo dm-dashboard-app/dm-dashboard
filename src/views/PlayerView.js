@@ -34,8 +34,8 @@ export default function PlayerView() {
       if (myState.data) setState(myState.data);
 
       // Pre-fill initiative if already set
-      if (mine?.initiative_roll != null) {
-        setInitiativeInput(String(mine.initiative_roll));
+      if (mine?.initiative_total != null) {
+        setInitiativeInput(String(mine.initiative_total));
         setInitSubmitted(true);
       }
     } catch (err) {
@@ -56,11 +56,11 @@ export default function PlayerView() {
 
   async function handleSubmitInitiative() {
     if (!combatant || !initiativeInput) return;
-    const roll = parseInt(initiativeInput);
-    if (isNaN(roll)) return;
+    const total = parseInt(initiativeInput);
+    if (isNaN(total)) return;
     await supabase
       .from('combatants')
-      .update({ initiative_roll: roll })
+      .update({ initiative_roll: total, initiative_total: total })
       .eq('id', combatant.id);
     setInitSubmitted(true);
     refreshAll();
@@ -109,9 +109,6 @@ export default function PlayerView() {
                 <span style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, color: 'var(--accent-blue)' }}>
                   {combatant.initiative_total ?? '—'}
                 </span>
-                <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
-                  (roll: {combatant.initiative_roll}, mod: {combatant.initiative_mod >= 0 ? '+' : ''}{combatant.initiative_mod})
-                </span>
                 <button
                   className="btn btn-ghost"
                   style={{ marginLeft: 'auto', fontSize: 12 }}
@@ -123,11 +120,11 @@ export default function PlayerView() {
                 <input
                   className="form-input"
                   type="number"
-                  placeholder="Roll d20…"
+                  placeholder="Enter total…"
                   value={initiativeInput}
                   onChange={e => setInitiativeInput(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleSubmitInitiative()}
-                  style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, width: 100, textAlign: 'center' }}
+                  style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, width: 120, textAlign: 'center' }}
                 />
                 <button
                   className="btn btn-primary btn-lg"
