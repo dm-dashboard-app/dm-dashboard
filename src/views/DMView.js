@@ -25,6 +25,7 @@ export default function DMView() {
   const [joinCodes, setJoinCodes] = useState([]);
   const [showJoinCodes, setShowJoinCodes] = useState(false);
   const [encounterId, setEncounterId] = useState(null);
+  const [rollingInit, setRollingInit] = useState(false);
 
   useEffect(() => { loadLatestEncounter(); }, []);
 
@@ -90,6 +91,32 @@ export default function DMView() {
     refreshAll();
   }
 
+  // Roll d20 + initiative_mod for every non-PC combatant that has no initiative yet
+  async function handleRollEnemyInitiative() {
+    const targets = combatants.filter(
+      c => c.side !== 'PC' && c.initiative_total == null
+    );
+    if (targets.length === 0) {
+      const reroll = combatants.filter(c => c.side !== 'PC');
+      if (!window.confirm('All enemies already have initiative. Reroll everyone?')) return;
+      setRollingInit(true);
+      await Promise.all(reroll.map(c => {
+        const roll = Math.floor(Math.random() * 20) + 1 + (c.initiative_mod ?? 0);
+        return supabase.rpc('set_initiative', { p_combatant_id: c.id, p_total: roll });
+      }));
+      setRollingInit(false);
+      refreshAll();
+      return;
+    }
+    setRollingInit(true);
+    await Promise.all(targets.map(c => {
+      const roll = Math.floor(Math.random() * 20) + 1 + (c.initiative_mod ?? 0);
+      return supabase.rpc('set_initiative', { p_combatant_id: c.id, p_total: roll });
+    }));
+    setRollingInit(false);
+    refreshAll();
+  }
+
   function handleNewEncounter() {
     setEncounter(null); setEncounterId(null);
     setCombatants([]); setPlayerStates([]);
@@ -114,6 +141,7 @@ export default function DMView() {
   }
 
   const pcCombatants = combatants.filter(c => c.side === 'PC');
+  const nonPcCount = combatants.filter(c => c.side !== 'PC').length;
 
   return (
     <div className="app-shell">
@@ -195,9 +223,19 @@ export default function DMView() {
             </div>
 
             <div className="panel">
-              <div className="form-row">
+              <div className="form-row" style={{ flexWrap: 'wrap' }}>
                 <button className="btn btn-ghost" onClick={handleNewEncounter}>New Encounter</button>
                 <button className="btn btn-ghost" onClick={handleLongRest}>🌙 Long Rest</button>
+                {nonPcCount > 0 && (
+                  <button
+                    className="btn btn-ghost"
+                    onClick={handleRollEnemyInitiative}
+                    disabled={rollingInit}
+                    title="Roll initiative for all enemies and NPCs"
+                  >
+                    {rollingInit ? 'Rolling…' : '🎲 Roll Enemy Init'}
+                  </button>
+                )}
                 <button className="btn btn-ghost" onClick={signOut}>Sign Out</button>
               </div>
             </div>

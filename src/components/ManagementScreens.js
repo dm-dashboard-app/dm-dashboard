@@ -7,9 +7,9 @@ export default function ManagementScreens() {
   return (
     <div className="panel">
       <div className="panel-title">Manage</div>
-      <div className="tab-bar">
+      <div className="tab-bar" style={{ position: 'static' }}>
         <button className={`tab-btn ${tab === 'players' ? 'active' : ''}`} onClick={() => setTab('players')}>Players</button>
-        <button className={`tab-btn ${tab === 'monsters' ? 'active' : ''}`} onClick={() => setTab('monsters')}>Monsters</button>
+        <button className={`tab-btn ${tab === 'monsters' ? 'active' : ''}`} onClick={() => setTab('monsters')}>Monsters & NPCs</button>
         <button className={`tab-btn ${tab === 'wildshape' ? 'active' : ''}`} onClick={() => setTab('wildshape')}>Wild Shape</button>
       </div>
       {tab === 'players'   && <PlayerProfileManager />}
@@ -43,6 +43,9 @@ function NumInput({ value, onChange, ...props }) {
   );
 }
 
+// ============================================================
+// PLAYER PROFILE MANAGER
+// ============================================================
 function PlayerProfileManager() {
   const [profiles, setProfiles] = useState([]);
   const [editing, setEditing] = useState(null);
@@ -133,7 +136,6 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
       <Field label="Name">
         <input className="form-input" value={f.name} onChange={e => set('name', e.target.value)} />
       </Field>
-
       <Field label="Portrait">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {f.portrait_url && (
@@ -144,12 +146,10 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
           {uploadError && <span style={{ fontSize: 12, color: 'var(--accent-red)' }}>{uploadError}</span>}
         </div>
       </Field>
-
       <Field label="Max HP"><NumInput value={f.max_hp} onChange={v => set('max_hp', v)} /></Field>
       <Field label="AC"><NumInput value={f.ac} onChange={v => set('ac', v)} /></Field>
       <Field label="Spell Save DC"><NumInput value={f.spell_save_dc} onChange={v => set('spell_save_dc', v)} /></Field>
       <Field label="Spell Attack Bonus"><NumInput value={f.spell_attack_bonus} onChange={v => set('spell_attack_bonus', v)} /></Field>
-
       <div className="panel-title" style={{ marginTop: 12 }}>Saving Throws</div>
       <div className="saves-grid">
         {['str','dex','con','int','wis','cha'].map(s => (
@@ -159,14 +159,12 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
           </div>
         ))}
       </div>
-
       <div className="panel-title" style={{ marginTop: 12 }}>Skills</div>
       {['perception', 'insight', 'investigation', 'survival'].map(sk => (
         <Field key={sk} label={sk.charAt(0).toUpperCase() + sk.slice(1)}>
           <NumInput value={f[`skill_${sk}`] ?? 0} onChange={v => set(`skill_${sk}`, v)} />
         </Field>
       ))}
-
       <div className="panel-title" style={{ marginTop: 12 }}>Spell Slots (max per level)</div>
       <div className="saves-grid">
         {[1,2,3,4,5,6,7,8,9].map(l => (
@@ -176,12 +174,10 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
           </div>
         ))}
       </div>
-
       <label className="checkbox-row" style={{ marginTop: 12 }}>
         <input type="checkbox" checked={f.wildshape_enabled} onChange={e => set('wildshape_enabled', e.target.checked)} />
         <span>Wild Shape Enabled</span>
       </label>
-
       <div className="form-row" style={{ marginTop: 16 }}>
         <button className="btn btn-primary" onClick={() => onSave(f)} disabled={!f.name || uploading}>Save</button>
         <button className="btn btn-ghost" onClick={onCancel}>Cancel</button>
@@ -190,9 +186,13 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
   );
 }
 
+// ============================================================
+// MONSTER / NPC TEMPLATE MANAGER
+// ============================================================
 function MonsterTemplateManager() {
   const [monsters, setMonsters] = useState([]);
   const [editing, setEditing] = useState(null);
+  const [filter, setFilter] = useState('ALL');
 
   useEffect(() => { load(); }, []);
 
@@ -212,7 +212,7 @@ function MonsterTemplateManager() {
   }
 
   async function remove(id) {
-    if (!window.confirm('Delete this monster template?')) return;
+    if (!window.confirm('Delete this template?')) return;
     await supabase.from('profiles_monsters').delete().eq('id', id);
     load();
   }
@@ -221,30 +221,67 @@ function MonsterTemplateManager() {
     return <MonsterForm initial={editing} onSave={save} onCancel={() => setEditing(null)} />;
   }
 
+  const filtered = filter === 'ALL' ? monsters : monsters.filter(m => m.side === filter);
+
   return (
     <div>
-      {monsters.map(m => (
+      {/* Filter tabs */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, marginTop: 8 }}>
+        {['ALL', 'ENEMY', 'NPC'].map(f => (
+          <button
+            key={f}
+            className={`btn btn-ghost`}
+            style={{
+              fontSize: 11, padding: '2px 10px',
+              borderColor: filter === f ? 'var(--accent-blue)' : 'var(--border)',
+              color: filter === f ? 'var(--accent-blue)' : 'var(--text-secondary)',
+            }}
+            onClick={() => setFilter(f)}
+          >{f}</button>
+        ))}
+      </div>
+      {filtered.map(m => (
         <div key={m.id} className="manage-row">
-          <span>{m.name} — AC {m.ac}, HP {m.hp_max}</span>
+          <span>
+            <span className={`badge badge-${(m.side || 'ENEMY').toLowerCase()}`} style={{ marginRight: 6 }}>{m.side || 'ENEMY'}</span>
+            {m.name} — AC {m.ac}, HP {m.hp_max}
+          </span>
           <div className="form-row">
             <button className="btn btn-ghost" onClick={() => setEditing(m)}>Edit</button>
             <button className="btn btn-danger" onClick={() => remove(m.id)}>Delete</button>
           </div>
         </div>
       ))}
-      <button className="btn btn-primary" style={{ marginTop: 12 }} onClick={() => setEditing({})}>
-        + New Monster
-      </button>
+      <div className="form-row" style={{ marginTop: 12 }}>
+        <button className="btn btn-primary" onClick={() => setEditing({ side: 'ENEMY' })}>+ New Enemy</button>
+        <button className="btn btn-ghost" onClick={() => setEditing({ side: 'NPC' })}>+ New NPC</button>
+      </div>
     </div>
   );
 }
 
 function MonsterForm({ initial, onSave, onCancel }) {
-  const [f, setF] = useState({ name: '', ac: 10, hp_max: 10, initiative_mod: 0, notes: '', ...initial });
+  const [f, setF] = useState({ name: '', ac: 10, hp_max: 10, initiative_mod: 0, notes: '', side: 'ENEMY', ...initial });
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
 
   return (
     <div className="profile-form">
+      <Field label="Type">
+        <div style={{ display: 'flex', gap: 8 }}>
+          {['ENEMY', 'NPC'].map(s => (
+            <button
+              key={s}
+              className="btn btn-ghost"
+              style={{
+                flex: 1,
+                borderColor: f.side === s ? 'var(--accent-blue)' : 'var(--border)',
+                color: f.side === s ? 'var(--accent-blue)' : 'var(--text-secondary)',
+              }}
+              onClick={() => set('side', s)}
+            >{s}</button>
+          ))}
+        </div>
+      </Field>
       <Field label="Name"><input className="form-input" value={f.name} onChange={e => set('name', e.target.value)} /></Field>
       <Field label="AC"><NumInput value={f.ac} onChange={v => set('ac', v)} /></Field>
       <Field label="HP Max"><NumInput value={f.hp_max} onChange={v => set('hp_max', v)} /></Field>
@@ -258,6 +295,9 @@ function MonsterForm({ initial, onSave, onCancel }) {
   );
 }
 
+// ============================================================
+// WILD SHAPE LIBRARY
+// ============================================================
 function WildShapeLibrary() {
   const [forms, setForms] = useState([]);
   const [editing, setEditing] = useState(null);

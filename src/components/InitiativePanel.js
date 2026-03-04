@@ -43,29 +43,18 @@ function MiniHpBar({ current, max, tempHp = 0, color = null, label = null }) {
         </span>
       )}
       <div style={{
-        height: 5,
-        background: 'var(--bg-panel-3)',
-        borderRadius: 3,
-        overflow: 'hidden',
-        position: 'relative',
+        height: 5, background: 'var(--bg-panel-3)', borderRadius: 3,
+        overflow: 'hidden', position: 'relative',
       }}>
         <div style={{
-          height: '100%',
-          width: `${pct}%`,
-          background: barColor,
-          borderRadius: 3,
-          transition: 'width 0.3s ease',
+          height: '100%', width: `${pct}%`, background: barColor,
+          borderRadius: 3, transition: 'width 0.3s ease',
         }} />
         {tempHp > 0 && max > 0 && (
           <div style={{
-            position: 'absolute',
-            top: 0,
-            left: `${pct}%`,
+            position: 'absolute', top: 0, left: `${pct}%`,
             width: `${Math.min(100 - pct, (tempHp / max) * 100)}%`,
-            height: '100%',
-            background: 'var(--hp-temp)',
-            opacity: 0.7,
-            borderRadius: 3,
+            height: '100%', background: 'var(--hp-temp)', opacity: 0.7, borderRadius: 3,
           }} />
         )}
       </div>
@@ -120,9 +109,7 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
 
   useEffect(() => {
     if (!isFocused.current) {
-      setInputValue(
-        combatant.initiative_total != null ? String(combatant.initiative_total) : ''
-      );
+      setInputValue(combatant.initiative_total != null ? String(combatant.initiative_total) : '');
     }
   }, [combatant.initiative_total]);
 
@@ -130,7 +117,6 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
   const isEnemy = combatant.side === 'ENEMY' || combatant.side === 'NPC';
   const conditions = combatant.conditions || [];
 
-  // PC data from playerState
   const pcHpCurrent = playerState?.current_hp ?? null;
   const pcHpMax = playerState?.profiles_players?.max_hp ?? null;
   const tempHp = playerState?.temp_hp ?? 0;
@@ -138,17 +124,11 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
   const reactionUsed = playerState?.reaction_used ?? false;
   const displayConditions = isPC ? (playerState?.conditions || []) : conditions;
 
-  // Wild shape
   const wsActive = playerState?.wildshape_active ?? false;
   const wsHpCurrent = playerState?.wildshape_hp_current ?? 0;
-  const wsFormId = playerState?.wildshape_form_id ?? null;
-  // We don't have form details here, but we can show HP relative to a stored max
-  // playerState doesn't carry form name/max directly — use profiles_players join if available
-  // We'll read it from the nested join if present
-  const wsFormName = playerState?.wildshape_form_name ?? null; // may not exist
-  const wsHpMax = playerState?.wildshape_hp_max ?? null; // may not exist
+  const wsFormName = playerState?.wildshape_form_name ?? null;
+  const wsHpMax = playerState?.wildshape_hp_max ?? null;
 
-  // Enemy HP — DM only
   const enemyHpCurrent = combatant.hp_current ?? null;
   const enemyHpMax = combatant.hp_max ?? null;
 
@@ -187,8 +167,6 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
 
   return (
     <div className={`initiative-row ${isActive ? 'active-turn' : ''}`} style={{ display: 'block', padding: '8px 12px' }}>
-
-      {/* Name row */}
       <div className="initiative-row-main" onClick={() => isDM && isEnemy && setExpanded(e => !e)}>
         {isDM ? (
           <input
@@ -205,7 +183,6 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
         ) : (
           <span className="initiative-number">{combatant.initiative_total ?? '—'}</span>
         )}
-
         <div className="initiative-name-block">
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
             <span className="initiative-name">{combatant.name}</span>
@@ -214,73 +191,32 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
             {wsActive && <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3, background: '#1a3a1a', color: 'var(--accent-green)' }}>🐻 BEAST</span>}
           </div>
         </div>
-
         {isDM && isEnemy && <span className="expand-toggle">{expanded ? '▲' : '▼'}</span>}
       </div>
 
-      {/* HP bars + status */}
       {(showPcHp || showEnemyHp) && (
         <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
-
-          {/* Wild shape bar — shown first when active, takes visual priority */}
           {isPC && wsActive && wsHpMax != null && (
-            <MiniHpBar
-              current={wsHpCurrent}
-              max={wsHpMax}
-              color="var(--accent-green)"
-              label={wsFormName ? `🐻 ${wsFormName}` : '🐻 Beast Form'}
-            />
+            <MiniHpBar current={wsHpCurrent} max={wsHpMax} color="var(--accent-green)" label={wsFormName ? `🐻 ${wsFormName}` : '🐻 Beast Form'} />
           )}
-
-          {/* Normal HP bar — always shown for PCs and DM enemies */}
-          {showPcHp && (
-            <MiniHpBar
-              current={pcHpCurrent}
-              max={pcHpMax}
-              tempHp={tempHp}
-              label={wsActive ? 'Player HP' : null}
-            />
-          )}
-          {showEnemyHp && (
-            <MiniHpBar current={enemyHpCurrent} max={enemyHpMax} />
-          )}
-
-          {/* Status icons row */}
+          {showPcHp && <MiniHpBar current={pcHpCurrent} max={pcHpMax} tempHp={tempHp} label={wsActive ? 'Player HP' : null} />}
+          {showEnemyHp && <MiniHpBar current={enemyHpCurrent} max={enemyHpMax} />}
           {isPC && (
             <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
-              {concentration && (
-                <span style={{ fontSize: 10, color: 'var(--accent-gold)', fontWeight: 700 }}>🔮CON</span>
-              )}
-              <span style={{
-                fontSize: 10,
-                color: reactionUsed ? 'var(--text-muted)' : 'var(--accent-gold)',
-                opacity: reactionUsed ? 0.4 : 1,
-              }}>⚡</span>
+              {concentration && <span style={{ fontSize: 10, color: 'var(--accent-gold)', fontWeight: 700 }}>🔮CON</span>}
+              <span style={{ fontSize: 10, color: reactionUsed ? 'var(--text-muted)' : 'var(--accent-gold)', opacity: reactionUsed ? 0.4 : 1 }}>⚡</span>
               {displayConditions.filter(c => !c.startsWith('EXH')).map(code => (
-                <span key={code} style={{
-                  fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3,
-                  background: CONDITION_COLOURS[code] || 'var(--cond-default)',
-                  color: 'var(--text-primary)',
-                }}>{code}</span>
+                <span key={code} style={{ fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3, background: CONDITION_COLOURS[code] || 'var(--cond-default)', color: 'var(--text-primary)' }}>{code}</span>
               ))}
               {displayConditions.filter(c => c.startsWith('EXH')).map(code => (
-                <span key={code} style={{
-                  fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3,
-                  background: '#2a1a3a', color: 'var(--accent-purple)',
-                }}>{code}</span>
+                <span key={code} style={{ fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3, background: '#2a1a3a', color: 'var(--accent-purple)' }}>{code}</span>
               ))}
             </div>
           )}
-
-          {/* Enemy conditions (DM only) */}
           {isEnemy && isDM && conditions.length > 0 && (
             <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
               {conditions.map(code => (
-                <span key={code} style={{
-                  fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3,
-                  background: CONDITION_COLOURS[code] || 'var(--cond-default)',
-                  color: 'var(--text-primary)', cursor: 'pointer',
-                }}
+                <span key={code} style={{ fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3, background: CONDITION_COLOURS[code] || 'var(--cond-default)', color: 'var(--text-primary)', cursor: 'pointer' }}
                   onClick={e => { e.stopPropagation(); toggleCondition(code); }}
                 >{code}</span>
               ))}
@@ -289,7 +225,6 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
         </div>
       )}
 
-      {/* Enemy DM expand controls */}
       {isDM && isEnemy && expanded && (
         <div className="monster-dm-controls">
           <div className="hp-controls" style={{ marginBottom: 8 }}>
@@ -304,9 +239,7 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
             {condPickerOpen && (
               <div className="condition-picker" style={{ marginTop: 6 }}>
                 {CONDITIONS.map(({ code }) => (
-                  <button
-                    key={code}
-                    className={`condition-picker-btn ${conditions.includes(code) ? 'active' : ''}`}
+                  <button key={code} className={`condition-picker-btn ${conditions.includes(code) ? 'active' : ''}`}
                     style={{ background: conditions.includes(code) ? CONDITION_COLOURS[code] : undefined }}
                     onClick={() => toggleCondition(code)}
                   >{code}</button>
@@ -324,6 +257,12 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
 
 function AddCombatantInline({ encounterId, onUpdate }) {
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState('template'); // 'template' | 'manual'
+  const [templates, setTemplates] = useState([]);
+  const [templateFilter, setTemplateFilter] = useState('ALL');
+  const [adding, setAdding] = useState(false);
+
+  // Manual fields
   const [name, setName] = useState('');
   const [ac, setAc] = useState(10);
   const [hp, setHp] = useState(10);
@@ -331,7 +270,31 @@ function AddCombatantInline({ encounterId, onUpdate }) {
   const [side, setSide] = useState('ENEMY');
   const [saving, setSaving] = useState(false);
 
-  async function handleAdd() {
+  useEffect(() => {
+    if (open && mode === 'template') {
+      supabase.from('profiles_monsters').select('*').order('name').then(({ data }) => {
+        setTemplates(data || []);
+      });
+    }
+  }, [open, mode]);
+
+  async function addFromTemplate(template) {
+    setAdding(true);
+    await supabase.from('combatants').insert({
+      encounter_id: encounterId,
+      name: template.name,
+      side: template.side || 'ENEMY',
+      ac: template.ac,
+      hp_max: template.hp_max,
+      hp_current: template.hp_max,
+      initiative_mod: template.initiative_mod || 0,
+      notes: template.notes || null,
+    });
+    setAdding(false);
+    onUpdate();
+  }
+
+  async function addManual() {
     if (!name.trim()) return;
     setSaving(true);
     await supabase.from('combatants').insert({
@@ -345,43 +308,86 @@ function AddCombatantInline({ encounterId, onUpdate }) {
     });
     setName(''); setAc(10); setHp(10); setMod(0);
     setSaving(false);
-    setOpen(false);
     onUpdate();
   }
 
-  if (!open) return <button className="btn btn-ghost" onClick={() => setOpen(true)}>+ Add Combatant</button>;
+  if (!open) return (
+    <button className="btn btn-ghost" onClick={() => setOpen(true)}>+ Add Combatant</button>
+  );
+
+  const filteredTemplates = templateFilter === 'ALL'
+    ? templates
+    : templates.filter(t => t.side === templateFilter);
 
   return (
     <div className="add-combatant-form">
-      <input className="form-input" placeholder="Name" value={name} onChange={e => setName(e.target.value)} />
-      <div className="form-row">
-        <div className="form-group">
-          <label className="form-label">Side</label>
-          <select className="form-input" value={side} onChange={e => setSide(e.target.value)}>
-            <option value="ENEMY">Enemy</option>
-            <option value="NPC">NPC</option>
-            <option value="PC">PC</option>
-          </select>
-        </div>
-        <div className="form-group">
-          <label className="form-label">AC</label>
-          <input className="form-input" type="number" value={ac} onChange={e => setAc(e.target.value)} />
-        </div>
-        <div className="form-group">
-          <label className="form-label">HP</label>
-          <input className="form-input" type="number" value={hp} onChange={e => setHp(e.target.value)} />
-        </div>
-        <div className="form-group">
-          <label className="form-label">Init Mod</label>
-          <input className="form-input" type="number" value={mod} onChange={e => setMod(e.target.value)} />
-        </div>
+      {/* Mode toggle */}
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button className="btn btn-ghost" style={{ flex: 1, borderColor: mode === 'template' ? 'var(--accent-blue)' : 'var(--border)', color: mode === 'template' ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
+          onClick={() => setMode('template')}>From Template</button>
+        <button className="btn btn-ghost" style={{ flex: 1, borderColor: mode === 'manual' ? 'var(--accent-blue)' : 'var(--border)', color: mode === 'manual' ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
+          onClick={() => setMode('manual')}>Manual</button>
+        <button className="btn btn-ghost btn-icon" onClick={() => setOpen(false)}>✕</button>
       </div>
-      <div className="form-row">
-        <button className="btn btn-primary" onClick={handleAdd} disabled={saving || !name.trim()}>
-          {saving ? 'Adding…' : 'Add'}
-        </button>
-        <button className="btn btn-ghost" onClick={() => setOpen(false)}>Cancel</button>
-      </div>
+
+      {mode === 'template' && (
+        <>
+          {/* Filter */}
+          <div style={{ display: 'flex', gap: 6 }}>
+            {['ALL', 'ENEMY', 'NPC'].map(f => (
+              <button key={f} className="btn btn-ghost"
+                style={{ fontSize: 11, padding: '2px 8px', borderColor: templateFilter === f ? 'var(--accent-blue)' : 'var(--border)', color: templateFilter === f ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
+                onClick={() => setTemplateFilter(f)}>{f}</button>
+            ))}
+          </div>
+          {templates.length === 0 && <div className="empty-state">No templates yet. Add them in Manage.</div>}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 240, overflowY: 'auto' }}>
+            {filteredTemplates.map(t => (
+              <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-panel-2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '6px 10px' }}>
+                <div>
+                  <span className={`badge badge-${(t.side || 'enemy').toLowerCase()}`} style={{ marginRight: 6 }}>{t.side || 'ENEMY'}</span>
+                  <span style={{ fontSize: 13, fontWeight: 600 }}>{t.name}</span>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>AC {t.ac} HP {t.hp_max}</span>
+                </div>
+                <button className="btn btn-primary btn-icon" onClick={() => addFromTemplate(t)} disabled={adding} style={{ fontSize: 16, minWidth: 32, minHeight: 32 }}>+</button>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {mode === 'manual' && (
+        <>
+          <input className="form-input" placeholder="Name" value={name} onChange={e => setName(e.target.value)} />
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Side</label>
+              <select className="form-input" value={side} onChange={e => setSide(e.target.value)}>
+                <option value="ENEMY">Enemy</option>
+                <option value="NPC">NPC</option>
+                <option value="PC">PC</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">AC</label>
+              <input className="form-input" type="number" value={ac} onChange={e => setAc(e.target.value)} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">HP</label>
+              <input className="form-input" type="number" value={hp} onChange={e => setHp(e.target.value)} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Init Mod</label>
+              <input className="form-input" type="number" value={mod} onChange={e => setMod(e.target.value)} />
+            </div>
+          </div>
+          <div className="form-row">
+            <button className="btn btn-primary" onClick={addManual} disabled={saving || !name.trim()}>
+              {saving ? 'Adding…' : 'Add'}
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
