@@ -5,6 +5,14 @@ import PlayerCard from '../components/PlayerCard';
 import InitiativePanel from '../components/InitiativePanel';
 import SecretRollPanel from '../components/SecretRollPanel';
 
+function flattenStates(data) {
+  return (data || []).map(s => ({
+    ...s,
+    wildshape_form_name: s.profiles_wildshape?.form_name ?? null,
+    wildshape_hp_max: s.profiles_wildshape?.hp_max ?? null,
+  }));
+}
+
 export default function PlayerView() {
   const [encounter, setEncounter] = useState(null);
   const [combatant, setCombatant] = useState(null);
@@ -26,16 +34,18 @@ export default function PlayerView() {
       const [enc, combs, allStates] = await Promise.all([
         supabase.from('encounters').select('*').eq('id', encounterId).maybeSingle(),
         supabase.from('combatants').select('*').eq('encounter_id', encounterId).order('initiative_total', { ascending: false }),
-        supabase.from('player_encounter_state').select('*, profiles_players(*)').eq('encounter_id', encounterId),
+        supabase.from('player_encounter_state')
+          .select('*, profiles_players(*), profiles_wildshape(form_name, hp_max)')
+          .eq('encounter_id', encounterId),
       ]);
       if (enc.data) setEncounter(enc.data);
       const all = combs.data || [];
       setCombatants(all);
-      const states = allStates.data || [];
-      setPlayerStates(states);
+      const flat = flattenStates(allStates.data);
+      setPlayerStates(flat);
       const mine = all.find(c => c.owner_player_id === profileId);
       setCombatant(mine || null);
-      const myState = states.find(s => s.player_profile_id === profileId);
+      const myState = flat.find(s => s.player_profile_id === profileId);
       if (myState) setState(myState);
     } catch (err) {
       setError(err.message);

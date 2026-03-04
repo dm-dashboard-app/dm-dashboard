@@ -7,6 +7,14 @@ import SecretRollInbox from '../components/SecretRollInbox';
 import EncounterSetup from '../components/EncounterSetup';
 import ManagementScreens from '../components/ManagementScreens';
 
+function flattenStates(data) {
+  return (data || []).map(s => ({
+    ...s,
+    wildshape_form_name: s.profiles_wildshape?.form_name ?? null,
+    wildshape_hp_max: s.profiles_wildshape?.hp_max ?? null,
+  }));
+}
+
 export default function DMView() {
   const [encounter, setEncounter] = useState(null);
   const [combatants, setCombatants] = useState([]);
@@ -36,13 +44,15 @@ export default function DMView() {
       supabase.from('encounters').select('*').eq('id', encounterId).maybeSingle(),
       supabase.from('combatants').select('*').eq('encounter_id', encounterId)
         .order('initiative_total', { ascending: false, nullsFirst: false }),
-      supabase.from('player_encounter_state').select('*, profiles_players(*)').eq('encounter_id', encounterId),
+      supabase.from('player_encounter_state')
+        .select('*, profiles_players(*), profiles_wildshape(form_name, hp_max)')
+        .eq('encounter_id', encounterId),
       supabase.from('display_sessions').select('token').eq('encounter_id', encounterId).maybeSingle(),
       supabase.from('player_sessions').select('join_code, profiles_players(name)').eq('encounter_id', encounterId),
     ]);
     if (enc.data) setEncounter(enc.data);
     setCombatants(comb.data || []);
-    setPlayerStates(states.data || []);
+    setPlayerStates(flattenStates(states.data));
     setDisplayToken(token.data?.token || null);
     setJoinCodes(codes.data || []);
   }, [encounterId]);

@@ -4,6 +4,14 @@ import usePolling from '../hooks/usePolling';
 import PlayerCard from '../components/PlayerCard';
 import InitiativePanel from '../components/InitiativePanel';
 
+function flattenStates(data) {
+  return (data || []).map(s => ({
+    ...s,
+    wildshape_form_name: s.profiles_wildshape?.form_name ?? null,
+    wildshape_hp_max: s.profiles_wildshape?.hp_max ?? null,
+  }));
+}
+
 export default function DisplayView() {
   const [encounter, setEncounter] = useState(null);
   const [combatants, setCombatants] = useState([]);
@@ -19,11 +27,13 @@ export default function DisplayView() {
       const [enc, combs, states] = await Promise.all([
         supabase.from('encounters').select('*').eq('id', encounterId).maybeSingle(),
         supabase.from('combatants').select('*').eq('encounter_id', encounterId).order('initiative_total', { ascending: false }),
-        supabase.from('player_encounter_state').select('*, profiles_players(*)').eq('encounter_id', encounterId),
+        supabase.from('player_encounter_state')
+          .select('*, profiles_players(*), profiles_wildshape(form_name, hp_max)')
+          .eq('encounter_id', encounterId),
       ]);
       if (enc.data) setEncounter(enc.data);
       setCombatants(combs.data || []);
-      setPlayerStates(states.data || []);
+      setPlayerStates(flattenStates(states.data));
     } catch (err) {
       setError(err.message);
     }
@@ -67,14 +77,9 @@ export default function DisplayView() {
             onClick={() => { clearPlayerSession(); window.location.reload(); }}
             title="Exit Display Mode"
             style={{
-              opacity: 0.2,
-              fontSize: 11,
-              color: 'var(--text-muted)',
-              padding: '2px 6px',
-              border: '1px solid var(--border)',
-              borderRadius: 4,
-              cursor: 'pointer',
-              transition: 'opacity 0.2s',
+              opacity: 0.2, fontSize: 11, color: 'var(--text-muted)',
+              padding: '2px 6px', border: '1px solid var(--border)',
+              borderRadius: 4, cursor: 'pointer', transition: 'opacity 0.2s',
             }}
             onMouseEnter={e => e.target.style.opacity = 0.8}
             onMouseLeave={e => e.target.style.opacity = 0.2}

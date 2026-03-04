@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 
-const SKILLS = ['perception', 'insight', 'survival'];
+const SKILLS = ['perception', 'insight', 'investigation', 'survival'];
 
 export default function SecretRollPanel({ encounterId, playerProfileId }) {
   const [sent, setSent] = useState({});

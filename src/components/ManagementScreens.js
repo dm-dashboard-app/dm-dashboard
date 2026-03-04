@@ -19,9 +19,6 @@ export default function ManagementScreens() {
   );
 }
 
-// ============================================================
-// NUM INPUT — stays empty while typing, converts on blur
-// ============================================================
 function NumInput({ value, onChange, ...props }) {
   const [draft, setDraft] = useState(value === 0 ? '' : String(value));
 
@@ -46,9 +43,6 @@ function NumInput({ value, onChange, ...props }) {
   );
 }
 
-// ============================================================
-// PLAYER PROFILE MANAGER
-// ============================================================
 function PlayerProfileManager() {
   const [profiles, setProfiles] = useState([]);
   const [editing, setEditing] = useState(null);
@@ -103,7 +97,7 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
     name: '', max_hp: 10, ac: 10,
     save_str: 0, save_dex: 0, save_con: 0, save_int: 0, save_wis: 0, save_cha: 0,
     spell_save_dc: 8, spell_attack_bonus: 0,
-    skill_perception: 0, skill_insight: 0, skill_survival: 0,
+    skill_perception: 0, skill_insight: 0, skill_investigation: 0, skill_survival: 0,
     slots_max_1: 0, slots_max_2: 0, slots_max_3: 0, slots_max_4: 0, slots_max_5: 0,
     slots_max_6: 0, slots_max_7: 0, slots_max_8: 0, slots_max_9: 0,
     wildshape_enabled: false,
@@ -140,36 +134,21 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
         <input className="form-input" value={f.name} onChange={e => set('name', e.target.value)} />
       </Field>
 
-      {/* Portrait upload */}
       <Field label="Portrait">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {f.portrait_url && (
             <img src={f.portrait_url} alt="Portrait" style={{ width: 64, height: 80, objectFit: 'cover', borderRadius: 6 }} />
           )}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handlePortraitUpload}
-            disabled={uploading}
-            style={{ fontSize: 13 }}
-          />
+          <input type="file" accept="image/*" onChange={handlePortraitUpload} disabled={uploading} style={{ fontSize: 13 }} />
           {uploading && <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Uploading…</span>}
           {uploadError && <span style={{ fontSize: 12, color: 'var(--accent-red)' }}>{uploadError}</span>}
         </div>
       </Field>
 
-      <Field label="Max HP">
-        <NumInput value={f.max_hp} onChange={v => set('max_hp', v)} />
-      </Field>
-      <Field label="AC">
-        <NumInput value={f.ac} onChange={v => set('ac', v)} />
-      </Field>
-      <Field label="Spell Save DC">
-        <NumInput value={f.spell_save_dc} onChange={v => set('spell_save_dc', v)} />
-      </Field>
-      <Field label="Spell Attack Bonus">
-        <NumInput value={f.spell_attack_bonus} onChange={v => set('spell_attack_bonus', v)} />
-      </Field>
+      <Field label="Max HP"><NumInput value={f.max_hp} onChange={v => set('max_hp', v)} /></Field>
+      <Field label="AC"><NumInput value={f.ac} onChange={v => set('ac', v)} /></Field>
+      <Field label="Spell Save DC"><NumInput value={f.spell_save_dc} onChange={v => set('spell_save_dc', v)} /></Field>
+      <Field label="Spell Attack Bonus"><NumInput value={f.spell_attack_bonus} onChange={v => set('spell_attack_bonus', v)} /></Field>
 
       <div className="panel-title" style={{ marginTop: 12 }}>Saving Throws</div>
       <div className="saves-grid">
@@ -182,9 +161,9 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
       </div>
 
       <div className="panel-title" style={{ marginTop: 12 }}>Skills</div>
-      {['perception','insight','survival'].map(sk => (
+      {['perception', 'insight', 'investigation', 'survival'].map(sk => (
         <Field key={sk} label={sk.charAt(0).toUpperCase() + sk.slice(1)}>
-          <NumInput value={f[`skill_${sk}`]} onChange={v => set(`skill_${sk}`, v)} />
+          <NumInput value={f[`skill_${sk}`] ?? 0} onChange={v => set(`skill_${sk}`, v)} />
         </Field>
       ))}
 
@@ -211,9 +190,6 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
   );
 }
 
-// ============================================================
-// MONSTER TEMPLATE MANAGER
-// ============================================================
 function MonsterTemplateManager() {
   const [monsters, setMonsters] = useState([]);
   const [editing, setEditing] = useState(null);
@@ -282,9 +258,6 @@ function MonsterForm({ initial, onSave, onCancel }) {
   );
 }
 
-// ============================================================
-// WILD SHAPE LIBRARY
-// ============================================================
 function WildShapeLibrary() {
   const [forms, setForms] = useState([]);
   const [editing, setEditing] = useState(null);

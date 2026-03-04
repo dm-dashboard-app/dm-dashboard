@@ -32,6 +32,50 @@ function hpColor(pct) {
   return 'var(--hp-low)';
 }
 
+function MiniHpBar({ current, max, tempHp = 0, color = null, label = null }) {
+  const pct = max > 0 ? Math.max(0, Math.min(100, (current / max) * 100)) : 0;
+  const barColor = color || hpColor(pct);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {label && (
+        <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+          {label}
+        </span>
+      )}
+      <div style={{
+        height: 5,
+        background: 'var(--bg-panel-3)',
+        borderRadius: 3,
+        overflow: 'hidden',
+        position: 'relative',
+      }}>
+        <div style={{
+          height: '100%',
+          width: `${pct}%`,
+          background: barColor,
+          borderRadius: 3,
+          transition: 'width 0.3s ease',
+        }} />
+        {tempHp > 0 && max > 0 && (
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: `${pct}%`,
+            width: `${Math.min(100 - pct, (tempHp / max) * 100)}%`,
+            height: '100%',
+            background: 'var(--hp-temp)',
+            opacity: 0.7,
+            borderRadius: 3,
+          }} />
+        )}
+      </div>
+      <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+        {current}{tempHp > 0 ? ` (+${tempHp})` : ''} / {max}
+      </span>
+    </div>
+  );
+}
+
 export default function InitiativePanel({ encounter, combatants, playerStates = [], role, onUpdate }) {
   const isDM = role === 'dm';
   const sorted = sortCombatants(combatants);
@@ -86,36 +130,37 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
   const isEnemy = combatant.side === 'ENEMY' || combatant.side === 'NPC';
   const conditions = combatant.conditions || [];
 
-  // HP — PCs use playerState, enemies use combatant (DM only via RLS)
+  // PC data from playerState
   const pcHpCurrent = playerState?.current_hp ?? null;
   const pcHpMax = playerState?.profiles_players?.max_hp ?? null;
+  const tempHp = playerState?.temp_hp ?? 0;
+  const concentration = playerState?.concentration ?? false;
+  const reactionUsed = playerState?.reaction_used ?? false;
+  const displayConditions = isPC ? (playerState?.conditions || []) : conditions;
+
+  // Wild shape
+  const wsActive = playerState?.wildshape_active ?? false;
+  const wsHpCurrent = playerState?.wildshape_hp_current ?? 0;
+  const wsFormId = playerState?.wildshape_form_id ?? null;
+  // We don't have form details here, but we can show HP relative to a stored max
+  // playerState doesn't carry form name/max directly — use profiles_players join if available
+  // We'll read it from the nested join if present
+  const wsFormName = playerState?.wildshape_form_name ?? null; // may not exist
+  const wsHpMax = playerState?.wildshape_hp_max ?? null; // may not exist
+
+  // Enemy HP — DM only
   const enemyHpCurrent = combatant.hp_current ?? null;
   const enemyHpMax = combatant.hp_max ?? null;
 
-  const hpCurrent = isPC ? pcHpCurrent : (isDM ? enemyHpCurrent : null);
-  const hpMax = isPC ? pcHpMax : (isDM ? enemyHpMax : null);
-  const hpPct = hpMax > 0 ? Math.max(0, Math.min(100, (hpCurrent / hpMax) * 100)) : 0;
-  const showHpBar = hpCurrent !== null && hpMax !== null && hpMax > 0;
-
-  // PC status
-  const concentration = playerState?.concentration ?? false;
-  const reactionUsed = playerState?.reaction_used ?? false;
-  const tempHp = playerState?.temp_hp ?? 0;
-
-  // PC conditions come from playerState for display, enemy conditions from combatant
-  const displayConditions = isPC
-    ? (playerState?.conditions || [])
-    : conditions;
+  const showPcHp = isPC && pcHpCurrent !== null && pcHpMax !== null;
+  const showEnemyHp = isEnemy && isDM && enemyHpCurrent !== null && enemyHpMax !== null;
 
   async function saveInitiative() {
     if (savingRef.current) return;
     const total = parseInt(inputValue, 10);
     if (isNaN(total)) return;
     savingRef.current = true;
-    await supabase.rpc('set_initiative', {
-      p_combatant_id: combatant.id,
-      p_total: total,
-    });
+    await supabase.rpc('set_initiative', { p_combatant_id: combatant.id, p_total: total });
     savingRef.current = false;
     onUpdate();
   }
@@ -142,7 +187,8 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
 
   return (
     <div className={`initiative-row ${isActive ? 'active-turn' : ''}`} style={{ display: 'block', padding: '8px 12px' }}>
-      {/* Main row */}
+
+      {/* Name row */}
       <div className="initiative-row-main" onClick={() => isDM && isEnemy && setExpanded(e => !e)}>
         {isDM ? (
           <input
@@ -164,111 +210,95 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
             <span className="initiative-name">{combatant.name}</span>
             <span className={`badge badge-${combatant.side.toLowerCase()}`}>{combatant.side}</span>
-            {combatant.public_status === 'BLOODIED' && (
-              <span className="badge badge-bloodied">BLOODIED</span>
-            )}
+            {combatant.public_status === 'BLOODIED' && <span className="badge badge-bloodied">BLOODIED</span>}
+            {wsActive && <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3, background: '#1a3a1a', color: 'var(--accent-green)' }}>🐻 BEAST</span>}
           </div>
         </div>
 
-        {isDM && isEnemy && (
-          <span className="expand-toggle">{expanded ? '▲' : '▼'}</span>
-        )}
+        {isDM && isEnemy && <span className="expand-toggle">{expanded ? '▲' : '▼'}</span>}
       </div>
 
-      {/* HP bar */}
-      {showHpBar && (
-        <div style={{ marginTop: 6 }}>
-          <div style={{
-            height: 5,
-            background: 'var(--bg-panel-3)',
-            borderRadius: 3,
-            overflow: 'hidden',
-            position: 'relative',
-          }}>
-            <div style={{
-              height: '100%',
-              width: `${hpPct}%`,
-              background: hpColor(hpPct),
-              borderRadius: 3,
-              transition: 'width 0.3s ease',
-            }} />
-            {isPC && tempHp > 0 && hpMax > 0 && (
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: `${hpPct}%`,
-                width: `${Math.min(100 - hpPct, (tempHp / hpMax) * 100)}%`,
-                height: '100%',
-                background: 'var(--hp-temp)',
-                opacity: 0.7,
-                borderRadius: 3,
-              }} />
-            )}
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
-            <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-              {hpCurrent}{tempHp > 0 ? ` (+${tempHp})` : ''} / {hpMax}
-            </span>
-            {/* Status icons */}
-            <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-              {isPC && concentration && (
+      {/* HP bars + status */}
+      {(showPcHp || showEnemyHp) && (
+        <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
+
+          {/* Wild shape bar — shown first when active, takes visual priority */}
+          {isPC && wsActive && wsHpMax != null && (
+            <MiniHpBar
+              current={wsHpCurrent}
+              max={wsHpMax}
+              color="var(--accent-green)"
+              label={wsFormName ? `🐻 ${wsFormName}` : '🐻 Beast Form'}
+            />
+          )}
+
+          {/* Normal HP bar — always shown for PCs and DM enemies */}
+          {showPcHp && (
+            <MiniHpBar
+              current={pcHpCurrent}
+              max={pcHpMax}
+              tempHp={tempHp}
+              label={wsActive ? 'Player HP' : null}
+            />
+          )}
+          {showEnemyHp && (
+            <MiniHpBar current={enemyHpCurrent} max={enemyHpMax} />
+          )}
+
+          {/* Status icons row */}
+          {isPC && (
+            <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
+              {concentration && (
                 <span style={{ fontSize: 10, color: 'var(--accent-gold)', fontWeight: 700 }}>🔮CON</span>
               )}
-              {isPC && (
-                <span style={{ fontSize: 10, color: reactionUsed ? 'var(--text-muted)' : 'var(--accent-gold)', opacity: reactionUsed ? 0.4 : 1 }}>
-                  ⚡
-                </span>
-              )}
+              <span style={{
+                fontSize: 10,
+                color: reactionUsed ? 'var(--text-muted)' : 'var(--accent-gold)',
+                opacity: reactionUsed ? 0.4 : 1,
+              }}>⚡</span>
               {displayConditions.filter(c => !c.startsWith('EXH')).map(code => (
-                <span
-                  key={code}
-                  style={{
-                    fontSize: 9,
-                    fontWeight: 700,
-                    padding: '1px 4px',
-                    borderRadius: 3,
-                    background: CONDITION_COLOURS[code] || 'var(--cond-default)',
-                    color: 'var(--text-primary)',
-                    cursor: isDM && isEnemy ? 'pointer' : 'default',
-                  }}
-                  onClick={e => { e.stopPropagation(); if (isDM && isEnemy) toggleCondition(code); }}
-                >{code}</span>
+                <span key={code} style={{
+                  fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3,
+                  background: CONDITION_COLOURS[code] || 'var(--cond-default)',
+                  color: 'var(--text-primary)',
+                }}>{code}</span>
               ))}
               {displayConditions.filter(c => c.startsWith('EXH')).map(code => (
-                <span
-                  key={code}
-                  style={{
-                    fontSize: 9,
-                    fontWeight: 700,
-                    padding: '1px 4px',
-                    borderRadius: 3,
-                    background: '#2a1a3a',
-                    color: 'var(--accent-purple)',
-                  }}
+                <span key={code} style={{
+                  fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3,
+                  background: '#2a1a3a', color: 'var(--accent-purple)',
+                }}>{code}</span>
+              ))}
+            </div>
+          )}
+
+          {/* Enemy conditions (DM only) */}
+          {isEnemy && isDM && conditions.length > 0 && (
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+              {conditions.map(code => (
+                <span key={code} style={{
+                  fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3,
+                  background: CONDITION_COLOURS[code] || 'var(--cond-default)',
+                  color: 'var(--text-primary)', cursor: 'pointer',
+                }}
+                  onClick={e => { e.stopPropagation(); toggleCondition(code); }}
                 >{code}</span>
               ))}
             </div>
-          </div>
+          )}
         </div>
       )}
 
-      {/* Enemy expanded DM controls */}
+      {/* Enemy DM expand controls */}
       {isDM && isEnemy && expanded && (
         <div className="monster-dm-controls">
           <div className="hp-controls" style={{ marginBottom: 8 }}>
             <button className="btn btn-icon btn-danger" onClick={() => adjustMonsterHp(-1)}>−</button>
-            <span className="hp-value" style={{ margin: '0 8px' }}>
-              {combatant.hp_current} / {combatant.hp_max}
-            </span>
+            <span className="hp-value" style={{ margin: '0 8px' }}>{combatant.hp_current} / {combatant.hp_max}</span>
             <button className="btn btn-icon btn-success" onClick={() => adjustMonsterHp(1)}>+</button>
           </div>
-
           <div style={{ marginBottom: 8 }}>
-            <button
-              className="btn btn-ghost"
-              style={{ fontSize: 12, padding: '2px 8px' }}
-              onClick={() => setCondPickerOpen(p => !p)}
-            >
+            <button className="btn btn-ghost" style={{ fontSize: 12, padding: '2px 8px' }} onClick={() => setCondPickerOpen(p => !p)}>
               {condPickerOpen ? 'Close Conditions' : '+ Conditions'}
             </button>
             {condPickerOpen && (
@@ -284,7 +314,6 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
               </div>
             )}
           </div>
-
           {combatant.notes && <div className="monster-notes">{combatant.notes}</div>}
           <button className="btn btn-danger" onClick={removeCombatant}>Remove</button>
         </div>
@@ -320,9 +349,7 @@ function AddCombatantInline({ encounterId, onUpdate }) {
     onUpdate();
   }
 
-  if (!open) return (
-    <button className="btn btn-ghost" onClick={() => setOpen(true)}>+ Add Combatant</button>
-  );
+  if (!open) return <button className="btn btn-ghost" onClick={() => setOpen(true)}>+ Add Combatant</button>;
 
   return (
     <div className="add-combatant-form">
