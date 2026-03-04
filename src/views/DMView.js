@@ -34,7 +34,8 @@ export default function DMView() {
     if (!encounterId) return;
     const [enc, comb, states, token, codes] = await Promise.all([
       supabase.from('encounters').select('*').eq('id', encounterId).maybeSingle(),
-      supabase.from('combatants').select('*').eq('encounter_id', encounterId).order('initiative_total', { ascending: false }),
+      supabase.from('combatants').select('*').eq('encounter_id', encounterId)
+        .order('initiative_total', { ascending: false, nullsFirst: false }),
       supabase.from('player_encounter_state').select('*, profiles_players(*)').eq('encounter_id', encounterId),
       supabase.from('display_sessions').select('token').eq('encounter_id', encounterId).maybeSingle(),
       supabase.from('player_sessions').select('join_code, profiles_players(name)').eq('encounter_id', encounterId),
@@ -117,7 +118,6 @@ export default function DMView() {
       <div className="main-content">
         {tab === 'combat' && (
           <>
-            {/* Player Cards */}
             {pcCombatants.map(c => {
               const state = playerStates.find(s => s.combatant_id === c.id);
               return (
@@ -133,7 +133,6 @@ export default function DMView() {
               );
             })}
 
-            {/* Initiative Panel */}
             <InitiativePanel
               encounter={encounter}
               combatants={combatants}
@@ -141,7 +140,6 @@ export default function DMView() {
               onUpdate={refreshAll}
             />
 
-            {/* Session controls — at the bottom */}
             <div className="panel">
               <div className="panel-title">Display Token</div>
               {displayToken ? (

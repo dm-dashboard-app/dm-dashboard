@@ -56,16 +56,22 @@ export default function InitiativePanel({ encounter, combatants, role, onUpdate 
 
 function InitiativeRow({ combatant, isActive, isDM, onUpdate }) {
   const [expanded, setExpanded] = useState(false);
-  const [initRoll, setInitRoll] = useState(combatant.initiative_roll ?? '');
   const [condPickerOpen, setCondPickerOpen] = useState(false);
+  // Draft input — separate from combatant prop so typing doesn't fight re-renders
+  const [draft, setDraft] = useState('');
+  const [editing, setEditing] = useState(false);
 
   const isEnemy = combatant.side === 'ENEMY' || combatant.side === 'NPC';
   const conditions = combatant.conditions || [];
 
-  async function updateInitiative(val) {
-    const roll = parseInt(val);
-    if (isNaN(roll)) return;
-    await supabase.from('combatants').update({ initiative_roll: roll }).eq('id', combatant.id);
+  async function commitInitiative(val) {
+    const total = parseInt(val);
+    if (isNaN(total)) { setEditing(false); return; }
+    await supabase.rpc('set_initiative', {
+      p_combatant_id: combatant.id,
+      p_total: total,
+    });
+    setEditing(false);
     onUpdate();
   }
 
@@ -89,23 +95,41 @@ function InitiativeRow({ combatant, isActive, isDM, onUpdate }) {
     onUpdate();
   }
 
-  // Bloodied: only show once, only for DM on enemies
   const showBlooded = combatant.public_status === 'BLOODIED';
 
   return (
     <div className={`initiative-row ${isActive ? 'active-turn' : ''}`}>
       <div className="initiative-row-main" onClick={() => isDM && isEnemy && setExpanded(e => !e)}>
-        {/* Initiative number */}
+
+        {/* Initiative number — DM gets editable input */}
         {isDM ? (
-          <input
-            className="initiative-number-input"
-            type="number"
-            value={initRoll}
-            onChange={e => setInitRoll(e.target.value)}
-            onBlur={e => updateInitiative(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && updateInitiative(e.target.value)}
-            onClick={e => e.stopPropagation()}
-          />
+          editing ? (
+            <input
+              className="initiative-number-input"
+              type="number"
+              value={draft}
+              autoFocus
+              onChange={e => setDraft(e.target.value)}
+              onBlur={() => commitInitiative(draft)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') commitInitiative(draft);
+                if (e.key === 'Escape') setEditing(false);
+              }}
+              onClick={e => e.stopPropagation()}
+            />
+          ) : (
+            <span
+              className="initiative-number"
+              onClick={e => {
+                e.stopPropagation();
+                setDraft(combatant.initiative_total != null ? String(combatant.initiative_total) : '');
+                setEditing(true);
+              }}
+              style={{ cursor: 'text', minWidth: 32, display: 'inline-block', textAlign: 'center' }}
+            >
+              {combatant.initiative_total ?? '—'}
+            </span>
+          )
         ) : (
           <span className="initiative-number">{combatant.initiative_total ?? '—'}</span>
         )}
@@ -115,7 +139,6 @@ function InitiativeRow({ combatant, isActive, isDM, onUpdate }) {
           <span className="initiative-name">{combatant.name}</span>
           <div className="initiative-badges">
             <span className={`badge badge-${combatant.side.toLowerCase()}`}>{combatant.side}</span>
-            {/* Bloodied — show once only */}
             {showBlooded && <span className="badge badge-bloodied">BLOODIED</span>}
             {combatant.concentration && <span className="condition-chip condition-chip-con">CON</span>}
             {conditions.map(cond => (
@@ -138,7 +161,6 @@ function InitiativeRow({ combatant, isActive, isDM, onUpdate }) {
       {/* DM expanded monster controls */}
       {isDM && isEnemy && expanded && (
         <div className="monster-dm-controls">
-          {/* HP */}
           <div className="hp-controls" style={{ marginBottom: 8 }}>
             <button className="btn btn-icon btn-danger" onClick={() => adjustMonsterHp(-1)}>−</button>
             <span className="hp-value" style={{ margin: '0 8px' }}>
@@ -147,7 +169,6 @@ function InitiativeRow({ combatant, isActive, isDM, onUpdate }) {
             <button className="btn btn-icon btn-success" onClick={() => adjustMonsterHp(1)}>+</button>
           </div>
 
-          {/* Condition picker for enemies */}
           <div style={{ marginBottom: 8 }}>
             <button
               className="btn btn-ghost"
