@@ -147,6 +147,7 @@ export default function DMView() {
               onUpdate={refreshAll}
             />
 
+            {/* Display Token */}
             <div className="panel">
               <div className="panel-title">Display Token</div>
               {displayToken ? (
@@ -159,26 +160,32 @@ export default function DMView() {
               )}
             </div>
 
+            {/* Player Join Codes */}
             <div className="panel">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div className="panel-title" style={{ marginBottom: 0 }}>Player Join Codes</div>
+                <div className="panel-title" style={{ marginBottom: 0 }}>
+                  Player Join Codes {joinCodes.length > 0 && `(${joinCodes.length})`}
+                </div>
                 <button className="btn btn-ghost" onClick={() => setShowJoinCodes(s => !s)}>
                   {showJoinCodes ? 'Hide' : 'Show'}
                 </button>
               </div>
               {showJoinCodes && (
                 <div style={{ marginTop: 12 }}>
-                  {joinCodes.length === 0 && <div className="empty-state">No join codes yet.</div>}
-                  {joinCodes.map((s, i) => (
-                    <div key={i} className="join-code-row">
-                      <span className="join-code-name">{s.profiles_players?.name || 'Player'}</span>
-                      <span className="join-code-value">{s.join_code}</span>
-                    </div>
-                  ))}
+                  {joinCodes.length === 0
+                    ? <div className="empty-state">No join codes for this encounter.</div>
+                    : joinCodes.map((s, i) => (
+                      <div key={i} className="join-code-row">
+                        <span className="join-code-name">{s.profiles_players?.name || 'Player'}</span>
+                        <span className="join-code-value">{s.join_code}</span>
+                      </div>
+                    ))
+                  }
                 </div>
               )}
             </div>
 
+            {/* Bottom actions */}
             <div className="panel">
               <div className="form-row">
                 <button className="btn btn-ghost" onClick={handleNewEncounter}>New Encounter</button>
@@ -190,7 +197,12 @@ export default function DMView() {
         )}
 
         {tab === 'rolls' && <SecretRollInbox encounterId={encounter.id} />}
-        {tab === 'manage' && <ManagementScreens onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); }} currentEncounter={encounter} />}
+        {tab === 'manage' && (
+          <ManagementScreens
+            onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); }}
+            currentEncounter={encounter}
+          />
+        )}
       </div>
     </div>
   );

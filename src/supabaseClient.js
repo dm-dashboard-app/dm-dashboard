@@ -12,15 +12,10 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     autoRefreshToken: true,
   },
-  realtime: {
-    params: {
-      eventsPerSecond: 10,
-    },
-  },
 });
 
 // ============================================================
-// TIMEOUT HELPER — prevents getSession hanging on mobile wake
+// TIMEOUT HELPER
 // ============================================================
 function withTimeout(promise, ms = 4000) {
   return Promise.race([
@@ -38,12 +33,15 @@ function withTimeout(promise, ms = 4000) {
 export async function signInDM(email, password) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw error;
+  // Cache DM role so wake-from-sleep never needs a network call
+  localStorage.setItem('dm_session', '1');
   return data;
 }
 
 export async function signOut() {
-  await supabase.auth.signOut();
+  // Clear everything including DM cache before signing out
   localStorage.clear();
+  await supabase.auth.signOut();
   window.location.reload();
 }
 
@@ -77,22 +75,25 @@ export function getDisplayToken() {
 }
 
 // ============================================================
-// ROLE DETECTION — fast, with timeout so it never hangs
+// ROLE DETECTION — fully localStorage-first, no network on wake
 // ============================================================
 export async function detectRole() {
-  // Check localStorage first — instant, no network needed
+  // All three roles detectable from localStorage — instant, no network needed
+  if (localStorage.getItem('dm_session')) return 'dm';
   if (localStorage.getItem('display_token')) return 'display';
   if (localStorage.getItem('player_join_code')) return 'player';
 
-  // Only hit the network for DM session check, with timeout
+  // First-time load only — nothing cached yet, check network once
   try {
     const { data: { session } } = await withTimeout(
       supabase.auth.getSession(),
       4000
     );
-    if (session?.user) return 'dm';
+    if (session?.user) {
+      localStorage.setItem('dm_session', '1');
+      return 'dm';
+    }
   } catch (e) {
-    // Timed out or failed — if they had a session it'll recover on next poll
     console.warn('Session check timed out or failed:', e.message);
   }
 

@@ -13,7 +13,6 @@ export default function App() {
   const [error, setError] = useState(null);
   const roleRef = useRef(null);
 
-  // Keep ref in sync so visibility handler can read it without stale closure
   useEffect(() => {
     roleRef.current = role;
   }, [role]);
@@ -34,16 +33,16 @@ export default function App() {
   useEffect(() => {
     init();
 
-    // Only re-detect on explicit sign-in/out, not token refreshes
+    // Only re-detect on explicit sign-in/out — not token refreshes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
-      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
-        const detectedRole = await detectRole();
-        setRole(detectedRole);
+      if (event === 'SIGNED_OUT') {
+        setRole(null);
       }
+      // SIGNED_IN is handled by JoinScreen calling onRoleSet directly,
+      // so we don't need to re-detect here and risk a race condition
     });
 
-    // On wake, only re-init if we don't already have a role
-    // Prevents kicking logged-in users back to the join screen
+    // On wake, only re-init if no role is set yet (first load or after sign-out)
     function handleVisibility() {
       if (document.visibilityState === 'visible' && roleRef.current === null) {
         init();
@@ -72,7 +71,6 @@ function SplashScreen({ onRetry }) {
   const [showRetry, setShowRetry] = useState(false);
 
   useEffect(() => {
-    // If still on splash after 5s, show a tap-to-retry option
     const t = setTimeout(() => setShowRetry(true), 5000);
     return () => clearTimeout(t);
   }, []);
