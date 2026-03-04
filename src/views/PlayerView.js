@@ -13,6 +13,8 @@ export default function PlayerView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [initiativeInput, setInitiativeInput] = useState('');
+  const [initError, setInitError] = useState(null);
+  const [initSuccess, setInitSuccess] = useState(false);
 
   const profileId = localStorage.getItem('player_profile_id');
   const encounterId = localStorage.getItem('player_encounter_id');
@@ -51,11 +53,20 @@ export default function PlayerView() {
     if (!combatant || !initiativeInput) return;
     const total = parseInt(initiativeInput);
     if (isNaN(total)) return;
-    await supabase
-      .from('combatants')
-      .update({ initiative_total: total })
-      .eq('id', combatant.id);
-    refreshAll();
+    setInitError(null);
+    setInitSuccess(false);
+    try {
+      const { error } = await supabase.rpc('set_initiative', {
+        p_combatant_id: combatant.id,
+        p_total: total,
+      });
+      if (error) throw error;
+      setInitSuccess(true);
+      setTimeout(() => setInitSuccess(false), 2000);
+      refreshAll();
+    } catch (err) {
+      setInitError(err.message);
+    }
   }
 
   function handleLeave() {
@@ -110,9 +121,14 @@ export default function PlayerView() {
                 disabled={!initiativeInput}
               >Submit</button>
             </div>
-            {combatant.initiative_total != null && (
-              <div style={{ marginTop: 8, fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
-                Current: <strong style={{ color: 'var(--accent-blue)' }}>{combatant.initiative_total}</strong>
+            {initSuccess && (
+              <div style={{ marginTop: 8, fontSize: 'var(--font-size-sm)', color: 'var(--accent-green)' }}>
+                ✓ Initiative set to {combatant.initiative_total}
+              </div>
+            )}
+            {initError && (
+              <div style={{ marginTop: 8, fontSize: 'var(--font-size-sm)', color: 'var(--accent-red)' }}>
+                ✗ {initError}
               </div>
             )}
           </div>
