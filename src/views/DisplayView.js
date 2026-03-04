@@ -100,6 +100,7 @@ export default function DisplayView() {
         <InitiativePanel
           encounter={encounter}
           combatants={combatants}
+          playerStates={playerStates}
           role="display"
           onUpdate={() => {}}
         />

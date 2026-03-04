@@ -143,11 +143,11 @@ export default function DMView() {
             <InitiativePanel
               encounter={encounter}
               combatants={combatants}
+              playerStates={playerStates}
               role="dm"
               onUpdate={refreshAll}
             />
 
-            {/* Display Token */}
             <div className="panel">
               <div className="panel-title">Display Token</div>
               {displayToken ? (
@@ -160,7 +160,6 @@ export default function DMView() {
               )}
             </div>
 
-            {/* Player Join Codes */}
             <div className="panel">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div className="panel-title" style={{ marginBottom: 0 }}>
@@ -185,7 +184,6 @@ export default function DMView() {
               )}
             </div>
 
-            {/* Bottom actions */}
             <div className="panel">
               <div className="form-row">
                 <button className="btn btn-ghost" onClick={handleNewEncounter}>New Encounter</button>

@@ -17,7 +17,6 @@ const CONDITION_COLOURS = {
   STN: '#5a3a2a', UNC: '#2a2a2a',
 };
 
-// Sort combatants: highest initiative first, nulls at bottom
 function sortCombatants(list) {
   return [...list].sort((a, b) => {
     if (a.initiative_total == null && b.initiative_total == null) return 0;
@@ -27,7 +26,13 @@ function sortCombatants(list) {
   });
 }
 
-export default function InitiativePanel({ encounter, combatants, role, onUpdate }) {
+function hpColor(pct) {
+  if (pct > 50) return 'var(--hp-high)';
+  if (pct > 25) return 'var(--hp-mid)';
+  return 'var(--hp-low)';
+}
+
+export default function InitiativePanel({ encounter, combatants, playerStates = [], role, onUpdate }) {
   const isDM = role === 'dm';
   const sorted = sortCombatants(combatants);
   const activeTurnIndex = encounter?.turn_index ?? 0;
@@ -37,15 +42,19 @@ export default function InitiativePanel({ encounter, combatants, role, onUpdate 
       <div className="panel-title">Initiative Order</div>
       <div className="initiative-list">
         {sorted.length === 0 && <div className="empty-state">No combatants yet.</div>}
-        {sorted.map((c, idx) => (
-          <InitiativeRow
-            key={c.id}
-            combatant={c}
-            isActive={idx === activeTurnIndex}
-            isDM={isDM}
-            onUpdate={onUpdate}
-          />
-        ))}
+        {sorted.map((c, idx) => {
+          const playerState = playerStates.find(s => s.combatant_id === c.id);
+          return (
+            <InitiativeRow
+              key={c.id}
+              combatant={c}
+              playerState={playerState}
+              isActive={idx === activeTurnIndex}
+              isDM={isDM}
+              onUpdate={onUpdate}
+            />
+          );
+        })}
       </div>
       {isDM && encounter && (
         <div style={{ marginTop: 12 }}>
@@ -56,17 +65,15 @@ export default function InitiativePanel({ encounter, combatants, role, onUpdate 
   );
 }
 
-function InitiativeRow({ combatant, isActive, isDM, onUpdate }) {
+function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
   const [expanded, setExpanded] = useState(false);
   const [condPickerOpen, setCondPickerOpen] = useState(false);
   const [inputValue, setInputValue] = useState(
     combatant.initiative_total != null ? String(combatant.initiative_total) : ''
   );
-  // Track whether the input is focused so polling doesn't overwrite mid-edit
   const isFocused = useRef(false);
   const savingRef = useRef(false);
 
-  // Sync input value from incoming props, but only when the field isn't focused
   useEffect(() => {
     if (!isFocused.current) {
       setInputValue(
@@ -75,8 +82,30 @@ function InitiativeRow({ combatant, isActive, isDM, onUpdate }) {
     }
   }, [combatant.initiative_total]);
 
+  const isPC = combatant.side === 'PC';
   const isEnemy = combatant.side === 'ENEMY' || combatant.side === 'NPC';
   const conditions = combatant.conditions || [];
+
+  // HP — PCs use playerState, enemies use combatant (DM only via RLS)
+  const pcHpCurrent = playerState?.current_hp ?? null;
+  const pcHpMax = playerState?.profiles_players?.max_hp ?? null;
+  const enemyHpCurrent = combatant.hp_current ?? null;
+  const enemyHpMax = combatant.hp_max ?? null;
+
+  const hpCurrent = isPC ? pcHpCurrent : (isDM ? enemyHpCurrent : null);
+  const hpMax = isPC ? pcHpMax : (isDM ? enemyHpMax : null);
+  const hpPct = hpMax > 0 ? Math.max(0, Math.min(100, (hpCurrent / hpMax) * 100)) : 0;
+  const showHpBar = hpCurrent !== null && hpMax !== null && hpMax > 0;
+
+  // PC status
+  const concentration = playerState?.concentration ?? false;
+  const reactionUsed = playerState?.reaction_used ?? false;
+  const tempHp = playerState?.temp_hp ?? 0;
+
+  // PC conditions come from playerState for display, enemy conditions from combatant
+  const displayConditions = isPC
+    ? (playerState?.conditions || [])
+    : conditions;
 
   async function saveInitiative() {
     if (savingRef.current) return;
@@ -112,9 +141,9 @@ function InitiativeRow({ combatant, isActive, isDM, onUpdate }) {
   }
 
   return (
-    <div className={`initiative-row ${isActive ? 'active-turn' : ''}`}>
+    <div className={`initiative-row ${isActive ? 'active-turn' : ''}`} style={{ display: 'block', padding: '8px 12px' }}>
+      {/* Main row */}
       <div className="initiative-row-main" onClick={() => isDM && isEnemy && setExpanded(e => !e)}>
-
         {isDM ? (
           <input
             className="initiative-number-input"
@@ -122,14 +151,8 @@ function InitiativeRow({ combatant, isActive, isDM, onUpdate }) {
             value={inputValue}
             onChange={e => setInputValue(e.target.value)}
             onFocus={() => { isFocused.current = true; }}
-            onBlur={() => {
-              isFocused.current = false;
-              saveInitiative();
-            }}
-            onKeyDown={e => {
-              if (e.key === 'Enter') { e.target.blur(); }
-              e.stopPropagation();
-            }}
+            onBlur={() => { isFocused.current = false; saveInitiative(); }}
+            onKeyDown={e => { if (e.key === 'Enter') e.target.blur(); e.stopPropagation(); }}
             onClick={e => e.stopPropagation()}
             placeholder="—"
           />
@@ -138,23 +161,12 @@ function InitiativeRow({ combatant, isActive, isDM, onUpdate }) {
         )}
 
         <div className="initiative-name-block">
-          <span className="initiative-name">{combatant.name}</span>
-          <div className="initiative-badges">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+            <span className="initiative-name">{combatant.name}</span>
             <span className={`badge badge-${combatant.side.toLowerCase()}`}>{combatant.side}</span>
             {combatant.public_status === 'BLOODIED' && (
               <span className="badge badge-bloodied">BLOODIED</span>
             )}
-            {combatant.concentration && (
-              <span className="condition-chip condition-chip-con">CON</span>
-            )}
-            {conditions.map(cond => (
-              <span
-                key={cond}
-                className="condition-chip"
-                style={{ background: CONDITION_COLOURS[cond] || 'var(--cond-default)', cursor: isDM ? 'pointer' : 'default' }}
-                onClick={e => { e.stopPropagation(); isDM && toggleCondition(cond); }}
-              >{cond}</span>
-            ))}
           </div>
         </div>
 
@@ -163,6 +175,84 @@ function InitiativeRow({ combatant, isActive, isDM, onUpdate }) {
         )}
       </div>
 
+      {/* HP bar */}
+      {showHpBar && (
+        <div style={{ marginTop: 6 }}>
+          <div style={{
+            height: 5,
+            background: 'var(--bg-panel-3)',
+            borderRadius: 3,
+            overflow: 'hidden',
+            position: 'relative',
+          }}>
+            <div style={{
+              height: '100%',
+              width: `${hpPct}%`,
+              background: hpColor(hpPct),
+              borderRadius: 3,
+              transition: 'width 0.3s ease',
+            }} />
+            {isPC && tempHp > 0 && hpMax > 0 && (
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: `${hpPct}%`,
+                width: `${Math.min(100 - hpPct, (tempHp / hpMax) * 100)}%`,
+                height: '100%',
+                background: 'var(--hp-temp)',
+                opacity: 0.7,
+                borderRadius: 3,
+              }} />
+            )}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
+            <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+              {hpCurrent}{tempHp > 0 ? ` (+${tempHp})` : ''} / {hpMax}
+            </span>
+            {/* Status icons */}
+            <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              {isPC && concentration && (
+                <span style={{ fontSize: 10, color: 'var(--accent-gold)', fontWeight: 700 }}>🔮CON</span>
+              )}
+              {isPC && (
+                <span style={{ fontSize: 10, color: reactionUsed ? 'var(--text-muted)' : 'var(--accent-gold)', opacity: reactionUsed ? 0.4 : 1 }}>
+                  ⚡
+                </span>
+              )}
+              {displayConditions.filter(c => !c.startsWith('EXH')).map(code => (
+                <span
+                  key={code}
+                  style={{
+                    fontSize: 9,
+                    fontWeight: 700,
+                    padding: '1px 4px',
+                    borderRadius: 3,
+                    background: CONDITION_COLOURS[code] || 'var(--cond-default)',
+                    color: 'var(--text-primary)',
+                    cursor: isDM && isEnemy ? 'pointer' : 'default',
+                  }}
+                  onClick={e => { e.stopPropagation(); if (isDM && isEnemy) toggleCondition(code); }}
+                >{code}</span>
+              ))}
+              {displayConditions.filter(c => c.startsWith('EXH')).map(code => (
+                <span
+                  key={code}
+                  style={{
+                    fontSize: 9,
+                    fontWeight: 700,
+                    padding: '1px 4px',
+                    borderRadius: 3,
+                    background: '#2a1a3a',
+                    color: 'var(--accent-purple)',
+                  }}
+                >{code}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Enemy expanded DM controls */}
       {isDM && isEnemy && expanded && (
         <div className="monster-dm-controls">
           <div className="hp-controls" style={{ marginBottom: 8 }}>

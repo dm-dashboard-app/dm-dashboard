@@ -10,6 +10,7 @@ export default function PlayerView() {
   const [combatant, setCombatant] = useState(null);
   const [state, setState] = useState(null);
   const [combatants, setCombatants] = useState([]);
+  const [playerStates, setPlayerStates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [initiativeInput, setInitiativeInput] = useState('');
@@ -22,17 +23,20 @@ export default function PlayerView() {
   const refreshAll = useCallback(async () => {
     if (!encounterId || !profileId) return;
     try {
-      const [enc, combs, myState] = await Promise.all([
+      const [enc, combs, allStates] = await Promise.all([
         supabase.from('encounters').select('*').eq('id', encounterId).maybeSingle(),
         supabase.from('combatants').select('*').eq('encounter_id', encounterId).order('initiative_total', { ascending: false }),
-        supabase.from('player_encounter_state').select('*, profiles_players(*)').eq('encounter_id', encounterId).eq('player_profile_id', profileId).maybeSingle(),
+        supabase.from('player_encounter_state').select('*, profiles_players(*)').eq('encounter_id', encounterId),
       ]);
       if (enc.data) setEncounter(enc.data);
       const all = combs.data || [];
       setCombatants(all);
+      const states = allStates.data || [];
+      setPlayerStates(states);
       const mine = all.find(c => c.owner_player_id === profileId);
       setCombatant(mine || null);
-      if (myState.data) setState(myState.data);
+      const myState = states.find(s => s.player_profile_id === profileId);
+      if (myState) setState(myState);
     } catch (err) {
       setError(err.message);
     }
@@ -141,6 +145,7 @@ export default function PlayerView() {
         <InitiativePanel
           encounter={encounter}
           combatants={combatants}
+          playerStates={playerStates}
           role="player"
           onUpdate={() => {}}
         />
