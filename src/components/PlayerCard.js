@@ -31,17 +31,35 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
     return 'var(--hp-low)';
   }
 
+  // Apply or remove UNC condition based on HP value
+  async function syncUnconsciousCondition(newHp, currentConditions) {
+    if (!state) return;
+    const conditions = currentConditions || state.conditions || [];
+    const hasUnc = conditions.includes('UNC');
+    if (newHp === 0 && !hasUnc) {
+      const updated = [...conditions, 'UNC'];
+      await supabase.from('player_encounter_state').update({ conditions: updated }).eq('id', state.id);
+    } else if (newHp > 0 && hasUnc) {
+      const updated = conditions.filter(c => c !== 'UNC');
+      await supabase.from('player_encounter_state').update({ conditions: updated }).eq('id', state.id);
+    }
+  }
+
   async function adjustHp(delta) {
     if (!state || readOnly) return;
+
+    // Burn temp HP first on damage
     if (delta < 0 && tempHp > 0) {
       const newTemp = Math.max(0, tempHp + delta);
       await supabase.from('player_encounter_state').update({ temp_hp: newTemp }).eq('id', state.id);
       onUpdate();
       return;
     }
+
     const newHp = Math.max(0, Math.min(maxHp, hp + delta));
     setLocalHp(newHp);
     await supabase.from('player_encounter_state').update({ current_hp: newHp }).eq('id', state.id);
+    await syncUnconsciousCondition(newHp, state.conditions);
     onUpdate();
   }
 
@@ -50,6 +68,7 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
     const newHp = Math.max(0, Math.min(maxHp, parseInt(val) || 0));
     setLocalHp(newHp);
     await supabase.from('player_encounter_state').update({ current_hp: newHp }).eq('id', state.id);
+    await syncUnconsciousCondition(newHp, state.conditions);
     onUpdate();
   }
 
@@ -184,7 +203,7 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
           />
         )}
 
-        {/* Conditions + Concentration toggle */}
+        {/* Conditions */}
         <ConditionChipRow
           conditions={state?.conditions || []}
           concentration={concentration}
@@ -193,19 +212,20 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
           onUpdate={onUpdate}
         />
 
-        {/* Concentration toggle button — visible to player and DM, read-only on display */}
+        {/* Concentration toggle — always visible for DM and player */}
         {!readOnly && (
           <button
             onClick={toggleConcentration}
             style={{
               alignSelf: 'flex-start',
               fontSize: 11,
-              padding: '2px 8px',
+              padding: '3px 9px',
               borderRadius: 'var(--radius-sm)',
-              border: `1px solid ${concentration ? 'var(--accent-gold)' : 'var(--border)'}`,
-              background: concentration ? '#3a2e00' : 'var(--bg-panel-2)',
-              color: concentration ? 'var(--accent-gold)' : 'var(--text-muted)',
+              border: `1px solid ${concentration ? 'var(--accent-gold)' : 'var(--border-strong)'}`,
+              background: concentration ? '#3a2e00' : 'var(--bg-panel-3)',
+              color: concentration ? 'var(--accent-gold)' : 'var(--text-secondary)',
               cursor: 'pointer',
+              fontWeight: 600,
               transition: 'all 0.15s',
             }}
             title={concentration ? 'End Concentration' : 'Start Concentration'}
@@ -214,7 +234,7 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
           </button>
         )}
 
-        {/* Show CON chip in display/read-only mode if active */}
+        {/* Display mode — just show chip if active */}
         {readOnly && concentration && (
           <span className="condition-chip condition-chip-con">CON</span>
         )}
