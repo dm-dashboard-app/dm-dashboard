@@ -18,6 +18,8 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   const maxHp = profile?.max_hp ?? combatant?.hp_max ?? 1;
   const tempHp = state?.temp_hp ?? 0;
   const hpPercent = Math.max(0, Math.min(100, (hp / maxHp) * 100));
+  const concentration = state?.concentration ?? false;
+  const reactionUsed = state?.reaction_used ?? false;
 
   useEffect(() => {
     setLocalHp(null);
@@ -31,24 +33,15 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
 
   async function adjustHp(delta) {
     if (!state || readOnly) return;
-
-    // When taking damage (delta < 0), burn temp HP first
     if (delta < 0 && tempHp > 0) {
       const newTemp = Math.max(0, tempHp + delta);
-      await supabase
-        .from('player_encounter_state')
-        .update({ temp_hp: newTemp })
-        .eq('id', state.id);
+      await supabase.from('player_encounter_state').update({ temp_hp: newTemp }).eq('id', state.id);
       onUpdate();
       return;
     }
-
     const newHp = Math.max(0, Math.min(maxHp, hp + delta));
     setLocalHp(newHp);
-    await supabase
-      .from('player_encounter_state')
-      .update({ current_hp: newHp })
-      .eq('id', state.id);
+    await supabase.from('player_encounter_state').update({ current_hp: newHp }).eq('id', state.id);
     onUpdate();
   }
 
@@ -56,38 +49,26 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
     if (!state || readOnly) return;
     const newHp = Math.max(0, Math.min(maxHp, parseInt(val) || 0));
     setLocalHp(newHp);
-    await supabase
-      .from('player_encounter_state')
-      .update({ current_hp: newHp })
-      .eq('id', state.id);
+    await supabase.from('player_encounter_state').update({ current_hp: newHp }).eq('id', state.id);
     onUpdate();
   }
 
   async function setTempHpDirect(val) {
     if (!state || readOnly) return;
     const newTemp = Math.max(0, parseInt(val) || 0);
-    await supabase
-      .from('player_encounter_state')
-      .update({ temp_hp: newTemp })
-      .eq('id', state.id);
+    await supabase.from('player_encounter_state').update({ temp_hp: newTemp }).eq('id', state.id);
     onUpdate();
   }
 
   async function toggleReaction() {
     if (readOnly || !state) return;
-    await supabase
-      .from('player_encounter_state')
-      .update({ reaction_used: !state.reaction_used })
-      .eq('id', state.id);
+    await supabase.from('player_encounter_state').update({ reaction_used: !reactionUsed }).eq('id', state.id);
     onUpdate();
   }
 
   async function toggleConcentration() {
     if (readOnly || !state) return;
-    await supabase
-      .from('player_encounter_state')
-      .update({ concentration: !state.concentration })
-      .eq('id', state.id);
+    await supabase.from('player_encounter_state').update({ concentration: !concentration }).eq('id', state.id);
     onUpdate();
   }
 
@@ -97,8 +78,6 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
     .join('')
     .toUpperCase()
     .slice(0, 2);
-
-  const reactionUsed = state?.reaction_used ?? false;
 
   return (
     <div className="player-card">
@@ -113,17 +92,10 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
       </div>
 
       <div className="card-body">
+        {/* Header */}
         <div className="card-header-row">
           <span className="card-name">{combatant?.name}</span>
           <div className="card-header-badges">
-            {state?.concentration && (
-              <span
-                className="condition-chip condition-chip-con"
-                onClick={canEdit ? toggleConcentration : undefined}
-                style={{ cursor: canEdit ? 'pointer' : 'default' }}
-              >CON</span>
-            )}
-
             {isPlayer ? (
               <button
                 className="btn btn-ghost"
@@ -153,10 +125,7 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
         {/* HP Bar */}
         <div className="hp-bar-wrap">
           <div className="hp-bar-track">
-            <div
-              className="hp-bar-fill"
-              style={{ width: `${hpPercent}%`, background: hpColor(hpPercent) }}
-            />
+            <div className="hp-bar-fill" style={{ width: `${hpPercent}%`, background: hpColor(hpPercent) }} />
             {tempHp > 0 && (
               <div
                 className="hp-bar-temp"
@@ -215,14 +184,40 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
           />
         )}
 
-        {/* Conditions */}
+        {/* Conditions + Concentration toggle */}
         <ConditionChipRow
           conditions={state?.conditions || []}
-          concentration={state?.concentration || false}
+          concentration={concentration}
           stateId={state?.id}
           readOnly={readOnly}
           onUpdate={onUpdate}
         />
+
+        {/* Concentration toggle button — visible to player and DM, read-only on display */}
+        {!readOnly && (
+          <button
+            onClick={toggleConcentration}
+            style={{
+              alignSelf: 'flex-start',
+              fontSize: 11,
+              padding: '2px 8px',
+              borderRadius: 'var(--radius-sm)',
+              border: `1px solid ${concentration ? 'var(--accent-gold)' : 'var(--border)'}`,
+              background: concentration ? '#3a2e00' : 'var(--bg-panel-2)',
+              color: concentration ? 'var(--accent-gold)' : 'var(--text-muted)',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
+            title={concentration ? 'End Concentration' : 'Start Concentration'}
+          >
+            🔮 {concentration ? 'Concentrating' : 'Concentration'}
+          </button>
+        )}
+
+        {/* Show CON chip in display/read-only mode if active */}
+        {readOnly && concentration && (
+          <span className="condition-chip condition-chip-con">CON</span>
+        )}
 
         {/* Wild Shape */}
         {profile?.wildshape_enabled && state && (
