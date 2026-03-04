@@ -30,10 +30,13 @@ export default function WildShapeBlock({ state, readOnly, onUpdate }) {
     if (!selectedFormId) return;
     const form = forms.find(f => f.id === selectedFormId);
     if (!form) return;
+    const newUses = Math.max(0, localUses - 1);
+    setLocalUses(newUses);
     await supabase.from('player_encounter_state').update({
       wildshape_active: true,
       wildshape_form_id: selectedFormId,
       wildshape_hp_current: form.hp_max,
+      wildshape_uses_remaining: newUses,
     }).eq('id', state.id);
     onUpdate();
   }
@@ -75,7 +78,7 @@ export default function WildShapeBlock({ state, readOnly, onUpdate }) {
           )}
           <span className="wildshape-uses-count">{localUses} uses</span>
           {!readOnly && (
-            <button className="exh-btn" onClick={() => adjustUses(1)} disabled={localUses >= 4}>+</button>
+            <button className="exh-btn" onClick={() => adjustUses(1)} disabled={localUses >= 2}>+</button>
           )}
         </div>
       </div>
@@ -102,9 +105,9 @@ export default function WildShapeBlock({ state, readOnly, onUpdate }) {
               <button
                 className="btn btn-success"
                 onClick={handleActivate}
-                disabled={!selectedFormId}
+                disabled={!selectedFormId || localUses <= 0}
               >
-                Activate Wild Shape
+                {localUses <= 0 ? 'No uses remaining' : 'Activate Wild Shape'}
               </button>
             </>
           )}
