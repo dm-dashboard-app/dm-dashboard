@@ -106,14 +106,21 @@ function PlayerJoin({ setMode, onRoleSet }) {
       <button className="join-back" onClick={() => setMode('choose')}>← Back</button>
       <div className="join-logo">🧙</div>
       <h1 className="join-title">Player Join</h1>
-      <p className="join-sub">Enter the code your DM sent you</p>
+      <p className="join-sub">Enter the 4-character code your DM sent you</p>
       <div className="join-form">
         {error && <div className="join-error">{error}</div>}
-        <input className="form-input join-code-input" type="text" value={code}
+        <input
+          className="form-input join-code-input"
+          type="text"
+          value={code}
           onChange={e => setCode(e.target.value.toUpperCase())}
-          placeholder="BIRCH-4X9K" maxLength={10} autoComplete="off" autoCapitalize="characters" />
+          placeholder="AB3K"
+          maxLength={4}
+          autoComplete="off"
+          autoCapitalize="characters"
+        />
         <button className="btn btn-primary btn-lg" onClick={handleJoin}
-          disabled={loading || code.length < 6}>
+          disabled={loading || code.length < 4}>
           {loading ? 'Joining…' : 'Join Session'}
         </button>
       </div>

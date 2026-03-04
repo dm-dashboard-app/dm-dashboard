@@ -9,6 +9,7 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   const canEdit = role === 'dm' || role === 'player';
   const readOnly = role === 'display';
   const canRestore = role === 'dm';
+  const isPlayer = role === 'player';
 
   const [localHp, setLocalHp] = useState(null);
 
@@ -30,6 +31,18 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
 
   async function adjustHp(delta) {
     if (!state || readOnly) return;
+
+    // When taking damage (delta < 0), burn temp HP first
+    if (delta < 0 && tempHp > 0) {
+      const newTemp = Math.max(0, tempHp + delta);
+      await supabase
+        .from('player_encounter_state')
+        .update({ temp_hp: newTemp })
+        .eq('id', state.id);
+      onUpdate();
+      return;
+    }
+
     const newHp = Math.max(0, Math.min(maxHp, hp + delta));
     setLocalHp(newHp);
     await supabase
@@ -85,6 +98,8 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
     .toUpperCase()
     .slice(0, 2);
 
+  const reactionUsed = state?.reaction_used ?? false;
+
   return (
     <div className="player-card">
       <div className="portrait-strip">
@@ -108,12 +123,31 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
                 style={{ cursor: canEdit ? 'pointer' : 'default' }}
               >CON</span>
             )}
-            <button
-              className={`reaction-badge ${state?.reaction_used ? 'used' : 'available'}`}
-              onClick={canEdit ? toggleReaction : undefined}
-              disabled={readOnly}
-              title="Reaction"
-            >⚡</button>
+
+            {/* Reaction — icon badge for DM/display, button for player */}
+            {isPlayer ? (
+              <button
+                className={`btn ${reactionUsed ? 'btn-ghost' : 'btn-ghost'}`}
+                style={{
+                  fontSize: 11,
+                  padding: '2px 7px',
+                  opacity: reactionUsed ? 0.35 : 1,
+                  borderColor: reactionUsed ? 'var(--border)' : 'var(--accent-gold)',
+                  color: reactionUsed ? 'var(--text-muted)' : 'var(--accent-gold)',
+                }}
+                onClick={toggleReaction}
+                title={reactionUsed ? 'Reaction used' : 'Use Reaction'}
+              >
+                ⚡ {reactionUsed ? 'Used' : 'React'}
+              </button>
+            ) : (
+              <button
+                className={`reaction-badge ${reactionUsed ? 'used' : 'available'}`}
+                onClick={canEdit ? toggleReaction : undefined}
+                disabled={readOnly}
+                title="Reaction"
+              >⚡</button>
+            )}
           </div>
         </div>
 
@@ -196,6 +230,7 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
           <WildShapeBlock
             state={state}
             readOnly={readOnly}
+            canRestore={canRestore}
             onUpdate={onUpdate}
           />
         )}

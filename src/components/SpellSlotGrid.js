@@ -6,26 +6,34 @@ export default function SpellSlotGrid({ profile, state, readOnly, canRestore = f
   const activeLevels = levels.filter(l => (profile[`slots_max_${l}`] || 0) > 0);
   if (activeLevels.length === 0) return null;
 
-  async function handlePipClick(level, isUsed) {
-    if (readOnly || !state) return;
-    if (isUsed && !canRestore) return;
-
+  // Player uses a slot (expend one)
+  async function useSlot(level) {
+    if (!state) return;
     const used = state[`slots_used_${level}`] || 0;
     const max = profile[`slots_max_${level}`] || 0;
-
-    const newUsed = isUsed
-      ? Math.max(0, used - 1)
-      : Math.min(max, used + 1);
-
+    if (used >= max) return;
     await supabase
       .from('player_encounter_state')
-      .update({ [`slots_used_${level}`]: newUsed })
+      .update({ [`slots_used_${level}`]: used + 1 })
       .eq('id', state.id);
     onUpdate();
   }
 
+  // DM restores a single slot
+  async function restoreSlot(level) {
+    if (!state || !canRestore) return;
+    const used = state[`slots_used_${level}`] || 0;
+    if (used <= 0) return;
+    await supabase
+      .from('player_encounter_state')
+      .update({ [`slots_used_${level}`]: used - 1 })
+      .eq('id', state.id);
+    onUpdate();
+  }
+
+  // DM restores all slots for a level
   async function resetLevel(level) {
-    if (readOnly || !state || !canRestore) return;
+    if (!state || !canRestore) return;
     await supabase
       .from('player_encounter_state')
       .update({ [`slots_used_${level}`]: 0 })
@@ -39,22 +47,41 @@ export default function SpellSlotGrid({ profile, state, readOnly, canRestore = f
         const max = profile[`slots_max_${level}`] || 0;
         const used = state?.[`slots_used_${level}`] || 0;
         const allUsed = used >= max;
+        const isPlayer = !canRestore && !readOnly;
 
         return (
           <div key={level} className="slots-row">
             <span className="slots-label">{level}</span>
+
+            {/* Pips — clickable for DM to restore, visual only for players */}
             {Array.from({ length: max }).map((_, i) => {
               const isUsed = i < used;
               return (
                 <button
                   key={i}
                   className={`slot-pip ${isUsed ? 'used' : 'available'}`}
-                  onClick={() => handlePipClick(level, isUsed)}
-                  disabled={readOnly || (isUsed && !canRestore)}
-                  title={isUsed ? (canRestore ? 'Restore slot' : 'DM can restore') : 'Use slot'}
+                  onClick={() => canRestore && isUsed ? restoreSlot(level) : undefined}
+                  disabled={readOnly || !canRestore}
+                  title={isUsed && canRestore ? 'Restore one slot' : isUsed ? 'Expended' : 'Available'}
+                  style={{ cursor: canRestore && isUsed ? 'pointer' : 'default' }}
                 />
               );
             })}
+
+            {/* Player: Use Slot button */}
+            {isPlayer && (
+              <button
+                className="btn btn-ghost"
+                style={{ fontSize: 11, padding: '1px 6px', marginLeft: 4, opacity: allUsed ? 0.3 : 1 }}
+                onClick={() => useSlot(level)}
+                disabled={allUsed}
+                title={allUsed ? 'All slots expended' : 'Use one slot'}
+              >
+                Use
+              </button>
+            )}
+
+            {/* DM: restore-all button */}
             {canRestore && !readOnly && used > 0 && (
               <button
                 className="slots-reset-btn"
@@ -62,6 +89,7 @@ export default function SpellSlotGrid({ profile, state, readOnly, canRestore = f
                 title="Restore all slots"
               >↺</button>
             )}
+
             {allUsed && !readOnly && (
               <span className="slots-empty-label">expended</span>
             )}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
-export default function WildShapeBlock({ state, readOnly, onUpdate }) {
+export default function WildShapeBlock({ state, readOnly, canRestore, onUpdate }) {
   const [forms, setForms] = useState([]);
   const [selectedFormId, setSelectedFormId] = useState(state.wildshape_form_id || '');
   const [localHp, setLocalHp] = useState(null);
@@ -13,7 +13,6 @@ export default function WildShapeBlock({ state, readOnly, onUpdate }) {
     });
   }, []);
 
-  // Sync local state when DB state changes
   useEffect(() => {
     setLocalUses(state.wildshape_uses_remaining ?? 2);
     setLocalHp(null);
@@ -73,11 +72,13 @@ export default function WildShapeBlock({ state, readOnly, onUpdate }) {
       <div className="wildshape-header">
         <span className="wildshape-title">🐻 Wild Shape</span>
         <div className="wildshape-uses">
+          {/* Anyone not in readOnly can spend a use */}
           {!readOnly && (
             <button className="exh-btn" onClick={() => adjustUses(-1)} disabled={localUses <= 0}>−</button>
           )}
           <span className="wildshape-uses-count">{localUses} uses</span>
-          {!readOnly && (
+          {/* Only DM can restore uses */}
+          {canRestore && (
             <button className="exh-btn" onClick={() => adjustUses(1)} disabled={localUses >= 2}>+</button>
           )}
         </div>
