@@ -42,15 +42,16 @@ function hpColor(pct) {
   return 'var(--hp-low)';
 }
 
+// ============================================================
+// MINI HP BAR
+// ============================================================
 function MiniHpBar({ current, max, tempHp = 0, color = null, label = null }) {
   const pct = max > 0 ? Math.max(0, Math.min(100, (current / max) * 100)) : 0;
   const barColor = color || hpColor(pct);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       {label && (
-        <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-          {label}
-        </span>
+        <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</span>
       )}
       <div style={{ height: 5, background: 'var(--bg-panel-3)', borderRadius: 3, overflow: 'hidden', position: 'relative' }}>
         <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 3, transition: 'width 0.3s ease' }} />
@@ -58,20 +59,67 @@ function MiniHpBar({ current, max, tempHp = 0, color = null, label = null }) {
           <div style={{ position: 'absolute', top: 0, left: `${pct}%`, width: `${Math.min(100 - pct, (tempHp / max) * 100)}%`, height: '100%', background: 'var(--hp-temp)', opacity: 0.7, borderRadius: 3 }} />
         )}
       </div>
-      <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-        {current}{tempHp > 0 ? ` (+${tempHp})` : ''} / {max}
-      </span>
+      <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{current}{tempHp > 0 ? ` (+${tempHp})` : ''} / {max}</span>
     </div>
   );
 }
 
 // ============================================================
-// COMPACT DMG/HEAL WIDGET (used inline in initiative rows)
+// LEGENDARY PIPS
+// Filled pip = available (same convention as spell slots).
+// DM: can click to spend (filled→empty) or restore (empty→filled).
+// Players: read-only — they see how many the boss has left.
+// Reset button (↺) appears for DM when it's the creature's turn.
+// ============================================================
+function LegendaryPips({ label, max, used, isDM, onSpend, onRestore, onReset, isActive }) {
+  if (max === 0) return null;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+      <span style={{ fontSize: 9, color: 'var(--accent-gold)', fontWeight: 700, minWidth: 16, letterSpacing: '0.03em' }}>{label}</span>
+      <div style={{ display: 'flex', gap: 3 }}>
+        {Array.from({ length: max }).map((_, i) => {
+          const available = i >= used; // first `used` pips are empty (spent), rest filled (available)
+          return (
+            <button
+              key={i}
+              onClick={isDM ? (available ? onSpend : onRestore) : undefined}
+              disabled={!isDM}
+              title={isDM ? (available ? 'Spend' : 'Restore') : available ? 'Available' : 'Spent'}
+              style={{
+                width: 13, height: 13,
+                borderRadius: '50%',
+                border: `2px solid var(--accent-gold)`,
+                background: available ? 'var(--accent-gold)' : 'transparent',
+                cursor: isDM ? 'pointer' : 'default',
+                padding: 0,
+                transition: 'background 0.1s',
+                flexShrink: 0,
+              }}
+            />
+          );
+        })}
+      </div>
+      <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>
+        {used > 0 ? `${max - used}/${max}` : `${max}/${max}`}
+      </span>
+      {isDM && isActive && (
+        <button
+          onClick={onReset}
+          title="Reset (start of turn)"
+          style={{ fontSize: 11, color: 'var(--accent-gold)', opacity: used === 0 ? 0.2 : 0.7, padding: '0 2px', cursor: used === 0 ? 'default' : 'pointer', background: 'none', border: 'none', transition: 'opacity 0.15s' }}
+          disabled={used === 0}
+        >↺</button>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// INLINE DMG / HEAL WIDGET (compact, for initiative rows)
 // ============================================================
 function InlineDmgHeal({ onDamage, onHeal }) {
   const [amount, setAmount] = useState('');
   const inputRef = useRef(null);
-
   const n = parseInt(amount);
   const valid = !isNaN(n) && n > 0;
 
@@ -91,9 +139,7 @@ function InlineDmgHeal({ onDamage, onHeal }) {
 
   return (
     <div className="hp-dmg-row hp-dmg-row--compact">
-      <button className="hp-action-btn hp-action-dmg" onClick={handleDamage} disabled={!valid}>
-        ⚔ DMG
-      </button>
+      <button className="hp-action-btn hp-action-dmg" onClick={handleDamage} disabled={!valid}>⚔ DMG</button>
       <input
         ref={inputRef}
         className="hp-amount-input hp-amount-input--compact"
@@ -101,16 +147,76 @@ function InlineDmgHeal({ onDamage, onHeal }) {
         inputMode="numeric"
         value={amount}
         onChange={e => setAmount(e.target.value)}
-        onKeyDown={e => {
-          if (e.key === 'Enter') handleDamage();
-          if (e.key === 'Escape') setAmount('');
-        }}
+        onKeyDown={e => { if (e.key === 'Enter') handleDamage(); if (e.key === 'Escape') setAmount(''); }}
         placeholder="—"
         min={1}
       />
-      <button className="hp-action-btn hp-action-heal" onClick={handleHeal} disabled={!valid}>
-        HEAL ♥
-      </button>
+      <button className="hp-action-btn hp-action-heal" onClick={handleHeal} disabled={!valid}>HEAL ♥</button>
+    </div>
+  );
+}
+
+// ============================================================
+// ENEMY SPELL SLOT GRID (DM only, writes to combatants table)
+// ============================================================
+function EnemySlotGrid({ combatant, onUpdate }) {
+  const levels = [1,2,3,4,5,6,7,8,9];
+  const activeLevels = levels.filter(l => (combatant[`slots_max_${l}`] || 0) > 0);
+  if (activeLevels.length === 0) return null;
+
+  async function useSlot(level) {
+    const used = combatant[`slots_used_${level}`] || 0;
+    const max  = combatant[`slots_max_${level}`]  || 0;
+    if (used >= max) return;
+    await supabase.from('combatants').update({ [`slots_used_${level}`]: used + 1 }).eq('id', combatant.id);
+    onUpdate();
+  }
+
+  async function restoreSlot(level) {
+    const used = combatant[`slots_used_${level}`] || 0;
+    if (used <= 0) return;
+    await supabase.from('combatants').update({ [`slots_used_${level}`]: used - 1 }).eq('id', combatant.id);
+    onUpdate();
+  }
+
+  async function resetLevel(level) {
+    await supabase.from('combatants').update({ [`slots_used_${level}`]: 0 }).eq('id', combatant.id);
+    onUpdate();
+  }
+
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <div style={{ fontSize: 10, color: 'var(--text-secondary)', fontWeight: 700, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        Spell Slots
+      </div>
+      <div className="slots-grid">
+        {activeLevels.map(level => {
+          const max  = combatant[`slots_max_${level}`]  || 0;
+          const used = combatant[`slots_used_${level}`] || 0;
+          const allUsed = used >= max;
+          return (
+            <div key={level} className="slots-row">
+              <span className="slots-label">{level}</span>
+              {Array.from({ length: max }).map((_, i) => {
+                const isUsed = i < used;
+                return (
+                  <button
+                    key={i}
+                    className={`slot-pip ${isUsed ? 'used' : 'available'}`}
+                    onClick={() => isUsed ? restoreSlot(level) : useSlot(level)}
+                    title={isUsed ? 'Restore slot' : 'Use slot'}
+                    style={{ cursor: 'pointer' }}
+                  />
+                );
+              })}
+              {used > 0 && (
+                <button className="slots-reset-btn" onClick={() => resetLevel(level)} title="Restore all">↺</button>
+              )}
+              {allUsed && <span className="slots-empty-label">expended</span>}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -157,16 +263,16 @@ export default function InitiativePanel({ encounter, combatants, playerStates = 
 // INITIATIVE ROW
 // ============================================================
 function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorted, idx }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded]       = useState(false);
   const [condPickerOpen, setCondPickerOpen] = useState(false);
-  const [resPicker, setResPicker] = useState(false);
-  const [inputValue, setInputValue] = useState(
+  const [resPicker, setResPicker]     = useState(false);
+  const [inputValue, setInputValue]   = useState(
     combatant.initiative_total != null ? String(combatant.initiative_total) : ''
   );
-  const [conDc, setConDc] = useState(null);
-  const conTimer = useRef(null);
-  const isFocused = useRef(false);
-  const savingRef = useRef(false);
+  const [conDc, setConDc]   = useState(null);
+  const conTimer            = useRef(null);
+  const isFocused           = useRef(false);
+  const savingRef           = useRef(false);
 
   useEffect(() => {
     if (!isFocused.current) {
@@ -176,42 +282,58 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
 
   useEffect(() => () => clearTimeout(conTimer.current), []);
 
-  const isPC = combatant.side === 'PC';
+  const isPC    = combatant.side === 'PC';
   const isEnemy = combatant.side === 'ENEMY' || combatant.side === 'NPC';
   const conditions = combatant.conditions || [];
 
-  const pcHpCurrent = playerState?.current_hp ?? null;
+  // PC state
+  const pcHpCurrent  = playerState?.current_hp ?? null;
   const pcProfileMax = playerState?.profiles_players?.max_hp ?? null;
   const pcMaxOverride = playerState?.max_hp_override ?? null;
-  const pcHpMax = pcMaxOverride !== null ? pcMaxOverride : pcProfileMax;
-  const tempHp = playerState?.temp_hp ?? 0;
+  const pcHpMax      = pcMaxOverride !== null ? pcMaxOverride : pcProfileMax;
+  const tempHp       = playerState?.temp_hp ?? 0;
   const concentration = playerState?.concentration ?? false;
-  const reactionUsed = playerState?.reaction_used ?? false;
+  const reactionUsed  = playerState?.reaction_used ?? false;
   const displayConditions = isPC ? (playerState?.conditions || []) : conditions;
 
-  const wsActive = playerState?.wildshape_active ?? false;
-  const wsHpCurrent = playerState?.wildshape_hp_current ?? 0;
-  const wsFormName = playerState?.wildshape_form_name ?? null;
-  const wsHpMax = playerState?.wildshape_hp_max ?? null;
+  // Passive perception (DM view on PC rows)
+  const passivePerception = isPC && playerState?.profiles_players
+    ? (10 + (playerState.profiles_players.skill_perception ?? 0))
+    : null;
 
+  // Wild shape
+  const wsActive     = playerState?.wildshape_active ?? false;
+  const wsHpCurrent  = playerState?.wildshape_hp_current ?? 0;
+  const wsFormName   = playerState?.wildshape_form_name ?? null;
+  const wsHpMax      = playerState?.wildshape_hp_max ?? null;
+
+  // Enemy HP
   const enemyHpCurrent = combatant.hp_current ?? null;
-  const enemyHpMax = combatant.hp_max ?? null;
-
-  const showPcHp = isPC && pcHpCurrent !== null && pcHpMax !== null;
-  const showEnemyHp = isEnemy && isDM && enemyHpCurrent !== null && enemyHpMax !== null;
-
-  const pcBloodied = isPC && pcHpCurrent !== null && pcHpMax !== null
-    && pcHpCurrent > 0 && pcHpCurrent <= Math.floor(pcHpMax / 2);
-  const enemyBloodied = isEnemy && combatant.public_status === 'BLOODIED';
+  const enemyHpMax     = combatant.hp_max ?? null;
   const enemyReactionUsed = combatant.reaction_used ?? false;
 
-  // Resistances / Immunities
+  const showPcHp    = isPC && pcHpCurrent !== null && pcHpMax !== null;
+  const showEnemyHp = isEnemy && isDM && enemyHpCurrent !== null && enemyHpMax !== null;
+
+  const pcBloodied    = isPC && pcHpCurrent !== null && pcHpMax !== null && pcHpCurrent > 0 && pcHpCurrent <= Math.floor(pcHpMax / 2);
+  const enemyBloodied = isEnemy && combatant.public_status === 'BLOODIED';
+
+  // Legendary
+  const laMax  = combatant.legendary_actions_max  ?? 0;
+  const laUsed = combatant.legendary_actions_used  ?? 0;
+  const lrMax  = combatant.legendary_resistances_max  ?? 0;
+  const lrUsed = combatant.legendary_resistances_used ?? 0;
+  const hasLegendary = isEnemy && (laMax > 0 || lrMax > 0);
+
+  // Resistances / immunities
   const resistances = combatant.resistances || [];
-  const immunities = combatant.immunities || [];
+  const immunities  = combatant.immunities  || [];
 
   // Ability mods
-  const mods = ['str','dex','con','int','wis','cha'];
-  const hasAnyMod = mods.some(m => (combatant[`mod_${m}`] ?? 0) !== 0);
+  const MODS = ['str','dex','con','int','wis','cha'];
+  const hasAnyMod = MODS.some(m => (combatant[`mod_${m}`] ?? 0) !== 0);
+
+  // ---- Handlers ----
 
   async function saveInitiative() {
     if (savingRef.current) return;
@@ -223,60 +345,49 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
     onUpdate();
   }
 
-  // Initiative reorder
   async function moveUp() {
     if (idx === 0) return;
     const neighbor = sorted[idx - 1];
-    const neighborTotal = neighbor.initiative_total ?? 0;
-    await supabase.rpc('set_initiative', { p_combatant_id: combatant.id, p_total: neighborTotal + 1 });
+    await supabase.rpc('set_initiative', { p_combatant_id: combatant.id, p_total: (neighbor.initiative_total ?? 0) + 1 });
     onUpdate();
   }
 
   async function moveDown() {
     if (idx === sorted.length - 1) return;
     const neighbor = sorted[idx + 1];
-    const neighborTotal = neighbor.initiative_total ?? 0;
-    await supabase.rpc('set_initiative', { p_combatant_id: combatant.id, p_total: Math.max(0, neighborTotal - 1) });
+    await supabase.rpc('set_initiative', { p_combatant_id: combatant.id, p_total: Math.max(0, (neighbor.initiative_total ?? 0) - 1) });
     onUpdate();
   }
 
-  // Enemy HP
   async function applyEnemyDamage(amount) {
     if (!amount || amount <= 0) return;
     const newHp = Math.max(0, (combatant.hp_current ?? 0) - amount);
-    const updates = { hp_current: newHp };
-    if (newHp <= Math.floor((combatant.hp_max ?? 0) / 2) && newHp > 0) {
-      updates.public_status = 'BLOODIED';
-    } else if (newHp === 0) {
-      updates.public_status = null;
-    } else {
-      updates.public_status = null;
-    }
-    await supabase.from('combatants').update(updates).eq('id', combatant.id);
+    const isBloodied = newHp > 0 && newHp <= Math.floor((combatant.hp_max ?? 0) / 2);
+    await supabase.from('combatants').update({
+      hp_current: newHp,
+      public_status: isBloodied ? 'BLOODIED' : null,
+    }).eq('id', combatant.id);
     onUpdate();
   }
 
   async function applyEnemyHeal(amount) {
     if (!amount || amount <= 0) return;
     const newHp = Math.min(combatant.hp_max ?? 999, (combatant.hp_current ?? 0) + amount);
-    const updates = { hp_current: newHp };
-    if (newHp > Math.floor((combatant.hp_max ?? 0) / 2)) {
-      updates.public_status = null;
-    } else {
-      updates.public_status = 'BLOODIED';
-    }
-    await supabase.from('combatants').update(updates).eq('id', combatant.id);
+    const isBloodied = newHp > 0 && newHp <= Math.floor((combatant.hp_max ?? 0) / 2);
+    await supabase.from('combatants').update({
+      hp_current: newHp,
+      public_status: isBloodied ? 'BLOODIED' : null,
+    }).eq('id', combatant.id);
     onUpdate();
   }
 
-  // PC damage from initiative panel (DM only)
   async function applyPcDamage(amount) {
     if (!playerState || !amount || amount <= 0) return;
-    const curHp = playerState.current_hp ?? 0;
+    const curHp   = playerState.current_hp ?? 0;
     const curTemp = playerState.temp_hp ?? 0;
     const pcConds = playerState.conditions || [];
     const effectiveMax = pcMaxOverride ?? pcProfileMax ?? 999;
-    const isConc = playerState.concentration ?? false;
+    const isConc  = playerState.concentration ?? false;
 
     if (isConc) {
       clearTimeout(conTimer.current);
@@ -316,17 +427,14 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
     const newHp = Math.min(effectiveMax, curHp + amount);
     const pcConds = playerState.conditions || [];
     await supabase.from('player_encounter_state').update({ current_hp: newHp }).eq('id', playerState.id);
-    const hasUnc = pcConds.includes('UNC');
-    if (newHp > 0 && hasUnc) {
+    if (newHp > 0 && pcConds.includes('UNC')) {
       await supabase.from('player_encounter_state').update({ conditions: pcConds.filter(c => c !== 'UNC') }).eq('id', playerState.id);
     }
     onUpdate();
   }
 
   async function toggleCondition(code) {
-    const updated = conditions.includes(code)
-      ? conditions.filter(c => c !== code)
-      : [...conditions, code];
+    const updated = conditions.includes(code) ? conditions.filter(c => c !== code) : [...conditions, code];
     await supabase.from('combatants').update({ conditions: updated }).eq('id', combatant.id);
     onUpdate();
   }
@@ -343,34 +451,54 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
     onUpdate();
   }
 
+  async function adjustLegendary(field, max) {
+    const cur = combatant[field] ?? 0;
+    // Toggle: if fully used → restore one, else spend one
+    const newVal = cur >= max ? cur - 1 : cur + 1;
+    await supabase.from('combatants').update({ [field]: Math.max(0, Math.min(max, newVal)) }).eq('id', combatant.id);
+    onUpdate();
+  }
+
+  async function spendLegendary(field, max) {
+    const cur = combatant[field] ?? 0;
+    if (cur >= max) return;
+    await supabase.from('combatants').update({ [field]: cur + 1 }).eq('id', combatant.id);
+    onUpdate();
+  }
+
+  async function restoreLegendary(field) {
+    const cur = combatant[field] ?? 0;
+    if (cur <= 0) return;
+    await supabase.from('combatants').update({ [field]: cur - 1 }).eq('id', combatant.id);
+    onUpdate();
+  }
+
+  async function resetLegendary(field) {
+    await supabase.from('combatants').update({ [field]: 0 }).eq('id', combatant.id);
+    onUpdate();
+  }
+
   async function removeCombatant() {
     if (!window.confirm(`Remove ${combatant.name}?`)) return;
     await supabase.from('combatants').delete().eq('id', combatant.id);
     onUpdate();
   }
 
-  const atTop = idx === 0;
+  const atTop    = idx === 0;
   const atBottom = idx === sorted.length - 1;
 
   return (
     <div className={`initiative-row ${isActive ? 'active-turn' : ''}`} style={{ display: 'block', padding: '8px 12px' }}>
-      {/* Main row */}
+
+      {/* ---- Main header row ---- */}
       <div className="initiative-row-main" onClick={() => isDM && isEnemy && setExpanded(e => !e)}>
-        {/* Reorder arrows (DM only) */}
+        {/* Reorder arrows */}
         {isDM && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1, marginRight: 2 }}>
-            <button
-              style={{ fontSize: 9, lineHeight: 1, padding: '1px 3px', opacity: atTop ? 0.15 : 0.5, cursor: atTop ? 'default' : 'pointer', background: 'none', border: 'none', color: 'var(--text-secondary)' }}
-              onClick={e => { e.stopPropagation(); moveUp(); }}
-              disabled={atTop}
-              title="Move up"
-            >▲</button>
-            <button
-              style={{ fontSize: 9, lineHeight: 1, padding: '1px 3px', opacity: atBottom ? 0.15 : 0.5, cursor: atBottom ? 'default' : 'pointer', background: 'none', border: 'none', color: 'var(--text-secondary)' }}
-              onClick={e => { e.stopPropagation(); moveDown(); }}
-              disabled={atBottom}
-              title="Move down"
-            >▼</button>
+            <button style={{ fontSize: 9, lineHeight: 1, padding: '1px 3px', opacity: atTop ? 0.15 : 0.5, cursor: atTop ? 'default' : 'pointer', background: 'none', border: 'none', color: 'var(--text-secondary)' }}
+              onClick={e => { e.stopPropagation(); moveUp(); }} disabled={atTop}>▲</button>
+            <button style={{ fontSize: 9, lineHeight: 1, padding: '1px 3px', opacity: atBottom ? 0.15 : 0.5, cursor: atBottom ? 'default' : 'pointer', background: 'none', border: 'none', color: 'var(--text-secondary)' }}
+              onClick={e => { e.stopPropagation(); moveDown(); }} disabled={atBottom}>▼</button>
           </div>
         )}
 
@@ -398,11 +526,10 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
             {wsActive && <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3, background: '#1a3a1a', color: 'var(--accent-green)' }}>🐻 BEAST</span>}
           </div>
         </div>
-
         {isDM && isEnemy && <span className="expand-toggle">{expanded ? '▲' : '▼'}</span>}
       </div>
 
-      {/* HP bars + status chips */}
+      {/* ---- HP bars + status ---- */}
       {(showPcHp || showEnemyHp) && (
         <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
           {isPC && wsActive && wsHpMax != null && (
@@ -415,6 +542,9 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
             <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
               {concentration && <span style={{ fontSize: 10, color: 'var(--accent-gold)', fontWeight: 700 }}>🔮CON</span>}
               <span style={{ fontSize: 10, color: reactionUsed ? 'var(--text-muted)' : 'var(--accent-gold)', opacity: reactionUsed ? 0.4 : 1 }}>⚡</span>
+              {isDM && passivePerception !== null && (
+                <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 600 }}>PP {passivePerception}</span>
+              )}
               {displayConditions.filter(c => !c.startsWith('EXH')).map(code => (
                 <span key={code} style={{ fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3, background: CONDITION_COLOURS[code] || 'var(--cond-default)', color: 'var(--text-primary)' }}>{code}</span>
               ))}
@@ -437,7 +567,37 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
         </div>
       )}
 
-      {/* CON check banner — PC rows, DM applying damage */}
+      {/* ---- Legendary pips — visible to all roles when present ---- */}
+      {hasLegendary && (
+        <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4, paddingLeft: 2 }}>
+          {laMax > 0 && (
+            <LegendaryPips
+              label="LA"
+              max={laMax}
+              used={laUsed}
+              isDM={isDM}
+              onSpend={() => spendLegendary('legendary_actions_used', laMax)}
+              onRestore={() => restoreLegendary('legendary_actions_used')}
+              onReset={() => resetLegendary('legendary_actions_used')}
+              isActive={isActive}
+            />
+          )}
+          {lrMax > 0 && (
+            <LegendaryPips
+              label="LR"
+              max={lrMax}
+              used={lrUsed}
+              isDM={isDM}
+              onSpend={() => spendLegendary('legendary_resistances_used', lrMax)}
+              onRestore={() => restoreLegendary('legendary_resistances_used')}
+              onReset={() => resetLegendary('legendary_resistances_used')}
+              isActive={false}
+            />
+          )}
+        </div>
+      )}
+
+      {/* ---- CON check banner ---- */}
       {conDc !== null && (
         <div className="con-check-banner" style={{ marginTop: 6 }}>
           <span className="con-check-label">🔮 CON SAVE</span>
@@ -445,17 +605,18 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
         </div>
       )}
 
-      {/* PC damage widget — DM only, inline */}
+      {/* ---- PC damage widget (DM only, inline) ---- */}
       {isPC && isDM && showPcHp && (
         <div style={{ marginTop: 6 }}>
           <InlineDmgHeal onDamage={applyPcDamage} onHeal={applyPcHeal} />
         </div>
       )}
 
-      {/* Enemy expanded panel */}
+      {/* ---- Enemy expanded panel ---- */}
       {isDM && isEnemy && expanded && (
         <div className="monster-dm-controls">
-          {/* DMG / HEAL widget */}
+
+          {/* DMG / HEAL */}
           <div style={{ marginBottom: 10 }}>
             <InlineDmgHeal onDamage={applyEnemyDamage} onHeal={applyEnemyHeal} />
             <div style={{ marginTop: 4, fontSize: 11, color: 'var(--text-muted)', textAlign: 'center' }}>
@@ -467,22 +628,23 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
           <div style={{ marginBottom: 8 }}>
             <button
               className="btn btn-ghost"
-              style={{
-                fontSize: 12, padding: '3px 10px', width: '100%',
+              style={{ fontSize: 12, padding: '3px 10px', width: '100%',
                 borderColor: enemyReactionUsed ? 'var(--border)' : 'var(--accent-gold)',
                 color: enemyReactionUsed ? 'var(--text-muted)' : 'var(--accent-gold)',
-                opacity: enemyReactionUsed ? 0.5 : 1,
-              }}
+                opacity: enemyReactionUsed ? 0.5 : 1 }}
               onClick={toggleEnemyReaction}
             >
               ⚡ {enemyReactionUsed ? 'Reaction Used' : 'Reaction Available'}
             </button>
           </div>
 
+          {/* Enemy spell slots */}
+          <EnemySlotGrid combatant={combatant} onUpdate={onUpdate} />
+
           {/* Ability mods */}
           {hasAnyMod && (
             <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>
-              {mods.map(m => {
+              {MODS.map(m => {
                 const val = combatant[`mod_${m}`] ?? 0;
                 return (
                   <div key={m} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'var(--bg-panel-3)', border: '1px solid var(--border)', borderRadius: 4, padding: '2px 5px', minWidth: 30 }}>
@@ -496,7 +658,8 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
 
           {/* Resistances & Immunities */}
           <div style={{ marginBottom: 8 }}>
-            <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', marginBottom: 4 }} onClick={() => setResPicker(p => !p)}>
+            <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', marginBottom: 4 }}
+              onClick={() => setResPicker(p => !p)}>
               {resPicker ? 'Close' : '⚡ Resistances & Immunities'}
             </button>
             {(resistances.length > 0 || immunities.length > 0) && !resPicker && (
@@ -539,7 +702,8 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
 
           {/* Conditions */}
           <div style={{ marginBottom: 8 }}>
-            <button className="btn btn-ghost" style={{ fontSize: 12, padding: '2px 8px' }} onClick={() => setCondPickerOpen(p => !p)}>
+            <button className="btn btn-ghost" style={{ fontSize: 12, padding: '2px 8px' }}
+              onClick={() => setCondPickerOpen(p => !p)}>
               {condPickerOpen ? 'Close Conditions' : '+ Conditions'}
             </button>
             {condPickerOpen && (
@@ -566,46 +730,55 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
 // ADD COMBATANT INLINE
 // ============================================================
 function AddCombatantInline({ encounterId, onUpdate }) {
-  const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState('template');
-  const [templates, setTemplates] = useState([]);
+  const [open, setOpen]             = useState(false);
+  const [mode, setMode]             = useState('template');
+  const [templates, setTemplates]   = useState([]);
   const [templateFilter, setTemplateFilter] = useState('ALL');
-  const [adding, setAdding] = useState(false);
+  const [adding, setAdding]         = useState(false);
 
   const [name, setName] = useState('');
-  const [ac, setAc] = useState(10);
-  const [hp, setHp] = useState(10);
-  const [mod, setMod] = useState(0);
+  const [ac, setAc]     = useState(10);
+  const [hp, setHp]     = useState(10);
+  const [mod, setMod]   = useState(0);
   const [side, setSide] = useState('ENEMY');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (open && mode === 'template') {
-      supabase.from('profiles_monsters').select('*').order('name').then(({ data }) => {
-        setTemplates(data || []);
-      });
+      supabase.from('profiles_monsters').select('*').order('name').then(({ data }) => setTemplates(data || []));
     }
   }, [open, mode]);
 
   async function addFromTemplate(template) {
     setAdding(true);
     await supabase.from('combatants').insert({
-      encounter_id: encounterId,
-      name: template.name,
-      side: template.side || 'ENEMY',
-      ac: template.ac,
-      hp_max: template.hp_max,
-      hp_current: template.hp_max,
-      initiative_mod: template.initiative_mod || 0,
-      notes: template.notes || null,
-      mod_str: template.mod_str || 0,
-      mod_dex: template.mod_dex || 0,
-      mod_con: template.mod_con || 0,
-      mod_int: template.mod_int || 0,
-      mod_wis: template.mod_wis || 0,
-      mod_cha: template.mod_cha || 0,
-      resistances: template.resistances || [],
-      immunities: template.immunities || [],
+      encounter_id:               encounterId,
+      name:                       template.name,
+      side:                       template.side || 'ENEMY',
+      ac:                         template.ac,
+      hp_max:                     template.hp_max,
+      hp_current:                 template.hp_max,
+      initiative_mod:             template.initiative_mod || 0,
+      notes:                      template.notes || null,
+      mod_str:                    template.mod_str || 0,
+      mod_dex:                    template.mod_dex || 0,
+      mod_con:                    template.mod_con || 0,
+      mod_int:                    template.mod_int || 0,
+      mod_wis:                    template.mod_wis || 0,
+      mod_cha:                    template.mod_cha || 0,
+      resistances:                template.resistances || [],
+      immunities:                 template.immunities  || [],
+      legendary_actions_max:      template.legendary_actions_max  || 0,
+      legendary_resistances_max:  template.legendary_resistances_max || 0,
+      slots_max_1: template.slots_max_1 || 0,
+      slots_max_2: template.slots_max_2 || 0,
+      slots_max_3: template.slots_max_3 || 0,
+      slots_max_4: template.slots_max_4 || 0,
+      slots_max_5: template.slots_max_5 || 0,
+      slots_max_6: template.slots_max_6 || 0,
+      slots_max_7: template.slots_max_7 || 0,
+      slots_max_8: template.slots_max_8 || 0,
+      slots_max_9: template.slots_max_9 || 0,
     });
     setAdding(false);
     onUpdate();
@@ -616,11 +789,8 @@ function AddCombatantInline({ encounterId, onUpdate }) {
     setSaving(true);
     await supabase.from('combatants').insert({
       encounter_id: encounterId,
-      name: name.trim(),
-      side,
-      ac: parseInt(ac),
-      hp_max: parseInt(hp),
-      hp_current: parseInt(hp),
+      name: name.trim(), side,
+      ac: parseInt(ac), hp_max: parseInt(hp), hp_current: parseInt(hp),
       initiative_mod: parseInt(mod),
     });
     setName(''); setAc(10); setHp(10); setMod(0);
@@ -628,13 +798,9 @@ function AddCombatantInline({ encounterId, onUpdate }) {
     onUpdate();
   }
 
-  if (!open) return (
-    <button className="btn btn-ghost" onClick={() => setOpen(true)}>+ Add Combatant</button>
-  );
+  if (!open) return <button className="btn btn-ghost" onClick={() => setOpen(true)}>+ Add Combatant</button>;
 
-  const filteredTemplates = templateFilter === 'ALL'
-    ? templates
-    : templates.filter(t => t.side === templateFilter);
+  const filteredTemplates = templateFilter === 'ALL' ? templates : templates.filter(t => t.side === templateFilter);
 
   return (
     <div className="add-combatant-form">
@@ -649,7 +815,7 @@ function AddCombatantInline({ encounterId, onUpdate }) {
       {mode === 'template' && (
         <>
           <div style={{ display: 'flex', gap: 6 }}>
-            {['ALL', 'ENEMY', 'NPC'].map(f => (
+            {['ALL','ENEMY','NPC'].map(f => (
               <button key={f} className="btn btn-ghost"
                 style={{ fontSize: 11, padding: '2px 8px', borderColor: templateFilter === f ? 'var(--accent-blue)' : 'var(--border)', color: templateFilter === f ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
                 onClick={() => setTemplateFilter(f)}>{f}</button>
@@ -663,6 +829,9 @@ function AddCombatantInline({ encounterId, onUpdate }) {
                   <span className={`badge badge-${(t.side || 'enemy').toLowerCase()}`} style={{ marginRight: 6 }}>{t.side || 'ENEMY'}</span>
                   <span style={{ fontSize: 13, fontWeight: 600 }}>{t.name}</span>
                   <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>AC {t.ac} HP {t.hp_max}</span>
+                  {(t.legendary_actions_max > 0 || t.legendary_resistances_max > 0) && (
+                    <span style={{ fontSize: 10, color: 'var(--accent-gold)', marginLeft: 6 }}>★ Legendary</span>
+                  )}
                 </div>
                 <button className="btn btn-primary btn-icon" onClick={() => addFromTemplate(t)} disabled={adding} style={{ fontSize: 16, minWidth: 32, minHeight: 32 }}>+</button>
               </div>
@@ -706,5 +875,3 @@ function AddCombatantInline({ encounterId, onUpdate }) {
     </div>
   );
 }
-
-const mods = ['str','dex','con','int','wis','cha'];

@@ -28,6 +28,9 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   const reactionUsed = state?.reaction_used ?? false;
   const isBloodied = hp > 0 && hp <= Math.floor(maxHp / 2);
 
+  // Passive perception = 10 + perception skill modifier
+  const passivePerception = profile ? (10 + (profile.skill_perception ?? 0)) : null;
+
   useEffect(() => { setLocalHp(null); }, [dbHp]);
   useEffect(() => () => clearTimeout(conTimer.current), []);
 
@@ -50,22 +53,18 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
 
   async function applyDamage(amount) {
     if (!state || readOnly || !amount || amount <= 0) return;
-
     if (concentration) {
       clearTimeout(conTimer.current);
       setConDc(Math.max(10, Math.floor(amount / 2)));
       conTimer.current = setTimeout(() => setConDc(null), 7000);
     }
-
     let remaining = amount;
     const updates = {};
-
     if (tempHp > 0) {
       const burn = Math.min(tempHp, remaining);
       remaining -= burn;
       updates.temp_hp = tempHp - burn;
     }
-
     if (remaining > 0) {
       const newHp = Math.max(0, hp - remaining);
       setLocalHp(newHp);
@@ -75,7 +74,6 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
     } else {
       await supabase.from('player_encounter_state').update(updates).eq('id', state.id);
     }
-
     onUpdate();
   }
 
@@ -169,7 +167,6 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
                   color: reactionUsed ? 'var(--text-muted)' : 'var(--accent-gold)',
                 }}
                 onClick={toggleReaction}
-                title={reactionUsed ? 'Reaction used' : 'Use Reaction'}
               >
                 ⚡ {reactionUsed ? 'Used' : 'React'}
               </button>
@@ -204,9 +201,7 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
           )}
           <span className="hp-slash">/ {maxHp}</span>
           {maxHpOverride !== null && canRestore && (
-            <button className="hp-override-badge" onClick={resetMaxHp} title="Reset to profile max">
-              ✦ ↺
-            </button>
+            <button className="hp-override-badge" onClick={resetMaxHp} title="Reset to profile max">✦ ↺</button>
           )}
           {canEdit && !readOnly ? (
             <TempHpControl tempHp={tempHp} onSet={setTempHpDirect} />
@@ -231,9 +226,7 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
         {/* Max HP Override (DM only) */}
         {canRestore && (
           <div className="max-hp-override-row">
-            <span className="max-hp-override-label">
-              Max HP{maxHpOverride !== null ? ' ✦' : ''}
-            </span>
+            <span className="max-hp-override-label">Max HP{maxHpOverride !== null ? ' ✦' : ''}</span>
             <button className="btn btn-icon btn-ghost" style={{ minWidth: 28, minHeight: 28, fontSize: 13 }} onClick={() => adjustMaxHp(-1)}>−</button>
             <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, minWidth: 28, textAlign: 'center' }}>{maxHp}</span>
             <button className="btn btn-icon btn-ghost" style={{ minWidth: 28, minHeight: 28, fontSize: 13 }} onClick={() => adjustMaxHp(1)}>+</button>
@@ -243,9 +236,10 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
           </div>
         )}
 
-        {/* Core stats */}
+        {/* Core stats — PP shown after AC */}
         <div className="stats-row">
           <StatPill label="AC" value={profile?.ac ?? combatant?.ac ?? '—'} />
+          {passivePerception !== null && <StatPill label="PP" value={passivePerception} />}
           {profile?.spell_save_dc > 0 && <StatPill label="Spell DC" value={profile.spell_save_dc} />}
           {!!profile?.spell_attack_bonus && <StatPill label="Spell ATK" value={`+${profile.spell_attack_bonus}`} />}
         </div>
@@ -287,18 +281,13 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
           <button
             onClick={toggleConcentration}
             style={{
-              alignSelf: 'flex-start',
-              fontSize: 11,
-              padding: '3px 9px',
+              alignSelf: 'flex-start', fontSize: 11, padding: '3px 9px',
               borderRadius: 'var(--radius-sm)',
               border: `1px solid ${concentration ? 'var(--accent-gold)' : 'var(--border-strong)'}`,
               background: concentration ? '#3a2e00' : 'var(--bg-panel-3)',
               color: concentration ? 'var(--accent-gold)' : 'var(--text-secondary)',
-              cursor: 'pointer',
-              fontWeight: 600,
-              transition: 'all 0.15s',
+              cursor: 'pointer', fontWeight: 600, transition: 'all 0.15s',
             }}
-            title={concentration ? 'End Concentration' : 'Start Concentration'}
           >
             🔮 {concentration ? 'Concentrating' : 'Concentration'}
           </button>
@@ -310,12 +299,7 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
 
         {/* Wild Shape */}
         {profile?.wildshape_enabled && state && (
-          <WildShapeBlock
-            state={state}
-            readOnly={readOnly}
-            canRestore={canRestore}
-            onUpdate={onUpdate}
-          />
+          <WildShapeBlock state={state} readOnly={readOnly} canRestore={canRestore} onUpdate={onUpdate} />
         )}
       </div>
     </div>
@@ -323,12 +307,11 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
 }
 
 // ============================================================
-// DMG / HEAL WIDGET
+// DMG / HEAL WIDGET — exported for use in InitiativePanel
 // ============================================================
 export function DmgHealRow({ onDamage, onHeal, compact = false }) {
   const [amount, setAmount] = useState('');
   const inputRef = useRef(null);
-
   const n = parseInt(amount);
   const valid = !isNaN(n) && n > 0;
 
@@ -348,16 +331,10 @@ export function DmgHealRow({ onDamage, onHeal, compact = false }) {
 
   return (
     <div className={`hp-dmg-row${compact ? ' hp-dmg-row--compact' : ''}`}>
-      <button
-        className="hp-action-btn hp-action-dmg"
-        onClick={handleDamage}
-        disabled={!valid}
-      >
-        ⚔ DMG
-      </button>
+      <button className="hp-action-btn hp-action-dmg" onClick={handleDamage} disabled={!valid}>⚔ DMG</button>
       <input
         ref={inputRef}
-        className="hp-amount-input"
+        className={`hp-amount-input${compact ? ' hp-amount-input--compact' : ''}`}
         type="number"
         inputMode="numeric"
         value={amount}
@@ -369,54 +346,29 @@ export function DmgHealRow({ onDamage, onHeal, compact = false }) {
         placeholder="—"
         min={1}
       />
-      <button
-        className="hp-action-btn hp-action-heal"
-        onClick={handleHeal}
-        disabled={!valid}
-      >
-        HEAL ♥
-      </button>
+      <button className="hp-action-btn hp-action-heal" onClick={handleHeal} disabled={!valid}>HEAL ♥</button>
     </div>
   );
 }
 
-// ============================================================
-// SUB-COMPONENTS
-// ============================================================
 function TempHpControl({ tempHp, onSet }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(tempHp));
 
-  useEffect(() => {
-    if (!editing) setDraft(String(tempHp));
-  }, [tempHp, editing]);
+  useEffect(() => { if (!editing) setDraft(String(tempHp)); }, [tempHp, editing]);
 
   if (!editing) {
     return (
-      <span
-        className="temp-hp-label hp-editable"
-        onClick={() => { setDraft(String(tempHp)); setEditing(true); }}
-        title="Set temp HP"
-      >
+      <span className="temp-hp-label hp-editable" onClick={() => { setDraft(String(tempHp)); setEditing(true); }} title="Set temp HP">
         {tempHp > 0 ? `+${tempHp} tmp` : '+TMP'}
       </span>
     );
   }
-
   return (
-    <input
-      className="hp-inline-input"
-      type="number"
-      value={draft}
-      min={0}
-      autoFocus
-      style={{ width: 48 }}
+    <input className="hp-inline-input" type="number" value={draft} min={0} autoFocus style={{ width: 48 }}
       onChange={e => setDraft(e.target.value)}
       onBlur={() => { onSet(draft); setEditing(false); }}
-      onKeyDown={e => {
-        if (e.key === 'Enter') { onSet(draft); setEditing(false); }
-        if (e.key === 'Escape') setEditing(false);
-      }}
+      onKeyDown={e => { if (e.key === 'Enter') { onSet(draft); setEditing(false); } if (e.key === 'Escape') setEditing(false); }}
     />
   );
 }
@@ -425,32 +377,18 @@ function HpInput({ value, max, onChange }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(value));
 
-  useEffect(() => {
-    if (!editing) setDraft(String(value));
-  }, [value, editing]);
+  useEffect(() => { if (!editing) setDraft(String(value)); }, [value, editing]);
 
   if (!editing) {
     return (
-      <span className="hp-value hp-editable" onClick={() => { setDraft(String(value)); setEditing(true); }}>
-        {value}
-      </span>
+      <span className="hp-value hp-editable" onClick={() => { setDraft(String(value)); setEditing(true); }}>{value}</span>
     );
   }
-
   return (
-    <input
-      className="hp-inline-input"
-      type="number"
-      value={draft}
-      min={0}
-      max={max}
-      autoFocus
+    <input className="hp-inline-input" type="number" value={draft} min={0} max={max} autoFocus
       onChange={e => setDraft(e.target.value)}
       onBlur={() => { onChange(draft); setEditing(false); }}
-      onKeyDown={e => {
-        if (e.key === 'Enter') { onChange(draft); setEditing(false); }
-        if (e.key === 'Escape') setEditing(false);
-      }}
+      onKeyDown={e => { if (e.key === 'Enter') { onChange(draft); setEditing(false); } if (e.key === 'Escape') setEditing(false); }}
     />
   );
 }

@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
 export default function EncounterSetup({ onEncounterCreated }) {
-  const [name, setName] = useState('Exploration');
-  const [players, setPlayers] = useState([]);
-  const [monsters, setMonsters] = useState([]);
+  const [name, setName]                   = useState('Exploration');
+  const [players, setPlayers]             = useState([]);
+  const [monsters, setMonsters]           = useState([]);
   const [selectedPlayers, setSelectedPlayers] = useState([]);
-  const [monsterQueue, setMonsterQueue] = useState([]);
-  const [saving, setSaving] = useState(false);
-  const [joinCodes, setJoinCodes] = useState({});
+  const [monsterQueue, setMonsterQueue]   = useState([]);
+  const [saving, setSaving]               = useState(false);
+  const [joinCodes, setJoinCodes]         = useState({});
 
   useEffect(() => {
     supabase.from('profiles_players').select('*').then(({ data }) => {
@@ -54,28 +54,28 @@ export default function EncounterSetup({ onEncounterCreated }) {
         const { data: combatant } = await supabase
           .from('combatants')
           .insert({
-            encounter_id: enc.id,
-            name: profile.name,
-            side: 'PC',
+            encounter_id:   enc.id,
+            name:           profile.name,
+            side:           'PC',
             owner_player_id: pid,
-            ac: profile.ac,
-            hp_max: profile.max_hp,
-            hp_current: profile.max_hp,
+            ac:             profile.ac,
+            hp_max:         profile.max_hp,
+            hp_current:     profile.max_hp,
             initiative_mod: profile.initiative_mod ?? 0,
           })
           .select()
           .single();
 
         await supabase.from('player_encounter_state').insert({
-          combatant_id: combatant.id,
-          encounter_id: enc.id,
-          player_profile_id: pid,
-          current_hp: profile.max_hp,
+          combatant_id:       combatant.id,
+          encounter_id:       enc.id,
+          player_profile_id:  pid,
+          current_hp:         profile.max_hp,
         });
 
         const { data: code } = await supabase.rpc('generate_join_code', {
-          p_encounter_id: enc.id,
-          p_player_profile_id: pid,
+          p_encounter_id:        enc.id,
+          p_player_profile_id:   pid,
         });
         codes[profile.name] = code;
       }
@@ -84,22 +84,33 @@ export default function EncounterSetup({ onEncounterCreated }) {
       for (const { template, qty } of monsterQueue) {
         for (let i = 0; i < qty; i++) {
           await supabase.from('combatants').insert({
-            encounter_id: enc.id,
-            name: qty > 1 ? `${template.name} ${LABELS[i]}` : template.name,
-            side: template.side || 'ENEMY',
-            ac: template.ac,
-            hp_max: template.hp_max,
-            hp_current: template.hp_max,
-            initiative_mod: template.initiative_mod ?? 0,
-            notes: template.notes,
-            mod_str: template.mod_str ?? 0,
-            mod_dex: template.mod_dex ?? 0,
-            mod_con: template.mod_con ?? 0,
-            mod_int: template.mod_int ?? 0,
-            mod_wis: template.mod_wis ?? 0,
-            mod_cha: template.mod_cha ?? 0,
-            resistances: template.resistances ?? [],
-            immunities: template.immunities ?? [],
+            encounter_id:              enc.id,
+            name:                      qty > 1 ? `${template.name} ${LABELS[i]}` : template.name,
+            side:                      template.side || 'ENEMY',
+            ac:                        template.ac,
+            hp_max:                    template.hp_max,
+            hp_current:                template.hp_max,
+            initiative_mod:            template.initiative_mod ?? 0,
+            notes:                     template.notes || null,
+            mod_str:                   template.mod_str || 0,
+            mod_dex:                   template.mod_dex || 0,
+            mod_con:                   template.mod_con || 0,
+            mod_int:                   template.mod_int || 0,
+            mod_wis:                   template.mod_wis || 0,
+            mod_cha:                   template.mod_cha || 0,
+            resistances:               template.resistances || [],
+            immunities:                template.immunities  || [],
+            legendary_actions_max:     template.legendary_actions_max  || 0,
+            legendary_resistances_max: template.legendary_resistances_max || 0,
+            slots_max_1: template.slots_max_1 || 0,
+            slots_max_2: template.slots_max_2 || 0,
+            slots_max_3: template.slots_max_3 || 0,
+            slots_max_4: template.slots_max_4 || 0,
+            slots_max_5: template.slots_max_5 || 0,
+            slots_max_6: template.slots_max_6 || 0,
+            slots_max_7: template.slots_max_7 || 0,
+            slots_max_8: template.slots_max_8 || 0,
+            slots_max_9: template.slots_max_9 || 0,
           });
         }
       }
@@ -143,7 +154,12 @@ export default function EncounterSetup({ onEncounterCreated }) {
         <div className="monster-template-list">
           {monsters.map(m => (
             <div key={m.id} className="monster-template-row">
-              <span>{m.name} (AC {m.ac}, HP {m.hp_max})</span>
+              <span>
+                {m.name} (AC {m.ac}, HP {m.hp_max})
+                {(m.legendary_actions_max > 0 || m.legendary_resistances_max > 0) && (
+                  <span style={{ color: 'var(--accent-gold)', marginLeft: 6, fontSize: 12 }}>★</span>
+                )}
+              </span>
               <button className="btn btn-ghost btn-icon" onClick={() => addMonsterToQueue(m)}>+</button>
             </div>
           ))}

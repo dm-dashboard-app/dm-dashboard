@@ -1,12 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase, uploadPortrait } from '../supabaseClient';
 
-const DAMAGE_TYPES = [
-  'Acid','Bludgeoning','Cold','Fire','Force',
-  'Lightning','Necrotic','Piercing','Poison',
-  'Psychic','Radiant','Slashing','Thunder',
-];
-
 export default function ManagementScreens() {
   const [tab, setTab] = useState('players');
 
@@ -14,9 +8,9 @@ export default function ManagementScreens() {
     <div className="panel">
       <div className="panel-title">Manage</div>
       <div className="tab-bar" style={{ position: 'static' }}>
-        <button className={`tab-btn ${tab === 'players' ? 'active' : ''}`} onClick={() => setTab('players')}>Players</button>
+        <button className={`tab-btn ${tab === 'players'  ? 'active' : ''}`} onClick={() => setTab('players')}>Players</button>
         <button className={`tab-btn ${tab === 'monsters' ? 'active' : ''}`} onClick={() => setTab('monsters')}>Monsters & NPCs</button>
-        <button className={`tab-btn ${tab === 'wildshape' ? 'active' : ''}`} onClick={() => setTab('wildshape')}>Wild Shape</button>
+        <button className={`tab-btn ${tab === 'wildshape'? 'active' : ''}`} onClick={() => setTab('wildshape')}>Wild Shape</button>
       </div>
       {tab === 'players'   && <PlayerProfileManager />}
       {tab === 'monsters'  && <MonsterTemplateManager />}
@@ -28,9 +22,7 @@ export default function ManagementScreens() {
 function NumInput({ value, onChange, ...props }) {
   const [draft, setDraft] = useState(value === 0 ? '' : String(value));
 
-  useEffect(() => {
-    setDraft(value === 0 ? '' : String(value));
-  }, [value]);
+  useEffect(() => { setDraft(value === 0 ? '' : String(value)); }, [value]);
 
   return (
     <input
@@ -49,49 +41,12 @@ function NumInput({ value, onChange, ...props }) {
   );
 }
 
-function DamageTypePicker({ label, selected, onChange, accentColor }) {
-  function toggle(type) {
-    if (selected.includes(type)) onChange(selected.filter(t => t !== type));
-    else onChange([...selected, type]);
-  }
-  return (
-    <div style={{ marginBottom: 8 }}>
-      <label className="form-label" style={{ marginBottom: 4, display: 'block' }}>{label}</label>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-        {DAMAGE_TYPES.map(type => {
-          const active = selected.includes(type);
-          return (
-            <button
-              key={type}
-              type="button"
-              onClick={() => toggle(type)}
-              style={{
-                padding: '3px 7px',
-                borderRadius: 'var(--radius-sm)',
-                fontSize: 11,
-                fontWeight: 700,
-                border: `1px solid ${active ? accentColor : 'var(--border)'}`,
-                background: active ? accentColor + '33' : 'var(--bg-panel-3)',
-                color: active ? accentColor : 'var(--text-secondary)',
-                cursor: 'pointer',
-                touchAction: 'manipulation',
-              }}
-            >
-              {type}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 // ============================================================
 // PLAYER PROFILE MANAGER
 // ============================================================
 function PlayerProfileManager() {
   const [profiles, setProfiles] = useState([]);
-  const [editing, setEditing] = useState(null);
+  const [editing, setEditing]   = useState(null);
 
   useEffect(() => { load(); }, []);
 
@@ -151,7 +106,7 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
     portrait_url: '',
     ...initial,
   });
-  const [uploading, setUploading] = useState(false);
+  const [uploading, setUploading]   = useState(false);
   const [uploadError, setUploadError] = useState(null);
 
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
@@ -159,12 +114,8 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
   async function handlePortraitUpload(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!f.name.trim()) {
-      setUploadError('Enter the player name first before uploading a portrait.');
-      return;
-    }
-    setUploading(true);
-    setUploadError(null);
+    if (!f.name.trim()) { setUploadError('Enter the player name first.'); return; }
+    setUploading(true); setUploadError(null);
     try {
       const url = await uploadPortrait(file, f.name);
       set('portrait_url', url);
@@ -177,14 +128,10 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
 
   return (
     <div className="profile-form">
-      <Field label="Name">
-        <input className="form-input" value={f.name} onChange={e => set('name', e.target.value)} />
-      </Field>
+      <Field label="Name"><input className="form-input" value={f.name} onChange={e => set('name', e.target.value)} /></Field>
       <Field label="Portrait">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {f.portrait_url && (
-            <img src={f.portrait_url} alt="Portrait" style={{ width: 64, height: 80, objectFit: 'cover', borderRadius: 6 }} />
-          )}
+          {f.portrait_url && <img src={f.portrait_url} alt="Portrait" style={{ width: 64, height: 80, objectFit: 'cover', borderRadius: 6 }} />}
           <input type="file" accept="image/*" onChange={handlePortraitUpload} disabled={uploading} style={{ fontSize: 13 }} />
           {uploading && <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Uploading…</span>}
           {uploadError && <span style={{ fontSize: 12, color: 'var(--accent-red)' }}>{uploadError}</span>}
@@ -192,9 +139,7 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
       </Field>
       <Field label="Max HP"><NumInput value={f.max_hp} onChange={v => set('max_hp', v)} /></Field>
       <Field label="AC"><NumInput value={f.ac} onChange={v => set('ac', v)} /></Field>
-      <Field label="Initiative Mod (tiebreaker only — not added to rolls)">
-        <NumInput value={f.initiative_mod ?? 0} onChange={v => set('initiative_mod', v)} />
-      </Field>
+      <Field label="Initiative Mod (tiebreaker only)"><NumInput value={f.initiative_mod ?? 0} onChange={v => set('initiative_mod', v)} /></Field>
       <Field label="Spell Save DC"><NumInput value={f.spell_save_dc} onChange={v => set('spell_save_dc', v)} /></Field>
       <Field label="Spell Attack Bonus"><NumInput value={f.spell_attack_bonus} onChange={v => set('spell_attack_bonus', v)} /></Field>
       <div className="panel-title" style={{ marginTop: 12 }}>Saving Throws</div>
@@ -207,7 +152,7 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
         ))}
       </div>
       <div className="panel-title" style={{ marginTop: 12 }}>Skills</div>
-      {['perception', 'insight', 'investigation', 'survival'].map(sk => (
+      {['perception','insight','investigation','survival'].map(sk => (
         <Field key={sk} label={sk.charAt(0).toUpperCase() + sk.slice(1)}>
           <NumInput value={f[`skill_${sk}`] ?? 0} onChange={v => set(`skill_${sk}`, v)} />
         </Field>
@@ -238,8 +183,8 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
 // ============================================================
 function MonsterTemplateManager() {
   const [monsters, setMonsters] = useState([]);
-  const [editing, setEditing] = useState(null);
-  const [filter, setFilter] = useState('ALL');
+  const [editing, setEditing]   = useState(null);
+  const [filter, setFilter]     = useState('ALL');
 
   useEffect(() => { load(); }, []);
 
@@ -273,7 +218,7 @@ function MonsterTemplateManager() {
   return (
     <div>
       <div style={{ display: 'flex', gap: 8, marginBottom: 12, marginTop: 8 }}>
-        {['ALL', 'ENEMY', 'NPC'].map(f => (
+        {['ALL','ENEMY','NPC'].map(f => (
           <button key={f} className="btn btn-ghost"
             style={{ fontSize: 11, padding: '2px 10px', borderColor: filter === f ? 'var(--accent-blue)' : 'var(--border)', color: filter === f ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
             onClick={() => setFilter(f)}>{f}</button>
@@ -284,6 +229,9 @@ function MonsterTemplateManager() {
           <span>
             <span className={`badge badge-${(m.side || 'ENEMY').toLowerCase()}`} style={{ marginRight: 6 }}>{m.side || 'ENEMY'}</span>
             {m.name} — AC {m.ac}, HP {m.hp_max}
+            {(m.legendary_actions_max > 0 || m.legendary_resistances_max > 0) && (
+              <span style={{ fontSize: 10, color: 'var(--accent-gold)', marginLeft: 6 }}>★</span>
+            )}
           </span>
           <div className="form-row">
             <button className="btn btn-ghost" onClick={() => setEditing(m)}>Edit</button>
@@ -293,7 +241,7 @@ function MonsterTemplateManager() {
       ))}
       <div className="form-row" style={{ marginTop: 12 }}>
         <button className="btn btn-primary" onClick={() => setEditing({ side: 'ENEMY' })}>+ New Enemy</button>
-        <button className="btn btn-ghost" onClick={() => setEditing({ side: 'NPC' })}>+ New NPC</button>
+        <button className="btn btn-ghost"   onClick={() => setEditing({ side: 'NPC'   })}>+ New NPC</button>
       </div>
     </div>
   );
@@ -304,26 +252,45 @@ function MonsterForm({ initial, onSave, onCancel }) {
     name: '', ac: 10, hp_max: 10, initiative_mod: 0, notes: '', side: 'ENEMY',
     mod_str: 0, mod_dex: 0, mod_con: 0, mod_int: 0, mod_wis: 0, mod_cha: 0,
     resistances: [], immunities: [],
+    legendary_actions_max: 0, legendary_resistances_max: 0,
+    slots_max_1: 0, slots_max_2: 0, slots_max_3: 0,
+    slots_max_4: 0, slots_max_5: 0, slots_max_6: 0,
+    slots_max_7: 0, slots_max_8: 0, slots_max_9: 0,
     ...initial,
   });
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
 
+  const DAMAGE_TYPES = [
+    'Acid','Bludgeoning','Cold','Fire','Force',
+    'Lightning','Necrotic','Piercing','Poison',
+    'Psychic','Radiant','Slashing','Thunder',
+  ];
+
+  function toggleDamageType(field, type) {
+    const arr = f[field] || [];
+    set(field, arr.includes(type) ? arr.filter(t => t !== type) : [...arr, type]);
+  }
+
+  const hasSlots = [1,2,3,4,5,6,7,8,9].some(l => (f[`slots_max_${l}`] || 0) > 0);
+
   return (
     <div className="profile-form">
+      {/* Type toggle */}
       <Field label="Type">
         <div style={{ display: 'flex', gap: 8 }}>
-          {['ENEMY', 'NPC'].map(s => (
-            <button key={s} className="btn btn-ghost"
-              style={{ flex: 1, borderColor: f.side === s ? 'var(--accent-blue)' : 'var(--border)', color: f.side === s ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
+          {['ENEMY','NPC'].map(s => (
+            <button key={s} className="btn btn-ghost" style={{ flex: 1, borderColor: f.side === s ? 'var(--accent-blue)' : 'var(--border)', color: f.side === s ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
               onClick={() => set('side', s)}>{s}</button>
           ))}
         </div>
       </Field>
+
       <Field label="Name"><input className="form-input" value={f.name} onChange={e => set('name', e.target.value)} /></Field>
       <Field label="AC"><NumInput value={f.ac} onChange={v => set('ac', v)} /></Field>
       <Field label="HP Max"><NumInput value={f.hp_max} onChange={v => set('hp_max', v)} /></Field>
       <Field label="Initiative Mod"><NumInput value={f.initiative_mod} onChange={v => set('initiative_mod', v)} /></Field>
 
+      {/* Ability modifiers */}
       <div className="panel-title" style={{ marginTop: 12 }}>Ability Modifiers</div>
       <div className="saves-grid">
         {['str','dex','con','int','wis','cha'].map(s => (
@@ -334,23 +301,55 @@ function MonsterForm({ initial, onSave, onCancel }) {
         ))}
       </div>
 
-      <div className="panel-title" style={{ marginTop: 12 }}>Damage Resistances & Immunities</div>
-      <DamageTypePicker
-        label="Resistances"
-        selected={f.resistances || []}
-        onChange={v => set('resistances', v)}
-        accentColor="var(--accent-blue)"
-      />
-      <DamageTypePicker
-        label="Immunities"
-        selected={f.immunities || []}
-        onChange={v => set('immunities', v)}
-        accentColor="var(--accent-gold)"
-      />
+      {/* Legendary */}
+      <div className="panel-title" style={{ marginTop: 12 }}>Legendary</div>
+      <div className="form-row">
+        <div className="form-group" style={{ flex: 1 }}>
+          <label className="form-label">Legendary Actions</label>
+          <NumInput value={f.legendary_actions_max ?? 0} onChange={v => set('legendary_actions_max', v)} />
+        </div>
+        <div className="form-group" style={{ flex: 1 }}>
+          <label className="form-label">Legendary Resistances</label>
+          <NumInput value={f.legendary_resistances_max ?? 0} onChange={v => set('legendary_resistances_max', v)} />
+        </div>
+      </div>
+
+      {/* Spell slots */}
+      <div className="panel-title" style={{ marginTop: 12 }}>Spell Slots (max per level)</div>
+      <div className="saves-grid">
+        {[1,2,3,4,5,6,7,8,9].map(l => (
+          <div key={l} className="form-group">
+            <label className="form-label">L{l}</label>
+            <NumInput value={f[`slots_max_${l}`] ?? 0} onChange={v => set(`slots_max_${l}`, v)} />
+          </div>
+        ))}
+      </div>
+
+      {/* Resistances & Immunities */}
+      <div className="panel-title" style={{ marginTop: 12 }}>Resistances</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
+        {DAMAGE_TYPES.map(t => (
+          <button key={t}
+            style={{ fontSize: 11, padding: '3px 8px', borderRadius: 4, fontWeight: 600, cursor: 'pointer', border: `1px solid ${(f.resistances||[]).includes(t) ? 'var(--accent-blue)' : 'var(--border)'}`, background: (f.resistances||[]).includes(t) ? 'rgba(74,158,255,0.2)' : 'var(--bg-panel-3)', color: (f.resistances||[]).includes(t) ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
+            onClick={() => toggleDamageType('resistances', t)}
+          >{t}</button>
+        ))}
+      </div>
+
+      <div className="panel-title">Immunities</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
+        {DAMAGE_TYPES.map(t => (
+          <button key={t}
+            style={{ fontSize: 11, padding: '3px 8px', borderRadius: 4, fontWeight: 600, cursor: 'pointer', border: `1px solid ${(f.immunities||[]).includes(t) ? 'var(--accent-gold)' : 'var(--border)'}`, background: (f.immunities||[]).includes(t) ? 'rgba(240,180,41,0.15)' : 'var(--bg-panel-3)', color: (f.immunities||[]).includes(t) ? 'var(--accent-gold)' : 'var(--text-secondary)' }}
+            onClick={() => toggleDamageType('immunities', t)}
+          >{t}</button>
+        ))}
+      </div>
 
       <Field label="Notes (DM only)">
         <textarea className="form-input" value={f.notes || ''} onChange={e => set('notes', e.target.value)} rows={2} />
       </Field>
+
       <div className="form-row" style={{ marginTop: 12 }}>
         <button className="btn btn-primary" onClick={() => onSave(f)} disabled={!f.name}>Save</button>
         <button className="btn btn-ghost" onClick={onCancel}>Cancel</button>
@@ -363,7 +362,7 @@ function MonsterForm({ initial, onSave, onCancel }) {
 // WILD SHAPE LIBRARY
 // ============================================================
 function WildShapeLibrary() {
-  const [forms, setForms] = useState([]);
+  const [forms, setForms]     = useState([]);
   const [editing, setEditing] = useState(null);
 
   useEffect(() => { load(); }, []);
@@ -404,9 +403,7 @@ function WildShapeLibrary() {
           </div>
         </div>
       ))}
-      <button className="btn btn-primary" style={{ marginTop: 12 }} onClick={() => setEditing({})}>
-        + New Form
-      </button>
+      <button className="btn btn-primary" style={{ marginTop: 12 }} onClick={() => setEditing({})}>+ New Form</button>
     </div>
   );
 }
