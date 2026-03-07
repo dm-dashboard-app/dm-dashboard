@@ -15,6 +15,55 @@ function flattenStates(data) {
   }));
 }
 
+// Compact strip showing last 3 secret rolls — always visible above initiative
+function RecentRollsStrip({ encounterId }) {
+  const [rolls, setRolls] = useState([]);
+
+  const load = useCallback(async () => {
+    if (!encounterId) return;
+    const { data } = await supabase
+      .from('secret_rolls')
+      .select('*, profiles_players(name)')
+      .eq('encounter_id', encounterId)
+      .order('created_at', { ascending: false })
+      .limit(3);
+    setRolls(data || []);
+  }, [encounterId]);
+
+  usePolling(load, 2000, !!encounterId);
+
+  return (
+    <div className="panel" style={{ padding: '10px 14px' }}>
+      <div className="panel-title" style={{ marginBottom: 6 }}>Recent Secret Rolls</div>
+      {rolls.length === 0 ? (
+        <div className="empty-state">No secret rolls yet this encounter.</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+          {rolls.map(r => (
+            <div key={r.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13 }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', minWidth: 0 }}>
+                <span style={{ fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {r.profiles_players?.name || 'Unknown'}
+                </span>
+                <span style={{ color: 'var(--accent-gold)', fontSize: 11, textTransform: 'capitalize', flexShrink: 0 }}>
+                  {r.skill}
+                </span>
+                <span style={{ color: 'var(--text-muted)', fontSize: 11, flexShrink: 0 }}>
+                  {new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'baseline', flexShrink: 0, marginLeft: 8 }}>
+                <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--accent-blue)' }}>{r.total}</span>
+                <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>({r.d20_roll}+{r.skill_bonus})</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function DMView() {
   const [encounter, setEncounter] = useState(null);
   const [combatants, setCombatants] = useState([]);
@@ -91,11 +140,8 @@ export default function DMView() {
     refreshAll();
   }
 
-  // Roll d20 + initiative_mod for every non-PC combatant that has no initiative yet
   async function handleRollEnemyInitiative() {
-    const targets = combatants.filter(
-      c => c.side !== 'PC' && c.initiative_total == null
-    );
+    const targets = combatants.filter(c => c.side !== 'PC' && c.initiative_total == null);
     if (targets.length === 0) {
       const reroll = combatants.filter(c => c.side !== 'PC');
       if (!window.confirm('All enemies already have initiative. Reroll everyone?')) return;
@@ -178,6 +224,8 @@ export default function DMView() {
               );
             })}
 
+            <RecentRollsStrip encounterId={encounter.id} />
+
             <InitiativePanel
               encounter={encounter}
               combatants={combatants}
@@ -231,7 +279,6 @@ export default function DMView() {
                     className="btn btn-ghost"
                     onClick={handleRollEnemyInitiative}
                     disabled={rollingInit}
-                    title="Roll initiative for all enemies and NPCs"
                   >
                     {rollingInit ? 'Rolling…' : '🎲 Roll Enemy Init'}
                   </button>
