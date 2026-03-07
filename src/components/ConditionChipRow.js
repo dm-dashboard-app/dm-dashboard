@@ -7,6 +7,7 @@ const CONDITIONS = [
   { code: 'DEF', label: 'Deafened' },
   { code: 'FRI', label: 'Frightened' },
   { code: 'GRP', label: 'Grappled' },
+  { code: 'HEX', label: 'Hex' },
   { code: 'INC', label: 'Incapacitated' },
   { code: 'INV', label: 'Invisible' },
   { code: 'PAR', label: 'Paralyzed' },
@@ -20,10 +21,10 @@ const CONDITIONS = [
 
 const CONDITION_COLOURS = {
   BLD: '#6a3a3a', CHM: '#3a3a6a', DEF: '#4a4a4a',
-  FRI: '#5a3a5a', GRP: '#5a4a2a', INC: '#6a2a2a',
-  INV: '#2a4a4a', PAR: '#6a5a2a', PET: '#4a4a3a',
-  POI: '#2a5a2a', PRN: '#5a5a2a', RES: '#3a4a5a',
-  STN: '#5a3a2a', UNC: '#2a2a2a',
+  FRI: '#5a3a5a', GRP: '#5a4a2a', HEX: '#3d1060',
+  INC: '#6a2a2a', INV: '#2a4a4a', PAR: '#6a5a2a',
+  PET: '#4a4a3a', POI: '#2a5a2a', PRN: '#5a5a2a',
+  RES: '#3a4a5a', STN: '#5a3a2a', UNC: '#2a2a2a',
 };
 
 export default function ConditionChipRow({ conditions, concentration, stateId, readOnly, onUpdate }) {
@@ -104,6 +105,7 @@ export default function ConditionChipRow({ conditions, concentration, stateId, r
               className={`condition-picker-btn ${activeConditions.includes(code) ? 'active' : ''}`}
               style={{ background: activeConditions.includes(code) ? CONDITION_COLOURS[code] : undefined }}
               onClick={() => activeConditions.includes(code) ? removeCondition(code) : addCondition(code)}
+              title={label}
             >
               {code}
             </button>

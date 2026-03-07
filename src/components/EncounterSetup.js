@@ -98,6 +98,8 @@ export default function EncounterSetup({ onEncounterCreated }) {
             mod_int: template.mod_int ?? 0,
             mod_wis: template.mod_wis ?? 0,
             mod_cha: template.mod_cha ?? 0,
+            resistances: template.resistances ?? [],
+            immunities: template.immunities ?? [],
           });
         }
       }

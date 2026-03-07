@@ -6,7 +6,6 @@ export default function SpellSlotGrid({ profile, state, readOnly, canRestore = f
   const activeLevels = levels.filter(l => (profile[`slots_max_${l}`] || 0) > 0);
   if (activeLevels.length === 0) return null;
 
-  // Player uses a slot (expend one)
   async function useSlot(level) {
     if (!state) return;
     const used = state[`slots_used_${level}`] || 0;
@@ -19,7 +18,6 @@ export default function SpellSlotGrid({ profile, state, readOnly, canRestore = f
     onUpdate();
   }
 
-  // DM restores a single slot
   async function restoreSlot(level) {
     if (!state || !canRestore) return;
     const used = state[`slots_used_${level}`] || 0;
@@ -31,7 +29,6 @@ export default function SpellSlotGrid({ profile, state, readOnly, canRestore = f
     onUpdate();
   }
 
-  // DM restores all slots for a level
   async function resetLevel(level) {
     if (!state || !canRestore) return;
     await supabase
@@ -53,17 +50,27 @@ export default function SpellSlotGrid({ profile, state, readOnly, canRestore = f
           <div key={level} className="slots-row">
             <span className="slots-label">{level}</span>
 
-            {/* Pips — clickable for DM to restore, visual only for players */}
             {Array.from({ length: max }).map((_, i) => {
               const isUsed = i < used;
               return (
                 <button
                   key={i}
                   className={`slot-pip ${isUsed ? 'used' : 'available'}`}
-                  onClick={() => canRestore && isUsed ? restoreSlot(level) : undefined}
-                  disabled={readOnly || !canRestore}
-                  title={isUsed && canRestore ? 'Restore one slot' : isUsed ? 'Expended' : 'Available'}
-                  style={{ cursor: canRestore && isUsed ? 'pointer' : 'default' }}
+                  onClick={() => {
+                    if (readOnly) return;
+                    // DM: click used pip → restore; click available pip → expend
+                    if (canRestore) {
+                      if (isUsed) restoreSlot(level);
+                      else useSlot(level);
+                    }
+                  }}
+                  disabled={readOnly}
+                  title={
+                    canRestore
+                      ? isUsed ? 'Click to restore slot' : 'Click to expend slot'
+                      : isUsed ? 'Expended' : 'Available'
+                  }
+                  style={{ cursor: canRestore ? 'pointer' : 'default' }}
                 />
               );
             })}
@@ -86,7 +93,7 @@ export default function SpellSlotGrid({ profile, state, readOnly, canRestore = f
               <button
                 className="slots-reset-btn"
                 onClick={() => resetLevel(level)}
-                title="Restore all slots"
+                title="Restore all slots at this level"
               >↺</button>
             )}
 

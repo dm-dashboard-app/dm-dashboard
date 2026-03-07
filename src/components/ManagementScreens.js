@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { supabase, uploadPortrait } from '../supabaseClient';
 
+const DAMAGE_TYPES = [
+  'Acid','Bludgeoning','Cold','Fire','Force',
+  'Lightning','Necrotic','Piercing','Poison',
+  'Psychic','Radiant','Slashing','Thunder',
+];
+
 export default function ManagementScreens() {
   const [tab, setTab] = useState('players');
 
@@ -40,6 +46,43 @@ function NumInput({ value, onChange, ...props }) {
         onChange(final);
       }}
     />
+  );
+}
+
+function DamageTypePicker({ label, selected, onChange, accentColor }) {
+  function toggle(type) {
+    if (selected.includes(type)) onChange(selected.filter(t => t !== type));
+    else onChange([...selected, type]);
+  }
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <label className="form-label" style={{ marginBottom: 4, display: 'block' }}>{label}</label>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+        {DAMAGE_TYPES.map(type => {
+          const active = selected.includes(type);
+          return (
+            <button
+              key={type}
+              type="button"
+              onClick={() => toggle(type)}
+              style={{
+                padding: '3px 7px',
+                borderRadius: 'var(--radius-sm)',
+                fontSize: 11,
+                fontWeight: 700,
+                border: `1px solid ${active ? accentColor : 'var(--border)'}`,
+                background: active ? accentColor + '33' : 'var(--bg-panel-3)',
+                color: active ? accentColor : 'var(--text-secondary)',
+                cursor: 'pointer',
+                touchAction: 'manipulation',
+              }}
+            >
+              {type}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -260,6 +303,7 @@ function MonsterForm({ initial, onSave, onCancel }) {
   const [f, setF] = useState({
     name: '', ac: 10, hp_max: 10, initiative_mod: 0, notes: '', side: 'ENEMY',
     mod_str: 0, mod_dex: 0, mod_con: 0, mod_int: 0, mod_wis: 0, mod_cha: 0,
+    resistances: [], immunities: [],
     ...initial,
   });
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
@@ -290,7 +334,21 @@ function MonsterForm({ initial, onSave, onCancel }) {
         ))}
       </div>
 
-      <Field label="Notes (DM only)" style={{ marginTop: 8 }}>
+      <div className="panel-title" style={{ marginTop: 12 }}>Damage Resistances & Immunities</div>
+      <DamageTypePicker
+        label="Resistances"
+        selected={f.resistances || []}
+        onChange={v => set('resistances', v)}
+        accentColor="var(--accent-blue)"
+      />
+      <DamageTypePicker
+        label="Immunities"
+        selected={f.immunities || []}
+        onChange={v => set('immunities', v)}
+        accentColor="var(--accent-gold)"
+      />
+
+      <Field label="Notes (DM only)">
         <textarea className="form-input" value={f.notes || ''} onChange={e => set('notes', e.target.value)} rows={2} />
       </Field>
       <div className="form-row" style={{ marginTop: 12 }}>

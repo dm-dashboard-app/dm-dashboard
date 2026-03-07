@@ -3,18 +3,18 @@ import { supabase } from '../supabaseClient';
 
 const CONDITIONS = [
   { code: 'BLD' }, { code: 'CHM' }, { code: 'DEF' },
-  { code: 'FRI' }, { code: 'GRP' }, { code: 'INC' },
-  { code: 'INV' }, { code: 'PAR' }, { code: 'PET' },
-  { code: 'POI' }, { code: 'PRN' }, { code: 'RES' },
-  { code: 'STN' }, { code: 'UNC' },
+  { code: 'FRI' }, { code: 'GRP' }, { code: 'HEX' },
+  { code: 'INC' }, { code: 'INV' }, { code: 'PAR' },
+  { code: 'PET' }, { code: 'POI' }, { code: 'PRN' },
+  { code: 'RES' }, { code: 'STN' }, { code: 'UNC' },
 ];
 
 const CONDITION_COLOURS = {
   BLD: '#6a3a3a', CHM: '#3a3a6a', DEF: '#4a4a4a',
-  FRI: '#5a3a5a', GRP: '#5a4a2a', INC: '#6a2a2a',
-  INV: '#2a4a4a', PAR: '#6a5a2a', PET: '#4a4a3a',
-  POI: '#2a5a2a', PRN: '#5a5a2a', RES: '#3a4a5a',
-  STN: '#5a3a2a', UNC: '#2a2a2a',
+  FRI: '#5a3a5a', GRP: '#5a4a2a', HEX: '#3d1060',
+  INC: '#6a2a2a', INV: '#2a4a4a', PAR: '#6a5a2a',
+  PET: '#4a4a3a', POI: '#2a5a2a', PRN: '#5a5a2a',
+  RES: '#3a4a5a', STN: '#5a3a2a', UNC: '#2a2a2a',
 };
 
 function sortCombatants(list) {
@@ -64,10 +64,68 @@ function MiniHpBar({ current, max, tempHp = 0, color = null, label = null }) {
   );
 }
 
+// Reaction toggle button — used in both mini-status and expanded panel
+function ReactionBtn({ used, onClick, isDM, size = 'sm' }) {
+  const canClick = isDM && !!onClick;
+  const style = size === 'lg' ? {
+    fontSize: 13, padding: '4px 10px', borderRadius: 'var(--radius-sm)',
+    border: `1px solid ${used ? 'var(--border)' : 'var(--accent-gold)'}`,
+    background: used ? 'var(--bg-panel-3)' : 'transparent',
+    color: used ? 'var(--text-muted)' : 'var(--accent-gold)',
+    opacity: used ? 0.55 : 1,
+    cursor: canClick ? 'pointer' : 'default',
+    fontWeight: 600,
+  } : {
+    fontSize: 11, padding: '2px 7px', borderRadius: 'var(--radius-sm)',
+    border: `1px solid ${used ? 'var(--border)' : 'var(--accent-gold)'}`,
+    background: 'transparent',
+    color: used ? 'var(--text-muted)' : 'var(--accent-gold)',
+    opacity: used ? 0.5 : 1,
+    cursor: canClick ? 'pointer' : 'default',
+    fontWeight: 600,
+  };
+  return (
+    <button
+      style={style}
+      onClick={canClick ? onClick : undefined}
+      title={used ? 'Reaction used — click to restore' : 'Reaction available — click to mark used'}
+    >
+      ⚡ {used ? 'Used' : 'React'}
+    </button>
+  );
+}
+
 export default function InitiativePanel({ encounter, combatants, playerStates = [], role, onUpdate }) {
   const isDM = role === 'dm';
   const sorted = sortCombatants(combatants);
   const activeTurnIndex = encounter?.turn_index ?? 0;
+
+  // Swap initiative totals between two combatants to reorder them
+  async function handleReorder(combatantId, direction) {
+    const idx = sorted.findIndex(c => c.id === combatantId);
+    const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (targetIdx < 0 || targetIdx >= sorted.length) return;
+
+    const a = sorted[idx];
+    const b = sorted[targetIdx];
+    const aTotal = a.initiative_total ?? 0;
+    const bTotal = b.initiative_total ?? 0;
+
+    if (aTotal !== bTotal) {
+      // Simple swap
+      await Promise.all([
+        supabase.rpc('set_initiative', { p_combatant_id: a.id, p_total: bTotal }),
+        supabase.rpc('set_initiative', { p_combatant_id: b.id, p_total: aTotal }),
+      ]);
+    } else {
+      // Equal totals — nudge this one by 1 in the desired direction
+      await supabase.rpc('set_initiative', {
+        p_combatant_id: a.id,
+        p_total: direction === 'up' ? aTotal + 1 : aTotal - 1,
+      });
+    }
+    onUpdate();
+  }
 
   return (
     <div className="panel">
@@ -83,7 +141,11 @@ export default function InitiativePanel({ encounter, combatants, playerStates = 
               playerState={playerState}
               isActive={idx === activeTurnIndex}
               isDM={isDM}
+              isFirst={idx === 0}
+              isLast={idx === sorted.length - 1}
               onUpdate={onUpdate}
+              onMoveUp={() => handleReorder(c.id, 'up')}
+              onMoveDown={() => handleReorder(c.id, 'down')}
             />
           );
         })}
@@ -97,7 +159,7 @@ export default function InitiativePanel({ encounter, combatants, playerStates = 
   );
 }
 
-function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
+function InitiativeRow({ combatant, playerState, isActive, isDM, isFirst, isLast, onUpdate, onMoveUp, onMoveDown }) {
   const [expanded, setExpanded] = useState(false);
   const [condPickerOpen, setCondPickerOpen] = useState(false);
   const [inputValue, setInputValue] = useState(
@@ -120,7 +182,7 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
   const pcHpMax = playerState?.max_hp_override ?? playerState?.profiles_players?.max_hp ?? null;
   const tempHp = playerState?.temp_hp ?? 0;
   const concentration = playerState?.concentration ?? false;
-  const reactionUsed = playerState?.reaction_used ?? false;
+  const pcReactionUsed = playerState?.reaction_used ?? false;
   const displayConditions = isPC ? (playerState?.conditions || []) : conditions;
 
   const wsActive = playerState?.wildshape_active ?? false;
@@ -130,12 +192,13 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
 
   const enemyHpCurrent = combatant.hp_current ?? null;
   const enemyHpMax = combatant.hp_max ?? null;
+  const enemyReactionUsed = combatant.reaction_used ?? false;
 
   const showPcHp = isPC && pcHpCurrent !== null && pcHpMax !== null;
   const showEnemyHp = isEnemy && isDM && enemyHpCurrent !== null && enemyHpMax !== null;
-
-  // Has any non-zero ability modifier been saved
   const hasAbilityMods = isEnemy && ['str','dex','con','int','wis','cha'].some(s => (combatant[`mod_${s}`] ?? 0) !== 0);
+  const hasResistances = (combatant.resistances || []).length > 0;
+  const hasImmunities = (combatant.immunities || []).length > 0;
 
   async function saveInitiative() {
     if (savingRef.current) return;
@@ -161,7 +224,6 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
     onUpdate();
   }
 
-  // PC condition management (DM in initiative panel)
   async function togglePcCondition(code) {
     if (!playerState) return;
     const conds = playerState.conditions || [];
@@ -170,13 +232,11 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
     onUpdate();
   }
 
-  // PC HP adjustment from initiative panel (DM)
   async function adjustPcHp(delta) {
     if (!playerState) return;
     const tempHpVal = playerState.temp_hp ?? 0;
     if (delta < 0 && tempHpVal > 0) {
-      const newTemp = Math.max(0, tempHpVal + delta);
-      await supabase.from('player_encounter_state').update({ temp_hp: newTemp }).eq('id', playerState.id);
+      await supabase.from('player_encounter_state').update({ temp_hp: Math.max(0, tempHpVal + delta) }).eq('id', playerState.id);
       onUpdate();
       return;
     }
@@ -191,14 +251,14 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
     onUpdate();
   }
 
-  // Max HP override (DM, from initiative panel)
   async function adjustPcMaxHp(delta) {
     if (!playerState) return;
     const profileMax = playerState.profiles_players?.max_hp ?? 1;
     const current = playerState.max_hp_override ?? profileMax;
     const newMax = Math.max(1, current + delta);
-    const override = newMax === profileMax ? null : newMax;
-    await supabase.from('player_encounter_state').update({ max_hp_override: override }).eq('id', playerState.id);
+    await supabase.from('player_encounter_state').update({
+      max_hp_override: newMax === profileMax ? null : newMax,
+    }).eq('id', playerState.id);
     onUpdate();
   }
 
@@ -208,19 +268,37 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
     onUpdate();
   }
 
+  async function togglePcReaction() {
+    if (!playerState) return;
+    await supabase.from('player_encounter_state').update({ reaction_used: !pcReactionUsed }).eq('id', playerState.id);
+    onUpdate();
+  }
+
+  async function toggleEnemyReaction() {
+    await supabase.from('combatants').update({ reaction_used: !enemyReactionUsed }).eq('id', combatant.id);
+    onUpdate();
+  }
+
   async function removeCombatant() {
     if (!window.confirm(`Remove ${combatant.name}?`)) return;
     await supabase.from('combatants').delete().eq('id', combatant.id);
     onUpdate();
   }
 
-  const canExpand = isDM && (isEnemy || isPC);
+  const canExpand = isDM;
   const pcEffectiveMax = playerState?.max_hp_override ?? playerState?.profiles_players?.max_hp ?? 1;
+
+  // Chip style used in mini-status rows
+  const miniChip = (code) => ({
+    fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3,
+    background: CONDITION_COLOURS[code] || 'var(--cond-default)',
+    color: 'var(--text-primary)', cursor: isDM ? 'pointer' : 'default',
+  });
 
   return (
     <div className={`initiative-row ${isActive ? 'active-turn' : ''}`} style={{ display: 'block', padding: '8px 12px' }}>
 
-      {/* Main row */}
+      {/* ── Main row ── */}
       <div className="initiative-row-main" onClick={() => canExpand && setExpanded(e => !e)}>
         {isDM ? (
           <input
@@ -250,10 +328,28 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
           </div>
         </div>
 
+        {/* Reorder buttons — DM only, right side of main row */}
+        {isDM && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }} onClick={e => e.stopPropagation()}>
+            <button
+              style={{ fontSize: 10, padding: '0 4px', color: isFirst ? 'var(--text-muted)' : 'var(--text-secondary)', opacity: isFirst ? 0.3 : 0.7, lineHeight: 1.2 }}
+              onClick={onMoveUp}
+              disabled={isFirst}
+              title="Move up"
+            >▲</button>
+            <button
+              style={{ fontSize: 10, padding: '0 4px', color: isLast ? 'var(--text-muted)' : 'var(--text-secondary)', opacity: isLast ? 0.3 : 0.7, lineHeight: 1.2 }}
+              onClick={onMoveDown}
+              disabled={isLast}
+              title="Move down"
+            >▼</button>
+          </div>
+        )}
+
         {canExpand && <span className="expand-toggle">{expanded ? '▲' : '▼'}</span>}
       </div>
 
-      {/* Mini-status: HP bars + badges */}
+      {/* ── Mini-status: HP bars + reaction + conditions ── */}
       {(showPcHp || showEnemyHp) && (
         <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
           {isPC && wsActive && wsHpMax != null && (
@@ -262,15 +358,21 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
           {showPcHp && <MiniHpBar current={pcHpCurrent} max={pcHpMax} tempHp={tempHp} label={wsActive ? 'Player HP' : null} />}
           {showEnemyHp && <MiniHpBar current={enemyHpCurrent} max={enemyHpMax} />}
 
+          {/* PC status badges row */}
           {isPC && (
-            <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 5, alignItems: 'center', flexWrap: 'wrap', marginTop: 1 }}>
               {concentration && <span style={{ fontSize: 10, color: 'var(--accent-gold)', fontWeight: 700 }}>🔮CON</span>}
-              <span style={{ fontSize: 10, color: reactionUsed ? 'var(--text-muted)' : 'var(--accent-gold)', opacity: reactionUsed ? 0.4 : 1 }}>⚡</span>
-              {/* Condition chips — single click removes for DM */}
+
+              {/* Reaction — proper toggle button, DM-clickable */}
+              <ReactionBtn
+                used={pcReactionUsed}
+                isDM={isDM}
+                onClick={e => { e && e.stopPropagation(); togglePcReaction(); }}
+              />
+
+              {/* Condition chips — tap to remove for DM */}
               {displayConditions.filter(c => !c.startsWith('EXH')).map(code => (
-                <span
-                  key={code}
-                  style={{ fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3, background: CONDITION_COLOURS[code] || 'var(--cond-default)', color: 'var(--text-primary)', cursor: isDM ? 'pointer' : 'default' }}
+                <span key={code} style={miniChip(code)}
                   onClick={isDM ? e => { e.stopPropagation(); togglePcCondition(code); } : undefined}
                   title={isDM ? `Remove ${code}` : code}
                 >{code}</span>
@@ -281,12 +383,16 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
             </div>
           )}
 
-          {isEnemy && isDM && conditions.length > 0 && (
-            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          {/* Enemy reaction + conditions in mini-status (DM only) */}
+          {isEnemy && isDM && (
+            <div style={{ display: 'flex', gap: 5, alignItems: 'center', flexWrap: 'wrap', marginTop: 1 }}>
+              <ReactionBtn
+                used={enemyReactionUsed}
+                isDM={isDM}
+                onClick={e => { e && e.stopPropagation(); toggleEnemyReaction(); }}
+              />
               {conditions.map(code => (
-                <span
-                  key={code}
-                  style={{ fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3, background: CONDITION_COLOURS[code] || 'var(--cond-default)', color: 'var(--text-primary)', cursor: 'pointer' }}
+                <span key={code} style={miniChip(code)}
                   onClick={e => { e.stopPropagation(); toggleCondition(code); }}
                   title={`Remove ${code}`}
                 >{code}</span>
@@ -299,7 +405,7 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
       {/* ── DM expanded: PC controls ── */}
       {isDM && isPC && expanded && playerState && (
         <div className="monster-dm-controls">
-          {/* HP */}
+          {/* HP controls */}
           <div className="hp-controls" style={{ marginBottom: 8 }}>
             <button className="btn btn-icon btn-danger" onClick={e => { e.stopPropagation(); adjustPcHp(-1); }}>−</button>
             <span className="hp-value" style={{ margin: '0 8px' }}>
@@ -313,25 +419,30 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
             <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Max HP:</span>
             <button className="exh-btn" onClick={e => { e.stopPropagation(); adjustPcMaxHp(-1); }}>−</button>
-            <span style={{ fontSize: 13, fontWeight: 700, color: playerState.max_hp_override != null ? 'var(--accent-gold)' : 'var(--text-primary)' }}>
-              {pcEffectiveMax}
-            </span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: playerState.max_hp_override != null ? 'var(--accent-gold)' : 'var(--text-primary)' }}>{pcEffectiveMax}</span>
             <button className="exh-btn" onClick={e => { e.stopPropagation(); adjustPcMaxHp(1); }}>+</button>
             {playerState.max_hp_override != null && (
               <button className="slots-reset-btn" onClick={e => { e.stopPropagation(); resetPcMaxHp(); }} title="Reset to profile max">↺</button>
             )}
           </div>
 
+          {/* Reaction toggle — large version */}
+          <div style={{ marginBottom: 8 }}>
+            <ReactionBtn used={pcReactionUsed} isDM={isDM} size="lg"
+              onClick={e => { e && e.stopPropagation(); togglePcReaction(); }}
+            />
+          </div>
+
           {/* Conditions */}
           <div>
-            <button className="btn btn-ghost" style={{ fontSize: 12, padding: '2px 8px' }} onClick={e => { e.stopPropagation(); setCondPickerOpen(p => !p); }}>
+            <button className="btn btn-ghost" style={{ fontSize: 12, padding: '2px 8px' }}
+              onClick={e => { e.stopPropagation(); setCondPickerOpen(p => !p); }}>
               {condPickerOpen ? 'Close Conditions' : '+ Conditions'}
             </button>
             {condPickerOpen && (
               <div className="condition-picker" style={{ marginTop: 6 }}>
                 {CONDITIONS.map(({ code }) => (
-                  <button
-                    key={code}
+                  <button key={code}
                     className={`condition-picker-btn ${displayConditions.includes(code) ? 'active' : ''}`}
                     style={{ background: displayConditions.includes(code) ? CONDITION_COLOURS[code] : undefined }}
                     onClick={e => { e.stopPropagation(); togglePcCondition(code); }}
@@ -353,7 +464,14 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
             <button className="btn btn-icon btn-success" onClick={e => { e.stopPropagation(); adjustMonsterHp(1); }}>+</button>
           </div>
 
-          {/* Ability modifiers — shown when at least one is non-zero */}
+          {/* Reaction toggle — large version */}
+          <div style={{ marginBottom: 8 }}>
+            <ReactionBtn used={enemyReactionUsed} isDM={isDM} size="lg"
+              onClick={e => { e && e.stopPropagation(); toggleEnemyReaction(); }}
+            />
+          </div>
+
+          {/* Ability mods */}
           {hasAbilityMods && (
             <div className="saves-grid" style={{ marginBottom: 8 }}>
               {['str','dex','con','int','wis','cha'].map(s => (
@@ -365,16 +483,36 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate }) {
             </div>
           )}
 
+          {/* Resistances */}
+          {hasResistances && (
+            <div style={{ marginBottom: 6 }}>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', marginRight: 4 }}>RES</span>
+              {combatant.resistances.map(r => (
+                <span key={r} style={{ fontSize: 10, fontWeight: 600, padding: '1px 5px', borderRadius: 3, background: '#0a2040', color: 'var(--accent-blue)', marginRight: 3 }}>{r}</span>
+              ))}
+            </div>
+          )}
+
+          {/* Immunities */}
+          {hasImmunities && (
+            <div style={{ marginBottom: 8 }}>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', marginRight: 4 }}>IMM</span>
+              {combatant.immunities.map(i => (
+                <span key={i} style={{ fontSize: 10, fontWeight: 600, padding: '1px 5px', borderRadius: 3, background: '#2a1a00', color: 'var(--accent-gold)', marginRight: 3 }}>{i}</span>
+              ))}
+            </div>
+          )}
+
           {/* Conditions */}
           <div style={{ marginBottom: 8 }}>
-            <button className="btn btn-ghost" style={{ fontSize: 12, padding: '2px 8px' }} onClick={e => { e.stopPropagation(); setCondPickerOpen(p => !p); }}>
+            <button className="btn btn-ghost" style={{ fontSize: 12, padding: '2px 8px' }}
+              onClick={e => { e.stopPropagation(); setCondPickerOpen(p => !p); }}>
               {condPickerOpen ? 'Close Conditions' : '+ Conditions'}
             </button>
             {condPickerOpen && (
               <div className="condition-picker" style={{ marginTop: 6 }}>
                 {CONDITIONS.map(({ code }) => (
-                  <button
-                    key={code}
+                  <button key={code}
                     className={`condition-picker-btn ${conditions.includes(code) ? 'active' : ''}`}
                     style={{ background: conditions.includes(code) ? CONDITION_COLOURS[code] : undefined }}
                     onClick={e => { e.stopPropagation(); toggleCondition(code); }}
@@ -408,9 +546,7 @@ function AddCombatantInline({ encounterId, onUpdate }) {
 
   useEffect(() => {
     if (open && mode === 'template') {
-      supabase.from('profiles_monsters').select('*').order('name').then(({ data }) => {
-        setTemplates(data || []);
-      });
+      supabase.from('profiles_monsters').select('*').order('name').then(({ data }) => setTemplates(data || []));
     }
   }, [open, mode]);
 
@@ -431,6 +567,8 @@ function AddCombatantInline({ encounterId, onUpdate }) {
       mod_int: template.mod_int || 0,
       mod_wis: template.mod_wis || 0,
       mod_cha: template.mod_cha || 0,
+      resistances: template.resistances || [],
+      immunities: template.immunities || [],
     });
     setAdding(false);
     onUpdate();
@@ -457,9 +595,7 @@ function AddCombatantInline({ encounterId, onUpdate }) {
     <button className="btn btn-ghost" onClick={() => setOpen(true)}>+ Add Combatant</button>
   );
 
-  const filteredTemplates = templateFilter === 'ALL'
-    ? templates
-    : templates.filter(t => t.side === templateFilter);
+  const filteredTemplates = templateFilter === 'ALL' ? templates : templates.filter(t => t.side === templateFilter);
 
   return (
     <div className="add-combatant-form">
@@ -521,11 +657,9 @@ function AddCombatantInline({ encounterId, onUpdate }) {
               <input className="form-input" type="number" value={mod} onChange={e => setMod(e.target.value)} />
             </div>
           </div>
-          <div className="form-row">
-            <button className="btn btn-primary" onClick={addManual} disabled={saving || !name.trim()}>
-              {saving ? 'Adding…' : 'Add'}
-            </button>
-          </div>
+          <button className="btn btn-primary" onClick={addManual} disabled={saving || !name.trim()}>
+            {saving ? 'Adding…' : 'Add'}
+          </button>
         </>
       )}
     </div>
