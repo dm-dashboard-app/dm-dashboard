@@ -20,9 +20,7 @@ export default function EncounterSetup({ onEncounterCreated }) {
   }, []);
 
   function togglePlayer(id) {
-    setSelectedPlayers(s =>
-      s.includes(id) ? s.filter(p => p !== id) : [...s, id]
-    );
+    setSelectedPlayers(s => s.includes(id) ? s.filter(p => p !== id) : [...s, id]);
   }
 
   function addMonsterToQueue(template) {
@@ -63,7 +61,6 @@ export default function EncounterSetup({ onEncounterCreated }) {
             ac: profile.ac,
             hp_max: profile.max_hp,
             hp_current: profile.max_hp,
-            // Store initiative_mod for tiebreaking — not added to player-entered totals
             initiative_mod: profile.initiative_mod ?? 0,
           })
           .select()
@@ -95,6 +92,12 @@ export default function EncounterSetup({ onEncounterCreated }) {
             hp_current: template.hp_max,
             initiative_mod: template.initiative_mod ?? 0,
             notes: template.notes,
+            mod_str: template.mod_str ?? 0,
+            mod_dex: template.mod_dex ?? 0,
+            mod_con: template.mod_con ?? 0,
+            mod_int: template.mod_int ?? 0,
+            mod_wis: template.mod_wis ?? 0,
+            mod_cha: template.mod_cha ?? 0,
           });
         }
       }
@@ -114,12 +117,7 @@ export default function EncounterSetup({ onEncounterCreated }) {
 
       <div className="form-group">
         <label className="form-label">Encounter Name</label>
-        <input
-          className="form-input"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          placeholder="e.g. Goblin Ambush"
-        />
+        <input className="form-input" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Goblin Ambush" />
       </div>
 
       <div className="divider" />
@@ -129,11 +127,7 @@ export default function EncounterSetup({ onEncounterCreated }) {
         {players.length === 0 && <div className="empty-state">No player profiles yet. Create them in Manage.</div>}
         {players.map(p => (
           <label key={p.id} className="checkbox-row">
-            <input
-              type="checkbox"
-              checked={selectedPlayers.includes(p.id)}
-              onChange={() => togglePlayer(p.id)}
-            />
+            <input type="checkbox" checked={selectedPlayers.includes(p.id)} onChange={() => togglePlayer(p.id)} />
             <span>{p.name}</span>
           </label>
         ))}
@@ -166,11 +160,7 @@ export default function EncounterSetup({ onEncounterCreated }) {
 
       <div className="divider" />
 
-      <button
-        className="btn btn-primary btn-lg"
-        onClick={handleCreate}
-        disabled={saving || !name.trim()}
-      >
+      <button className="btn btn-primary btn-lg" onClick={handleCreate} disabled={saving || !name.trim()}>
         {saving ? 'Creating…' : 'Create Encounter'}
       </button>
 

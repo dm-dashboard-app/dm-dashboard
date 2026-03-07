@@ -257,7 +257,11 @@ function MonsterTemplateManager() {
 }
 
 function MonsterForm({ initial, onSave, onCancel }) {
-  const [f, setF] = useState({ name: '', ac: 10, hp_max: 10, initiative_mod: 0, notes: '', side: 'ENEMY', ...initial });
+  const [f, setF] = useState({
+    name: '', ac: 10, hp_max: 10, initiative_mod: 0, notes: '', side: 'ENEMY',
+    mod_str: 0, mod_dex: 0, mod_con: 0, mod_int: 0, mod_wis: 0, mod_cha: 0,
+    ...initial,
+  });
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
 
   return (
@@ -275,7 +279,20 @@ function MonsterForm({ initial, onSave, onCancel }) {
       <Field label="AC"><NumInput value={f.ac} onChange={v => set('ac', v)} /></Field>
       <Field label="HP Max"><NumInput value={f.hp_max} onChange={v => set('hp_max', v)} /></Field>
       <Field label="Initiative Mod"><NumInput value={f.initiative_mod} onChange={v => set('initiative_mod', v)} /></Field>
-      <Field label="Notes (DM only)"><textarea className="form-input" value={f.notes || ''} onChange={e => set('notes', e.target.value)} rows={2} /></Field>
+
+      <div className="panel-title" style={{ marginTop: 12 }}>Ability Modifiers</div>
+      <div className="saves-grid">
+        {['str','dex','con','int','wis','cha'].map(s => (
+          <div key={s} className="form-group">
+            <label className="form-label">{s.toUpperCase()}</label>
+            <NumInput value={f[`mod_${s}`] ?? 0} onChange={v => set(`mod_${s}`, v)} />
+          </div>
+        ))}
+      </div>
+
+      <Field label="Notes (DM only)" style={{ marginTop: 8 }}>
+        <textarea className="form-input" value={f.notes || ''} onChange={e => set('notes', e.target.value)} rows={2} />
+      </Field>
       <div className="form-row" style={{ marginTop: 12 }}>
         <button className="btn btn-primary" onClick={() => onSave(f)} disabled={!f.name}>Save</button>
         <button className="btn btn-ghost" onClick={onCancel}>Cancel</button>
