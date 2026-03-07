@@ -59,25 +59,181 @@
 .card-name { font-size: var(--font-size-md); font-weight: 700; }
 .card-header-badges { display: flex; align-items: center; gap: var(--space-1); }
 
-/* Reaction badge — unchanged, tight header row */
 .reaction-badge { font-size: 16px; opacity: 0.4; transition: opacity 0.15s; padding: 2px; }
 .reaction-badge.available { opacity: 1; }
 .reaction-badge.used { opacity: 0.25; }
 
-/* ---- HP Controls — unchanged, tight row ---- */
+/* ---- HP Numbers Row ---- */
+.hp-numbers-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.hp-slash {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.hp-override-badge {
+  font-size: var(--font-size-xs);
+  color: var(--accent-gold);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 2px;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+.hp-override-badge:hover { opacity: 1; }
+
+/* ---- DMG / HEAL WIDGET ---- */
+.hp-dmg-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.hp-action-btn {
+  flex: 1;
+  padding: 9px var(--space-2);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  border: 1.5px solid;
+  transition: background 0.15s, opacity 0.15s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 42px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.hp-action-btn:active:not(:disabled) { transform: scale(0.96); }
+.hp-action-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+
+.hp-action-dmg {
+  background: rgba(224, 48, 80, 0.10);
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+}
+.hp-action-dmg:hover:not(:disabled) {
+  background: rgba(224, 48, 80, 0.22);
+}
+
+.hp-action-heal {
+  background: rgba(62, 207, 106, 0.10);
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+.hp-action-heal:hover:not(:disabled) {
+  background: rgba(62, 207, 106, 0.22);
+}
+
+.hp-amount-input {
+  width: 64px;
+  min-width: 56px;
+  text-align: center;
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  padding: 6px 4px;
+  border-radius: var(--radius-md);
+  background: var(--bg-panel-3);
+  border: 1.5px solid var(--border-strong);
+  color: var(--text-primary);
+  min-height: 42px;
+  transition: border-color 0.15s;
+}
+.hp-amount-input:focus {
+  border-color: var(--accent-blue);
+  outline: none;
+}
+
+/* Remove number spinner arrows */
+.hp-amount-input::-webkit-outer-spin-button,
+.hp-amount-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.hp-amount-input[type=number] { appearance: textfield; }
+
+/* Compact variant — for initiative panel rows */
+.hp-dmg-row--compact .hp-action-btn {
+  min-height: 34px;
+  padding: 5px 8px;
+  font-size: var(--font-size-xs);
+}
+.hp-amount-input--compact {
+  width: 52px;
+  font-size: var(--font-size-lg);
+  min-height: 34px;
+  padding: 4px 2px;
+}
+
+/* ---- CON SAVE BANNER ---- */
+.con-check-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(240, 180, 41, 0.08);
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+  animation: bannerSlideIn 0.2s ease;
+}
+
+.con-check-label {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--accent-gold);
+}
+
+.con-check-dc {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--accent-gold);
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes bannerSlideIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Max HP Override Row ---- */
+.max-hp-override-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 2px 0;
+}
+.max-hp-override-label {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex: 1;
+}
+
+/* ---- HP Controls (legacy, kept for WildShape block) ---- */
 .hp-controls { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-1); }
 .hp-max-label { font-size: var(--font-size-sm); color: var(--text-secondary); }
 .temp-hp-label { font-size: var(--font-size-xs); color: var(--hp-temp); }
 .hp-editable { cursor: pointer; border-bottom: 1px dashed var(--border-strong); }
 .hp-inline-input { width: 56px; font-size: var(--font-size-lg); font-weight: 700; text-align: center; padding: 2px 4px; }
+.hp-value { font-size: var(--font-size-lg); font-weight: 700; color: var(--text-primary); }
 
-/* ---- Stats — unchanged, tight grid ---- */
+/* ---- Stats ---- */
 .stats-row { display: flex; gap: var(--space-2); flex-wrap: wrap; }
 .stat-pill { display: flex; align-items: center; gap: 4px; background: var(--bg-panel-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 2px 8px; }
 .stat-pill-label { font-size: var(--font-size-xs); color: var(--text-muted); text-transform: uppercase; }
 .stat-pill-value { font-size: var(--font-size-sm); font-weight: 700; }
 
-/* Saves grid — unchanged, 6-column tight layout */
 .saves-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--space-1); }
 .save-cell { display: flex; flex-direction: column; align-items: center; background: var(--bg-panel-2); border-radius: var(--radius-sm); padding: 3px 2px; }
 .save-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; }
@@ -87,65 +243,11 @@
 .conditions-wrap { display: flex; flex-direction: column; gap: var(--space-2); }
 .conditions-row { display: flex; flex-wrap: wrap; gap: var(--space-1); align-items: center; }
 
-/* Condition add button — bumped from 22px to 28px, standalone so safe */
-.condition-add-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--bg-panel-3);
-  border: 1px solid var(--border-strong);
-  color: var(--text-secondary);
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-
-/* Exhaustion stepper — in tight row alongside text, keep small but add touch-action */
-.exh-btn {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 13px;
-  cursor: pointer;
-  padding: 0 4px;
-  touch-action: manipulation;
-  line-height: 1;
-}
-
-/* Condition picker — lives in an expanded panel, has room for bigger chips */
-.condition-picker {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  background: var(--bg-panel-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: var(--space-2);
-  margin-top: var(--space-1);
-}
-.condition-picker-btn {
-  padding: 5px 8px;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  font-weight: 700;
-  background: var(--bg-panel-3);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-  cursor: pointer;
-  touch-action: manipulation;
-  min-height: 32px;
-  /* no min-width — let flex-wrap handle layout */
-}
-.condition-picker-btn.active { border-color: var(--accent-blue); }
-
-/* Condition chips — slightly taller for tap-to-remove, but not wider */
 .condition-chip {
   display: inline-flex;
   align-items: center;
-  padding: 3px 6px;
+  padding: 3px 7px;
+  min-height: 24px;
   border-radius: var(--radius-sm);
   font-size: var(--font-size-xs);
   font-weight: 700;
@@ -153,11 +255,52 @@
   background: var(--cond-default);
   color: var(--text-primary);
   gap: 3px;
-  min-height: 24px;
-  touch-action: manipulation;
 }
 .condition-chip-con { background: #3a2e00; color: var(--accent-gold); }
 .condition-chip-exh { background: #2a1a3a; color: var(--accent-purple); }
+
+.condition-add-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bg-panel-3);
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.condition-add-btn:hover { border-color: var(--accent-blue); }
+
+.exh-btn { background: none; border: none; color: var(--text-secondary); font-size: 12px; cursor: pointer; padding: 0 2px; }
+
+.condition-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.condition-picker-btn {
+  padding: 5px 8px;
+  min-height: 32px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  background: var(--bg-panel-3);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.condition-picker-btn.active { border-color: var(--accent-blue); }
 
 .exh-picker-row { display: flex; align-items: center; gap: var(--space-1); width: 100%; }
 
@@ -165,7 +308,7 @@
 .wildshape-block { background: var(--bg-panel-2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-3); display: flex; flex-direction: column; gap: var(--space-2); }
 .wildshape-header { display: flex; align-items: center; gap: var(--space-2); }
 .wildshape-title { font-size: var(--font-size-sm); font-weight: 700; flex: 1; }
-.wildshape-uses { display: flex; align-items: center; gap: var(--space-1); font-size: var(--font-size-sm); }
+.wildshape-uses { display: flex; align-items: center; gap: 4px; font-size: var(--font-size-sm); }
 .wildshape-uses-count { font-weight: 600; }
 .wildshape-active-block { display: flex; flex-direction: column; gap: var(--space-2); }
 .wildshape-form-name { font-weight: 700; color: var(--accent-green); }
@@ -175,16 +318,15 @@
 .initiative-number-input { width: 48px; font-size: var(--font-size-md); font-weight: 700; color: var(--accent-blue); text-align: center; background: var(--bg-panel-3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 2px 4px; }
 .initiative-name-block { flex: 1; display: flex; flex-direction: column; gap: 3px; }
 .initiative-badges { display: flex; flex-wrap: wrap; gap: 3px; }
-.expand-toggle { color: var(--text-muted); font-size: var(--font-size-xs); padding: 4px 6px; }
+.expand-toggle { color: var(--text-muted); font-size: var(--font-size-xs); }
 .monster-dm-controls { margin-top: var(--space-2); padding-top: var(--space-2); border-top: 1px solid var(--border); }
 .monster-notes { font-size: var(--font-size-sm); color: var(--text-secondary); font-style: italic; }
 .add-combatant-form { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-2); }
 .empty-state { color: var(--text-muted); font-size: var(--font-size-sm); font-style: italic; padding: var(--space-2) 0; }
 
 /* ---- Secret Rolls ---- */
-/* Player-side roll buttons — standalone, safe to make taller */
-.secret-roll-buttons { display: flex; gap: var(--space-2); flex-wrap: wrap; }
-.secret-roll-btn { flex: 1; min-width: 80px; min-height: 44px; touch-action: manipulation; }
+.secret-roll-buttons { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+.secret-roll-btn { flex: 1; min-width: 90px; min-height: 44px; }
 .secret-roll-btn.sent { background: #1a3a2a; color: var(--accent-green); border-color: var(--accent-green); }
 .secret-roll-list { display: flex; flex-direction: column; gap: var(--space-2); }
 .secret-roll-item { display: flex; justify-content: space-between; align-items: center; background: var(--bg-panel-2); border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); }
@@ -197,7 +339,7 @@
 .secret-roll-breakdown { font-size: var(--font-size-xs); color: var(--text-muted); }
 
 /* ---- Encounter Setup ---- */
-.checkbox-row { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) 0; cursor: pointer; font-size: var(--font-size-sm); min-height: 36px; touch-action: manipulation; }
+.checkbox-row { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) 0; cursor: pointer; font-size: var(--font-size-sm); min-height: 36px; }
 .monster-template-list { display: flex; flex-direction: column; gap: var(--space-1); }
 .monster-template-row { display: flex; justify-content: space-between; align-items: center; padding: var(--space-1) 0; font-size: var(--font-size-sm); }
 .monster-queue { margin-top: var(--space-2); display: flex; flex-direction: column; gap: var(--space-1); }
