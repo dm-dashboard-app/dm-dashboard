@@ -15,7 +15,9 @@ function flattenStates(data) {
   }));
 }
 
-// Compact strip showing last 3 secret rolls — always visible above initiative
+// ============================================================
+// COMPACT RECENT ROLLS STRIP — always visible above initiative
+// ============================================================
 function RecentRollsStrip({ encounterId }) {
   const [rolls, setRolls] = useState([]);
 
@@ -64,6 +66,141 @@ function RecentRollsStrip({ encounterId }) {
   );
 }
 
+// ============================================================
+// COMBAT LOG (DM only)
+// ============================================================
+function CombatLog({ encounterId }) {
+  const [logSection, setLogSection] = useState('combat');  // 'combat' | 'con'
+  const [combatEntries, setCombatEntries] = useState([]);
+  const [conChecks, setConChecks] = useState([]);
+  const [loadingCombat, setLoadingCombat] = useState(true);
+  const [loadingCon, setLoadingCon]       = useState(true);
+
+  const loadCombat = useCallback(async () => {
+    if (!encounterId) return;
+    const { data } = await supabase
+      .from('combat_log')
+      .select('*')
+      .eq('encounter_id', encounterId)
+      .order('created_at', { ascending: false })
+      .limit(100);
+    setCombatEntries(data || []);
+    setLoadingCombat(false);
+  }, [encounterId]);
+
+  const loadCon = useCallback(async () => {
+    if (!encounterId) return;
+    const { data } = await supabase
+      .from('concentration_checks')
+      .select('*')
+      .eq('encounter_id', encounterId)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    setConChecks(data || []);
+    setLoadingCon(false);
+  }, [encounterId]);
+
+  usePolling(loadCombat, 3000, !!encounterId && logSection === 'combat');
+  usePolling(loadCon,    3000, !!encounterId && logSection === 'con');
+
+  function timeLabel(ts) {
+    return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+
+  function actionClass(action) {
+    if (action === 'damage') return 'log-item--dmg';
+    if (action === 'heal')   return 'log-item--heal';
+    if (action === 'remove') return 'log-item--remove';
+    if (action === 'turn')   return 'log-item--turn';
+    if (action === 'con')    return 'log-item--con';
+    return '';
+  }
+
+  function resultLabel(r) {
+    if (r === 'pending') return { text: '⏳ Pending', cls: 'con-log-result-badge--pending' };
+    if (r === 'passed')  return { text: '✅ Passed',  cls: 'con-log-result-badge--passed' };
+    if (r === 'failed')  return { text: '❌ Failed',  cls: 'con-log-result-badge--failed' };
+    return { text: r, cls: '' };
+  }
+
+  const pendingConCount = conChecks.filter(c => c.result === 'pending').length;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {/* Sub-tab switcher */}
+      <div style={{ display: 'flex', gap: 6 }}>
+        <button
+          className="btn btn-ghost"
+          style={{ flex: 1, borderColor: logSection === 'combat' ? 'var(--accent-blue)' : 'var(--border)', color: logSection === 'combat' ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
+          onClick={() => { setLogSection('combat'); loadCombat(); }}
+        >
+          ⚔ Events
+        </button>
+        <button
+          className="btn btn-ghost"
+          style={{ flex: 1, borderColor: logSection === 'con' ? 'var(--accent-gold)' : 'var(--border)', color: logSection === 'con' ? 'var(--accent-gold)' : 'var(--text-secondary)' }}
+          onClick={() => { setLogSection('con'); loadCon(); }}
+        >
+          🔮 CON Checks {pendingConCount > 0 && <span className="tab-badge">{pendingConCount}</span>}
+        </button>
+      </div>
+
+      {/* Combat Events */}
+      {logSection === 'combat' && (
+        <div className="panel">
+          <div className="panel-title">Combat Events</div>
+          {loadingCombat && <div className="empty-state">Loading…</div>}
+          {!loadingCombat && combatEntries.length === 0 && (
+            <div className="empty-state">No events logged yet. Events appear when HP changes, combatants are added/removed, etc.</div>
+          )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5, maxHeight: '60vh', overflowY: 'auto' }}>
+            {combatEntries.map(e => (
+              <div key={e.id} className={`log-item ${actionClass(e.action)}`}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <span className="log-item-action">{e.detail || e.action}</span>
+                  <span className="log-item-meta" style={{ flexShrink: 0, marginLeft: 8 }}>{timeLabel(e.created_at)}</span>
+                </div>
+                {e.actor && (
+                  <span className="log-item-meta">by {e.actor}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* CON Checks */}
+      {logSection === 'con' && (
+        <div className="panel">
+          <div className="panel-title">Concentration Checks</div>
+          {loadingCon && <div className="empty-state">Loading…</div>}
+          {!loadingCon && conChecks.length === 0 && (
+            <div className="empty-state">No concentration checks this encounter.</div>
+          )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: '60vh', overflowY: 'auto' }}>
+            {conChecks.map(c => {
+              const { text, cls } = resultLabel(c.result);
+              return (
+                <div key={c.id} className={`con-log-item con-log-item--${c.result}`}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <span style={{ fontWeight: 600, fontSize: 13 }}>{c.player_name}</span>
+                    <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>DC {c.dc}</span>
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{timeLabel(c.created_at)}</span>
+                  </div>
+                  <span className={`con-log-result-badge ${cls}`}>{text}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// DM VIEW
+// ============================================================
 export default function DMView() {
   const [encounter, setEncounter] = useState(null);
   const [combatants, setCombatants] = useState([]);
@@ -108,6 +245,10 @@ export default function DMView() {
   }, [encounterId]);
 
   usePolling(refreshAll, 2000, !!encounterId);
+
+  useEffect(() => {
+    if (encounterId) refreshAll();
+  }, [encounterId, refreshAll]);
 
   async function handleNextTurn() {
     if (!encounter) return;
@@ -189,6 +330,9 @@ export default function DMView() {
   const pcCombatants = combatants.filter(c => c.side === 'PC');
   const nonPcCount = combatants.filter(c => c.side !== 'PC').length;
 
+  // Count pending CON checks for badge
+  const pendingConCount = playerStates.filter(s => s.concentration_check_dc != null).length;
+
   return (
     <div className="app-shell">
       <div className="top-bar">
@@ -201,21 +345,26 @@ export default function DMView() {
       </div>
 
       <div className="tab-bar">
-        <button className={`tab-btn ${tab === 'combat' ? 'active' : ''}`} onClick={() => setTab('combat')}>⚔ Combat</button>
-        <button className={`tab-btn ${tab === 'rolls' ? 'active' : ''}`} onClick={() => setTab('rolls')}>🎲 Rolls</button>
-        <button className={`tab-btn ${tab === 'manage' ? 'active' : ''}`} onClick={() => setTab('manage')}>⚙ Manage</button>
+        <button className={`tab-btn ${tab === 'combat'  ? 'active' : ''}`} onClick={() => setTab('combat')}>⚔ Combat</button>
+        <button className={`tab-btn ${tab === 'rolls'   ? 'active' : ''}`} onClick={() => setTab('rolls')}>🎲 Rolls</button>
+        <button className={`tab-btn ${tab === 'log'     ? 'active' : ''}`} onClick={() => setTab('log')}>
+          📋 Log{pendingConCount > 0 ? <span className="tab-badge">{pendingConCount}</span> : ''}
+        </button>
+        <button className={`tab-btn ${tab === 'manage'  ? 'active' : ''}`} onClick={() => setTab('manage')}>⚙ Manage</button>
       </div>
 
       <div className="main-content">
+
+        {/* ---- COMBAT TAB ---- */}
         {tab === 'combat' && (
           <>
             {pcCombatants.map(c => {
-              const state = playerStates.find(s => s.combatant_id === c.id);
+              const s = playerStates.find(ps => ps.combatant_id === c.id);
               return (
                 <PlayerCard
                   key={c.id}
                   combatant={c}
-                  state={state}
+                  state={s}
                   role="dm"
                   isEditMode={encounter.player_edit_mode}
                   encounterId={encounter.id}
@@ -289,7 +438,13 @@ export default function DMView() {
           </>
         )}
 
+        {/* ---- ROLLS TAB ---- */}
         {tab === 'rolls' && <SecretRollInbox encounterId={encounter.id} />}
+
+        {/* ---- LOG TAB ---- */}
+        {tab === 'log' && <CombatLog encounterId={encounter.id} />}
+
+        {/* ---- MANAGE TAB ---- */}
         {tab === 'manage' && (
           <ManagementScreens
             onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); }}

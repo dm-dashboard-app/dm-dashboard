@@ -12,8 +12,6 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   const isPlayer = role === 'player';
 
   const [localHp, setLocalHp] = useState(null);
-  const [conDc, setConDc] = useState(null);
-  const conTimer = useRef(null);
 
   const dbHp = state?.current_hp ?? combatant?.hp_current ?? 0;
   const hp = localHp !== null ? localHp : dbHp;
@@ -28,11 +26,14 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   const reactionUsed = state?.reaction_used ?? false;
   const isBloodied = hp > 0 && hp <= Math.floor(maxHp / 2);
 
+  // CON check DC — read from DB, persistent until confirmed
+  // Only show when player is concentrating (if they're not, there's nothing to check)
+  const pendingConDc = concentration ? (state?.concentration_check_dc ?? null) : null;
+
   // Passive perception = 10 + perception skill modifier
   const passivePerception = profile ? (10 + (profile.skill_perception ?? 0)) : null;
 
   useEffect(() => { setLocalHp(null); }, [dbHp]);
-  useEffect(() => () => clearTimeout(conTimer.current), []);
 
   function hpColor(pct) {
     if (pct > 50) return 'var(--hp-high)';
@@ -53,11 +54,20 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
 
   async function applyDamage(amount) {
     if (!state || readOnly || !amount || amount <= 0) return;
+
+    // If concentrating, write DC to DB for persistent player banner
     if (concentration) {
-      clearTimeout(conTimer.current);
-      setConDc(Math.max(10, Math.floor(amount / 2)));
-      conTimer.current = setTimeout(() => setConDc(null), 7000);
+      const dc = Math.max(10, Math.floor(amount / 2));
+      await supabase.from('player_encounter_state').update({ concentration_check_dc: dc }).eq('id', state.id);
+      // Log the check
+      const playerName = profile?.name || combatant?.name || 'PC';
+      supabase.from('concentration_checks').insert({
+        encounter_id: encounterId,
+        player_name: playerName,
+        dc,
+      }).then(() => {});
     }
+
     let remaining = amount;
     const updates = {};
     if (tempHp > 0) {
@@ -71,8 +81,23 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
       updates.current_hp = newHp;
       await supabase.from('player_encounter_state').update(updates).eq('id', state.id);
       await syncUnconsciousCondition(newHp, state.conditions);
+      // Combat log
+      const actor = isPlayer ? (profile?.name || 'Player') : 'DM';
+      supabase.from('combat_log').insert({
+        encounter_id: encounterId,
+        actor,
+        action: 'damage',
+        detail: `${combatant?.name || 'PC'}: -${amount} HP (${hp} → ${newHp})`,
+      }).then(() => {});
     } else {
       await supabase.from('player_encounter_state').update(updates).eq('id', state.id);
+      const actor = isPlayer ? (profile?.name || 'Player') : 'DM';
+      supabase.from('combat_log').insert({
+        encounter_id: encounterId,
+        actor,
+        action: 'damage',
+        detail: `${combatant?.name || 'PC'}: -${amount} (temp HP absorbed)`,
+      }).then(() => {});
     }
     onUpdate();
   }
@@ -83,6 +108,13 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
     setLocalHp(newHp);
     await supabase.from('player_encounter_state').update({ current_hp: newHp }).eq('id', state.id);
     await syncUnconsciousCondition(newHp, state.conditions);
+    const actor = isPlayer ? (profile?.name || 'Player') : 'DM';
+    supabase.from('combat_log').insert({
+      encounter_id: encounterId,
+      actor,
+      action: 'heal',
+      detail: `${combatant?.name || 'PC'}: +${amount} HP (${hp} → ${newHp})`,
+    }).then(() => {});
     onUpdate();
   }
 
@@ -130,7 +162,57 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
 
   async function toggleConcentration() {
     if (readOnly || !state) return;
-    await supabase.from('player_encounter_state').update({ concentration: !concentration }).eq('id', state.id);
+    // If turning off concentration, also clear any pending check
+    const updates = { concentration: !concentration };
+    if (concentration) updates.concentration_check_dc = null;
+    await supabase.from('player_encounter_state').update(updates).eq('id', state.id);
+    onUpdate();
+  }
+
+  // CON check confirmation handlers
+  async function handleConPass() {
+    if (!state) return;
+    // Find the most recent pending check and mark it passed
+    const playerName = profile?.name || combatant?.name;
+    if (playerName) {
+      const { data: checks } = await supabase
+        .from('concentration_checks')
+        .select('id')
+        .eq('encounter_id', encounterId)
+        .eq('player_name', playerName)
+        .eq('result', 'pending')
+        .order('created_at', { ascending: false })
+        .limit(1);
+      if (checks && checks.length > 0) {
+        await supabase.from('concentration_checks').update({ result: 'passed' }).eq('id', checks[0].id);
+      }
+    }
+    await supabase.from('player_encounter_state').update({ concentration_check_dc: null }).eq('id', state.id);
+    onUpdate();
+  }
+
+  async function handleConFail() {
+    if (!state) return;
+    // Find the most recent pending check and mark it failed
+    const playerName = profile?.name || combatant?.name;
+    if (playerName) {
+      const { data: checks } = await supabase
+        .from('concentration_checks')
+        .select('id')
+        .eq('encounter_id', encounterId)
+        .eq('player_name', playerName)
+        .eq('result', 'pending')
+        .order('created_at', { ascending: false })
+        .limit(1);
+      if (checks && checks.length > 0) {
+        await supabase.from('concentration_checks').update({ result: 'failed' }).eq('id', checks[0].id);
+      }
+    }
+    // Clear DC and end concentration
+    await supabase.from('player_encounter_state').update({
+      concentration_check_dc: null,
+      concentration: false,
+    }).eq('id', state.id);
     onUpdate();
   }
 
@@ -157,76 +239,83 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
             {isBloodied && <span className="badge badge-bloodied">BLOODIED</span>}
           </div>
           <div className="card-header-badges">
-            {isPlayer ? (
+            {/* Reaction pill on player card — prominent, always visible */}
+            {canEdit ? (
               <button
-                className="btn btn-ghost"
-                style={{
-                  fontSize: 11, padding: '2px 7px',
-                  opacity: reactionUsed ? 0.35 : 1,
-                  borderColor: reactionUsed ? 'var(--border)' : 'var(--accent-gold)',
-                  color: reactionUsed ? 'var(--text-muted)' : 'var(--accent-gold)',
-                }}
+                className={`reaction-pill reaction-pill--clickable ${reactionUsed ? 'reaction-pill--used' : 'reaction-pill--ready'}`}
                 onClick={toggleReaction}
+                title={reactionUsed ? 'Restore reaction' : 'Mark reaction used'}
               >
-                ⚡ {reactionUsed ? 'Used' : 'React'}
+                ⚡ {reactionUsed ? 'USED' : 'REACT'}
               </button>
             ) : (
-              <button
-                className={`reaction-badge ${reactionUsed ? 'used' : 'available'}`}
-                onClick={canEdit ? toggleReaction : undefined}
-                disabled={readOnly}
-                title="Reaction"
-              >⚡</button>
+              <span className={`reaction-pill ${reactionUsed ? 'reaction-pill--used' : 'reaction-pill--ready'}`} style={{ cursor: 'default' }}>
+                ⚡ {reactionUsed ? 'USED' : 'REACT'}
+              </span>
             )}
           </div>
         </div>
 
-        {/* HP Bar */}
-        <div className="hp-bar-track" style={{ height: 10, marginTop: 2 }}>
-          <div className="hp-bar-fill" style={{ width: `${hpPercent}%`, background: hpColor(hpPercent) }} />
-          {tempHp > 0 && (
-            <div className="hp-bar-temp" style={{
-              left: `${hpPercent}%`,
-              width: `${Math.min(100 - hpPercent, (tempHp / maxHp) * 100)}%`
-            }} />
-          )}
+        {/* CON Save Banner — persistent, DB-driven, player must confirm */}
+        {pendingConDc !== null && (
+          <div className="con-check-banner">
+            <div className="con-check-banner-header">
+              <span className="con-check-label">🔮 CONCENTRATION CHECK</span>
+              <span className="con-check-dc">DC {pendingConDc}</span>
+            </div>
+            <div className="con-check-actions">
+              <button className="con-check-pass" onClick={handleConPass}>✅ Passed</button>
+              <button className="con-check-fail" onClick={handleConFail}>❌ Failed — lose concentration</button>
+            </div>
+          </div>
+        )}
+
+        {/* HP bar */}
+        <div style={{ position: 'relative' }}>
+          <div className="hp-bar-track" style={{ height: 10 }}>
+            <div className="hp-bar-fill" style={{ width: `${hpPercent}%`, background: hpColor(hpPercent) }} />
+            {tempHp > 0 && (
+              <div className="hp-bar-temp" style={{
+                left: `${hpPercent}%`,
+                width: `${Math.min(100 - hpPercent, (tempHp / maxHp) * 100)}%`,
+              }} />
+            )}
+          </div>
         </div>
 
-        {/* HP Numbers */}
+        {/* HP numbers */}
         <div className="hp-numbers-row">
-          {canEdit && !readOnly ? (
-            <HpInput value={hp} max={maxHp} onChange={setHpDirect} />
+          {!readOnly ? (
+            <HpEditableNumber value={hp} onSet={setHpDirect} />
           ) : (
             <span className="hp-value">{hp}</span>
           )}
-          <span className="hp-slash">/ {maxHp}</span>
-          {maxHpOverride !== null && canRestore && (
-            <button className="hp-override-badge" onClick={resetMaxHp} title="Reset to profile max">✦ ↺</button>
+          <span className="hp-slash">/</span>
+          <span className="hp-value" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>{maxHp}</span>
+          {tempHp > 0 && (
+            !readOnly ? (
+              <TempHpControl tempHp={tempHp} onSet={setTempHpDirect} />
+            ) : (
+              <span className="temp-hp-label">+{tempHp} temp</span>
+            )
           )}
-          {canEdit && !readOnly ? (
+          {!readOnly && tempHp === 0 && (
             <TempHpControl tempHp={tempHp} onSet={setTempHpDirect} />
-          ) : (
-            tempHp > 0 && <span className="temp-hp-label">+{tempHp} tmp</span>
+          )}
+          {maxHpOverride !== null && (
+            <span style={{ fontSize: 10, color: 'var(--accent-gold)', marginLeft: 2 }}>✦</span>
           )}
         </div>
 
         {/* DMG / HEAL widget */}
-        {canEdit && !readOnly && (
+        {canEdit && (
           <DmgHealRow onDamage={applyDamage} onHeal={applyHeal} />
         )}
 
-        {/* CON Save Banner */}
-        {conDc !== null && (
-          <div className="con-check-banner">
-            <span className="con-check-label">🔮 CON SAVE</span>
-            <span className="con-check-dc">DC {conDc}</span>
-          </div>
-        )}
-
-        {/* Max HP Override (DM only) */}
+        {/* Max HP override (DM only) */}
         {canRestore && (
           <div className="max-hp-override-row">
-            <span className="max-hp-override-label">Max HP{maxHpOverride !== null ? ' ✦' : ''}</span>
+            <span className="max-hp-override-label">Max HP {maxHpOverride !== null ? '✦' : ''}</span>
             <button className="btn btn-icon btn-ghost" style={{ minWidth: 28, minHeight: 28, fontSize: 13 }} onClick={() => adjustMaxHp(-1)}>−</button>
             <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, minWidth: 28, textAlign: 'center' }}>{maxHp}</span>
             <button className="btn btn-icon btn-ghost" style={{ minWidth: 28, minHeight: 28, fontSize: 13 }} onClick={() => adjustMaxHp(1)}>+</button>
@@ -351,47 +440,7 @@ export function DmgHealRow({ onDamage, onHeal, compact = false }) {
   );
 }
 
-function TempHpControl({ tempHp, onSet }) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(String(tempHp));
-
-  useEffect(() => { if (!editing) setDraft(String(tempHp)); }, [tempHp, editing]);
-
-  if (!editing) {
-    return (
-      <span className="temp-hp-label hp-editable" onClick={() => { setDraft(String(tempHp)); setEditing(true); }} title="Set temp HP">
-        {tempHp > 0 ? `+${tempHp} tmp` : '+TMP'}
-      </span>
-    );
-  }
-  return (
-    <input className="hp-inline-input" type="number" value={draft} min={0} autoFocus style={{ width: 48 }}
-      onChange={e => setDraft(e.target.value)}
-      onBlur={() => { onSet(draft); setEditing(false); }}
-      onKeyDown={e => { if (e.key === 'Enter') { onSet(draft); setEditing(false); } if (e.key === 'Escape') setEditing(false); }}
-    />
-  );
-}
-
-function HpInput({ value, max, onChange }) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(String(value));
-
-  useEffect(() => { if (!editing) setDraft(String(value)); }, [value, editing]);
-
-  if (!editing) {
-    return (
-      <span className="hp-value hp-editable" onClick={() => { setDraft(String(value)); setEditing(true); }}>{value}</span>
-    );
-  }
-  return (
-    <input className="hp-inline-input" type="number" value={draft} min={0} max={max} autoFocus
-      onChange={e => setDraft(e.target.value)}
-      onBlur={() => { onChange(draft); setEditing(false); }}
-      onKeyDown={e => { if (e.key === 'Enter') { onChange(draft); setEditing(false); } if (e.key === 'Escape') setEditing(false); }}
-    />
-  );
-}
+// ---- Sub-components ----
 
 function StatPill({ label, value }) {
   return (
@@ -403,6 +452,68 @@ function StatPill({ label, value }) {
 }
 
 function formatMod(val) {
-  if (val === undefined || val === null) return '—';
-  return val >= 0 ? `+${val}` : `${val}`;
+  const n = parseInt(val);
+  if (isNaN(n)) return '—';
+  return n >= 0 ? `+${n}` : `${n}`;
+}
+
+function HpEditableNumber({ value, onSet }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(String(value));
+  const inputRef = useRef(null);
+
+  useEffect(() => { if (!editing) setDraft(String(value)); }, [value, editing]);
+
+  function commit() {
+    setEditing(false);
+    const n = parseInt(draft);
+    if (!isNaN(n) && n !== value) onSet(n);
+  }
+
+  if (!editing) {
+    return (
+      <span className="hp-value hp-editable" onClick={() => { setDraft(String(value)); setEditing(true); setTimeout(() => inputRef.current?.select(), 0); }}>
+        {value}
+      </span>
+    );
+  }
+  return (
+    <input
+      ref={inputRef}
+      className="hp-inline-input hp-value"
+      type="number"
+      value={draft}
+      onChange={e => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={e => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') { setEditing(false); } }}
+      autoFocus
+    />
+  );
+}
+
+function TempHpControl({ tempHp, onSet }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(String(tempHp));
+
+  useEffect(() => { if (!editing) setDraft(String(tempHp)); }, [tempHp, editing]);
+
+  if (!editing) {
+    return (
+      <span className="temp-hp-label hp-editable" onClick={() => { setDraft(String(tempHp)); setEditing(true); }} title="Set temp HP">
+        {tempHp > 0 ? `+${tempHp} tmp` : '+ tmp'}
+      </span>
+    );
+  }
+  return (
+    <input
+      className="hp-inline-input"
+      style={{ width: 48, fontSize: 13 }}
+      type="number"
+      value={draft}
+      onChange={e => setDraft(e.target.value)}
+      onBlur={() => { setEditing(false); const n = parseInt(draft); if (!isNaN(n)) onSet(n); }}
+      onKeyDown={e => { if (e.key === 'Enter') e.target.blur(); if (e.key === 'Escape') setEditing(false); }}
+      autoFocus
+    />
+  );
 }

@@ -1,105 +1,105 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 
+// ============================================================
+// CONSTANTS
+// ============================================================
 const CONDITIONS = [
-  { code: 'BLD' }, { code: 'CHM' }, { code: 'DEF' },
-  { code: 'FRI' }, { code: 'GRP' }, { code: 'INC' },
-  { code: 'INV' }, { code: 'PAR' }, { code: 'PET' },
-  { code: 'POI' }, { code: 'PRN' }, { code: 'RES' },
-  { code: 'STN' }, { code: 'UNC' }, { code: 'HEX' },
+  { code: 'BLD',  label: 'Blinded',       colour: '#6b5b95' },
+  { code: 'CHM',  label: 'Charmed',       colour: '#e8a0bf' },
+  { code: 'DEF',  label: 'Deafened',      colour: '#888' },
+  { code: 'FRG',  label: 'Frightened',    colour: '#9b2335' },
+  { code: 'GRP',  label: 'Grappled',      colour: '#8b6914' },
+  { code: 'INC',  label: 'Incapacitated', colour: '#b5451b' },
+  { code: 'INV',  label: 'Invisible',     colour: '#4a4a7a' },
+  { code: 'PAR',  label: 'Paralyzed',     colour: '#7a4a9a' },
+  { code: 'PET',  label: 'Petrified',     colour: '#888' },
+  { code: 'PSN',  label: 'Poisoned',      colour: '#3a7a3a' },
+  { code: 'PRN',  label: 'Prone',         colour: '#7a6030' },
+  { code: 'RST',  label: 'Restrained',    colour: '#8b4513' },
+  { code: 'STN',  label: 'Stunned',       colour: '#4a4a9a' },
+  { code: 'UNC',  label: 'Unconscious',   colour: '#2a2a3a' },
+  { code: 'EXH',  label: 'Exhaustion',    colour: '#5a3a7a' },
+  { code: 'HEX',  label: 'Hex',           colour: '#6a0dad' },
 ];
 
-const CONDITION_COLOURS = {
-  BLD: '#6a3a3a', CHM: '#3a3a6a', DEF: '#4a4a4a',
-  FRI: '#5a3a5a', GRP: '#5a4a2a', INC: '#6a2a2a',
-  INV: '#2a4a4a', PAR: '#6a5a2a', PET: '#4a4a3a',
-  POI: '#2a5a2a', PRN: '#5a5a2a', RES: '#3a4a5a',
-  STN: '#5a3a2a', UNC: '#2a2a2a', HEX: '#3d1060',
-};
+const CONDITION_COLOURS = Object.fromEntries(CONDITIONS.map(c => [c.code, c.colour]));
 
 const DAMAGE_TYPES = [
-  'Acid','Bludgeoning','Cold','Fire','Force',
-  'Lightning','Necrotic','Piercing','Poison',
-  'Psychic','Radiant','Slashing','Thunder',
+  'acid','bludgeoning','cold','fire','force','lightning',
+  'necrotic','piercing','poison','psychic','radiant','slashing','thunder',
 ];
 
-function sortCombatants(list) {
-  return [...list].sort((a, b) => {
-    if (a.initiative_total == null && b.initiative_total == null) return a.id < b.id ? -1 : 1;
-    if (a.initiative_total == null) return 1;
-    if (b.initiative_total == null) return -1;
-    if (b.initiative_total !== a.initiative_total) return b.initiative_total - a.initiative_total;
-    const aMod = a.initiative_mod ?? 0;
-    const bMod = b.initiative_mod ?? 0;
-    if (bMod !== aMod) return bMod - aMod;
+const MODS = ['str','dex','con','int','wis','cha'];
+
+// ============================================================
+// HELPERS
+// ============================================================
+function sortCombatants(combatants) {
+  return [...combatants].sort((a, b) => {
+    const ai = a.initiative_total ?? -999;
+    const bi = b.initiative_total ?? -999;
+    if (bi !== ai) return bi - ai;
+    const am = a.initiative_mod ?? 0;
+    const bm = b.initiative_mod ?? 0;
+    if (bm !== am) return bm - am;
     return a.id < b.id ? -1 : 1;
   });
 }
 
-function hpColor(pct) {
-  if (pct > 50) return 'var(--hp-high)';
-  if (pct > 25) return 'var(--hp-mid)';
-  return 'var(--hp-low)';
+// Fire-and-forget combat log helper
+function logCombat(encounterId, actor, action, detail) {
+  if (!encounterId) return;
+  supabase.from('combat_log').insert({ encounter_id: encounterId, actor, action, detail }).then(() => {});
 }
 
 // ============================================================
 // MINI HP BAR
 // ============================================================
-function MiniHpBar({ current, max, tempHp = 0, color = null, label = null }) {
-  const pct = max > 0 ? Math.max(0, Math.min(100, (current / max) * 100)) : 0;
-  const barColor = color || hpColor(pct);
+function MiniHpBar({ current, max, tempHp = 0, color, label }) {
+  const pct     = max > 0 ? Math.max(0, Math.min(100, (current / max) * 100)) : 0;
+  const tempPct = max > 0 ? Math.max(0, Math.min(100, (tempHp / max) * 100)) : 0;
+  const barColor = color || (pct > 50 ? 'var(--hp-high)' : pct > 25 ? 'var(--hp-mid)' : 'var(--hp-low)');
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      {label && (
-        <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</span>
-      )}
-      <div style={{ height: 5, background: 'var(--bg-panel-3)', borderRadius: 3, overflow: 'hidden', position: 'relative' }}>
-        <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 3, transition: 'width 0.3s ease' }} />
-        {tempHp > 0 && max > 0 && (
-          <div style={{ position: 'absolute', top: 0, left: `${pct}%`, width: `${Math.min(100 - pct, (tempHp / max) * 100)}%`, height: '100%', background: 'var(--hp-temp)', opacity: 0.7, borderRadius: 3 }} />
+      {label && <span style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</span>}
+      <div style={{ position: 'relative', height: 6, background: 'var(--bg-panel-3)', borderRadius: 3, overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: `${pct}%`, background: barColor, borderRadius: 3, transition: 'width 0.3s' }} />
+        {tempHp > 0 && (
+          <div style={{ position: 'absolute', right: 0, top: 0, height: '100%', width: `${Math.min(tempPct, 100 - pct)}%`, background: 'var(--hp-temp)', opacity: 0.7, borderRadius: 3 }} />
         )}
       </div>
-      <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{current}{tempHp > 0 ? ` (+${tempHp})` : ''} / {max}</span>
     </div>
   );
 }
 
 // ============================================================
 // LEGENDARY PIPS
-// Filled pip = available (same convention as spell slots).
-// DM: can click to spend (filled→empty) or restore (empty→filled).
-// Players: read-only — they see how many the boss has left.
-// Reset button (↺) appears for DM when it's the creature's turn.
 // ============================================================
 function LegendaryPips({ label, max, used, isDM, onSpend, onRestore, onReset, isActive }) {
   if (max === 0) return null;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-      <span style={{ fontSize: 9, color: 'var(--accent-gold)', fontWeight: 700, minWidth: 16, letterSpacing: '0.03em' }}>{label}</span>
-      <div style={{ display: 'flex', gap: 3 }}>
-        {Array.from({ length: max }).map((_, i) => {
-          const available = i >= used; // first `used` pips are empty (spent), rest filled (available)
-          return (
-            <button
-              key={i}
-              onClick={isDM ? (available ? onSpend : onRestore) : undefined}
-              disabled={!isDM}
-              title={isDM ? (available ? 'Spend' : 'Restore') : available ? 'Available' : 'Spent'}
-              style={{
-                width: 13, height: 13,
-                borderRadius: '50%',
-                border: `2px solid var(--accent-gold)`,
-                background: available ? 'var(--accent-gold)' : 'transparent',
-                cursor: isDM ? 'pointer' : 'default',
-                padding: 0,
-                transition: 'background 0.1s',
-                flexShrink: 0,
-              }}
-            />
-          );
-        })}
-      </div>
-      <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      <span style={{ fontSize: 9, color: 'var(--accent-gold)', fontWeight: 700, width: 16, textTransform: 'uppercase' }}>{label}</span>
+      {Array.from({ length: max }).map((_, i) => {
+        const isSpent = i < used;
+        return (
+          <button
+            key={i}
+            onClick={e => { e.stopPropagation(); if (!isDM) return; isSpent ? onRestore() : onSpend(); }}
+            title={isDM ? (isSpent ? 'Restore' : 'Spend') : undefined}
+            style={{
+              width: 14, height: 14, borderRadius: '50%',
+              border: `2px solid var(--accent-gold)`,
+              background: isSpent ? 'transparent' : 'var(--accent-gold)',
+              cursor: isDM ? 'pointer' : 'default',
+              padding: 0, transition: 'background 0.1s',
+            }}
+          />
+        );
+      })}
+      <span style={{ fontSize: 9, color: 'var(--text-muted)', marginLeft: 2 }}>
         {used > 0 ? `${max - used}/${max}` : `${max}/${max}`}
       </span>
       {isDM && isActive && (
@@ -224,7 +224,7 @@ function EnemySlotGrid({ combatant, onUpdate }) {
 // ============================================================
 // MAIN PANEL
 // ============================================================
-export default function InitiativePanel({ encounter, combatants, playerStates = [], role, onUpdate }) {
+export default function InitiativePanel({ encounter, combatants, playerStates = [], role, onUpdate, myCombatantId = null }) {
   const isDM = role === 'dm';
   const sorted = sortCombatants(combatants);
   const activeTurnIndex = encounter?.turn_index ?? 0;
@@ -246,6 +246,8 @@ export default function InitiativePanel({ encounter, combatants, playerStates = 
               onUpdate={onUpdate}
               sorted={sorted}
               idx={idx}
+              encounterId={encounter?.id}
+              myCombatantId={myCombatantId}
             />
           );
         })}
@@ -262,14 +264,14 @@ export default function InitiativePanel({ encounter, combatants, playerStates = 
 // ============================================================
 // INITIATIVE ROW
 // ============================================================
-function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorted, idx }) {
+function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorted, idx, encounterId, myCombatantId }) {
   const [expanded, setExpanded]       = useState(false);
   const [condPickerOpen, setCondPickerOpen] = useState(false);
   const [resPicker, setResPicker]     = useState(false);
   const [inputValue, setInputValue]   = useState(
     combatant.initiative_total != null ? String(combatant.initiative_total) : ''
   );
-  const [conDc, setConDc]   = useState(null);
+  const [conDc, setConDc]   = useState(null);   // DM-side flash only
   const conTimer            = useRef(null);
   const isFocused           = useRef(false);
   const savingRef           = useRef(false);
@@ -307,9 +309,9 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
   const wsFormName   = playerState?.wildshape_form_name ?? null;
   const wsHpMax      = playerState?.wildshape_hp_max ?? null;
 
-  // Enemy HP
-  const enemyHpCurrent = combatant.hp_current ?? null;
-  const enemyHpMax     = combatant.hp_max ?? null;
+  // Enemy HP & reaction
+  const enemyHpCurrent    = combatant.hp_current ?? null;
+  const enemyHpMax        = combatant.hp_max ?? null;
   const enemyReactionUsed = combatant.reaction_used ?? false;
 
   const showPcHp    = isPC && pcHpCurrent !== null && pcHpMax !== null;
@@ -330,8 +332,12 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
   const immunities  = combatant.immunities  || [];
 
   // Ability mods
-  const MODS = ['str','dex','con','int','wis','cha'];
   const hasAnyMod = MODS.some(m => (combatant[`mod_${m}`] ?? 0) !== 0);
+
+  // Reaction state & toggle permissions
+  const rxUsed = isPC ? reactionUsed : enemyReactionUsed;
+  // DM can toggle anything; player can toggle only their own row
+  const canToggleReaction = isDM || (!isDM && isPC && myCombatantId && combatant.id === myCombatantId);
 
   // ---- Handlers ----
 
@@ -359,25 +365,40 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
     onUpdate();
   }
 
+  async function toggleReaction() {
+    if (!canToggleReaction) return;
+    if (isPC) {
+      if (!playerState) return;
+      await supabase.from('player_encounter_state').update({ reaction_used: !reactionUsed }).eq('id', playerState.id);
+    } else {
+      await supabase.from('combatants').update({ reaction_used: !enemyReactionUsed }).eq('id', combatant.id);
+    }
+    onUpdate();
+  }
+
   async function applyEnemyDamage(amount) {
     if (!amount || amount <= 0) return;
-    const newHp = Math.max(0, (combatant.hp_current ?? 0) - amount);
+    const oldHp = combatant.hp_current ?? 0;
+    const newHp = Math.max(0, oldHp - amount);
     const isBloodied = newHp > 0 && newHp <= Math.floor((combatant.hp_max ?? 0) / 2);
     await supabase.from('combatants').update({
       hp_current: newHp,
       public_status: isBloodied ? 'BLOODIED' : null,
     }).eq('id', combatant.id);
+    logCombat(encounterId, 'DM', 'damage', `${combatant.name}: -${amount} HP (${oldHp} → ${newHp})`);
     onUpdate();
   }
 
   async function applyEnemyHeal(amount) {
     if (!amount || amount <= 0) return;
-    const newHp = Math.min(combatant.hp_max ?? 999, (combatant.hp_current ?? 0) + amount);
+    const oldHp = combatant.hp_current ?? 0;
+    const newHp = Math.min(combatant.hp_max ?? 999, oldHp + amount);
     const isBloodied = newHp > 0 && newHp <= Math.floor((combatant.hp_max ?? 0) / 2);
     await supabase.from('combatants').update({
       hp_current: newHp,
       public_status: isBloodied ? 'BLOODIED' : null,
     }).eq('id', combatant.id);
+    logCombat(encounterId, 'DM', 'heal', `${combatant.name}: +${amount} HP (${oldHp} → ${newHp})`);
     onUpdate();
   }
 
@@ -386,13 +407,25 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
     const curHp   = playerState.current_hp ?? 0;
     const curTemp = playerState.temp_hp ?? 0;
     const pcConds = playerState.conditions || [];
-    const effectiveMax = pcMaxOverride ?? pcProfileMax ?? 999;
     const isConc  = playerState.concentration ?? false;
 
+    // DM-side flash (7s) for quick reference
     if (isConc) {
+      const dc = Math.max(10, Math.floor(amount / 2));
       clearTimeout(conTimer.current);
-      setConDc(Math.max(10, Math.floor(amount / 2)));
+      setConDc(dc);
       conTimer.current = setTimeout(() => setConDc(null), 7000);
+
+      // Write DC to DB so player gets persistent banner
+      await supabase.from('player_encounter_state').update({ concentration_check_dc: dc }).eq('id', playerState.id);
+
+      // Log the check
+      const playerName = combatant.name;
+      supabase.from('concentration_checks').insert({
+        encounter_id: encounterId,
+        player_name: playerName,
+        dc,
+      }).then(() => {});
     }
 
     let remaining = amount;
@@ -404,6 +437,7 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
       updates.temp_hp = curTemp - burn;
     }
 
+    const oldHp = curHp;
     if (remaining > 0) {
       const newHp = Math.max(0, curHp - remaining);
       updates.current_hp = newHp;
@@ -414,8 +448,10 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
       } else if (newHp > 0 && hasUnc) {
         await supabase.from('player_encounter_state').update({ conditions: pcConds.filter(c => c !== 'UNC') }).eq('id', playerState.id);
       }
+      logCombat(encounterId, 'DM', 'damage', `${combatant.name}: -${amount} HP (${oldHp} → ${updates.current_hp})`);
     } else {
       await supabase.from('player_encounter_state').update(updates).eq('id', playerState.id);
+      logCombat(encounterId, 'DM', 'damage', `${combatant.name}: -${amount} (temp HP absorbed)`);
     }
     onUpdate();
   }
@@ -430,6 +466,7 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
     if (newHp > 0 && pcConds.includes('UNC')) {
       await supabase.from('player_encounter_state').update({ conditions: pcConds.filter(c => c !== 'UNC') }).eq('id', playerState.id);
     }
+    logCombat(encounterId, 'DM', 'heal', `${combatant.name}: +${amount} HP (${curHp} → ${newHp})`);
     onUpdate();
   }
 
@@ -439,23 +476,10 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
     onUpdate();
   }
 
-  async function toggleEnemyReaction() {
-    await supabase.from('combatants').update({ reaction_used: !enemyReactionUsed }).eq('id', combatant.id);
-    onUpdate();
-  }
-
   async function toggleDamageType(field, type) {
     const arr = combatant[field] || [];
     const updated = arr.includes(type) ? arr.filter(t => t !== type) : [...arr, type];
     await supabase.from('combatants').update({ [field]: updated }).eq('id', combatant.id);
-    onUpdate();
-  }
-
-  async function adjustLegendary(field, max) {
-    const cur = combatant[field] ?? 0;
-    // Toggle: if fully used → restore one, else spend one
-    const newVal = cur >= max ? cur - 1 : cur + 1;
-    await supabase.from('combatants').update({ [field]: Math.max(0, Math.min(max, newVal)) }).eq('id', combatant.id);
     onUpdate();
   }
 
@@ -480,6 +504,7 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
 
   async function removeCombatant() {
     if (!window.confirm(`Remove ${combatant.name}?`)) return;
+    logCombat(encounterId, 'DM', 'remove', `${combatant.name} removed from encounter`);
     await supabase.from('combatants').delete().eq('id', combatant.id);
     onUpdate();
   }
@@ -526,7 +551,18 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
             {wsActive && <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3, background: '#1a3a1a', color: 'var(--accent-green)' }}>🐻 BEAST</span>}
           </div>
         </div>
-        {isDM && isEnemy && <span className="expand-toggle">{expanded ? '▲' : '▼'}</span>}
+
+        {/* ---- REACTION PILL — visible to all roles ---- */}
+        <button
+          className={`reaction-pill ${rxUsed ? 'reaction-pill--used' : 'reaction-pill--ready'} ${canToggleReaction ? 'reaction-pill--clickable' : ''}`}
+          onClick={e => { e.stopPropagation(); toggleReaction(); }}
+          style={{ cursor: canToggleReaction ? 'pointer' : 'default' }}
+          title={canToggleReaction ? (rxUsed ? 'Restore reaction' : 'Mark reaction used') : undefined}
+        >
+          ⚡ {rxUsed ? 'USED' : 'REACT'}
+        </button>
+
+        {isDM && isEnemy && <span className="expand-toggle" style={{ marginLeft: 4 }}>{expanded ? '▲' : '▼'}</span>}
       </div>
 
       {/* ---- HP bars + status ---- */}
@@ -537,30 +573,43 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
           )}
           {showPcHp && <MiniHpBar current={pcHpCurrent} max={pcHpMax} tempHp={tempHp} label={wsActive ? 'Player HP' : null} />}
           {showEnemyHp && <MiniHpBar current={enemyHpCurrent} max={enemyHpMax} />}
+        </div>
+      )}
 
-          {isPC && (
-            <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
-              {concentration && <span style={{ fontSize: 10, color: 'var(--accent-gold)', fontWeight: 700 }}>🔮CON</span>}
-              <span style={{ fontSize: 10, color: reactionUsed ? 'var(--text-muted)' : 'var(--accent-gold)', opacity: reactionUsed ? 0.4 : 1 }}>⚡</span>
-              {isDM && passivePerception !== null && (
-                <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 600 }}>PP {passivePerception}</span>
-              )}
-              {displayConditions.filter(c => !c.startsWith('EXH')).map(code => (
-                <span key={code} style={{ fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3, background: CONDITION_COLOURS[code] || 'var(--cond-default)', color: 'var(--text-primary)' }}>{code}</span>
-              ))}
-              {displayConditions.filter(c => c.startsWith('EXH')).map(code => (
-                <span key={code} style={{ fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3, background: '#2a1a3a', color: 'var(--accent-purple)' }}>{code}</span>
-              ))}
-            </div>
+      {/* ---- Passive perception + concentration (DM, PC rows) ---- */}
+      {isPC && isDM && (
+        <div style={{ marginTop: 4, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          {passivePerception !== null && (
+            <span style={{ fontSize: 10, color: 'var(--text-muted)', background: 'var(--bg-panel-3)', border: '1px solid var(--border)', borderRadius: 3, padding: '1px 5px' }}>
+              PP {passivePerception}
+            </span>
           )}
+          {concentration && (
+            <span style={{ fontSize: 10, color: 'var(--accent-gold)', background: '#3a2e00', border: '1px solid var(--accent-gold)', borderRadius: 3, padding: '1px 5px' }}>
+              🔮 CON
+            </span>
+          )}
+        </div>
+      )}
 
-          {isEnemy && isDM && conditions.length > 0 && (
-            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-              {conditions.map(code => (
-                <span key={code}
-                  style={{ fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3, background: CONDITION_COLOURS[code] || 'var(--cond-default)', color: 'var(--text-primary)', cursor: 'pointer' }}
+      {/* ---- Condition chips ---- */}
+      {displayConditions.length > 0 && (
+        <div style={{ marginTop: 4 }}>
+          {isDM && isEnemy ? (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+              {displayConditions.map(code => (
+                <span
+                  key={code}
+                  className="condition-chip"
+                  style={{ background: CONDITION_COLOURS[code] || 'var(--cond-default)', cursor: 'pointer', userSelect: 'none' }}
                   onClick={e => { e.stopPropagation(); toggleCondition(code); }}
                 >{code}</span>
+              ))}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+              {displayConditions.map(code => (
+                <span key={code} className="condition-chip" style={{ background: CONDITION_COLOURS[code] || 'var(--cond-default)' }}>{code}</span>
               ))}
             </div>
           )}
@@ -597,9 +646,9 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
         </div>
       )}
 
-      {/* ---- CON check banner ---- */}
+      {/* ---- CON check banner — DM-side 7s flash ---- */}
       {conDc !== null && (
-        <div className="con-check-banner" style={{ marginTop: 6 }}>
+        <div className="con-check-banner con-check-banner--dm" style={{ marginTop: 6 }}>
           <span className="con-check-label">🔮 CON SAVE</span>
           <span className="con-check-dc">DC {conDc}</span>
         </div>
@@ -612,7 +661,7 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
         </div>
       )}
 
-      {/* ---- Enemy expanded panel ---- */}
+      {/* ---- Enemy expanded panel (DM only) ---- */}
       {isDM && isEnemy && expanded && (
         <div className="monster-dm-controls">
 
@@ -622,20 +671,6 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
             <div style={{ marginTop: 4, fontSize: 11, color: 'var(--text-muted)', textAlign: 'center' }}>
               {combatant.hp_current} / {combatant.hp_max} HP
             </div>
-          </div>
-
-          {/* Reaction toggle */}
-          <div style={{ marginBottom: 8 }}>
-            <button
-              className="btn btn-ghost"
-              style={{ fontSize: 12, padding: '3px 10px', width: '100%',
-                borderColor: enemyReactionUsed ? 'var(--border)' : 'var(--accent-gold)',
-                color: enemyReactionUsed ? 'var(--text-muted)' : 'var(--accent-gold)',
-                opacity: enemyReactionUsed ? 0.5 : 1 }}
-              onClick={toggleEnemyReaction}
-            >
-              ⚡ {enemyReactionUsed ? 'Reaction Used' : 'Reaction Available'}
-            </button>
           </div>
 
           {/* Enemy spell slots */}
@@ -660,41 +695,25 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
           <div style={{ marginBottom: 8 }}>
             <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', marginBottom: 4 }}
               onClick={() => setResPicker(p => !p)}>
-              {resPicker ? 'Close' : '⚡ Resistances & Immunities'}
+              {resPicker ? 'Close' : `Resist/Immune ${resistances.length + immunities.length > 0 ? `(${resistances.length + immunities.length})` : ''}`}
             </button>
-            {(resistances.length > 0 || immunities.length > 0) && !resPicker && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-                {resistances.map(t => (
-                  <span key={t} style={{ fontSize: 9, padding: '1px 5px', borderRadius: 3, background: 'rgba(74,158,255,0.15)', border: '1px solid var(--accent-blue)', color: 'var(--accent-blue)', fontWeight: 700 }}>{t}</span>
-                ))}
-                {immunities.map(t => (
-                  <span key={t} style={{ fontSize: 9, padding: '1px 5px', borderRadius: 3, background: 'rgba(240,180,41,0.15)', border: '1px solid var(--accent-gold)', color: 'var(--accent-gold)', fontWeight: 700 }}>{t}</span>
-                ))}
-              </div>
-            )}
             {resPicker && (
-              <div style={{ background: 'var(--bg-panel-2)', border: '1px solid var(--border)', borderRadius: 6, padding: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div>
-                  <div style={{ fontSize: 10, color: 'var(--accent-blue)', fontWeight: 700, marginBottom: 4 }}>RESISTANCES</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-                    {DAMAGE_TYPES.map(t => (
-                      <button key={t}
-                        style={{ fontSize: 10, padding: '2px 6px', borderRadius: 3, fontWeight: 600, cursor: 'pointer', border: `1px solid ${resistances.includes(t) ? 'var(--accent-blue)' : 'var(--border)'}`, background: resistances.includes(t) ? 'rgba(74,158,255,0.2)' : 'var(--bg-panel-3)', color: resistances.includes(t) ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
-                        onClick={() => toggleDamageType('resistances', t)}
-                      >{t}</button>
-                    ))}
-                  </div>
+              <div>
+                <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Resistances</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 8 }}>
+                  {DAMAGE_TYPES.map(t => (
+                    <button key={t} style={{ fontSize: 10, padding: '2px 6px', borderRadius: 3, cursor: 'pointer', border: `1px solid ${resistances.includes(t) ? 'var(--accent-blue)' : 'var(--border)'}`, background: resistances.includes(t) ? 'rgba(74,158,255,0.2)' : 'var(--bg-panel-3)', color: resistances.includes(t) ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
+                      onClick={() => toggleDamageType('resistances', t)}
+                    >{t}</button>
+                  ))}
                 </div>
-                <div>
-                  <div style={{ fontSize: 10, color: 'var(--accent-gold)', fontWeight: 700, marginBottom: 4 }}>IMMUNITIES</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-                    {DAMAGE_TYPES.map(t => (
-                      <button key={t}
-                        style={{ fontSize: 10, padding: '2px 6px', borderRadius: 3, fontWeight: 600, cursor: 'pointer', border: `1px solid ${immunities.includes(t) ? 'var(--accent-gold)' : 'var(--border)'}`, background: immunities.includes(t) ? 'rgba(240,180,41,0.15)' : 'var(--bg-panel-3)', color: immunities.includes(t) ? 'var(--accent-gold)' : 'var(--text-secondary)' }}
-                        onClick={() => toggleDamageType('immunities', t)}
-                      >{t}</button>
-                    ))}
-                  </div>
+                <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Immunities</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+                  {DAMAGE_TYPES.map(t => (
+                    <button key={t} style={{ fontSize: 10, padding: '2px 6px', borderRadius: 3, cursor: 'pointer', border: `1px solid ${immunities.includes(t) ? 'var(--accent-gold)' : 'var(--border)'}`, background: immunities.includes(t) ? 'rgba(240,180,41,0.15)' : 'var(--bg-panel-3)', color: immunities.includes(t) ? 'var(--accent-gold)' : 'var(--text-secondary)' }}
+                      onClick={() => toggleDamageType('immunities', t)}
+                    >{t}</button>
+                  ))}
                 </div>
               </div>
             )}
@@ -869,6 +888,7 @@ function AddCombatantInline({ encounterId, onUpdate }) {
             <button className="btn btn-primary" onClick={addManual} disabled={saving || !name.trim()}>
               {saving ? 'Adding…' : 'Add'}
             </button>
+            <button className="btn btn-ghost" onClick={() => setOpen(false)}>Cancel</button>
           </div>
         </>
       )}
