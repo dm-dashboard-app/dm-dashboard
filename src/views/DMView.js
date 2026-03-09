@@ -16,7 +16,7 @@ function flattenStates(data) {
 }
 
 // ============================================================
-// COMPACT RECENT ROLLS STRIP — always visible above initiative
+// COMPACT RECENT ROLLS STRIP
 // ============================================================
 function RecentRollsStrip({ encounterId }) {
   const [rolls, setRolls] = useState([]);
@@ -67,10 +67,67 @@ function RecentRollsStrip({ encounterId }) {
 }
 
 // ============================================================
-// COMBAT LOG (DM only)
+// COMPACT RECENT CON CHECKS STRIP
+// ============================================================
+function RecentConChecksStrip({ encounterId }) {
+  const [checks, setChecks] = useState([]);
+
+  const load = useCallback(async () => {
+    if (!encounterId) return;
+    const { data } = await supabase
+      .from('concentration_checks')
+      .select('*')
+      .eq('encounter_id', encounterId)
+      .order('created_at', { ascending: false })
+      .limit(5);
+    setChecks(data || []);
+  }, [encounterId]);
+
+  usePolling(load, 2000, !!encounterId);
+
+  if (checks.length === 0) return null;
+
+  function resultStyle(result) {
+    if (result === 'passed') return { color: 'var(--accent-green)', label: '✅ Passed' };
+    if (result === 'failed') return { color: 'var(--accent-red)',   label: '❌ Failed' };
+    return { color: 'var(--accent-gold)', label: '⏳ Pending' };
+  }
+
+  return (
+    <div className="panel" style={{ padding: '10px 14px' }}>
+      <div className="panel-title" style={{ marginBottom: 6 }}>Recent CON Checks</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+        {checks.map(c => {
+          const { color, label } = resultStyle(c.result);
+          return (
+            <div key={c.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13 }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', minWidth: 0 }}>
+                <span style={{ fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {c.player_name}
+                </span>
+                <span style={{ color: 'var(--text-muted)', fontSize: 11, flexShrink: 0 }}>
+                  DC {c.dc}
+                </span>
+                <span style={{ color: 'var(--text-muted)', fontSize: 11, flexShrink: 0 }}>
+                  {new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+              <span style={{ fontSize: 11, fontWeight: 700, color, flexShrink: 0, marginLeft: 8 }}>
+                {label}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// COMBAT LOG (DM only — Log tab)
 // ============================================================
 function CombatLog({ encounterId }) {
-  const [logSection, setLogSection] = useState('combat');  // 'combat' | 'con'
+  const [logSection, setLogSection] = useState('combat');
   const [combatEntries, setCombatEntries] = useState([]);
   const [conChecks, setConChecks] = useState([]);
   const [loadingCombat, setLoadingCombat] = useState(true);
@@ -127,7 +184,6 @@ function CombatLog({ encounterId }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      {/* Sub-tab switcher */}
       <div style={{ display: 'flex', gap: 6 }}>
         <button
           className="btn btn-ghost"
@@ -145,13 +201,12 @@ function CombatLog({ encounterId }) {
         </button>
       </div>
 
-      {/* Combat Events */}
       {logSection === 'combat' && (
         <div className="panel">
           <div className="panel-title">Combat Events</div>
           {loadingCombat && <div className="empty-state">Loading…</div>}
           {!loadingCombat && combatEntries.length === 0 && (
-            <div className="empty-state">No events logged yet. Events appear when HP changes, combatants are added/removed, etc.</div>
+            <div className="empty-state">No events logged yet.</div>
           )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5, maxHeight: '60vh', overflowY: 'auto' }}>
             {combatEntries.map(e => (
@@ -160,16 +215,13 @@ function CombatLog({ encounterId }) {
                   <span className="log-item-action">{e.detail || e.action}</span>
                   <span className="log-item-meta" style={{ flexShrink: 0, marginLeft: 8 }}>{timeLabel(e.created_at)}</span>
                 </div>
-                {e.actor && (
-                  <span className="log-item-meta">by {e.actor}</span>
-                )}
+                {e.actor && <span className="log-item-meta">by {e.actor}</span>}
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* CON Checks */}
       {logSection === 'con' && (
         <div className="panel">
           <div className="panel-title">Concentration Checks</div>
@@ -329,8 +381,6 @@ export default function DMView() {
 
   const pcCombatants = combatants.filter(c => c.side === 'PC');
   const nonPcCount = combatants.filter(c => c.side !== 'PC').length;
-
-  // Count pending CON checks for badge
   const pendingConCount = playerStates.filter(s => s.concentration_check_dc != null).length;
 
   return (
@@ -355,7 +405,6 @@ export default function DMView() {
 
       <div className="main-content">
 
-        {/* ---- COMBAT TAB ---- */}
         {tab === 'combat' && (
           <>
             {pcCombatants.map(c => {
@@ -373,7 +422,9 @@ export default function DMView() {
               );
             })}
 
+            {/* Compact info strips — rolls then CON checks */}
             <RecentRollsStrip encounterId={encounter.id} />
+            <RecentConChecksStrip encounterId={encounter.id} />
 
             <InitiativePanel
               encounter={encounter}
@@ -424,11 +475,7 @@ export default function DMView() {
                 <button className="btn btn-ghost" onClick={handleNewEncounter}>New Encounter</button>
                 <button className="btn btn-ghost" onClick={handleLongRest}>🌙 Long Rest</button>
                 {nonPcCount > 0 && (
-                  <button
-                    className="btn btn-ghost"
-                    onClick={handleRollEnemyInitiative}
-                    disabled={rollingInit}
-                  >
+                  <button className="btn btn-ghost" onClick={handleRollEnemyInitiative} disabled={rollingInit}>
                     {rollingInit ? 'Rolling…' : '🎲 Roll Enemy Init'}
                   </button>
                 )}
@@ -438,13 +485,8 @@ export default function DMView() {
           </>
         )}
 
-        {/* ---- ROLLS TAB ---- */}
-        {tab === 'rolls' && <SecretRollInbox encounterId={encounter.id} />}
-
-        {/* ---- LOG TAB ---- */}
-        {tab === 'log' && <CombatLog encounterId={encounter.id} />}
-
-        {/* ---- MANAGE TAB ---- */}
+        {tab === 'rolls'  && <SecretRollInbox encounterId={encounter.id} />}
+        {tab === 'log'    && <CombatLog encounterId={encounter.id} />}
         {tab === 'manage' && (
           <ManagementScreens
             onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); }}
