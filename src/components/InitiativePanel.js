@@ -17,7 +17,7 @@ const CONDITIONS = [
   { code: 'PSN',  label: 'Poisoned',      colour: '#3a7a3a' },
   { code: 'PRN',  label: 'Prone',         colour: '#7a6030' },
   { code: 'RST',  label: 'Restrained',    colour: '#8b4513' },
-  { code: 'STN',  label: 'Stunned',       colour: '#4a4a9a' },
+  { code: 'STN',  label: 'Stunned',       colour: '#4a4a7a' },
   { code: 'UNC',  label: 'Unconscious',   colour: '#2a2a3a' },
   { code: 'EXH',  label: 'Exhaustion',    colour: '#5a3a7a' },
   { code: 'HEX',  label: 'Hex',           colour: '#6a0dad' },
@@ -47,7 +47,6 @@ function sortCombatants(combatants) {
   });
 }
 
-// Fire-and-forget combat log helper
 function logCombat(encounterId, actor, action, detail) {
   if (!encounterId) return;
   supabase.from('combat_log').insert({ encounter_id: encounterId, actor, action, detail }).then(() => {});
@@ -115,7 +114,7 @@ function LegendaryPips({ label, max, used, isDM, onSpend, onRestore, onReset, is
 }
 
 // ============================================================
-// INLINE DMG / HEAL WIDGET (compact, for initiative rows)
+// INLINE DMG / HEAL WIDGET
 // ============================================================
 function InlineDmgHeal({ onDamage, onHeal }) {
   const [amount, setAmount] = useState('');
@@ -157,7 +156,7 @@ function InlineDmgHeal({ onDamage, onHeal }) {
 }
 
 // ============================================================
-// ENEMY SPELL SLOT GRID (DM only, writes to combatants table)
+// ENEMY SPELL SLOT GRID
 // ============================================================
 function EnemySlotGrid({ combatant, onUpdate }) {
   const levels = [1,2,3,4,5,6,7,8,9];
@@ -265,13 +264,13 @@ export default function InitiativePanel({ encounter, combatants, playerStates = 
 // INITIATIVE ROW
 // ============================================================
 function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorted, idx, encounterId, myCombatantId }) {
-  const [expanded, setExpanded]       = useState(false);
+  const [expanded, setExpanded]           = useState(false);
   const [condPickerOpen, setCondPickerOpen] = useState(false);
-  const [resPicker, setResPicker]     = useState(false);
-  const [inputValue, setInputValue]   = useState(
+  const [resPicker, setResPicker]         = useState(false);
+  const [inputValue, setInputValue]       = useState(
     combatant.initiative_total != null ? String(combatant.initiative_total) : ''
   );
-  const [conDc, setConDc]   = useState(null);   // DM-side flash only
+  const [conDc, setConDc]   = useState(null);
   const conTimer            = useRef(null);
   const isFocused           = useRef(false);
   const savingRef           = useRef(false);
@@ -289,27 +288,25 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
   const conditions = combatant.conditions || [];
 
   // PC state
-  const pcHpCurrent  = playerState?.current_hp ?? null;
-  const pcProfileMax = playerState?.profiles_players?.max_hp ?? null;
+  const pcHpCurrent   = playerState?.current_hp ?? null;
+  const pcProfileMax  = playerState?.profiles_players?.max_hp ?? null;
   const pcMaxOverride = playerState?.max_hp_override ?? null;
-  const pcHpMax      = pcMaxOverride !== null ? pcMaxOverride : pcProfileMax;
-  const tempHp       = playerState?.temp_hp ?? 0;
+  const pcHpMax       = pcMaxOverride !== null ? pcMaxOverride : pcProfileMax;
+  const tempHp        = playerState?.temp_hp ?? 0;
   const concentration = playerState?.concentration ?? false;
   const reactionUsed  = playerState?.reaction_used ?? false;
-  const displayConditions = isPC ? (playerState?.conditions || []) : conditions;
+  const pcConditions  = playerState?.conditions || [];
+  const displayConditions = isPC ? pcConditions : conditions;
 
-  // Passive perception (DM view on PC rows)
   const passivePerception = isPC && playerState?.profiles_players
     ? (10 + (playerState.profiles_players.skill_perception ?? 0))
     : null;
 
-  // Wild shape
-  const wsActive     = playerState?.wildshape_active ?? false;
-  const wsHpCurrent  = playerState?.wildshape_hp_current ?? 0;
-  const wsFormName   = playerState?.wildshape_form_name ?? null;
-  const wsHpMax      = playerState?.wildshape_hp_max ?? null;
+  const wsActive    = playerState?.wildshape_active ?? false;
+  const wsHpCurrent = playerState?.wildshape_hp_current ?? 0;
+  const wsFormName  = playerState?.wildshape_form_name ?? null;
+  const wsHpMax     = playerState?.wildshape_hp_max ?? null;
 
-  // Enemy HP & reaction
   const enemyHpCurrent    = combatant.hp_current ?? null;
   const enemyHpMax        = combatant.hp_max ?? null;
   const enemyReactionUsed = combatant.reaction_used ?? false;
@@ -320,23 +317,17 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
   const pcBloodied    = isPC && pcHpCurrent !== null && pcHpMax !== null && pcHpCurrent > 0 && pcHpCurrent <= Math.floor(pcHpMax / 2);
   const enemyBloodied = isEnemy && combatant.public_status === 'BLOODIED';
 
-  // Legendary
-  const laMax  = combatant.legendary_actions_max  ?? 0;
-  const laUsed = combatant.legendary_actions_used  ?? 0;
+  const laMax  = combatant.legendary_actions_max   ?? 0;
+  const laUsed = combatant.legendary_actions_used   ?? 0;
   const lrMax  = combatant.legendary_resistances_max  ?? 0;
   const lrUsed = combatant.legendary_resistances_used ?? 0;
   const hasLegendary = isEnemy && (laMax > 0 || lrMax > 0);
 
-  // Resistances / immunities
   const resistances = combatant.resistances || [];
   const immunities  = combatant.immunities  || [];
+  const hasAnyMod   = MODS.some(m => (combatant[`mod_${m}`] ?? 0) !== 0);
 
-  // Ability mods
-  const hasAnyMod = MODS.some(m => (combatant[`mod_${m}`] ?? 0) !== 0);
-
-  // Reaction state & toggle permissions
   const rxUsed = isPC ? reactionUsed : enemyReactionUsed;
-  // DM can toggle anything; player can toggle only their own row
   const canToggleReaction = isDM || (!isDM && isPC && myCombatantId && combatant.id === myCombatantId);
 
   // ---- Handlers ----
@@ -376,6 +367,25 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
     onUpdate();
   }
 
+  // Toggle concentration on a PC row (DM only)
+  async function togglePcConcentration() {
+    if (!isDM || !playerState) return;
+    const updates = { concentration: !concentration };
+    // If removing concentration, also clear any pending check DC
+    if (concentration) updates.concentration_check_dc = null;
+    await supabase.from('player_encounter_state').update(updates).eq('id', playerState.id);
+    onUpdate();
+  }
+
+  // Toggle a condition on a PC row (DM only) — writes to player_encounter_state
+  async function togglePcCondition(code) {
+    if (!isDM || !playerState) return;
+    const current = playerState.conditions || [];
+    const updated = current.includes(code) ? current.filter(c => c !== code) : [...current, code];
+    await supabase.from('player_encounter_state').update({ conditions: updated }).eq('id', playerState.id);
+    onUpdate();
+  }
+
   async function applyEnemyDamage(amount) {
     if (!amount || amount <= 0) return;
     const oldHp = combatant.hp_current ?? 0;
@@ -409,34 +419,26 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
     const pcConds = playerState.conditions || [];
     const isConc  = playerState.concentration ?? false;
 
-    // DM-side flash (7s) for quick reference
     if (isConc) {
       const dc = Math.max(10, Math.floor(amount / 2));
       clearTimeout(conTimer.current);
       setConDc(dc);
       conTimer.current = setTimeout(() => setConDc(null), 7000);
-
-      // Write DC to DB so player gets persistent banner
       await supabase.from('player_encounter_state').update({ concentration_check_dc: dc }).eq('id', playerState.id);
-
-      // Log the check
-      const playerName = combatant.name;
       supabase.from('concentration_checks').insert({
         encounter_id: encounterId,
-        player_name: playerName,
+        player_name: combatant.name,
         dc,
       }).then(() => {});
     }
 
     let remaining = amount;
     const updates = {};
-
     if (curTemp > 0) {
       const burn = Math.min(curTemp, remaining);
       remaining -= burn;
       updates.temp_hp = curTemp - burn;
     }
-
     const oldHp = curHp;
     if (remaining > 0) {
       const newHp = Math.max(0, curHp - remaining);
@@ -448,7 +450,7 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
       } else if (newHp > 0 && hasUnc) {
         await supabase.from('player_encounter_state').update({ conditions: pcConds.filter(c => c !== 'UNC') }).eq('id', playerState.id);
       }
-      logCombat(encounterId, 'DM', 'damage', `${combatant.name}: -${amount} HP (${oldHp} → ${updates.current_hp})`);
+      logCombat(encounterId, 'DM', 'damage', `${combatant.name}: -${amount} HP (${oldHp} → ${newHp})`);
     } else {
       await supabase.from('player_encounter_state').update(updates).eq('id', playerState.id);
       logCombat(encounterId, 'DM', 'damage', `${combatant.name}: -${amount} (temp HP absorbed)`);
@@ -470,7 +472,7 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
     onUpdate();
   }
 
-  async function toggleCondition(code) {
+  async function toggleEnemyCondition(code) {
     const updated = conditions.includes(code) ? conditions.filter(c => c !== code) : [...conditions, code];
     await supabase.from('combatants').update({ conditions: updated }).eq('id', combatant.id);
     onUpdate();
@@ -517,7 +519,6 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
 
       {/* ---- Main header row ---- */}
       <div className="initiative-row-main" onClick={() => isDM && isEnemy && setExpanded(e => !e)}>
-        {/* Reorder arrows */}
         {isDM && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1, marginRight: 2 }}>
             <button style={{ fontSize: 9, lineHeight: 1, padding: '1px 3px', opacity: atTop ? 0.15 : 0.5, cursor: atTop ? 'default' : 'pointer', background: 'none', border: 'none', color: 'var(--text-secondary)' }}
@@ -552,7 +553,7 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
           </div>
         </div>
 
-        {/* ---- REACTION PILL — visible to all roles ---- */}
+        {/* Reaction pill — visible to all roles */}
         <button
           className={`reaction-pill ${rxUsed ? 'reaction-pill--used' : 'reaction-pill--ready'} ${canToggleReaction ? 'reaction-pill--clickable' : ''}`}
           onClick={e => { e.stopPropagation(); toggleReaction(); }}
@@ -565,7 +566,7 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
         {isDM && isEnemy && <span className="expand-toggle" style={{ marginLeft: 4 }}>{expanded ? '▲' : '▼'}</span>}
       </div>
 
-      {/* ---- HP bars + status ---- */}
+      {/* ---- HP bars ---- */}
       {(showPcHp || showEnemyHp) && (
         <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
           {isPC && wsActive && wsHpMax != null && (
@@ -576,18 +577,37 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
         </div>
       )}
 
-      {/* ---- Passive perception + concentration (DM, PC rows) ---- */}
-      {isPC && isDM && (
+      {/* ---- PC row extras — stat chips + DM controls ---- */}
+      {isPC && (
         <div style={{ marginTop: 4, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-          {passivePerception !== null && (
+          {/* Passive perception — DM only */}
+          {isDM && passivePerception !== null && (
             <span style={{ fontSize: 10, color: 'var(--text-muted)', background: 'var(--bg-panel-3)', border: '1px solid var(--border)', borderRadius: 3, padding: '1px 5px' }}>
               PP {passivePerception}
             </span>
           )}
-          {concentration && (
-            <span style={{ fontSize: 10, color: 'var(--accent-gold)', background: '#3a2e00', border: '1px solid var(--accent-gold)', borderRadius: 3, padding: '1px 5px' }}>
-              🔮 CON
-            </span>
+
+          {/* Concentration — DM can click to toggle; others read-only */}
+          {isDM ? (
+            <button
+              onClick={e => { e.stopPropagation(); togglePcConcentration(); }}
+              style={{
+                fontSize: 10, padding: '1px 7px', borderRadius: 3, fontWeight: 700, cursor: 'pointer',
+                border: `1px solid ${concentration ? 'var(--accent-gold)' : 'var(--border)'}`,
+                background: concentration ? '#3a2e00' : 'var(--bg-panel-3)',
+                color: concentration ? 'var(--accent-gold)' : 'var(--text-muted)',
+                transition: 'all 0.15s',
+              }}
+              title={concentration ? 'Remove concentration' : 'Set concentrating'}
+            >
+              🔮 {concentration ? 'Concentrating' : 'Concentration'}
+            </button>
+          ) : (
+            concentration && (
+              <span style={{ fontSize: 10, color: 'var(--accent-gold)', background: '#3a2e00', border: '1px solid var(--accent-gold)', borderRadius: 3, padding: '1px 5px' }}>
+                🔮 CON
+              </span>
+            )
           )}
         </div>
       )}
@@ -595,36 +615,56 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
       {/* ---- Condition chips ---- */}
       {displayConditions.length > 0 && (
         <div style={{ marginTop: 4 }}>
-          {isDM && isEnemy ? (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-              {displayConditions.map(code => (
-                <span
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+            {displayConditions.map(code => (
+              <span
+                key={code}
+                className="condition-chip"
+                style={{
+                  background: CONDITION_COLOURS[code] || 'var(--cond-default)',
+                  cursor: isDM ? 'pointer' : 'default',
+                  userSelect: 'none',
+                }}
+                onClick={e => {
+                  if (!isDM) return;
+                  e.stopPropagation();
+                  isPC ? togglePcCondition(code) : toggleEnemyCondition(code);
+                }}
+                title={isDM ? `Remove ${code}` : undefined}
+              >{code}</span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ---- DM condition picker on PC rows ---- */}
+      {isDM && isPC && (
+        <div style={{ marginTop: 4 }}>
+          <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }}
+            onClick={e => { e.stopPropagation(); setCondPickerOpen(p => !p); }}>
+            {condPickerOpen ? 'Close Conditions' : '+ Conditions'}
+          </button>
+          {condPickerOpen && (
+            <div className="condition-picker" style={{ marginTop: 6 }}>
+              {CONDITIONS.map(({ code }) => (
+                <button
                   key={code}
-                  className="condition-chip"
-                  style={{ background: CONDITION_COLOURS[code] || 'var(--cond-default)', cursor: 'pointer', userSelect: 'none' }}
-                  onClick={e => { e.stopPropagation(); toggleCondition(code); }}
-                >{code}</span>
-              ))}
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-              {displayConditions.map(code => (
-                <span key={code} className="condition-chip" style={{ background: CONDITION_COLOURS[code] || 'var(--cond-default)' }}>{code}</span>
+                  className={`condition-picker-btn ${pcConditions.includes(code) ? 'active' : ''}`}
+                  style={{ background: pcConditions.includes(code) ? CONDITION_COLOURS[code] : undefined }}
+                  onClick={e => { e.stopPropagation(); togglePcCondition(code); }}
+                >{code}</button>
               ))}
             </div>
           )}
         </div>
       )}
 
-      {/* ---- Legendary pips — visible to all roles when present ---- */}
+      {/* ---- Legendary pips — visible to all roles ---- */}
       {hasLegendary && (
         <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4, paddingLeft: 2 }}>
           {laMax > 0 && (
             <LegendaryPips
-              label="LA"
-              max={laMax}
-              used={laUsed}
-              isDM={isDM}
+              label="LA" max={laMax} used={laUsed} isDM={isDM}
               onSpend={() => spendLegendary('legendary_actions_used', laMax)}
               onRestore={() => restoreLegendary('legendary_actions_used')}
               onReset={() => resetLegendary('legendary_actions_used')}
@@ -633,10 +673,7 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
           )}
           {lrMax > 0 && (
             <LegendaryPips
-              label="LR"
-              max={lrMax}
-              used={lrUsed}
-              isDM={isDM}
+              label="LR" max={lrMax} used={lrUsed} isDM={isDM}
               onSpend={() => spendLegendary('legendary_resistances_used', lrMax)}
               onRestore={() => restoreLegendary('legendary_resistances_used')}
               onReset={() => resetLegendary('legendary_resistances_used')}
@@ -654,7 +691,7 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
         </div>
       )}
 
-      {/* ---- PC damage widget (DM only, inline) ---- */}
+      {/* ---- PC DMG/HEAL widget (DM only) ---- */}
       {isPC && isDM && showPcHp && (
         <div style={{ marginTop: 6 }}>
           <InlineDmgHeal onDamage={applyPcDamage} onHeal={applyPcHeal} />
@@ -665,7 +702,6 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
       {isDM && isEnemy && expanded && (
         <div className="monster-dm-controls">
 
-          {/* DMG / HEAL */}
           <div style={{ marginBottom: 10 }}>
             <InlineDmgHeal onDamage={applyEnemyDamage} onHeal={applyEnemyHeal} />
             <div style={{ marginTop: 4, fontSize: 11, color: 'var(--text-muted)', textAlign: 'center' }}>
@@ -673,10 +709,8 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
             </div>
           </div>
 
-          {/* Enemy spell slots */}
           <EnemySlotGrid combatant={combatant} onUpdate={onUpdate} />
 
-          {/* Ability mods */}
           {hasAnyMod && (
             <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>
               {MODS.map(m => {
@@ -691,7 +725,6 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
             </div>
           )}
 
-          {/* Resistances & Immunities */}
           <div style={{ marginBottom: 8 }}>
             <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', marginBottom: 4 }}
               onClick={() => setResPicker(p => !p)}>
@@ -719,7 +752,6 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
             )}
           </div>
 
-          {/* Conditions */}
           <div style={{ marginBottom: 8 }}>
             <button className="btn btn-ghost" style={{ fontSize: 12, padding: '2px 8px' }}
               onClick={() => setCondPickerOpen(p => !p)}>
@@ -730,7 +762,7 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
                 {CONDITIONS.map(({ code }) => (
                   <button key={code} className={`condition-picker-btn ${conditions.includes(code) ? 'active' : ''}`}
                     style={{ background: conditions.includes(code) ? CONDITION_COLOURS[code] : undefined }}
-                    onClick={() => toggleCondition(code)}
+                    onClick={() => toggleEnemyCondition(code)}
                   >{code}</button>
                 ))}
               </div>
