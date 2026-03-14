@@ -21,7 +21,6 @@ export default function DisplayView() {
 
   const displayToken = localStorage.getItem('display_token');
 
-  // Resolve encounter from token once on mount
   useEffect(() => {
     async function init() {
       if (!displayToken) {
@@ -92,38 +91,75 @@ export default function DisplayView() {
   const pcCombatants = combatants.filter(c => c.side === 'PC');
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {/* Top bar */}
       <div className="top-bar">
         {encounter && <div className="top-bar-round">R{encounter.round}</div>}
         <span className="top-bar-title">{encounter?.name || 'Loading…'}</span>
         <button className="btn btn-ghost" style={{ fontSize: 12 }} onClick={handleLeave}>✕</button>
       </div>
 
-      <div className="main-content">
-        {pcCombatants.map(c => {
-          const state = playerStates.find(s => s.combatant_id === c.id);
-          return (
-            <PlayerCard
-              key={c.id}
-              combatant={c}
-              state={state}
+      {/* Two-column body */}
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'row',
+        gap: 16,
+        padding: '12px 16px',
+        overflow: 'hidden',
+        minHeight: 0,
+      }}>
+        {/* LEFT — Player cards */}
+        <div style={{
+          flex: '0 0 380px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+          overflowY: 'auto',
+        }}>
+          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', paddingBottom: 4, borderBottom: '1px solid var(--border)' }}>
+            Party
+          </div>
+          {pcCombatants.length === 0 && (
+            <div className="empty-state">No players in encounter.</div>
+          )}
+          {pcCombatants.map(c => {
+            const state = playerStates.find(s => s.combatant_id === c.id);
+            return (
+              <PlayerCard
+                key={c.id}
+                combatant={c}
+                state={state}
+                role="display"
+                isEditMode={false}
+                encounterId={encounter?.id}
+                onUpdate={() => {}}
+              />
+            );
+          })}
+        </div>
+
+        {/* RIGHT — Initiative order */}
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          overflowY: 'auto',
+          minWidth: 0,
+        }}>
+          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', paddingBottom: 4, borderBottom: '1px solid var(--border)', marginBottom: 4 }}>
+            Initiative Order
+          </div>
+          {encounter && (
+            <InitiativePanel
+              encounter={encounter}
+              combatants={combatants}
+              playerStates={playerStates}
               role="display"
-              isEditMode={false}
-              encounterId={encounter?.id}
               onUpdate={() => {}}
             />
-          );
-        })}
-
-        {encounter && (
-          <InitiativePanel
-            encounter={encounter}
-            combatants={combatants}
-            playerStates={playerStates}
-            role="display"
-            onUpdate={() => {}}
-          />
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

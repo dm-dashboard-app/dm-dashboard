@@ -224,8 +224,9 @@ function EnemySlotGrid({ combatant, onUpdate }) {
 // MAIN PANEL
 // ============================================================
 export default function InitiativePanel({ encounter, combatants, playerStates = [], role, onUpdate, myCombatantId = null }) {
-  const isDM = role === 'dm';
-  const sorted = sortCombatants(combatants);
+  const isDM      = role === 'dm';
+  const isDisplay = role === 'display';
+  const sorted    = sortCombatants(combatants);
   const activeTurnIndex = encounter?.turn_index ?? 0;
 
   return (
@@ -242,6 +243,7 @@ export default function InitiativePanel({ encounter, combatants, playerStates = 
               playerState={playerState}
               isActive={idx === activeTurnIndex}
               isDM={isDM}
+              isDisplay={isDisplay}
               onUpdate={onUpdate}
               sorted={sorted}
               idx={idx}
@@ -263,7 +265,7 @@ export default function InitiativePanel({ encounter, combatants, playerStates = 
 // ============================================================
 // INITIATIVE ROW
 // ============================================================
-function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorted, idx, encounterId, myCombatantId }) {
+function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUpdate, sorted, idx, encounterId, myCombatantId }) {
   const [expanded, setExpanded]           = useState(false);
   const [condPickerOpen, setCondPickerOpen] = useState(false);
   const [resPicker, setResPicker]         = useState(false);
@@ -284,7 +286,9 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
   useEffect(() => () => clearTimeout(conTimer.current), []);
 
   const isPC    = combatant.side === 'PC';
-  const isEnemy = combatant.side === 'ENEMY' || combatant.side === 'NPC';
+  const isNPC   = combatant.side === 'NPC';
+  const isEnemy = combatant.side === 'ENEMY';
+  const isNonPC = isNPC || isEnemy;
   const conditions = combatant.conditions || [];
 
   // PC state
@@ -312,16 +316,18 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
   const enemyReactionUsed = combatant.reaction_used ?? false;
 
   const showPcHp    = isPC && pcHpCurrent !== null && pcHpMax !== null;
-  const showEnemyHp = isEnemy && isDM && enemyHpCurrent !== null && enemyHpMax !== null;
+  // DM sees all non-PC HP; display sees NPC HP only (not enemy)
+  const showNonPcHp = isNonPC && enemyHpCurrent !== null && enemyHpMax !== null
+    && (isDM || (isDisplay && isNPC));
 
   const pcBloodied    = isPC && pcHpCurrent !== null && pcHpMax !== null && pcHpCurrent > 0 && pcHpCurrent <= Math.floor(pcHpMax / 2);
-  const enemyBloodied = isEnemy && combatant.public_status === 'BLOODIED';
+  const enemyBloodied = isNonPC && combatant.public_status === 'BLOODIED';
 
   const laMax  = combatant.legendary_actions_max   ?? 0;
   const laUsed = combatant.legendary_actions_used   ?? 0;
   const lrMax  = combatant.legendary_resistances_max  ?? 0;
   const lrUsed = combatant.legendary_resistances_used ?? 0;
-  const hasLegendary = isEnemy && (laMax > 0 || lrMax > 0);
+  const hasLegendary = isNonPC && (laMax > 0 || lrMax > 0);
 
   const resistances = combatant.resistances || [];
   const immunities  = combatant.immunities  || [];
@@ -367,17 +373,14 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
     onUpdate();
   }
 
-  // Toggle concentration on a PC row (DM only)
   async function togglePcConcentration() {
     if (!isDM || !playerState) return;
     const updates = { concentration: !concentration };
-    // If removing concentration, also clear any pending check DC
     if (concentration) updates.concentration_check_dc = null;
     await supabase.from('player_encounter_state').update(updates).eq('id', playerState.id);
     onUpdate();
   }
 
-  // Toggle a condition on a PC row (DM only) — writes to player_encounter_state
   async function togglePcCondition(code) {
     if (!isDM || !playerState) return;
     const current = playerState.conditions || [];
@@ -518,7 +521,7 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
     <div className={`initiative-row ${isActive ? 'active-turn' : ''}`} style={{ display: 'block', padding: '8px 12px' }}>
 
       {/* ---- Main header row ---- */}
-      <div className="initiative-row-main" onClick={() => isDM && isEnemy && setExpanded(e => !e)}>
+      <div className="initiative-row-main" onClick={() => isDM && isNonPC && setExpanded(e => !e)}>
         {isDM && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1, marginRight: 2 }}>
             <button style={{ fontSize: 9, lineHeight: 1, padding: '1px 3px', opacity: atTop ? 0.15 : 0.5, cursor: atTop ? 'default' : 'pointer', background: 'none', border: 'none', color: 'var(--text-secondary)' }}
@@ -553,7 +556,7 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
           </div>
         </div>
 
-        {/* Reaction pill — visible to all roles */}
+        {/* Reaction pill */}
         <button
           className={`reaction-pill ${rxUsed ? 'reaction-pill--used' : 'reaction-pill--ready'} ${canToggleReaction ? 'reaction-pill--clickable' : ''}`}
           onClick={e => { e.stopPropagation(); toggleReaction(); }}
@@ -563,77 +566,81 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
           ⚡ {rxUsed ? 'USED' : 'REACT'}
         </button>
 
-        {isDM && isEnemy && <span className="expand-toggle" style={{ marginLeft: 4 }}>{expanded ? '▲' : '▼'}</span>}
+        {isDM && isNonPC && <span className="expand-toggle" style={{ marginLeft: 4 }}>{expanded ? '▲' : '▼'}</span>}
       </div>
 
       {/* ---- HP bars ---- */}
-      {(showPcHp || showEnemyHp) && (
+      {(showPcHp || showNonPcHp) && (
         <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
           {isPC && wsActive && wsHpMax != null && (
             <MiniHpBar current={wsHpCurrent} max={wsHpMax} color="var(--accent-green)" label={wsFormName ? `🐻 ${wsFormName}` : '🐻 Beast Form'} />
           )}
           {showPcHp && <MiniHpBar current={pcHpCurrent} max={pcHpMax} tempHp={tempHp} label={wsActive ? 'Player HP' : null} />}
-          {showEnemyHp && <MiniHpBar current={enemyHpCurrent} max={enemyHpMax} />}
+          {showNonPcHp && (
+            <MiniHpBar current={enemyHpCurrent} max={enemyHpMax} />
+          )}
+          {/* NPC HP numbers on display screen */}
+          {isDisplay && isNPC && showNonPcHp && (
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'right' }}>
+              {enemyHpCurrent} / {enemyHpMax} HP
+            </div>
+          )}
         </div>
       )}
 
-      {/* ---- PC row extras — stat chips + DM controls ---- */}
-      {isPC && (
+      {/* ---- PC row extras (DM) ---- */}
+      {isPC && isDM && (
         <div style={{ marginTop: 4, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-          {/* Passive perception — DM only */}
-          {isDM && passivePerception !== null && (
+          {passivePerception !== null && (
             <span style={{ fontSize: 10, color: 'var(--text-muted)', background: 'var(--bg-panel-3)', border: '1px solid var(--border)', borderRadius: 3, padding: '1px 5px' }}>
               PP {passivePerception}
             </span>
           )}
+          <button
+            onClick={e => { e.stopPropagation(); togglePcConcentration(); }}
+            style={{
+              fontSize: 10, padding: '1px 7px', borderRadius: 3, fontWeight: 700, cursor: 'pointer',
+              border: `1px solid ${concentration ? 'var(--accent-gold)' : 'var(--border)'}`,
+              background: concentration ? '#3a2e00' : 'var(--bg-panel-3)',
+              color: concentration ? 'var(--accent-gold)' : 'var(--text-muted)',
+              transition: 'all 0.15s',
+            }}
+            title={concentration ? 'Remove concentration' : 'Set concentrating'}
+          >
+            🔮 {concentration ? 'Concentrating' : 'Concentration'}
+          </button>
+        </div>
+      )}
 
-          {/* Concentration — DM can click to toggle; others read-only */}
-          {isDM ? (
-            <button
-              onClick={e => { e.stopPropagation(); togglePcConcentration(); }}
-              style={{
-                fontSize: 10, padding: '1px 7px', borderRadius: 3, fontWeight: 700, cursor: 'pointer',
-                border: `1px solid ${concentration ? 'var(--accent-gold)' : 'var(--border)'}`,
-                background: concentration ? '#3a2e00' : 'var(--bg-panel-3)',
-                color: concentration ? 'var(--accent-gold)' : 'var(--text-muted)',
-                transition: 'all 0.15s',
-              }}
-              title={concentration ? 'Remove concentration' : 'Set concentrating'}
-            >
-              🔮 {concentration ? 'Concentrating' : 'Concentration'}
-            </button>
-          ) : (
-            concentration && (
-              <span style={{ fontSize: 10, color: 'var(--accent-gold)', background: '#3a2e00', border: '1px solid var(--accent-gold)', borderRadius: 3, padding: '1px 5px' }}>
-                🔮 CON
-              </span>
-            )
-          )}
+      {/* Concentration badge (non-DM) */}
+      {isPC && !isDM && concentration && (
+        <div style={{ marginTop: 4 }}>
+          <span style={{ fontSize: 10, color: 'var(--accent-gold)', background: '#3a2e00', border: '1px solid var(--accent-gold)', borderRadius: 3, padding: '1px 5px' }}>
+            🔮 CON
+          </span>
         </div>
       )}
 
       {/* ---- Condition chips ---- */}
       {displayConditions.length > 0 && (
-        <div style={{ marginTop: 4 }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-            {displayConditions.map(code => (
-              <span
-                key={code}
-                className="condition-chip"
-                style={{
-                  background: CONDITION_COLOURS[code] || 'var(--cond-default)',
-                  cursor: isDM ? 'pointer' : 'default',
-                  userSelect: 'none',
-                }}
-                onClick={e => {
-                  if (!isDM) return;
-                  e.stopPropagation();
-                  isPC ? togglePcCondition(code) : toggleEnemyCondition(code);
-                }}
-                title={isDM ? `Remove ${code}` : undefined}
-              >{code}</span>
-            ))}
-          </div>
+        <div style={{ marginTop: 4, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+          {displayConditions.map(code => (
+            <span
+              key={code}
+              className="condition-chip"
+              style={{
+                background: CONDITION_COLOURS[code] || 'var(--cond-default)',
+                cursor: isDM ? 'pointer' : 'default',
+                userSelect: 'none',
+              }}
+              onClick={e => {
+                if (!isDM) return;
+                e.stopPropagation();
+                isPC ? togglePcCondition(code) : toggleEnemyCondition(code);
+              }}
+              title={isDM ? `Remove ${code}` : undefined}
+            >{code}</span>
+          ))}
         </div>
       )}
 
@@ -659,7 +666,7 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
         </div>
       )}
 
-      {/* ---- Legendary pips — visible to all roles ---- */}
+      {/* ---- Legendary pips ---- */}
       {hasLegendary && (
         <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4, paddingLeft: 2 }}>
           {laMax > 0 && (
@@ -683,7 +690,7 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
         </div>
       )}
 
-      {/* ---- CON check banner — DM-side 7s flash ---- */}
+      {/* ---- CON check banner (DM flash) ---- */}
       {conDc !== null && (
         <div className="con-check-banner con-check-banner--dm" style={{ marginTop: 6 }}>
           <span className="con-check-label">🔮 CON SAVE</span>
@@ -698,8 +705,8 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, onUpdate, sorte
         </div>
       )}
 
-      {/* ---- Enemy expanded panel (DM only) ---- */}
-      {isDM && isEnemy && expanded && (
+      {/* ---- Enemy/NPC expanded panel (DM only) ---- */}
+      {isDM && isNonPC && expanded && (
         <div className="monster-dm-controls">
 
           <div style={{ marginBottom: 10 }}>
