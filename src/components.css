@@ -377,10 +377,11 @@
 .wildshape-form-name { font-weight: 700; color: var(--accent-green); }
 
 /* ---- Initiative ---- */
-.initiative-row-main { display: flex; align-items: center; gap: var(--space-2); cursor: pointer; }
-.initiative-number-input { width: 48px; font-size: var(--font-size-md); font-weight: 700; color: var(--accent-blue); text-align: center; background: var(--bg-panel-3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 2px 4px; }
-.initiative-name-block { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.initiative-name { font-weight: 600; font-size: var(--font-size-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.initiative-row-main { display: flex; align-items: center; gap: 8px; cursor: pointer; min-width: 0; }
+.initiative-number-input { width: 48px; flex-shrink: 0; font-size: var(--font-size-md); font-weight: 700; color: var(--accent-blue); text-align: center; background: var(--bg-panel-3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 2px 4px; }
+.initiative-name-block { flex: 1 1 auto; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.initiative-title-line { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; }
+.initiative-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 13px; flex: 1 1 140px; }
 .initiative-badges { display: flex; flex-wrap: wrap; gap: 3px; }
 .expand-toggle { color: var(--text-muted); font-size: var(--font-size-xs); flex-shrink: 0; }
 .monster-dm-controls { margin-top: var(--space-2); padding-top: var(--space-2); border-top: 1px solid var(--border); }
@@ -629,5 +630,13 @@
 
   .add-combatant-template-row {
     padding: 8px 9px;
+  }
+
+  .initiative-row-main {
+    gap: 6px;
+  }
+
+  .initiative-name {
+    flex-basis: 110px;
   }
 }

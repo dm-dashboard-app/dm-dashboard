@@ -52,6 +52,19 @@ function logCombat(encounterId, actor, action, detail) {
   supabase.from('combat_log').insert({ encounter_id: encounterId, actor, action, detail }).then(() => {});
 }
 
+function nextZeroHpConditions(newHp, conditions = []) {
+  const next = [...conditions];
+  if (newHp === 0) {
+    if (!next.includes('UNC')) next.push('UNC');
+    if (!next.includes('PRN')) next.push('PRN');
+    return next;
+  }
+  if (newHp > 0) {
+    return next.filter(c => c !== 'UNC');
+  }
+  return next;
+}
+
 // ============================================================
 // MINI HP BAR
 // ============================================================
@@ -230,6 +243,22 @@ export default function InitiativePanel({ encounter, combatants, playerStates = 
   const activeTurnIndex = encounter?.turn_index ?? 0;
   const [showAddCombatant, setShowAddCombatant] = useState(false);
 
+  const activeRowRef = useRef(null);
+  const lastActiveIdRef = useRef(null);
+  const activeCombatantId = sorted[activeTurnIndex]?.id ?? null;
+
+  useEffect(() => {
+    if (!activeCombatantId || !activeRowRef.current) return;
+    if (lastActiveIdRef.current === activeCombatantId) return;
+    lastActiveIdRef.current = activeCombatantId;
+
+    activeRowRef.current.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'nearest',
+    });
+  }, [activeCombatantId]);
+
   return (
     <div className="panel">
       <div className="panel-title">Initiative Order</div>
@@ -238,19 +267,20 @@ export default function InitiativePanel({ encounter, combatants, playerStates = 
         {sorted.map((c, idx) => {
           const playerState = playerStates.find(s => s.combatant_id === c.id);
           return (
-            <InitiativeRow
-              key={c.id}
-              combatant={c}
-              playerState={playerState}
-              isActive={idx === activeTurnIndex}
-              isDM={isDM}
-              isDisplay={isDisplay}
-              onUpdate={onUpdate}
-              sorted={sorted}
-              idx={idx}
-              encounterId={encounter?.id}
-              myCombatantId={myCombatantId}
-            />
+            <div key={c.id} ref={idx === activeTurnIndex ? activeRowRef : null}>
+              <InitiativeRow
+                combatant={c}
+                playerState={playerState}
+                isActive={idx === activeTurnIndex}
+                isDM={isDM}
+                isDisplay={isDisplay}
+                onUpdate={onUpdate}
+                sorted={sorted}
+                idx={idx}
+                encounterId={encounter?.id}
+                myCombatantId={myCombatantId}
+              />
+            </div>
           );
         })}
       </div>
@@ -404,10 +434,14 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
     const oldHp = combatant.hp_current ?? 0;
     const newHp = Math.max(0, oldHp - amount);
     const isBloodied = newHp > 0 && newHp <= Math.floor((combatant.hp_max ?? 0) / 2);
+    const updatedConditions = nextZeroHpConditions(newHp, conditions);
+
     await supabase.from('combatants').update({
       hp_current: newHp,
       public_status: isBloodied ? 'BLOODIED' : null,
+      conditions: updatedConditions,
     }).eq('id', combatant.id);
+
     logCombat(encounterId, 'DM', 'damage', `${combatant.name}: -${amount} HP (${oldHp} → ${newHp})`);
     onUpdate();
   }
@@ -417,10 +451,14 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
     const oldHp = combatant.hp_current ?? 0;
     const newHp = Math.min(combatant.hp_max ?? 999, oldHp + amount);
     const isBloodied = newHp > 0 && newHp <= Math.floor((combatant.hp_max ?? 0) / 2);
+    const updatedConditions = nextZeroHpConditions(newHp, conditions);
+
     await supabase.from('combatants').update({
       hp_current: newHp,
       public_status: isBloodied ? 'BLOODIED' : null,
+      conditions: updatedConditions,
     }).eq('id', combatant.id);
+
     logCombat(encounterId, 'DM', 'heal', `${combatant.name}: +${amount} HP (${oldHp} → ${newHp})`);
     onUpdate();
   }
@@ -429,7 +467,6 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
     if (!playerState || !amount || amount <= 0) return;
     const curHp   = playerState.current_hp ?? 0;
     const curTemp = playerState.temp_hp ?? 0;
-    const pcConds = playerState.conditions || [];
     const isConc  = playerState.concentration ?? false;
 
     if (isConc) {
@@ -453,16 +490,15 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
       updates.temp_hp = curTemp - burn;
     }
     const oldHp = curHp;
+
     if (remaining > 0) {
       const newHp = Math.max(0, curHp - remaining);
+      const updatedConditions = nextZeroHpConditions(newHp, pcConditions);
       updates.current_hp = newHp;
+      updates.conditions = updatedConditions;
+
       await supabase.from('player_encounter_state').update(updates).eq('id', playerState.id);
-      const hasUnc = pcConds.includes('UNC');
-      if (newHp === 0 && !hasUnc) {
-        await supabase.from('player_encounter_state').update({ conditions: [...pcConds, 'UNC'] }).eq('id', playerState.id);
-      } else if (newHp > 0 && hasUnc) {
-        await supabase.from('player_encounter_state').update({ conditions: pcConds.filter(c => c !== 'UNC') }).eq('id', playerState.id);
-      }
+
       logCombat(encounterId, 'DM', 'damage', `${combatant.name}: -${amount} HP (${oldHp} → ${newHp})`);
     } else {
       await supabase.from('player_encounter_state').update(updates).eq('id', playerState.id);
@@ -476,11 +512,13 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
     const curHp = playerState.current_hp ?? 0;
     const effectiveMax = pcMaxOverride ?? pcProfileMax ?? 999;
     const newHp = Math.min(effectiveMax, curHp + amount);
-    const pcConds = playerState.conditions || [];
-    await supabase.from('player_encounter_state').update({ current_hp: newHp }).eq('id', playerState.id);
-    if (newHp > 0 && pcConds.includes('UNC')) {
-      await supabase.from('player_encounter_state').update({ conditions: pcConds.filter(c => c !== 'UNC') }).eq('id', playerState.id);
-    }
+    const updatedConditions = nextZeroHpConditions(newHp, pcConditions);
+
+    await supabase.from('player_encounter_state').update({
+      current_hp: newHp,
+      conditions: updatedConditions,
+    }).eq('id', playerState.id);
+
     logCombat(encounterId, 'DM', 'heal', `${combatant.name}: +${amount} HP (${curHp} → ${newHp})`);
     onUpdate();
   }
@@ -558,7 +596,7 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
         )}
 
         <div className="initiative-name-block">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <div className="initiative-title-line">
             <span className="initiative-name">{combatant.name}</span>
             <span className={`badge badge-${combatant.side.toLowerCase()}`}>{combatant.side}</span>
             {(enemyBloodied || pcBloodied) && <span className="badge badge-bloodied">BLOODIED</span>}

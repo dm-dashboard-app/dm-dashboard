@@ -4,6 +4,19 @@ import ConditionChipRow from './ConditionChipRow';
 import SpellSlotGrid from './SpellSlotGrid';
 import WildShapeBlock from './WildShapeBlock';
 
+function nextZeroHpConditions(newHp, conditions = []) {
+  const next = [...conditions];
+  if (newHp === 0) {
+    if (!next.includes('UNC')) next.push('UNC');
+    if (!next.includes('PRN')) next.push('PRN');
+    return next;
+  }
+  if (newHp > 0) {
+    return next.filter(c => c !== 'UNC');
+  }
+  return next;
+}
+
 export default function PlayerCard({ combatant, state, role, isEditMode, encounterId, onUpdate }) {
   const profile = state?.profiles_players;
   const canEdit = role === 'dm' || role === 'player';
@@ -41,15 +54,11 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
     return 'var(--hp-low)';
   }
 
-  async function syncUnconsciousCondition(newHp, currentConditions) {
+  async function syncZeroHpConditions(newHp, currentConditions) {
     if (!state) return;
-    const conditions = currentConditions || state.conditions || [];
-    const hasUnc = conditions.includes('UNC');
-    if (newHp === 0 && !hasUnc) {
-      await supabase.from('player_encounter_state').update({ conditions: [...conditions, 'UNC'] }).eq('id', state.id);
-    } else if (newHp > 0 && hasUnc) {
-      await supabase.from('player_encounter_state').update({ conditions: conditions.filter(c => c !== 'UNC') }).eq('id', state.id);
-    }
+    const baseConditions = currentConditions || state.conditions || [];
+    const updatedConditions = nextZeroHpConditions(newHp, baseConditions);
+    await supabase.from('player_encounter_state').update({ conditions: updatedConditions }).eq('id', state.id);
   }
 
   async function applyDamage(amount) {
@@ -77,10 +86,11 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
     }
     if (remaining > 0) {
       const newHp = Math.max(0, hp - remaining);
+      const updatedConditions = nextZeroHpConditions(newHp, state.conditions || []);
       setLocalHp(newHp);
       updates.current_hp = newHp;
+      updates.conditions = updatedConditions;
       await supabase.from('player_encounter_state').update(updates).eq('id', state.id);
-      await syncUnconsciousCondition(newHp, state.conditions);
       // Combat log
       const actor = isPlayer ? (profile?.name || 'Player') : 'DM';
       supabase.from('combat_log').insert({
@@ -105,9 +115,12 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   async function applyHeal(amount) {
     if (!state || readOnly || !amount || amount <= 0) return;
     const newHp = Math.min(maxHp, hp + amount);
+    const updatedConditions = nextZeroHpConditions(newHp, state.conditions || []);
     setLocalHp(newHp);
-    await supabase.from('player_encounter_state').update({ current_hp: newHp }).eq('id', state.id);
-    await syncUnconsciousCondition(newHp, state.conditions);
+    await supabase.from('player_encounter_state').update({
+      current_hp: newHp,
+      conditions: updatedConditions,
+    }).eq('id', state.id);
     const actor = isPlayer ? (profile?.name || 'Player') : 'DM';
     supabase.from('combat_log').insert({
       encounter_id: encounterId,
@@ -121,9 +134,12 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   async function setHpDirect(val) {
     if (!state || readOnly) return;
     const newHp = Math.max(0, Math.min(maxHp, parseInt(val) || 0));
+    const updatedConditions = nextZeroHpConditions(newHp, state.conditions || []);
     setLocalHp(newHp);
-    await supabase.from('player_encounter_state').update({ current_hp: newHp }).eq('id', state.id);
-    await syncUnconsciousCondition(newHp, state.conditions);
+    await supabase.from('player_encounter_state').update({
+      current_hp: newHp,
+      conditions: updatedConditions,
+    }).eq('id', state.id);
     onUpdate();
   }
 
