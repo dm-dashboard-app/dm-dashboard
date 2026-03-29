@@ -390,8 +390,9 @@
 .add-combatant-form { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-2); }
 .empty-state { color: var(--text-muted); font-size: var(--font-size-sm); font-style: italic; padding: var(--space-2) 0; }
 
-/* ---- Add Combatant Modal ---- */
-.modal-overlay {
+/* ---- Shared Bottom Sheet Modal ---- */
+.modal-overlay,
+.rest-modal-overlay {
   position: fixed;
   inset: 0;
   z-index: 300;
@@ -402,7 +403,8 @@
   padding: 16px;
 }
 
-.modal-panel {
+.modal-panel,
+.rest-modal-panel {
   width: 100%;
   max-width: 640px;
   max-height: min(82vh, 760px);
@@ -414,6 +416,7 @@
   padding: 16px;
 }
 
+/* ---- Add Combatant Modal ---- */
 .add-combatant-modal {
   display: flex;
   flex-direction: column;
@@ -457,6 +460,115 @@
 
 .add-combatant-manual-grid .form-group {
   flex: 1 1 120px;
+}
+
+/* ---- Short Rest Modal ---- */
+.rest-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rest-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rest-modal-subtitle {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.rest-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rest-modal-player-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-panel-2);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rest-modal-player-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.rest-modal-player-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.rest-modal-player-meta {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.rest-modal-hit-dice {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.rest-modal-grid {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rest-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 150px;
+}
+
+.rest-modal-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.rest-modal-input {
+  min-height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-panel-3);
+  color: var(--text-primary);
+  padding: 0 10px;
+  font-size: 14px;
+}
+
+.rest-modal-input:focus {
+  border-color: var(--accent-blue);
+  outline: none;
+}
+
+.rest-modal-input::-webkit-outer-spin-button,
+.rest-modal-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.rest-modal-input[type=number] { appearance: textfield; }
+
+.rest-modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
 }
 
 /* ---- Secret Rolls ---- */
@@ -620,11 +732,13 @@
     letter-spacing: 0.08em;
   }
 
-  .modal-overlay {
+  .modal-overlay,
+  .rest-modal-overlay {
     padding: 10px;
   }
 
-  .modal-panel {
+  .modal-panel,
+  .rest-modal-panel {
     padding: 12px;
     max-height: 86vh;
   }
@@ -639,5 +753,17 @@
 
   .initiative-name {
     flex-basis: 110px;
+  }
+
+  .rest-modal-player-card {
+    padding: 9px;
+  }
+
+  .rest-modal-grid {
+    gap: 6px;
+  }
+
+  .rest-modal-field {
+    flex-basis: 100%;
   }
 }
