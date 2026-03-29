@@ -67,9 +67,9 @@ function RecentRollsStrip({ encounterId }) {
 }
 
 // ============================================================
-// COMPACT RECENT CON CHECKS STRIP
+// COMPACT RECENT ALERTS STRIP
 // ============================================================
-function RecentConChecksStrip({ encounterId }) {
+function RecentAlertsStrip({ encounterId }) {
   const [checks, setChecks] = useState([]);
 
   const load = useCallback(async () => {
@@ -95,7 +95,7 @@ function RecentConChecksStrip({ encounterId }) {
 
   return (
     <div className="panel" style={{ padding: '10px 14px' }}>
-      <div className="panel-title" style={{ marginBottom: 6 }}>Recent CON Checks</div>
+      <div className="panel-title" style={{ marginBottom: 6 }}>Recent Alerts</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
         {checks.map(c => {
           const { color, label } = resultStyle(c.result);
@@ -129,9 +129,9 @@ function RecentConChecksStrip({ encounterId }) {
 function CombatLog({ encounterId }) {
   const [logSection, setLogSection] = useState('combat');
   const [combatEntries, setCombatEntries] = useState([]);
-  const [conChecks, setConChecks] = useState([]);
+  const [alerts, setAlerts] = useState([]);
   const [loadingCombat, setLoadingCombat] = useState(true);
-  const [loadingCon, setLoadingCon]       = useState(true);
+  const [loadingAlerts, setLoadingAlerts] = useState(true);
 
   const loadCombat = useCallback(async () => {
     if (!encounterId) return;
@@ -145,7 +145,7 @@ function CombatLog({ encounterId }) {
     setLoadingCombat(false);
   }, [encounterId]);
 
-  const loadCon = useCallback(async () => {
+  const loadAlerts = useCallback(async () => {
     if (!encounterId) return;
     const { data } = await supabase
       .from('concentration_checks')
@@ -153,12 +153,12 @@ function CombatLog({ encounterId }) {
       .eq('encounter_id', encounterId)
       .order('created_at', { ascending: false })
       .limit(50);
-    setConChecks(data || []);
-    setLoadingCon(false);
+    setAlerts(data || []);
+    setLoadingAlerts(false);
   }, [encounterId]);
 
   usePolling(loadCombat, 3000, !!encounterId && logSection === 'combat');
-  usePolling(loadCon,    3000, !!encounterId && logSection === 'con');
+  usePolling(loadAlerts, 3000, !!encounterId && logSection === 'alerts');
 
   function timeLabel(ts) {
     return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -180,7 +180,7 @@ function CombatLog({ encounterId }) {
     return { text: r, cls: '' };
   }
 
-  const pendingConCount = conChecks.filter(c => c.result === 'pending').length;
+  const pendingAlertCount = alerts.filter(c => c.result === 'pending').length;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -194,10 +194,10 @@ function CombatLog({ encounterId }) {
         </button>
         <button
           className="btn btn-ghost"
-          style={{ flex: 1, borderColor: logSection === 'con' ? 'var(--accent-gold)' : 'var(--border)', color: logSection === 'con' ? 'var(--accent-gold)' : 'var(--text-secondary)' }}
-          onClick={() => { setLogSection('con'); loadCon(); }}
+          style={{ flex: 1, borderColor: logSection === 'alerts' ? 'var(--accent-gold)' : 'var(--border)', color: logSection === 'alerts' ? 'var(--accent-gold)' : 'var(--text-secondary)' }}
+          onClick={() => { setLogSection('alerts'); loadAlerts(); }}
         >
-          🔮 CON Checks {pendingConCount > 0 && <span className="tab-badge">{pendingConCount}</span>}
+          ⚠ Alerts {pendingAlertCount > 0 && <span className="tab-badge">{pendingAlertCount}</span>}
         </button>
       </div>
 
@@ -222,15 +222,15 @@ function CombatLog({ encounterId }) {
         </div>
       )}
 
-      {logSection === 'con' && (
+      {logSection === 'alerts' && (
         <div className="panel">
-          <div className="panel-title">Concentration Checks</div>
-          {loadingCon && <div className="empty-state">Loading…</div>}
-          {!loadingCon && conChecks.length === 0 && (
-            <div className="empty-state">No concentration checks this encounter.</div>
+          <div className="panel-title">Alerts</div>
+          {loadingAlerts && <div className="empty-state">Loading…</div>}
+          {!loadingAlerts && alerts.length === 0 && (
+            <div className="empty-state">No alerts this encounter.</div>
           )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: '60vh', overflowY: 'auto' }}>
-            {conChecks.map(c => {
+            {alerts.map(c => {
               const { text, cls } = resultLabel(c.result);
               return (
                 <div key={c.id} className={`con-log-item con-log-item--${c.result}`}>
@@ -261,7 +261,6 @@ export default function DMView() {
   const [loading, setLoading] = useState(true);
   const [displayToken, setDisplayToken] = useState(null);
   const [joinCodes, setJoinCodes] = useState([]);
-  const [showJoinCodes, setShowJoinCodes] = useState(false);
   const [encounterId, setEncounterId] = useState(null);
   const [rollingInit, setRollingInit] = useState(false);
 
@@ -330,36 +329,46 @@ export default function DMView() {
     if (!encounter) return;
     if (!window.confirm('Long Rest — restore all player HP, spell slots, and wild shape uses?')) return;
     await supabase.rpc('long_rest', { p_encounter_id: encounter.id });
+    await supabase.from('encounters').update({ round: 1, turn_index: 0 }).eq('id', encounter.id);
     refreshAll();
   }
 
   async function handleRollEnemyInitiative() {
+    if (!encounter) return;
+
     const targets = combatants.filter(c => c.side !== 'PC' && c.initiative_total == null);
     if (targets.length === 0) {
       const reroll = combatants.filter(c => c.side !== 'PC');
-      if (!window.confirm('All enemies already have initiative. Reroll everyone?')) return;
+      if (!window.confirm('All enemies already have initiative. Reroll everyone and reset round to 1?')) return;
       setRollingInit(true);
       await Promise.all(reroll.map(c => {
         const roll = Math.floor(Math.random() * 20) + 1 + (c.initiative_mod ?? 0);
         return supabase.rpc('set_initiative', { p_combatant_id: c.id, p_total: roll });
       }));
+      await supabase.from('encounters').update({ round: 1, turn_index: 0 }).eq('id', encounter.id);
       setRollingInit(false);
       refreshAll();
       return;
     }
+
     setRollingInit(true);
     await Promise.all(targets.map(c => {
       const roll = Math.floor(Math.random() * 20) + 1 + (c.initiative_mod ?? 0);
       return supabase.rpc('set_initiative', { p_combatant_id: c.id, p_total: roll });
     }));
+    await supabase.from('encounters').update({ round: 1, turn_index: 0 }).eq('id', encounter.id);
     setRollingInit(false);
     refreshAll();
   }
 
-  function handleNewEncounter() {
-    setEncounter(null); setEncounterId(null);
-    setCombatants([]); setPlayerStates([]);
-    setDisplayToken(null); setJoinCodes([]);
+  function handleFrontScreen() {
+    setEncounter(null);
+    setEncounterId(null);
+    setCombatants([]);
+    setPlayerStates([]);
+    setDisplayToken(null);
+    setJoinCodes([]);
+    setTab('manage');
   }
 
   if (loading) return <div className="splash"><div className="splash-text">Loading…</div></div>;
@@ -369,11 +378,19 @@ export default function DMView() {
       <div className="app-shell">
         <div className="top-bar">
           <span className="top-bar-title">DM Dashboard</span>
-          <button className="btn btn-ghost" onClick={signOut}>Sign Out</button>
         </div>
         <div className="main-content">
-          <EncounterSetup onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); }} />
-          <ManagementScreens />
+          <EncounterSetup onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); setTab('combat'); }} />
+          <ManagementScreens
+            currentEncounter={null}
+            displayToken={null}
+            joinCodes={[]}
+            onToggleEditMode={null}
+            onGenerateDisplayToken={null}
+            onRevokeDisplayToken={null}
+            onFrontScreen={null}
+            onSignOut={signOut}
+          />
         </div>
       </div>
     );
@@ -381,30 +398,32 @@ export default function DMView() {
 
   const pcCombatants = combatants.filter(c => c.side === 'PC');
   const nonPcCount = combatants.filter(c => c.side !== 'PC').length;
-  const pendingConCount = playerStates.filter(s => s.concentration_check_dc != null).length;
+  const pendingAlertCount = playerStates.filter(s => s.concentration_check_dc != null).length;
 
   return (
     <div className="app-shell">
-      <div className="top-bar">
-        <div className="top-bar-round">R{encounter.round}</div>
+      <div className="top-bar top-bar--dm-actions">
+        <div className="dm-action-round">Round {encounter.round}</div>
         <button className="btn btn-primary" onClick={handleNextTurn}>▶ Next</button>
-        <span className="top-bar-title">{encounter.name}</span>
-        <button className="btn btn-ghost" onClick={handleToggleEditMode} title="Player Edit Mode">
-          {encounter.player_edit_mode ? '✏️' : '🔒'}
+        <button className="btn btn-ghost" onClick={handleRollEnemyInitiative} disabled={rollingInit}>
+          {rollingInit ? 'Rolling…' : 'Initiative'}
         </button>
+        <button className="btn btn-ghost" disabled title="Short Rest is the next implementation phase.">
+          Short Rest
+        </button>
+        <button className="btn btn-ghost" onClick={handleLongRest}>Long Rest</button>
       </div>
 
       <div className="tab-bar">
         <button className={`tab-btn ${tab === 'combat'  ? 'active' : ''}`} onClick={() => setTab('combat')}>⚔ Combat</button>
         <button className={`tab-btn ${tab === 'rolls'   ? 'active' : ''}`} onClick={() => setTab('rolls')}>🎲 Rolls</button>
         <button className={`tab-btn ${tab === 'log'     ? 'active' : ''}`} onClick={() => setTab('log')}>
-          📋 Log{pendingConCount > 0 ? <span className="tab-badge">{pendingConCount}</span> : ''}
+          📋 Log{pendingAlertCount > 0 ? <span className="tab-badge">{pendingAlertCount}</span> : ''}
         </button>
         <button className={`tab-btn ${tab === 'manage'  ? 'active' : ''}`} onClick={() => setTab('manage')}>⚙ Manage</button>
       </div>
 
       <div className="main-content">
-
         {tab === 'combat' && (
           <>
             {pcCombatants.map(c => {
@@ -422,10 +441,6 @@ export default function DMView() {
               );
             })}
 
-            {/* Compact info strips — rolls then CON checks */}
-            <RecentRollsStrip encounterId={encounter.id} />
-            <RecentConChecksStrip encounterId={encounter.id} />
-
             <InitiativePanel
               encounter={encounter}
               combatants={combatants}
@@ -435,53 +450,19 @@ export default function DMView() {
             />
 
             <div className="panel">
-              <div className="panel-title">Display Token</div>
-              {displayToken ? (
-                <div className="display-token-row">
-                  <span className="display-token-value">{displayToken}</span>
-                  <button className="btn btn-danger" onClick={handleRevokeDisplayToken}>Revoke</button>
-                </div>
-              ) : (
-                <button className="btn btn-ghost" onClick={handleGenerateDisplayToken}>Generate Display Token</button>
-              )}
-            </div>
-
-            <div className="panel">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div className="panel-title" style={{ marginBottom: 0 }}>
-                  Player Join Codes {joinCodes.length > 0 && `(${joinCodes.length})`}
-                </div>
-                <button className="btn btn-ghost" onClick={() => setShowJoinCodes(s => !s)}>
-                  {showJoinCodes ? 'Hide' : 'Show'}
-                </button>
-              </div>
-              {showJoinCodes && (
-                <div style={{ marginTop: 12 }}>
-                  {joinCodes.length === 0
-                    ? <div className="empty-state">No join codes for this encounter.</div>
-                    : joinCodes.map((s, i) => (
-                      <div key={i} className="join-code-row">
-                        <span className="join-code-name">{s.profiles_players?.name || 'Player'}</span>
-                        <span className="join-code-value">{s.join_code}</span>
-                      </div>
-                    ))
-                  }
-                </div>
-              )}
-            </div>
-
-            <div className="panel">
+              <div className="panel-title">Live Session</div>
               <div className="form-row" style={{ flexWrap: 'wrap' }}>
-                <button className="btn btn-ghost" onClick={handleNewEncounter}>New Encounter</button>
-                <button className="btn btn-ghost" onClick={handleLongRest}>🌙 Long Rest</button>
                 {nonPcCount > 0 && (
                   <button className="btn btn-ghost" onClick={handleRollEnemyInitiative} disabled={rollingInit}>
-                    {rollingInit ? 'Rolling…' : '🎲 Roll Enemy Init'}
+                    {rollingInit ? 'Rolling…' : 'Initiative'}
                   </button>
                 )}
-                <button className="btn btn-ghost" onClick={signOut}>Sign Out</button>
+                <button className="btn btn-ghost" onClick={() => setTab('manage')}>Open Manage</button>
               </div>
             </div>
+
+            <RecentRollsStrip encounterId={encounter.id} />
+            <RecentAlertsStrip encounterId={encounter.id} />
           </>
         )}
 
@@ -489,8 +470,15 @@ export default function DMView() {
         {tab === 'log'    && <CombatLog encounterId={encounter.id} />}
         {tab === 'manage' && (
           <ManagementScreens
-            onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); }}
+            onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); setTab('combat'); }}
             currentEncounter={encounter}
+            displayToken={displayToken}
+            joinCodes={joinCodes}
+            onToggleEditMode={handleToggleEditMode}
+            onGenerateDisplayToken={handleGenerateDisplayToken}
+            onRevokeDisplayToken={handleRevokeDisplayToken}
+            onFrontScreen={handleFrontScreen}
+            onSignOut={signOut}
           />
         )}
       </div>

@@ -67,6 +67,33 @@
   white-space: nowrap;
 }
 
+.top-bar--dm-actions {
+  gap: 8px;
+  overflow-x: auto;
+  padding: 10px 12px;
+  scrollbar-width: none;
+}
+
+.top-bar--dm-actions::-webkit-scrollbar {
+  display: none;
+}
+
+.dm-action-round {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 12px;
+  min-height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 /* Tab bar — sticky just below the top bar */
 .tab-bar {
   display: flex;
@@ -393,5 +420,19 @@
 
   .top-bar {
     padding: var(--space-2) var(--space-3);
+  }
+
+  .top-bar--dm-actions {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+
+  .dm-action-round {
+    padding: 8px 10px;
+  }
+
+  .top-bar--dm-actions .btn,
+  .top-bar--dm-actions .dm-action-round {
+    font-size: 12px;
   }
 }

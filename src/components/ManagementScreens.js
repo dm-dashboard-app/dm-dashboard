@@ -1,20 +1,134 @@
 import React, { useState, useEffect } from 'react';
 import { supabase, uploadPortrait } from '../supabaseClient';
 
-export default function ManagementScreens() {
-  const [tab, setTab] = useState('players');
+export default function ManagementScreens({
+  onEncounterCreated,
+  currentEncounter = null,
+  displayToken = null,
+  joinCodes = [],
+  onToggleEditMode = null,
+  onGenerateDisplayToken = null,
+  onRevokeDisplayToken = null,
+  onFrontScreen = null,
+  onSignOut = null,
+}) {
+  const [tab, setTab] = useState(currentEncounter ? 'session' : 'players');
+
+  useEffect(() => {
+    if (!currentEncounter && tab === 'session') {
+      setTab('players');
+    }
+  }, [currentEncounter, tab]);
 
   return (
     <div className="panel">
       <div className="panel-title">Manage</div>
-      <div className="tab-bar" style={{ position: 'static' }}>
+
+      <div className="tab-bar manage-tab-bar" style={{ position: 'static' }}>
+        {currentEncounter && (
+          <button className={`tab-btn ${tab === 'session' ? 'active' : ''}`} onClick={() => setTab('session')}>
+            Session
+          </button>
+        )}
         <button className={`tab-btn ${tab === 'players'  ? 'active' : ''}`} onClick={() => setTab('players')}>Players</button>
         <button className={`tab-btn ${tab === 'monsters' ? 'active' : ''}`} onClick={() => setTab('monsters')}>Monsters & NPCs</button>
         <button className={`tab-btn ${tab === 'wildshape'? 'active' : ''}`} onClick={() => setTab('wildshape')}>Wild Shape</button>
       </div>
+
+      {tab === 'session'   && currentEncounter && (
+        <SessionControls
+          currentEncounter={currentEncounter}
+          displayToken={displayToken}
+          joinCodes={joinCodes}
+          onToggleEditMode={onToggleEditMode}
+          onGenerateDisplayToken={onGenerateDisplayToken}
+          onRevokeDisplayToken={onRevokeDisplayToken}
+          onFrontScreen={onFrontScreen}
+          onSignOut={onSignOut}
+        />
+      )}
       {tab === 'players'   && <PlayerProfileManager />}
       {tab === 'monsters'  && <MonsterTemplateManager />}
       {tab === 'wildshape' && <WildShapeLibrary />}
+    </div>
+  );
+}
+
+function SessionControls({
+  currentEncounter,
+  displayToken,
+  joinCodes,
+  onToggleEditMode,
+  onGenerateDisplayToken,
+  onRevokeDisplayToken,
+  onFrontScreen,
+  onSignOut,
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 12 }}>
+      <div className="panel session-subpanel">
+        <div className="panel-title">Current Session</div>
+        <div className="session-meta-grid">
+          <div className="session-meta-item">
+            <span className="session-meta-label">Encounter</span>
+            <span className="session-meta-value">{currentEncounter?.name || 'Active session'}</span>
+          </div>
+          <div className="session-meta-item">
+            <span className="session-meta-label">Round</span>
+            <span className="session-meta-value">{currentEncounter?.round ?? 1}</span>
+          </div>
+          <div className="session-meta-item">
+            <span className="session-meta-label">Player Edit Mode</span>
+            <span className="session-meta-value">{currentEncounter?.player_edit_mode ? 'On' : 'Off'}</span>
+          </div>
+        </div>
+
+        <div className="form-row" style={{ marginTop: 12, flexWrap: 'wrap' }}>
+          {onToggleEditMode && (
+            <button className="btn btn-ghost" onClick={onToggleEditMode}>
+              {currentEncounter?.player_edit_mode ? 'Lock Player Editing' : 'Enable Player Editing'}
+            </button>
+          )}
+          {onFrontScreen && (
+            <button className="btn btn-ghost" onClick={onFrontScreen}>Front Screen</button>
+          )}
+          {onSignOut && (
+            <button className="btn btn-danger" onClick={onSignOut}>Sign Out</button>
+          )}
+        </div>
+      </div>
+
+      <div className="panel session-subpanel">
+        <div className="panel-title">Display Screen</div>
+        {displayToken ? (
+          <div className="display-token-row" style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}>
+            <span className="display-token-value">{displayToken}</span>
+            {onRevokeDisplayToken && (
+              <button className="btn btn-danger" onClick={onRevokeDisplayToken}>Revoke</button>
+            )}
+          </div>
+        ) : (
+          <div className="form-row" style={{ flexWrap: 'wrap' }}>
+            {onGenerateDisplayToken && (
+              <button className="btn btn-ghost" onClick={onGenerateDisplayToken}>Generate Display Token</button>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="panel session-subpanel">
+        <div className="panel-title">Player Join Codes {joinCodes.length > 0 ? `(${joinCodes.length})` : ''}</div>
+        {joinCodes.length === 0 ? (
+          <div className="empty-state">No join codes for this encounter.</div>
+        ) : (
+          joinCodes.map((s, i) => (
+            <div key={i} className="join-code-row">
+              <span className="join-code-name">{s.profiles_players?.name || 'Player'}</span>
+              <span className="join-code-value">{s.join_code}</span>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }
@@ -271,11 +385,8 @@ function MonsterForm({ initial, onSave, onCancel }) {
     set(field, arr.includes(type) ? arr.filter(t => t !== type) : [...arr, type]);
   }
 
-  const hasSlots = [1,2,3,4,5,6,7,8,9].some(l => (f[`slots_max_${l}`] || 0) > 0);
-
   return (
     <div className="profile-form">
-      {/* Type toggle */}
       <Field label="Type">
         <div style={{ display: 'flex', gap: 8 }}>
           {['ENEMY','NPC'].map(s => (
@@ -290,7 +401,6 @@ function MonsterForm({ initial, onSave, onCancel }) {
       <Field label="HP Max"><NumInput value={f.hp_max} onChange={v => set('hp_max', v)} /></Field>
       <Field label="Initiative Mod"><NumInput value={f.initiative_mod} onChange={v => set('initiative_mod', v)} /></Field>
 
-      {/* Ability modifiers */}
       <div className="panel-title" style={{ marginTop: 12 }}>Ability Modifiers</div>
       <div className="saves-grid">
         {['str','dex','con','int','wis','cha'].map(s => (
@@ -301,7 +411,6 @@ function MonsterForm({ initial, onSave, onCancel }) {
         ))}
       </div>
 
-      {/* Legendary */}
       <div className="panel-title" style={{ marginTop: 12 }}>Legendary</div>
       <div className="form-row">
         <div className="form-group" style={{ flex: 1 }}>
@@ -314,7 +423,6 @@ function MonsterForm({ initial, onSave, onCancel }) {
         </div>
       </div>
 
-      {/* Spell slots */}
       <div className="panel-title" style={{ marginTop: 12 }}>Spell Slots (max per level)</div>
       <div className="saves-grid">
         {[1,2,3,4,5,6,7,8,9].map(l => (
@@ -325,7 +433,6 @@ function MonsterForm({ initial, onSave, onCancel }) {
         ))}
       </div>
 
-      {/* Resistances & Immunities */}
       <div className="panel-title" style={{ marginTop: 12 }}>Resistances</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
         {DAMAGE_TYPES.map(t => (
