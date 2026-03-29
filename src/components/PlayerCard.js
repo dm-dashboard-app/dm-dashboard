@@ -17,11 +17,6 @@ function nextZeroHpConditions(newHp, conditions = []) {
   return next;
 }
 
-function toNumber(value, fallback = 0) {
-  const n = parseInt(value, 10);
-  return Number.isFinite(n) ? n : fallback;
-}
-
 function compactObject(obj) {
   return Object.fromEntries(
     Object.entries(obj).filter(([, value]) => value !== undefined)
@@ -53,29 +48,72 @@ function readBooleanField(source, candidates = [], fallback = null) {
   return !!raw;
 }
 
-function getResourceConfig(profile = {}, state = {}) {
-  const className = (profile.class_name || '').toLowerCase();
+function getClassEntries(profile = {}) {
+  const entries = [];
 
+  if (profile.class_name) {
+    entries.push({
+      className: String(profile.class_name).toLowerCase(),
+      displayClass: profile.class_name,
+      subclassName: profile.subclass_name || '',
+      level: profile.class_level ?? null,
+    });
+  }
+
+  if (profile.class_name_2) {
+    entries.push({
+      className: String(profile.class_name_2).toLowerCase(),
+      displayClass: profile.class_name_2,
+      subclassName: profile.subclass_name_2 || '',
+      level: profile.class_level_2 ?? null,
+    });
+  }
+
+  return entries;
+}
+
+function getPlayerHeaderLines(profile = {}) {
+  const classEntries = getClassEntries(profile);
+
+  const classLine = classEntries
+    .map(entry => {
+      const left = [entry.displayClass, entry.subclassName].filter(Boolean).join(' • ');
+      const levelPart = entry.level ? `Level ${entry.level}` : '';
+      return [left, levelPart].filter(Boolean).join(' • ');
+    })
+    .filter(Boolean)
+    .join(' / ');
+
+  return {
+    classLine,
+    ancestryLine: profile.ancestry_name || '',
+  };
+}
+
+function hasClass(profile = {}, classNames = []) {
+  const allowed = classNames.map(name => String(name).toLowerCase());
+  return getClassEntries(profile).some(entry => allowed.includes(entry.className));
+}
+
+function getResourceConfig(profile = {}, state = {}) {
   const resources = [];
 
   const hitDiceCurrentKey = findExistingKey(state, ['hit_dice_current', 'hit_dice_remaining']);
   const hitDiceMaxKey = findExistingKey(state, ['hit_dice_max']);
-  const hitDieSizeKey = findExistingKey(state, ['hit_die_size']);
+  const hitDieSize = readNumberField(state, ['hit_die_size'], readNumberField(profile, ['hit_die_size'], null));
 
-  if (hitDiceCurrentKey || hitDiceMaxKey || hitDieSizeKey) {
+  if (hitDiceCurrentKey || hitDiceMaxKey || hitDieSize || profile.hit_dice_max || profile.hit_die_size) {
     resources.push({
       id: 'hit-dice',
       label: 'Hit Dice',
       type: 'counter',
       currentKey: hitDiceCurrentKey || 'hit_dice_current',
       maxKey: hitDiceMaxKey || 'hit_dice_max',
-      displaySuffix: readNumberField(state, ['hit_die_size']) || readNumberField(profile, ['hit_die_size'])
-        ? `d${readNumberField(state, ['hit_die_size'], readNumberField(profile, ['hit_die_size'], 0))}`
-        : '',
+      displaySuffix: hitDieSize ? `d${hitDieSize}` : '',
     });
   }
 
-  if (profile.feat_lucky || findExistingKey(state, ['lucky_uses_current', 'lucky_uses_remaining', 'lucky_used'])) {
+  if (profile.feat_lucky) {
     const luckyCurrentKey = findExistingKey(state, ['lucky_uses_current', 'lucky_uses_remaining']);
     const luckyMaxKey = findExistingKey(state, ['lucky_uses_max']);
     const luckyUsedKey = findExistingKey(state, ['lucky_used']);
@@ -100,21 +138,24 @@ function getResourceConfig(profile = {}, state = {}) {
     }
   }
 
-  if (profile.feat_relentless_endurance || findExistingKey(state, ['relentless_endurance_used'])) {
-    resources.push({
-      id: 'relentless-endurance',
-      label: 'Relentless Endurance',
-      type: 'toggle',
-      boolKey: findExistingKey(state, ['relentless_endurance_used']) || 'relentless_endurance_used',
-      trueLabel: 'Used',
-      falseLabel: 'Ready',
-    });
+  if (profile.feat_relentless_endurance || String(profile.ancestry_name || '').toLowerCase() === 'half-orc') {
+    const relentlessKey = findExistingKey(state, ['relentless_endurance_used']);
+    if (relentlessKey) {
+      resources.push({
+        id: 'relentless-endurance',
+        label: 'Relentless Endurance',
+        type: 'toggle',
+        boolKey: relentlessKey,
+        trueLabel: 'Used',
+        falseLabel: 'Ready',
+      });
+    }
   }
 
-  const genericClassResources = [
+  const classResources = [
     {
       id: 'bardic-inspiration',
-      match: ['bard'],
+      classes: ['bard'],
       label: 'Bardic Inspiration',
       type: 'pips',
       currentKeys: ['bardic_inspiration_current', 'bardic_inspiration_uses_current', 'bardic_inspiration_remaining'],
@@ -126,7 +167,7 @@ function getResourceConfig(profile = {}, state = {}) {
     },
     {
       id: 'ki',
-      match: ['monk'],
+      classes: ['monk'],
       label: 'Ki',
       type: 'counter',
       currentKeys: ['ki_current', 'ki_points_current'],
@@ -134,7 +175,7 @@ function getResourceConfig(profile = {}, state = {}) {
     },
     {
       id: 'channel-divinity',
-      match: ['cleric', 'paladin'],
+      classes: ['cleric', 'paladin'],
       label: 'Channel Divinity',
       type: 'pips',
       currentKeys: ['channel_divinity_current', 'channel_divinity_uses_current'],
@@ -142,7 +183,7 @@ function getResourceConfig(profile = {}, state = {}) {
     },
     {
       id: 'rage',
-      match: ['barbarian'],
+      classes: ['barbarian'],
       label: 'Rage',
       type: 'pips',
       currentKeys: ['rage_current', 'rage_uses_current', 'rages_current'],
@@ -150,7 +191,7 @@ function getResourceConfig(profile = {}, state = {}) {
     },
     {
       id: 'sorcery-points',
-      match: ['sorcerer'],
+      classes: ['sorcerer'],
       label: 'Sorcery Points',
       type: 'counter',
       currentKeys: ['sorcery_points_current'],
@@ -158,7 +199,7 @@ function getResourceConfig(profile = {}, state = {}) {
     },
     {
       id: 'second-wind',
-      match: ['fighter'],
+      classes: ['fighter'],
       label: 'Second Wind',
       type: 'toggle',
       boolKeys: ['second_wind_used'],
@@ -167,7 +208,7 @@ function getResourceConfig(profile = {}, state = {}) {
     },
     {
       id: 'action-surge',
-      match: ['fighter'],
+      classes: ['fighter'],
       label: 'Action Surge',
       type: 'pips',
       currentKeys: ['action_surge_current', 'action_surge_uses_current'],
@@ -175,7 +216,7 @@ function getResourceConfig(profile = {}, state = {}) {
     },
     {
       id: 'superiority-dice',
-      match: ['fighter'],
+      classes: ['fighter'],
       label: 'Superiority Dice',
       type: 'pips',
       currentKeys: ['superiority_dice_current'],
@@ -187,7 +228,7 @@ function getResourceConfig(profile = {}, state = {}) {
     },
     {
       id: 'lay-on-hands',
-      match: ['paladin'],
+      classes: ['paladin'],
       label: 'Lay on Hands',
       type: 'counter',
       currentKeys: ['lay_on_hands_current'],
@@ -195,7 +236,7 @@ function getResourceConfig(profile = {}, state = {}) {
     },
     {
       id: 'arcane-recovery',
-      match: ['wizard'],
+      classes: ['wizard'],
       label: 'Arcane Recovery',
       type: 'toggle',
       boolKeys: ['arcane_recovery_used'],
@@ -204,7 +245,7 @@ function getResourceConfig(profile = {}, state = {}) {
     },
     {
       id: 'natural-recovery',
-      match: ['druid'],
+      classes: ['druid'],
       label: 'Natural Recovery',
       type: 'toggle',
       boolKeys: ['natural_recovery_used'],
@@ -213,7 +254,7 @@ function getResourceConfig(profile = {}, state = {}) {
     },
     {
       id: 'warlock-slots',
-      match: ['warlock'],
+      classes: ['warlock'],
       label: 'Warlock Slots',
       type: 'pips',
       currentKeys: ['warlock_slots_current', 'warlock_spell_slots_current'],
@@ -225,14 +266,8 @@ function getResourceConfig(profile = {}, state = {}) {
     },
   ];
 
-  genericClassResources.forEach(resource => {
-    const matchedByClass = resource.match.includes(className);
-    const matchedBySchema =
-      findExistingKey(state, resource.currentKeys || []) ||
-      findExistingKey(state, resource.maxKeys || []) ||
-      findExistingKey(state, resource.boolKeys || []);
-
-    if (!matchedByClass && !matchedBySchema) return;
+  classResources.forEach(resource => {
+    if (!hasClass(profile, resource.classes)) return;
 
     if (resource.type === 'toggle') {
       const boolKey = findExistingKey(state, resource.boolKeys || []);
@@ -291,9 +326,7 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   const pendingConDc = concentration ? (state?.concentration_check_dc ?? null) : null;
   const passivePerception = profile ? (10 + (profile.skill_perception ?? 0)) : null;
 
-  const classLine = [profile?.class_name, profile?.subclass_name].filter(Boolean).join(' • ');
-  const levelLine = profile?.class_level ? `Level ${profile.class_level}` : '';
-  const ancestryLine = profile?.ancestry_name || '';
+  const { classLine, ancestryLine } = getPlayerHeaderLines(profile || {});
   const resourceConfigs = getResourceConfig(profile || {}, state || {});
 
   useEffect(() => { setLocalHp(null); }, [dbHp]);
@@ -302,13 +335,6 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
     if (pct > 50) return 'var(--hp-high)';
     if (pct > 25) return 'var(--hp-mid)';
     return 'var(--hp-low)';
-  }
-
-  async function syncZeroHpConditions(newHp, currentConditions) {
-    if (!state) return;
-    const baseConditions = currentConditions || state.conditions || [];
-    const updatedConditions = nextZeroHpConditions(newHp, baseConditions);
-    await supabase.from('player_encounter_state').update({ conditions: updatedConditions }).eq('id', state.id);
   }
 
   async function applyDamage(amount) {
@@ -520,11 +546,11 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
           </div>
         </div>
 
-        {(classLine || levelLine || ancestryLine) && (
+        {(classLine || ancestryLine) && (
           <div className="player-class-line" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {(classLine || levelLine) && (
+            {classLine && (
               <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 }}>
-                {[classLine, levelLine].filter(Boolean).join(' • ')}
+                {classLine}
               </span>
             )}
             {ancestryLine && (
@@ -609,7 +635,6 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
             resources={resourceConfigs}
             state={state}
             readOnly={readOnly}
-            canRestore={canRestore}
             onUpdateFields={updateResourceFields}
           />
         )}
@@ -713,7 +738,7 @@ export function DmgHealRow({ onDamage, onHeal, compact = false }) {
   );
 }
 
-function ResourceSection({ resources, state, readOnly, canRestore, onUpdateFields }) {
+function ResourceSection({ resources, state, readOnly, onUpdateFields }) {
   return (
     <div className="player-resource-section" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -726,7 +751,6 @@ function ResourceSection({ resources, state, readOnly, canRestore, onUpdateField
             resource={resource}
             state={state}
             readOnly={readOnly}
-            canRestore={canRestore}
             onUpdateFields={onUpdateFields}
           />
         ))}
@@ -735,7 +759,7 @@ function ResourceSection({ resources, state, readOnly, canRestore, onUpdateField
   );
 }
 
-function ResourceRow({ resource, state, readOnly, canRestore, onUpdateFields }) {
+function ResourceRow({ resource, state, readOnly, onUpdateFields }) {
   if (resource.type === 'toggle') {
     const value = readBooleanField(state, [resource.boolKey], false);
     const canToggle = !readOnly;
@@ -817,7 +841,6 @@ function ResourceRow({ resource, state, readOnly, canRestore, onUpdateFields }) 
 
   const safeMax = Math.max(0, max ?? current ?? 0);
   const safeCurrent = Math.max(0, Math.min(safeMax, current ?? 0));
-  const filled = safeCurrent;
 
   async function setPips(nextCurrent) {
     if (readOnly) return;
@@ -830,13 +853,13 @@ function ResourceRow({ resource, state, readOnly, canRestore, onUpdateFields }) 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between', flexWrap: 'wrap' }}>
         <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{resource.label}</span>
         <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-          {[resource.meta, `${filled}/${safeMax}`].filter(Boolean).join(' • ')}
+          {[resource.meta, `${safeCurrent}/${safeMax}`].filter(Boolean).join(' • ')}
         </span>
       </div>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
         {Array.from({ length: safeMax }).map((_, i) => {
-          const active = i < filled;
+          const active = i < safeCurrent;
           return (
             <button
               key={i}

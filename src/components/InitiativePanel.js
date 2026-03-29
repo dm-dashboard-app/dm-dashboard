@@ -65,6 +65,259 @@ function nextZeroHpConditions(newHp, conditions = []) {
   return next;
 }
 
+function toInt(value, fallback = 0) {
+  const n = parseInt(value, 10);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function compactObject(obj) {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([, value]) => value !== undefined)
+  );
+}
+
+function findExistingKey(source, candidates = []) {
+  if (!source) return null;
+  for (const key of candidates) {
+    if (Object.prototype.hasOwnProperty.call(source, key)) return key;
+  }
+  return null;
+}
+
+function readNumberField(source, candidates = [], fallback = null) {
+  const key = findExistingKey(source, candidates);
+  if (!key) return fallback;
+  const raw = source[key];
+  if (raw === null || raw === undefined || raw === '') return fallback;
+  const n = parseInt(raw, 10);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function readBooleanField(source, candidates = [], fallback = null) {
+  const key = findExistingKey(source, candidates);
+  if (!key) return fallback;
+  const raw = source[key];
+  if (raw === null || raw === undefined) return fallback;
+  return !!raw;
+}
+
+function formatClassLine(entity = {}) {
+  const classPart = [entity.class_name, entity.subclass_name].filter(Boolean).join(' • ');
+  const levelPart = entity.class_level ? `Lv ${entity.class_level}` : '';
+  return [classPart, levelPart].filter(Boolean).join(' • ');
+}
+
+function getResourceConfig(profile = {}, state = {}) {
+  const className = (profile.class_name || combatantClassFromState(state) || '').toLowerCase();
+  const resources = [];
+
+  const hitDiceCurrentKey = findExistingKey(state, ['hit_dice_current', 'hit_dice_remaining']);
+  const hitDiceMaxKey = findExistingKey(state, ['hit_dice_max']);
+  const hitDieSize = readNumberField(state, ['hit_die_size'], readNumberField(profile, ['hit_die_size'], null));
+  if (hitDiceCurrentKey || hitDiceMaxKey || hitDieSize) {
+    resources.push({
+      id: 'hit-dice',
+      label: 'HD',
+      type: 'counter',
+      currentKey: hitDiceCurrentKey || 'hit_dice_current',
+      maxKey: hitDiceMaxKey || 'hit_dice_max',
+      meta: hitDieSize ? `d${hitDieSize}` : '',
+    });
+  }
+
+  if (profile.feat_lucky || findExistingKey(state, ['lucky_uses_current', 'lucky_uses_remaining', 'lucky_used'])) {
+    const luckyCurrentKey = findExistingKey(state, ['lucky_uses_current', 'lucky_uses_remaining']);
+    const luckyMaxKey = findExistingKey(state, ['lucky_uses_max']);
+    const luckyUsedKey = findExistingKey(state, ['lucky_used']);
+
+    if (luckyCurrentKey || luckyMaxKey) {
+      resources.push({
+        id: 'lucky',
+        label: 'Lucky',
+        type: 'pips',
+        currentKey: luckyCurrentKey || 'lucky_uses_current',
+        maxKey: luckyMaxKey || 'lucky_uses_max',
+      });
+    } else if (luckyUsedKey) {
+      resources.push({
+        id: 'lucky',
+        label: 'Lucky',
+        type: 'toggle',
+        boolKey: luckyUsedKey,
+      });
+    }
+  }
+
+  if (profile.feat_relentless_endurance || findExistingKey(state, ['relentless_endurance_used'])) {
+    resources.push({
+      id: 'relentless-endurance',
+      label: 'RE',
+      type: 'toggle',
+      boolKey: findExistingKey(state, ['relentless_endurance_used']) || 'relentless_endurance_used',
+      trueLabel: 'Used',
+      falseLabel: 'Ready',
+    });
+  }
+
+  const genericClassResources = [
+    {
+      id: 'bardic-inspiration',
+      match: ['bard'],
+      label: 'BI',
+      type: 'pips',
+      currentKeys: ['bardic_inspiration_current', 'bardic_inspiration_uses_current', 'bardic_inspiration_remaining'],
+      maxKeys: ['bardic_inspiration_max', 'bardic_inspiration_uses_max'],
+      meta: () => {
+        const die = readNumberField(state, ['bardic_inspiration_die_size'], readNumberField(profile, ['bardic_inspiration_die_size'], null));
+        return die ? `d${die}` : '';
+      },
+    },
+    {
+      id: 'ki',
+      match: ['monk'],
+      label: 'Ki',
+      type: 'counter',
+      currentKeys: ['ki_current', 'ki_points_current'],
+      maxKeys: ['ki_max', 'ki_points_max'],
+    },
+    {
+      id: 'channel-divinity',
+      match: ['cleric', 'paladin'],
+      label: 'CD',
+      type: 'pips',
+      currentKeys: ['channel_divinity_current', 'channel_divinity_uses_current'],
+      maxKeys: ['channel_divinity_max', 'channel_divinity_uses_max'],
+    },
+    {
+      id: 'rage',
+      match: ['barbarian'],
+      label: 'Rage',
+      type: 'pips',
+      currentKeys: ['rage_current', 'rage_uses_current', 'rages_current'],
+      maxKeys: ['rage_max', 'rage_uses_max', 'rages_max'],
+    },
+    {
+      id: 'sorcery-points',
+      match: ['sorcerer'],
+      label: 'SP',
+      type: 'counter',
+      currentKeys: ['sorcery_points_current'],
+      maxKeys: ['sorcery_points_max'],
+    },
+    {
+      id: 'second-wind',
+      match: ['fighter'],
+      label: 'SW',
+      type: 'toggle',
+      boolKeys: ['second_wind_used'],
+      trueLabel: 'Used',
+      falseLabel: 'Ready',
+    },
+    {
+      id: 'action-surge',
+      match: ['fighter'],
+      label: 'AS',
+      type: 'pips',
+      currentKeys: ['action_surge_current', 'action_surge_uses_current'],
+      maxKeys: ['action_surge_max', 'action_surge_uses_max'],
+    },
+    {
+      id: 'superiority-dice',
+      match: ['fighter'],
+      label: 'SD',
+      type: 'pips',
+      currentKeys: ['superiority_dice_current'],
+      maxKeys: ['superiority_dice_max'],
+      meta: () => {
+        const die = readNumberField(state, ['superiority_die_size'], readNumberField(profile, ['superiority_die_size'], null));
+        return die ? `d${die}` : '';
+      },
+    },
+    {
+      id: 'lay-on-hands',
+      match: ['paladin'],
+      label: 'LoH',
+      type: 'counter',
+      currentKeys: ['lay_on_hands_current'],
+      maxKeys: ['lay_on_hands_max'],
+    },
+    {
+      id: 'arcane-recovery',
+      match: ['wizard'],
+      label: 'AR',
+      type: 'toggle',
+      boolKeys: ['arcane_recovery_used'],
+      trueLabel: 'Used',
+      falseLabel: 'Ready',
+    },
+    {
+      id: 'natural-recovery',
+      match: ['druid'],
+      label: 'NR',
+      type: 'toggle',
+      boolKeys: ['natural_recovery_used'],
+      trueLabel: 'Used',
+      falseLabel: 'Ready',
+    },
+    {
+      id: 'warlock-slots',
+      match: ['warlock'],
+      label: 'W Slots',
+      type: 'pips',
+      currentKeys: ['warlock_slots_current', 'warlock_spell_slots_current'],
+      maxKeys: ['warlock_slots_max', 'warlock_spell_slots_max'],
+      meta: () => {
+        const lvl = readNumberField(state, ['warlock_slot_level'], readNumberField(profile, ['warlock_slot_level'], null));
+        return lvl ? `Lv ${lvl}` : '';
+      },
+    },
+  ];
+
+  genericClassResources.forEach(resource => {
+    const matchedByClass = resource.match.includes(className);
+    const matchedBySchema =
+      findExistingKey(state, resource.currentKeys || []) ||
+      findExistingKey(state, resource.maxKeys || []) ||
+      findExistingKey(state, resource.boolKeys || []);
+
+    if (!matchedByClass && !matchedBySchema) return;
+
+    if (resource.type === 'toggle') {
+      const boolKey = findExistingKey(state, resource.boolKeys || []);
+      if (!boolKey) return;
+      resources.push({
+        id: resource.id,
+        label: resource.label,
+        type: 'toggle',
+        boolKey,
+        trueLabel: resource.trueLabel || 'Used',
+        falseLabel: resource.falseLabel || 'Ready',
+        meta: resource.meta ? resource.meta() : '',
+      });
+      return;
+    }
+
+    const currentKey = findExistingKey(state, resource.currentKeys || []);
+    const maxKey = findExistingKey(state, resource.maxKeys || []);
+    if (!currentKey && !maxKey) return;
+
+    resources.push({
+      id: resource.id,
+      label: resource.label,
+      type: resource.type,
+      currentKey: currentKey || (resource.currentKeys || [])[0],
+      maxKey: maxKey || (resource.maxKeys || [])[0],
+      meta: resource.meta ? resource.meta() : '',
+    });
+  });
+
+  return resources;
+}
+
+function combatantClassFromState(state = {}) {
+  return state.class_name || state.subclass_name || '';
+}
+
 // ============================================================
 // MINI HP BAR
 // ============================================================
@@ -116,7 +369,7 @@ function LegendaryPips({ label, max, used, isDM, onSpend, onRestore, onReset, is
       </span>
       {isDM && isActive && (
         <button
-          onClick={onReset}
+          onClick={e => { e.stopPropagation(); onReset(); }}
           title="Reset (start of turn)"
           style={{ fontSize: 11, color: 'var(--accent-gold)', opacity: used === 0 ? 0.2 : 0.7, padding: '0 2px', cursor: used === 0 ? 'default' : 'pointer', background: 'none', border: 'none', transition: 'opacity 0.15s' }}
           disabled={used === 0}
@@ -234,6 +487,172 @@ function EnemySlotGrid({ combatant, onUpdate }) {
 }
 
 // ============================================================
+// PC RESOURCE SUMMARY
+// ============================================================
+function PcResourceSummary({ profile, state, isDM, onUpdate }) {
+  const resources = getResourceConfig(profile || {}, state || {});
+  if (resources.length === 0) return null;
+
+  async function updateResourceFields(updates) {
+    const payload = compactObject(updates);
+    if (!state?.id || Object.keys(payload).length === 0) return;
+    await supabase.from('player_encounter_state').update(payload).eq('id', state.id);
+    onUpdate();
+  }
+
+  return (
+    <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+      {resources.map(resource => (
+        <PcResourceChip
+          key={resource.id}
+          resource={resource}
+          state={state}
+          isDM={isDM}
+          onUpdateFields={updateResourceFields}
+        />
+      ))}
+    </div>
+  );
+}
+
+function PcResourceChip({ resource, state, isDM, onUpdateFields }) {
+  if (resource.type === 'toggle') {
+    const value = readBooleanField(state, [resource.boolKey], false);
+
+    async function toggle() {
+      if (!isDM) return;
+      await onUpdateFields({ [resource.boolKey]: !value });
+    }
+
+    return (
+      <button
+        type="button"
+        onClick={toggle}
+        disabled={!isDM}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 4,
+          padding: '2px 7px',
+          borderRadius: 999,
+          border: `1px solid ${value ? 'var(--accent-red)' : 'var(--accent-green)'}`,
+          background: value ? 'rgba(224,48,80,0.08)' : 'rgba(62,207,106,0.08)',
+          color: value ? 'var(--accent-red)' : 'var(--accent-green)',
+          fontSize: 10,
+          fontWeight: 700,
+          cursor: isDM ? 'pointer' : 'default',
+          opacity: isDM ? 1 : 0.95,
+        }}
+        title={resource.meta || undefined}
+      >
+        <span>{resource.label}</span>
+        <span>{value ? (resource.trueLabel || 'Used') : (resource.falseLabel || 'Ready')}</span>
+        {resource.meta ? <span style={{ color: 'var(--text-muted)' }}>• {resource.meta}</span> : null}
+      </button>
+    );
+  }
+
+  const current = readNumberField(state, [resource.currentKey], 0);
+  const max = readNumberField(state, [resource.maxKey], null);
+
+  if (resource.type === 'counter') {
+    async function adjust(delta) {
+      if (!isDM) return;
+      const upper = max ?? Math.max(current, 0);
+      const next = Math.max(0, Math.min(upper, current + delta));
+      if (next === current) return;
+      await onUpdateFields({ [resource.currentKey]: next });
+    }
+
+    return (
+      <div
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 4,
+          padding: '2px 7px',
+          borderRadius: 999,
+          border: '1px solid var(--border)',
+          background: 'var(--bg-panel-3)',
+          color: 'var(--text-primary)',
+          fontSize: 10,
+          fontWeight: 700,
+        }}
+        title={resource.meta || undefined}
+      >
+        <span>{resource.label}</span>
+        {isDM && (
+          <button
+            onClick={() => adjust(-1)}
+            style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0 }}
+          >−</button>
+        )}
+        <span>{current}{max !== null ? `/${max}` : ''}</span>
+        {resource.meta ? <span style={{ color: 'var(--text-muted)' }}>{resource.meta}</span> : null}
+        {isDM && (
+          <button
+            onClick={() => adjust(1)}
+            style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0 }}
+          >+</button>
+        )}
+      </div>
+    );
+  }
+
+  const safeMax = Math.max(0, max ?? current ?? 0);
+  const safeCurrent = Math.max(0, Math.min(safeMax, current ?? 0));
+
+  async function setPips(nextCurrent) {
+    if (!isDM) return;
+    const clamped = Math.max(0, Math.min(safeMax, nextCurrent));
+    await onUpdateFields({ [resource.currentKey]: clamped });
+  }
+
+  return (
+    <div
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 4,
+        padding: '2px 7px',
+        borderRadius: 999,
+        border: '1px solid var(--border)',
+        background: 'var(--bg-panel-3)',
+        color: 'var(--text-primary)',
+        fontSize: 10,
+        fontWeight: 700,
+      }}
+      title={resource.meta || undefined}
+    >
+      <span>{resource.label}</span>
+      <span style={{ display: 'inline-flex', gap: 3 }}>
+        {Array.from({ length: safeMax }).map((_, i) => {
+          const active = i < safeCurrent;
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => setPips(active ? i : i + 1)}
+              disabled={!isDM}
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: '50%',
+                padding: 0,
+                border: `1.5px solid ${active ? 'var(--accent-blue)' : 'var(--border-strong)'}`,
+                background: active ? 'var(--accent-blue)' : 'transparent',
+                cursor: isDM ? 'pointer' : 'default',
+              }}
+            />
+          );
+        })}
+      </span>
+      {resource.meta ? <span style={{ color: 'var(--text-muted)' }}>{resource.meta}</span> : null}
+    </div>
+  );
+}
+
+// ============================================================
 // MAIN PANEL
 // ============================================================
 export default function InitiativePanel({ encounter, combatants, playerStates = [], role, onUpdate, myCombatantId = null }) {
@@ -331,7 +750,6 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
   const isNonPC = isNPC || isEnemy;
   const conditions = combatant.conditions || [];
 
-  // PC state
   const pcHpCurrent   = playerState?.current_hp ?? null;
   const pcProfileMax  = playerState?.profiles_players?.max_hp ?? null;
   const pcMaxOverride = playerState?.max_hp_override ?? null;
@@ -356,16 +774,15 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
   const enemyReactionUsed = combatant.reaction_used ?? false;
 
   const showPcHp    = isPC && pcHpCurrent !== null && pcHpMax !== null;
-  // DM sees all non-PC HP; display sees NPC HP only (not enemy)
   const showNonPcHp = isNonPC && enemyHpCurrent !== null && enemyHpMax !== null
     && (isDM || (isDisplay && isNPC));
 
   const pcBloodied    = isPC && pcHpCurrent !== null && pcHpMax !== null && pcHpCurrent > 0 && pcHpCurrent <= Math.floor(pcHpMax / 2);
   const enemyBloodied = isNonPC && combatant.public_status === 'BLOODIED';
 
-  const laMax  = combatant.legendary_actions_max   ?? 0;
-  const laUsed = combatant.legendary_actions_used   ?? 0;
-  const lrMax  = combatant.legendary_resistances_max  ?? 0;
+  const laMax  = combatant.legendary_actions_max ?? 0;
+  const laUsed = combatant.legendary_actions_used ?? 0;
+  const lrMax  = combatant.legendary_resistances_max ?? 0;
   const lrUsed = combatant.legendary_resistances_used ?? 0;
   const hasLegendary = isNonPC && (laMax > 0 || lrMax > 0);
 
@@ -376,7 +793,10 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
   const rxUsed = isPC ? reactionUsed : enemyReactionUsed;
   const canToggleReaction = isDM || (!isDM && isPC && myCombatantId && combatant.id === myCombatantId);
 
-  // ---- Handlers ----
+  const pcProfile = playerState?.profiles_players || {};
+  const classLine = isPC ? formatClassLine(pcProfile) : formatClassLine(combatant);
+  const ancestryLine = isPC ? (pcProfile.ancestry_name || '') : '';
+  const miniMarker = combatant.mini_marker || '';
 
   async function saveInitiative() {
     if (savingRef.current) return;
@@ -433,12 +853,12 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
     if (!amount || amount <= 0) return;
     const oldHp = combatant.hp_current ?? 0;
     const newHp = Math.max(0, oldHp - amount);
-    const isBloodied = newHp > 0 && newHp <= Math.floor((combatant.hp_max ?? 0) / 2);
+    const isBloodiedNow = newHp > 0 && newHp <= Math.floor((combatant.hp_max ?? 0) / 2);
     const updatedConditions = nextZeroHpConditions(newHp, conditions);
 
     await supabase.from('combatants').update({
       hp_current: newHp,
-      public_status: isBloodied ? 'BLOODIED' : null,
+      public_status: isBloodiedNow ? 'BLOODIED' : null,
       conditions: updatedConditions,
     }).eq('id', combatant.id);
 
@@ -450,12 +870,12 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
     if (!amount || amount <= 0) return;
     const oldHp = combatant.hp_current ?? 0;
     const newHp = Math.min(combatant.hp_max ?? 999, oldHp + amount);
-    const isBloodied = newHp > 0 && newHp <= Math.floor((combatant.hp_max ?? 0) / 2);
+    const isBloodiedNow = newHp > 0 && newHp <= Math.floor((combatant.hp_max ?? 0) / 2);
     const updatedConditions = nextZeroHpConditions(newHp, conditions);
 
     await supabase.from('combatants').update({
       hp_current: newHp,
-      public_status: isBloodied ? 'BLOODIED' : null,
+      public_status: isBloodiedNow ? 'BLOODIED' : null,
       conditions: updatedConditions,
     }).eq('id', combatant.id);
 
@@ -568,14 +988,19 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
   return (
     <div className={`initiative-row ${isActive ? 'active-turn' : ''}`} style={{ display: 'block', padding: '8px 12px' }}>
 
-      {/* ---- Main header row ---- */}
       <div className="initiative-row-main" onClick={() => isDM && isNonPC && setExpanded(e => !e)}>
         {isDM && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1, marginRight: 2 }}>
-            <button style={{ fontSize: 9, lineHeight: 1, padding: '1px 3px', opacity: atTop ? 0.15 : 0.5, cursor: atTop ? 'default' : 'pointer', background: 'none', border: 'none', color: 'var(--text-secondary)' }}
-              onClick={e => { e.stopPropagation(); moveUp(); }} disabled={atTop}>▲</button>
-            <button style={{ fontSize: 9, lineHeight: 1, padding: '1px 3px', opacity: atBottom ? 0.15 : 0.5, cursor: atBottom ? 'default' : 'pointer', background: 'none', border: 'none', color: 'var(--text-secondary)' }}
-              onClick={e => { e.stopPropagation(); moveDown(); }} disabled={atBottom}>▼</button>
+            <button
+              style={{ fontSize: 9, lineHeight: 1, padding: '1px 3px', opacity: atTop ? 0.15 : 0.5, cursor: atTop ? 'default' : 'pointer', background: 'none', border: 'none', color: 'var(--text-secondary)' }}
+              onClick={e => { e.stopPropagation(); moveUp(); }}
+              disabled={atTop}
+            >▲</button>
+            <button
+              style={{ fontSize: 9, lineHeight: 1, padding: '1px 3px', opacity: atBottom ? 0.15 : 0.5, cursor: atBottom ? 'default' : 'pointer', background: 'none', border: 'none', color: 'var(--text-secondary)' }}
+              onClick={e => { e.stopPropagation(); moveDown(); }}
+              disabled={atBottom}
+            >▼</button>
           </div>
         )}
 
@@ -597,14 +1022,50 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
 
         <div className="initiative-name-block">
           <div className="initiative-title-line">
+            {miniMarker && (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minWidth: 22,
+                  height: 22,
+                  padding: '0 6px',
+                  borderRadius: 999,
+                  background: 'rgba(74,158,255,0.12)',
+                  border: '1px solid var(--accent-blue)',
+                  color: 'var(--accent-blue)',
+                  fontSize: 11,
+                  fontWeight: 800,
+                  flexShrink: 0,
+                }}
+                title="Mini marker"
+              >
+                {miniMarker}
+              </span>
+            )}
             <span className="initiative-name">{combatant.name}</span>
             <span className={`badge badge-${combatant.side.toLowerCase()}`}>{combatant.side}</span>
             {(enemyBloodied || pcBloodied) && <span className="badge badge-bloodied">BLOODIED</span>}
             {wsActive && <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3, background: '#1a3a1a', color: 'var(--accent-green)' }}>🐻 BEAST</span>}
           </div>
+
+          {(classLine || ancestryLine) && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, minWidth: 0 }}>
+              {classLine && (
+                <span style={{ fontSize: 10, color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {classLine}
+                </span>
+              )}
+              {ancestryLine && (
+                <span style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {ancestryLine}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Reaction pill */}
         <button
           className={`reaction-pill ${rxUsed ? 'reaction-pill--used' : 'reaction-pill--ready'} ${canToggleReaction ? 'reaction-pill--clickable' : ''}`}
           onClick={e => { e.stopPropagation(); toggleReaction(); }}
@@ -617,7 +1078,6 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
         {isDM && isNonPC && <span className="expand-toggle" style={{ marginLeft: 4 }}>{expanded ? '▲' : '▼'}</span>}
       </div>
 
-      {/* ---- HP bars ---- */}
       {(showPcHp || showNonPcHp) && (
         <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
           {isPC && wsActive && wsHpMax != null && (
@@ -627,7 +1087,6 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
           {showNonPcHp && (
             <MiniHpBar current={enemyHpCurrent} max={enemyHpMax} />
           )}
-          {/* NPC HP numbers on display screen */}
           {isDisplay && isNPC && showNonPcHp && (
             <div style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'right' }}>
               {enemyHpCurrent} / {enemyHpMax} HP
@@ -636,7 +1095,6 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
         </div>
       )}
 
-      {/* ---- PC row extras (DM) ---- */}
       {isPC && isDM && (
         <div style={{ marginTop: 4, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
           {passivePerception !== null && (
@@ -660,7 +1118,6 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
         </div>
       )}
 
-      {/* Concentration badge (non-DM) */}
       {isPC && !isDM && concentration && (
         <div style={{ marginTop: 4 }}>
           <span style={{ fontSize: 10, color: 'var(--accent-gold)', background: '#3a2e00', border: '1px solid var(--accent-gold)', borderRadius: 3, padding: '1px 5px' }}>
@@ -669,7 +1126,15 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
         </div>
       )}
 
-      {/* ---- Condition chips ---- */}
+      {isPC && playerState && (
+        <PcResourceSummary
+          profile={pcProfile}
+          state={playerState}
+          isDM={isDM}
+          onUpdate={onUpdate}
+        />
+      )}
+
       {displayConditions.length > 0 && (
         <div style={{ marginTop: 4, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
           {displayConditions.map(code => (
@@ -692,11 +1157,13 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
         </div>
       )}
 
-      {/* ---- DM condition picker on PC rows ---- */}
       {isDM && isPC && (
         <div style={{ marginTop: 4 }}>
-          <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }}
-            onClick={e => { e.stopPropagation(); setCondPickerOpen(p => !p); }}>
+          <button
+            className="btn btn-ghost"
+            style={{ fontSize: 11, padding: '2px 8px' }}
+            onClick={e => { e.stopPropagation(); setCondPickerOpen(p => !p); }}
+          >
             {condPickerOpen ? 'Close Conditions' : '+ Conditions'}
           </button>
           {condPickerOpen && (
@@ -714,7 +1181,6 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
         </div>
       )}
 
-      {/* ---- Legendary pips ---- */}
       {hasLegendary && (
         <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4, paddingLeft: 2 }}>
           {laMax > 0 && (
@@ -738,7 +1204,6 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
         </div>
       )}
 
-      {/* ---- CON check banner (DM flash) ---- */}
       {conDc !== null && (
         <div className="con-check-banner con-check-banner--dm" style={{ marginTop: 6 }}>
           <span className="con-check-label">🔮 CON SAVE</span>
@@ -746,14 +1211,12 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
         </div>
       )}
 
-      {/* ---- PC DMG/HEAL widget (DM only) ---- */}
       {isPC && isDM && showPcHp && (
         <div style={{ marginTop: 6 }}>
           <InlineDmgHeal onDamage={applyPcDamage} onHeal={applyPcHeal} />
         </div>
       )}
 
-      {/* ---- Enemy/NPC expanded panel (DM only) ---- */}
       {isDM && isNonPC && expanded && (
         <div className="monster-dm-controls">
 
@@ -763,6 +1226,21 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
               {combatant.hp_current} / {combatant.hp_max} HP
             </div>
           </div>
+
+          {(classLine || miniMarker) && (
+            <div style={{ marginBottom: 10, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {classLine && (
+                <span style={{ fontSize: 11, color: 'var(--text-secondary)', background: 'var(--bg-panel-3)', border: '1px solid var(--border)', borderRadius: 4, padding: '3px 7px' }}>
+                  {classLine}
+                </span>
+              )}
+              {miniMarker && (
+                <span style={{ fontSize: 11, color: 'var(--accent-blue)', background: 'rgba(74,158,255,0.10)', border: '1px solid var(--accent-blue)', borderRadius: 4, padding: '3px 7px', fontWeight: 700 }}>
+                  Mini {miniMarker}
+                </span>
+              )}
+            </div>
+          )}
 
           <EnemySlotGrid combatant={combatant} onUpdate={onUpdate} />
 
@@ -846,6 +1324,10 @@ function AddCombatantModal({ encounterId, onUpdate, onClose }) {
   const [hp, setHp]     = useState(10);
   const [mod, setMod]   = useState(0);
   const [side, setSide] = useState('ENEMY');
+  const [className, setClassName] = useState('');
+  const [subclassName, setSubclassName] = useState('');
+  const [classLevel, setClassLevel] = useState('');
+  const [miniMarker, setMiniMarker] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -872,25 +1354,26 @@ function AddCombatantModal({ encounterId, onUpdate, onClose }) {
   async function addFromTemplate(template) {
     if (adding) return;
     setAdding(true);
-    await supabase.from('combatants').insert({
-      encounter_id:               encounterId,
-      name:                       template.name,
-      side:                       template.side || 'ENEMY',
-      ac:                         template.ac,
-      hp_max:                     template.hp_max,
-      hp_current:                 template.hp_max,
-      initiative_mod:             template.initiative_mod || 0,
-      notes:                      template.notes || null,
-      mod_str:                    template.mod_str || 0,
-      mod_dex:                    template.mod_dex || 0,
-      mod_con:                    template.mod_con || 0,
-      mod_int:                    template.mod_int || 0,
-      mod_wis:                    template.mod_wis || 0,
-      mod_cha:                    template.mod_cha || 0,
-      resistances:                template.resistances || [],
-      immunities:                 template.immunities  || [],
-      legendary_actions_max:      template.legendary_actions_max  || 0,
-      legendary_resistances_max:  template.legendary_resistances_max || 0,
+
+    const basePayload = {
+      encounter_id: encounterId,
+      name: template.name,
+      side: template.side || 'ENEMY',
+      ac: template.ac,
+      hp_max: template.hp_max,
+      hp_current: template.hp_max,
+      initiative_mod: template.initiative_mod || 0,
+      notes: template.notes || null,
+      mod_str: template.mod_str || 0,
+      mod_dex: template.mod_dex || 0,
+      mod_con: template.mod_con || 0,
+      mod_int: template.mod_int || 0,
+      mod_wis: template.mod_wis || 0,
+      mod_cha: template.mod_cha || 0,
+      resistances: template.resistances || [],
+      immunities: template.immunities  || [],
+      legendary_actions_max: template.legendary_actions_max || 0,
+      legendary_resistances_max: template.legendary_resistances_max || 0,
       slots_max_1: template.slots_max_1 || 0,
       slots_max_2: template.slots_max_2 || 0,
       slots_max_3: template.slots_max_3 || 0,
@@ -900,7 +1383,22 @@ function AddCombatantModal({ encounterId, onUpdate, onClose }) {
       slots_max_7: template.slots_max_7 || 0,
       slots_max_8: template.slots_max_8 || 0,
       slots_max_9: template.slots_max_9 || 0,
+    };
+
+    const enrichedPayload = compactObject({
+      ...basePayload,
+      class_name: template.class_name || null,
+      subclass_name: template.subclass_name || null,
+      class_level: template.class_level != null ? toInt(template.class_level, 1) : null,
+      mini_marker: template.mini_marker || null,
     });
+
+    const attempt = await supabase.from('combatants').insert(enrichedPayload);
+    if (attempt.error) {
+      console.warn('Add combatant enriched insert failed, retrying with fallback payload.', attempt.error);
+      await supabase.from('combatants').insert(basePayload);
+    }
+
     setAdding(false);
     onUpdate();
     onClose();
@@ -909,15 +1407,31 @@ function AddCombatantModal({ encounterId, onUpdate, onClose }) {
   async function addManual() {
     if (!name.trim() || saving) return;
     setSaving(true);
-    await supabase.from('combatants').insert({
+
+    const basePayload = {
       encounter_id: encounterId,
       name: name.trim(),
       side,
-      ac: parseInt(ac),
-      hp_max: parseInt(hp),
-      hp_current: parseInt(hp),
-      initiative_mod: parseInt(mod),
+      ac: toInt(ac, 10),
+      hp_max: toInt(hp, 10),
+      hp_current: toInt(hp, 10),
+      initiative_mod: toInt(mod, 0),
+    };
+
+    const enrichedPayload = compactObject({
+      ...basePayload,
+      class_name: className.trim() || null,
+      subclass_name: subclassName.trim() || null,
+      class_level: classLevel !== '' ? toInt(classLevel, 1) : null,
+      mini_marker: miniMarker.trim() || null,
     });
+
+    const attempt = await supabase.from('combatants').insert(enrichedPayload);
+    if (attempt.error) {
+      console.warn('Manual add combatant enriched insert failed, retrying with fallback payload.', attempt.error);
+      await supabase.from('combatants').insert(basePayload);
+    }
+
     setSaving(false);
     onUpdate();
     onClose();
@@ -973,12 +1487,20 @@ function AddCombatantModal({ encounterId, onUpdate, onClose }) {
             <div className="add-combatant-template-list">
               {filteredTemplates.map(t => (
                 <div key={t.id} className="add-combatant-template-row">
-                  <div style={{ minWidth: 0 }}>
-                    <span className={`badge badge-${(t.side || 'enemy').toLowerCase()}`} style={{ marginRight: 6 }}>{t.side || 'ENEMY'}</span>
-                    <span style={{ fontSize: 13, fontWeight: 600 }}>{t.name}</span>
-                    <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>AC {t.ac} HP {t.hp_max}</span>
-                    {(t.legendary_actions_max > 0 || t.legendary_resistances_max > 0) && (
-                      <span style={{ fontSize: 10, color: 'var(--accent-gold)', marginLeft: 6 }}>★ Legendary</span>
+                  <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <div style={{ minWidth: 0 }}>
+                      <span className={`badge badge-${(t.side || 'enemy').toLowerCase()}`} style={{ marginRight: 6 }}>{t.side || 'ENEMY'}</span>
+                      {t.mini_marker && (
+                        <span style={{ marginRight: 6, color: 'var(--accent-blue)', fontSize: 11, fontWeight: 700 }}>[{t.mini_marker}]</span>
+                      )}
+                      <span style={{ fontSize: 13, fontWeight: 600 }}>{t.name}</span>
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>AC {t.ac} HP {t.hp_max}</span>
+                      {(t.legendary_actions_max > 0 || t.legendary_resistances_max > 0) && (
+                        <span style={{ fontSize: 10, color: 'var(--accent-gold)', marginLeft: 6 }}>★ Legendary</span>
+                      )}
+                    </div>
+                    {formatClassLine(t) && (
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{formatClassLine(t)}</div>
                     )}
                   </div>
                   <button
@@ -1020,6 +1542,26 @@ function AddCombatantModal({ encounterId, onUpdate, onClose }) {
                 <input className="form-input" type="number" value={mod} onChange={e => setMod(e.target.value)} />
               </div>
             </div>
+
+            <div className="form-row add-combatant-manual-grid">
+              <div className="form-group">
+                <label className="form-label">Class</label>
+                <input className="form-input" value={className} onChange={e => setClassName(e.target.value)} placeholder="e.g. Fighter" />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Subclass</label>
+                <input className="form-input" value={subclassName} onChange={e => setSubclassName(e.target.value)} placeholder="Optional" />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Level</label>
+                <input className="form-input" type="number" value={classLevel} onChange={e => setClassLevel(e.target.value)} placeholder="Optional" />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Mini Marker</label>
+                <input className="form-input" value={miniMarker} onChange={e => setMiniMarker(e.target.value)} placeholder="A / 1 / 🔴" maxLength={8} />
+              </div>
+            </div>
+
             <div className="form-row" style={{ flexWrap: 'wrap' }}>
               <button className="btn btn-primary" onClick={addManual} disabled={saving || !name.trim()}>
                 {saving ? 'Adding…' : 'Add'}
