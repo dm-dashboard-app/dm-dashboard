@@ -32,8 +32,36 @@ const HIT_DIE_BY_CLASS = {
   Wizard: 6,
 };
 
-function defaultHitDieForClass(className) {
-  return HIT_DIE_BY_CLASS[className] || 8;
+function defaultHitDieForClasses(primaryClass, secondaryClass) {
+  const primary = HIT_DIE_BY_CLASS[primaryClass] || 0;
+  const secondary = HIT_DIE_BY_CLASS[secondaryClass] || 0;
+  return Math.max(primary, secondary, 8);
+}
+
+function classSummary(entity = {}) {
+  const parts = [];
+
+  if (entity.class_name) {
+    parts.push(
+      [
+        entity.class_name,
+        entity.class_level ? entity.class_level : null,
+        entity.subclass_name ? `— ${entity.subclass_name}` : null,
+      ].filter(Boolean).join(' ')
+    );
+  }
+
+  if (entity.class_name_2) {
+    parts.push(
+      [
+        entity.class_name_2,
+        entity.class_level_2 ? entity.class_level_2 : null,
+        entity.subclass_name_2 ? `— ${entity.subclass_name_2}` : null,
+      ].filter(Boolean).join(' ')
+    );
+  }
+
+  return parts.join(' / ');
 }
 
 export default function ManagementScreens({
@@ -240,9 +268,9 @@ function PlayerProfileManager() {
         <div key={p.id} className="manage-row">
           <span>
             <strong>{p.name}</strong>
-            {p.class_name ? (
+            {classSummary(p) ? (
               <span style={{ color: 'var(--text-secondary)', marginLeft: 8, fontSize: 12 }}>
-                {p.class_name}{p.class_level ? ` ${p.class_level}` : ''}{p.subclass_name ? ` — ${p.subclass_name}` : ''}
+                {classSummary(p)}
               </span>
             ) : null}
           </span>
@@ -268,6 +296,9 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
     class_name: '',
     subclass_name: '',
     class_level: 1,
+    class_name_2: '',
+    subclass_name_2: '',
+    class_level_2: 0,
     ancestry_name: '',
     feat_lucky: false,
     feat_relentless_endurance: false,
@@ -288,10 +319,10 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
 
   useEffect(() => {
-    if (!initial?.id && f.class_name && (!f.hit_die_size || f.hit_die_size === 0)) {
-      set('hit_die_size', defaultHitDieForClass(f.class_name));
+    if (!initial?.id && (f.class_name || f.class_name_2) && (!f.hit_die_size || f.hit_die_size === 0)) {
+      set('hit_die_size', defaultHitDieForClasses(f.class_name, f.class_name_2));
     }
-  }, [f.class_name]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [f.class_name, f.class_name_2]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handlePortraitUpload(e) {
     const file = e.target.files?.[0];
@@ -317,28 +348,51 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
       <Field label="Name"><input className="form-input" value={f.name} onChange={e => set('name', e.target.value)} /></Field>
 
       <div className="panel-title" style={{ marginTop: 12 }}>Class & Identity</div>
-      <Field label="Class">
+
+      <Field label="Primary Class">
         <SelectField
           value={f.class_name}
           onChange={v => {
             set('class_name', v);
-            if (!f.hit_die_size || f.hit_die_size === 0) set('hit_die_size', defaultHitDieForClass(v));
+            if (!f.hit_die_size || f.hit_die_size === 0) {
+              set('hit_die_size', defaultHitDieForClasses(v, f.class_name_2));
+            }
           }}
           options={CLASS_OPTIONS}
         />
       </Field>
-      <Field label="Subclass"><input className="form-input" value={f.subclass_name || ''} onChange={e => set('subclass_name', e.target.value)} /></Field>
-      <Field label="Level"><NumInput value={f.class_level ?? 1} onChange={v => set('class_level', v || 1)} /></Field>
+      <Field label="Primary Subclass"><input className="form-input" value={f.subclass_name || ''} onChange={e => set('subclass_name', e.target.value)} /></Field>
+      <Field label="Primary Level"><NumInput value={f.class_level ?? 1} onChange={v => set('class_level', v || 1)} /></Field>
+
+      <Field label="Secondary Class">
+        <SelectField
+          value={f.class_name_2}
+          onChange={v => {
+            set('class_name_2', v);
+            if (!v) {
+              set('subclass_name_2', '');
+              set('class_level_2', 0);
+            }
+            if (!f.hit_die_size || f.hit_die_size === 0) {
+              set('hit_die_size', defaultHitDieForClasses(f.class_name, v));
+            }
+          }}
+          options={CLASS_OPTIONS}
+        />
+      </Field>
+      <Field label="Secondary Subclass"><input className="form-input" value={f.subclass_name_2 || ''} onChange={e => set('subclass_name_2', e.target.value)} /></Field>
+      <Field label="Secondary Level"><NumInput value={f.class_level_2 ?? 0} onChange={v => set('class_level_2', v)} /></Field>
+
       <Field label="Ancestry / Heritage"><input className="form-input" value={f.ancestry_name || ''} onChange={e => set('ancestry_name', e.target.value)} /></Field>
 
       <div className="form-row" style={{ flexWrap: 'wrap' }}>
         <div className="form-group" style={{ flex: 1 }}>
           <label className="form-label">Hit Die Size</label>
-          <NumInput value={f.hit_die_size ?? defaultHitDieForClass(f.class_name)} onChange={v => set('hit_die_size', v)} />
+          <NumInput value={f.hit_die_size ?? defaultHitDieForClasses(f.class_name, f.class_name_2)} onChange={v => set('hit_die_size', v)} />
         </div>
         <div className="form-group" style={{ flex: 1 }}>
           <label className="form-label">Hit Dice Max</label>
-          <NumInput value={f.hit_dice_max ?? f.class_level ?? 1} onChange={v => set('hit_dice_max', v)} />
+          <NumInput value={f.hit_dice_max ?? ((f.class_level || 0) + (f.class_level_2 || 0) || 1)} onChange={v => set('hit_dice_max', v)} />
         </div>
       </div>
 
@@ -464,9 +518,9 @@ function MonsterTemplateManager() {
             {m.name}
             {m.mini_marker ? <span style={{ marginLeft: 6, fontSize: 12, color: 'var(--accent-gold)' }}>• {m.mini_marker}</span> : null}
             <span style={{ color: 'var(--text-secondary)', marginLeft: 6 }}>AC {m.ac}, HP {m.hp_max}</span>
-            {m.class_name ? (
+            {classSummary(m) ? (
               <span style={{ color: 'var(--text-secondary)', marginLeft: 6, fontSize: 12 }}>
-                {m.class_name}{m.class_level ? ` ${m.class_level}` : ''}{m.subclass_name ? ` — ${m.subclass_name}` : ''}
+                {classSummary(m)}
               </span>
             ) : null}
             {(m.legendary_actions_max > 0 || m.legendary_resistances_max > 0) && (
@@ -498,6 +552,9 @@ function MonsterForm({ initial, onSave, onCancel }) {
     class_name: '',
     subclass_name: '',
     class_level: 1,
+    class_name_2: '',
+    subclass_name_2: '',
+    class_level_2: 0,
     mini_marker: '',
     mod_str: 0, mod_dex: 0, mod_con: 0, mod_int: 0, mod_wis: 0, mod_cha: 0,
     resistances: [],
@@ -542,9 +599,20 @@ function MonsterForm({ initial, onSave, onCancel }) {
       <Field label="Name"><input className="form-input" value={f.name} onChange={e => set('name', e.target.value)} /></Field>
 
       <div className="panel-title" style={{ marginTop: 12 }}>Class & Marker</div>
-      <Field label="Class"><SelectField value={f.class_name} onChange={v => set('class_name', v)} options={CLASS_OPTIONS} /></Field>
-      <Field label="Subclass"><input className="form-input" value={f.subclass_name || ''} onChange={e => set('subclass_name', e.target.value)} /></Field>
-      <Field label="Level"><NumInput value={f.class_level ?? 1} onChange={v => set('class_level', v || 1)} /></Field>
+      <Field label="Primary Class"><SelectField value={f.class_name} onChange={v => set('class_name', v)} options={CLASS_OPTIONS} /></Field>
+      <Field label="Primary Subclass"><input className="form-input" value={f.subclass_name || ''} onChange={e => set('subclass_name', e.target.value)} /></Field>
+      <Field label="Primary Level"><NumInput value={f.class_level ?? 1} onChange={v => set('class_level', v || 1)} /></Field>
+
+      <Field label="Secondary Class"><SelectField value={f.class_name_2} onChange={v => {
+        set('class_name_2', v);
+        if (!v) {
+          set('subclass_name_2', '');
+          set('class_level_2', 0);
+        }
+      }} options={CLASS_OPTIONS} /></Field>
+      <Field label="Secondary Subclass"><input className="form-input" value={f.subclass_name_2 || ''} onChange={e => set('subclass_name_2', e.target.value)} /></Field>
+      <Field label="Secondary Level"><NumInput value={f.class_level_2 ?? 0} onChange={v => set('class_level_2', v)} /></Field>
+
       <Field label="Mini Marker"><input className="form-input" value={f.mini_marker || ''} onChange={e => set('mini_marker', e.target.value.slice(0, 12))} placeholder="A, B, 1, red dot, etc." /></Field>
 
       <Field label="AC"><NumInput value={f.ac} onChange={v => set('ac', v)} /></Field>
