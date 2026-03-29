@@ -72,15 +72,18 @@ function getClassEntries(profile = {}) {
   return entries;
 }
 
+function formatSingleClassEntry(entry) {
+  if (!entry) return '';
+  const classPart = [entry.displayClass, entry.subclassName].filter(Boolean).join(' • ');
+  const levelPart = entry.level ? `Level ${entry.level}` : '';
+  return [classPart, levelPart].filter(Boolean).join(' • ');
+}
+
 function getPlayerHeaderLines(profile = {}) {
   const classEntries = getClassEntries(profile);
 
   const classLine = classEntries
-    .map(entry => {
-      const left = [entry.displayClass, entry.subclassName].filter(Boolean).join(' • ');
-      const levelPart = entry.level ? `Level ${entry.level}` : '';
-      return [left, levelPart].filter(Boolean).join(' • ');
-    })
+    .map(formatSingleClassEntry)
     .filter(Boolean)
     .join(' / ');
 
@@ -327,6 +330,7 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   const passivePerception = profile ? (10 + (profile.skill_perception ?? 0)) : null;
 
   const { classLine, ancestryLine } = getPlayerHeaderLines(profile || {});
+  const classEntries = getClassEntries(profile || {});
   const resourceConfigs = getResourceConfig(profile || {}, state || {});
 
   useEffect(() => { setLocalHp(null); }, [dbHp]);
@@ -547,8 +551,20 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
         </div>
 
         {(classLine || ancestryLine) && (
-          <div className="player-class-line" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {classLine && (
+          <div className="player-class-line" style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {classEntries.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {classEntries.map((entry, index) => (
+                  <span
+                    key={`${entry.displayClass}-${index}`}
+                    style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 }}
+                  >
+                    {formatSingleClassEntry(entry)}
+                  </span>
+                ))}
+              </div>
+            )}
+            {!classEntries.length && classLine && (
               <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 }}>
                 {classLine}
               </span>
