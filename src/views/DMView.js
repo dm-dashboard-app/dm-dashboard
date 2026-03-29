@@ -238,148 +238,90 @@ function ShortRestModal({ open, playerStates, encounterId, onClose, onComplete }
   if (!open) return null;
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 1200,
-        background: 'rgba(5, 10, 18, 0.78)',
-        display: 'flex',
-        alignItems: 'flex-end',
-        justifyContent: 'center',
-        padding: 12,
-      }}
-      onClick={onClose}
-    >
-      <div
-        className="panel"
-        style={{
-          width: '100%',
-          maxWidth: 760,
-          maxHeight: '88vh',
-          overflowY: 'auto',
-          borderRadius: 16,
-          border: '1px solid var(--border-strong)',
-          background: 'var(--bg-panel-2)',
-          boxShadow: '0 20px 50px rgba(0,0,0,0.45)',
-          padding: 14,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 12,
-        }}
-        onClick={e => e.stopPropagation()}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <div className="panel-title" style={{ margin: 0 }}>Short Rest</div>
-            <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-              Enter each player&apos;s total healing rolled. Hit dice spend is optional but supported when tracked.
+    <div className="rest-modal-overlay" onClick={onClose}>
+      <div className="rest-modal-panel" onClick={e => e.stopPropagation()}>
+        <div className="rest-modal">
+          <div className="rest-modal-header">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div className="panel-title" style={{ margin: 0 }}>Short Rest</div>
+              <div className="rest-modal-subtitle">
+                Enter each player&apos;s total healing rolled. Hit dice spend is optional but supported when tracked.
+              </div>
             </div>
+            <button className="btn btn-ghost" onClick={onClose} disabled={submitting}>Close</button>
           </div>
-          <button className="btn btn-ghost" onClick={onClose} disabled={submitting}>Close</button>
-        </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {rows.length === 0 && (
-            <div className="empty-state">No player states found for this encounter.</div>
-          )}
+          <div className="rest-modal-body">
+            {rows.length === 0 && (
+              <div className="empty-state">No player states found for this encounter.</div>
+            )}
 
-          {rows.map(row => {
-            const draft = drafts[row.state.id] || { heal: '', spend: '' };
-            const healPreview = Math.max(0, parseInt(draft.heal, 10) || 0);
-            const previewHp = Math.min(row.maxHp, row.currentHp + healPreview);
+            {rows.map(row => {
+              const draft = drafts[row.state.id] || { heal: '', spend: '' };
+              const healPreview = Math.max(0, parseInt(draft.heal, 10) || 0);
+              const previewHp = Math.min(row.maxHp, row.currentHp + healPreview);
 
-            return (
-              <div
-                key={row.state.id}
-                style={{
-                  border: '1px solid var(--border)',
-                  borderRadius: 12,
-                  background: 'var(--bg-panel-3)',
-                  padding: 10,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 10,
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>{row.name}</span>
-                    <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                      HP {row.currentHp} / {row.maxHp}
-                      {healPreview > 0 ? ` → ${previewHp} / ${row.maxHp}` : ''}
-                    </span>
+              return (
+                <div key={row.state.id} className="rest-modal-player-card">
+                  <div className="rest-modal-player-header">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      <span className="rest-modal-player-name">{row.name}</span>
+                      <span className="rest-modal-player-meta">
+                        HP {row.currentHp} / {row.maxHp}
+                        {healPreview > 0 ? ` → ${previewHp} / ${row.maxHp}` : ''}
+                      </span>
+                    </div>
+
+                    {row.hitDiceCurrent !== null && (
+                      <span className="rest-modal-hit-dice">
+                        Hit Dice {row.hitDiceCurrent}{row.hitDiceMax !== null ? ` / ${row.hitDiceMax}` : ''}{row.hitDieSize ? ` • d${row.hitDieSize}` : ''}
+                      </span>
+                    )}
                   </div>
 
-                  {row.hitDiceCurrent !== null && (
-                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                      Hit Dice {row.hitDiceCurrent}{row.hitDiceMax !== null ? ` / ${row.hitDiceMax}` : ''}{row.hitDieSize ? ` • d${row.hitDieSize}` : ''}
-                    </span>
-                  )}
-                </div>
-
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <label style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: '1 1 150px' }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                      Healing Applied
-                    </span>
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      min={0}
-                      value={draft.heal}
-                      onChange={e => updateDraft(row.state.id, 'heal', e.target.value)}
-                      placeholder="0"
-                      style={{
-                        minHeight: 40,
-                        borderRadius: 10,
-                        border: '1px solid var(--border-strong)',
-                        background: 'var(--bg-panel)',
-                        color: 'var(--text-primary)',
-                        padding: '0 10px',
-                        fontSize: 14,
-                      }}
-                    />
-                  </label>
-
-                  {row.hitDiceCurrent !== null && (
-                    <label style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: '1 1 150px' }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                        Hit Dice Spent
-                      </span>
+                  <div className="rest-modal-grid">
+                    <label className="rest-modal-field">
+                      <span className="rest-modal-label">Healing Applied</span>
                       <input
+                        className="rest-modal-input"
                         type="number"
                         inputMode="numeric"
                         min={0}
-                        max={row.hitDiceCurrent}
-                        value={draft.spend}
-                        onChange={e => updateDraft(row.state.id, 'spend', e.target.value)}
+                        value={draft.heal}
+                        onChange={e => updateDraft(row.state.id, 'heal', e.target.value)}
                         placeholder="0"
-                        style={{
-                          minHeight: 40,
-                          borderRadius: 10,
-                          border: '1px solid var(--border-strong)',
-                          background: 'var(--bg-panel)',
-                          color: 'var(--text-primary)',
-                          padding: '0 10px',
-                          fontSize: 14,
-                        }}
                       />
                     </label>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
 
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-          <button className="btn btn-ghost" onClick={onClose} disabled={submitting}>
-            Cancel
-          </button>
-          <button className="btn btn-primary" onClick={handleApplyShortRest} disabled={submitting}>
-            {submitting ? 'Applying…' : 'Apply Short Rest'}
-          </button>
+                    {row.hitDiceCurrent !== null && (
+                      <label className="rest-modal-field">
+                        <span className="rest-modal-label">Hit Dice Spent</span>
+                        <input
+                          className="rest-modal-input"
+                          type="number"
+                          inputMode="numeric"
+                          min={0}
+                          max={row.hitDiceCurrent}
+                          value={draft.spend}
+                          onChange={e => updateDraft(row.state.id, 'spend', e.target.value)}
+                          placeholder="0"
+                        />
+                      </label>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="rest-modal-actions">
+            <button className="btn btn-ghost" onClick={onClose} disabled={submitting}>
+              Cancel
+            </button>
+            <button className="btn btn-primary" onClick={handleApplyShortRest} disabled={submitting}>
+              {submitting ? 'Applying…' : 'Apply Short Rest'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
