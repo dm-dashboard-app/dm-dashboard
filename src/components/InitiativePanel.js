@@ -228,6 +228,7 @@ export default function InitiativePanel({ encounter, combatants, playerStates = 
   const isDisplay = role === 'display';
   const sorted    = sortCombatants(combatants);
   const activeTurnIndex = encounter?.turn_index ?? 0;
+  const [showAddCombatant, setShowAddCombatant] = useState(false);
 
   return (
     <div className="panel">
@@ -253,10 +254,19 @@ export default function InitiativePanel({ encounter, combatants, playerStates = 
           );
         })}
       </div>
+
       {isDM && encounter && (
         <div style={{ marginTop: 12 }}>
-          <AddCombatantInline encounterId={encounter.id} onUpdate={onUpdate} />
+          <button className="btn btn-ghost" onClick={() => setShowAddCombatant(true)}>+ Add Combatant</button>
         </div>
+      )}
+
+      {isDM && encounter && showAddCombatant && (
+        <AddCombatantModal
+          encounterId={encounter.id}
+          onUpdate={onUpdate}
+          onClose={() => setShowAddCombatant(false)}
+        />
       )}
     </div>
   );
@@ -785,14 +795,13 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
 }
 
 // ============================================================
-// ADD COMBATANT INLINE
+// ADD COMBATANT MODAL
 // ============================================================
-function AddCombatantInline({ encounterId, onUpdate }) {
-  const [open, setOpen]             = useState(false);
-  const [mode, setMode]             = useState('template');
-  const [templates, setTemplates]   = useState([]);
+function AddCombatantModal({ encounterId, onUpdate, onClose }) {
+  const [mode, setMode] = useState('template');
+  const [templates, setTemplates] = useState([]);
   const [templateFilter, setTemplateFilter] = useState('ALL');
-  const [adding, setAdding]         = useState(false);
+  const [adding, setAdding] = useState(false);
 
   const [name, setName] = useState('');
   const [ac, setAc]     = useState(10);
@@ -802,12 +811,28 @@ function AddCombatantInline({ encounterId, onUpdate }) {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (open && mode === 'template') {
+    if (mode === 'template') {
       supabase.from('profiles_monsters').select('*').order('name').then(({ data }) => setTemplates(data || []));
     }
-  }, [open, mode]);
+  }, [mode]);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    function handleKeyDown(e) {
+      if (e.key === 'Escape') onClose();
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onClose]);
 
   async function addFromTemplate(template) {
+    if (adding) return;
     setAdding(true);
     await supabase.from('combatants').insert({
       encounter_id:               encounterId,
@@ -840,97 +865,132 @@ function AddCombatantInline({ encounterId, onUpdate }) {
     });
     setAdding(false);
     onUpdate();
+    onClose();
   }
 
   async function addManual() {
-    if (!name.trim()) return;
+    if (!name.trim() || saving) return;
     setSaving(true);
     await supabase.from('combatants').insert({
       encounter_id: encounterId,
-      name: name.trim(), side,
-      ac: parseInt(ac), hp_max: parseInt(hp), hp_current: parseInt(hp),
+      name: name.trim(),
+      side,
+      ac: parseInt(ac),
+      hp_max: parseInt(hp),
+      hp_current: parseInt(hp),
       initiative_mod: parseInt(mod),
     });
-    setName(''); setAc(10); setHp(10); setMod(0);
     setSaving(false);
     onUpdate();
+    onClose();
   }
-
-  if (!open) return <button className="btn btn-ghost" onClick={() => setOpen(true)}>+ Add Combatant</button>;
 
   const filteredTemplates = templateFilter === 'ALL' ? templates : templates.filter(t => t.side === templateFilter);
 
   return (
-    <div className="add-combatant-form">
-      <div style={{ display: 'flex', gap: 8 }}>
-        <button className="btn btn-ghost" style={{ flex: 1, borderColor: mode === 'template' ? 'var(--accent-blue)' : 'var(--border)', color: mode === 'template' ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
-          onClick={() => setMode('template')}>From Template</button>
-        <button className="btn btn-ghost" style={{ flex: 1, borderColor: mode === 'manual' ? 'var(--accent-blue)' : 'var(--border)', color: mode === 'manual' ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
-          onClick={() => setMode('manual')}>Manual</button>
-        <button className="btn btn-ghost btn-icon" onClick={() => setOpen(false)}>✕</button>
-      </div>
-
-      {mode === 'template' && (
-        <>
-          <div style={{ display: 'flex', gap: 6 }}>
-            {['ALL','ENEMY','NPC'].map(f => (
-              <button key={f} className="btn btn-ghost"
-                style={{ fontSize: 11, padding: '2px 8px', borderColor: templateFilter === f ? 'var(--accent-blue)' : 'var(--border)', color: templateFilter === f ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
-                onClick={() => setTemplateFilter(f)}>{f}</button>
-            ))}
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-panel add-combatant-modal" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <div>
+            <div className="panel-title" style={{ marginBottom: 4 }}>Add Combatant</div>
+            <div className="modal-subtitle">Add from template or enter a manual combatant.</div>
           </div>
-          {templates.length === 0 && <div className="empty-state">No templates yet. Add them in Manage.</div>}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 240, overflowY: 'auto' }}>
-            {filteredTemplates.map(t => (
-              <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-panel-2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '6px 10px' }}>
-                <div>
-                  <span className={`badge badge-${(t.side || 'enemy').toLowerCase()}`} style={{ marginRight: 6 }}>{t.side || 'ENEMY'}</span>
-                  <span style={{ fontSize: 13, fontWeight: 600 }}>{t.name}</span>
-                  <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>AC {t.ac} HP {t.hp_max}</span>
-                  {(t.legendary_actions_max > 0 || t.legendary_resistances_max > 0) && (
-                    <span style={{ fontSize: 10, color: 'var(--accent-gold)', marginLeft: 6 }}>★ Legendary</span>
-                  )}
+          <button className="btn btn-ghost btn-icon" onClick={onClose} aria-label="Close add combatant">✕</button>
+        </div>
+
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            className="btn btn-ghost"
+            style={{ flex: 1, borderColor: mode === 'template' ? 'var(--accent-blue)' : 'var(--border)', color: mode === 'template' ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
+            onClick={() => setMode('template')}
+          >
+            From Template
+          </button>
+          <button
+            className="btn btn-ghost"
+            style={{ flex: 1, borderColor: mode === 'manual' ? 'var(--accent-blue)' : 'var(--border)', color: mode === 'manual' ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
+            onClick={() => setMode('manual')}
+          >
+            Manual
+          </button>
+        </div>
+
+        {mode === 'template' && (
+          <>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {['ALL','ENEMY','NPC'].map(f => (
+                <button
+                  key={f}
+                  className="btn btn-ghost"
+                  style={{ fontSize: 11, padding: '2px 8px', borderColor: templateFilter === f ? 'var(--accent-blue)' : 'var(--border)', color: templateFilter === f ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
+                  onClick={() => setTemplateFilter(f)}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+
+            {templates.length === 0 && <div className="empty-state">No templates yet. Add them in Manage.</div>}
+
+            <div className="add-combatant-template-list">
+              {filteredTemplates.map(t => (
+                <div key={t.id} className="add-combatant-template-row">
+                  <div style={{ minWidth: 0 }}>
+                    <span className={`badge badge-${(t.side || 'enemy').toLowerCase()}`} style={{ marginRight: 6 }}>{t.side || 'ENEMY'}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600 }}>{t.name}</span>
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>AC {t.ac} HP {t.hp_max}</span>
+                    {(t.legendary_actions_max > 0 || t.legendary_resistances_max > 0) && (
+                      <span style={{ fontSize: 10, color: 'var(--accent-gold)', marginLeft: 6 }}>★ Legendary</span>
+                    )}
+                  </div>
+                  <button
+                    className="btn btn-primary btn-icon"
+                    onClick={() => addFromTemplate(t)}
+                    disabled={adding}
+                    style={{ fontSize: 16, minWidth: 32, minHeight: 32 }}
+                  >
+                    +
+                  </button>
                 </div>
-                <button className="btn btn-primary btn-icon" onClick={() => addFromTemplate(t)} disabled={adding} style={{ fontSize: 16, minWidth: 32, minHeight: 32 }}>+</button>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
+              ))}
+            </div>
+          </>
+        )}
 
-      {mode === 'manual' && (
-        <>
-          <input className="form-input" placeholder="Name" value={name} onChange={e => setName(e.target.value)} />
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Side</label>
-              <select className="form-input" value={side} onChange={e => setSide(e.target.value)}>
-                <option value="ENEMY">Enemy</option>
-                <option value="NPC">NPC</option>
-                <option value="PC">PC</option>
-              </select>
+        {mode === 'manual' && (
+          <>
+            <input className="form-input" placeholder="Name" value={name} onChange={e => setName(e.target.value)} />
+            <div className="form-row add-combatant-manual-grid">
+              <div className="form-group">
+                <label className="form-label">Side</label>
+                <select className="form-input" value={side} onChange={e => setSide(e.target.value)}>
+                  <option value="ENEMY">Enemy</option>
+                  <option value="NPC">NPC</option>
+                  <option value="PC">PC</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">AC</label>
+                <input className="form-input" type="number" value={ac} onChange={e => setAc(e.target.value)} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">HP</label>
+                <input className="form-input" type="number" value={hp} onChange={e => setHp(e.target.value)} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Init Mod</label>
+                <input className="form-input" type="number" value={mod} onChange={e => setMod(e.target.value)} />
+              </div>
             </div>
-            <div className="form-group">
-              <label className="form-label">AC</label>
-              <input className="form-input" type="number" value={ac} onChange={e => setAc(e.target.value)} />
+            <div className="form-row" style={{ flexWrap: 'wrap' }}>
+              <button className="btn btn-primary" onClick={addManual} disabled={saving || !name.trim()}>
+                {saving ? 'Adding…' : 'Add'}
+              </button>
+              <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
             </div>
-            <div className="form-group">
-              <label className="form-label">HP</label>
-              <input className="form-input" type="number" value={hp} onChange={e => setHp(e.target.value)} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Init Mod</label>
-              <input className="form-input" type="number" value={mod} onChange={e => setMod(e.target.value)} />
-            </div>
-          </div>
-          <div className="form-row">
-            <button className="btn btn-primary" onClick={addManual} disabled={saving || !name.trim()}>
-              {saving ? 'Adding…' : 'Add'}
-            </button>
-            <button className="btn btn-ghost" onClick={() => setOpen(false)}>Cancel</button>
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
