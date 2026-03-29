@@ -16,9 +16,9 @@ function flattenStates(data) {
 }
 
 // ============================================================
-// COMPACT RECENT ROLLS STRIP
+// RECENT ROLLS STRIP
 // ============================================================
-function RecentRollsStrip({ encounterId }) {
+function RecentRollsStrip({ encounterId, expanded, onToggle }) {
   const [rolls, setRolls] = useState([]);
 
   const load = useCallback(async () => {
@@ -34,42 +34,72 @@ function RecentRollsStrip({ encounterId }) {
 
   usePolling(load, 2000, !!encounterId);
 
+  const latest = rolls[0];
+
   return (
-    <div className="panel" style={{ padding: '10px 14px' }}>
-      <div className="panel-title" style={{ marginBottom: 6 }}>Recent Secret Rolls</div>
-      {rolls.length === 0 ? (
-        <div className="empty-state">No secret rolls yet this encounter.</div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-          {rolls.map(r => (
-            <div key={r.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13 }}>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center', minWidth: 0 }}>
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {r.profiles_players?.name || 'Unknown'}
-                </span>
-                <span style={{ color: 'var(--accent-gold)', fontSize: 11, textTransform: 'capitalize', flexShrink: 0 }}>
-                  {r.skill}
-                </span>
-                <span style={{ color: 'var(--text-muted)', fontSize: 11, flexShrink: 0 }}>
-                  {new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              </div>
-              <div style={{ display: 'flex', gap: 6, alignItems: 'baseline', flexShrink: 0, marginLeft: 8 }}>
-                <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--accent-blue)' }}>{r.total}</span>
-                <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>({r.d20_roll}+{r.skill_bonus})</span>
-              </div>
-            </div>
-          ))}
+    <button
+      type="button"
+      className={`dm-bottom-strip ${expanded ? 'expanded' : ''}`}
+      onClick={onToggle}
+      aria-expanded={expanded}
+    >
+      <div className="dm-bottom-strip-header">
+        <span className="dm-bottom-strip-title">Recent Secret Rolls</span>
+        <span className="dm-bottom-strip-toggle">{expanded ? 'Hide' : 'Show'}</span>
+      </div>
+
+      {!expanded && (
+        <div className="dm-bottom-strip-summary">
+          {latest ? (
+            <>
+              <span className="dm-bottom-strip-summary-name">{latest.profiles_players?.name || 'Unknown'}</span>
+              <span className="dm-bottom-strip-summary-meta">{latest.skill}</span>
+              <span className="dm-bottom-strip-summary-meta">
+                {new Date(latest.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
+              <span className="dm-bottom-strip-summary-value">{latest.total}</span>
+            </>
+          ) : (
+            <span className="dm-bottom-strip-summary-empty">No secret rolls yet.</span>
+          )}
         </div>
       )}
-    </div>
+
+      {expanded && (
+        <div className="dm-bottom-strip-body">
+          {rolls.length === 0 ? (
+            <div className="empty-state" style={{ paddingTop: 4, paddingBottom: 0 }}>No secret rolls yet this encounter.</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {rolls.map(r => (
+                <div key={r.id} className="dm-bottom-strip-row">
+                  <div className="dm-bottom-strip-row-left">
+                    <span className="dm-bottom-strip-row-name">{r.profiles_players?.name || 'Unknown'}</span>
+                    <span className="dm-bottom-strip-row-meta" style={{ color: 'var(--accent-gold)', textTransform: 'capitalize' }}>
+                      {r.skill}
+                    </span>
+                    <span className="dm-bottom-strip-row-meta">
+                      {new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  <div className="dm-bottom-strip-row-right">
+                    <span className="dm-bottom-strip-row-value">{r.total}</span>
+                    <span className="dm-bottom-strip-row-breakdown">({r.d20_roll}+{r.skill_bonus})</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </button>
   );
 }
 
 // ============================================================
-// COMPACT RECENT ALERTS STRIP
+// RECENT ALERTS STRIP
 // ============================================================
-function RecentAlertsStrip({ encounterId }) {
+function RecentAlertsStrip({ encounterId, expanded, onToggle }) {
   const [checks, setChecks] = useState([]);
 
   const load = useCallback(async () => {
@@ -85,41 +115,74 @@ function RecentAlertsStrip({ encounterId }) {
 
   usePolling(load, 2000, !!encounterId);
 
-  if (checks.length === 0) return null;
-
   function resultStyle(result) {
     if (result === 'passed') return { color: 'var(--accent-green)', label: '✅ Passed' };
     if (result === 'failed') return { color: 'var(--accent-red)',   label: '❌ Failed' };
     return { color: 'var(--accent-gold)', label: '⏳ Pending' };
   }
 
+  const latest = checks[0];
+  const latestResult = latest ? resultStyle(latest.result) : null;
+
   return (
-    <div className="panel" style={{ padding: '10px 14px' }}>
-      <div className="panel-title" style={{ marginBottom: 6 }}>Recent Alerts</div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-        {checks.map(c => {
-          const { color, label } = resultStyle(c.result);
-          return (
-            <div key={c.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13 }}>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center', minWidth: 0 }}>
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {c.player_name}
-                </span>
-                <span style={{ color: 'var(--text-muted)', fontSize: 11, flexShrink: 0 }}>
-                  DC {c.dc}
-                </span>
-                <span style={{ color: 'var(--text-muted)', fontSize: 11, flexShrink: 0 }}>
-                  {new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              </div>
-              <span style={{ fontSize: 11, fontWeight: 700, color, flexShrink: 0, marginLeft: 8 }}>
-                {label}
-              </span>
-            </div>
-          );
-        })}
+    <button
+      type="button"
+      className={`dm-bottom-strip ${expanded ? 'expanded' : ''}`}
+      onClick={onToggle}
+      aria-expanded={expanded}
+    >
+      <div className="dm-bottom-strip-header">
+        <span className="dm-bottom-strip-title">Recent Alerts</span>
+        <span className="dm-bottom-strip-toggle">{expanded ? 'Hide' : 'Show'}</span>
       </div>
-    </div>
+
+      {!expanded && (
+        <div className="dm-bottom-strip-summary">
+          {latest ? (
+            <>
+              <span className="dm-bottom-strip-summary-name">{latest.player_name}</span>
+              <span className="dm-bottom-strip-summary-meta">DC {latest.dc}</span>
+              <span className="dm-bottom-strip-summary-meta">
+                {new Date(latest.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
+              <span className="dm-bottom-strip-summary-status" style={{ color: latestResult.color }}>
+                {latestResult.label}
+              </span>
+            </>
+          ) : (
+            <span className="dm-bottom-strip-summary-empty">No alerts right now.</span>
+          )}
+        </div>
+      )}
+
+      {expanded && (
+        <div className="dm-bottom-strip-body">
+          {checks.length === 0 ? (
+            <div className="empty-state" style={{ paddingTop: 4, paddingBottom: 0 }}>No alerts this encounter.</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {checks.map(c => {
+                const { color, label } = resultStyle(c.result);
+                return (
+                  <div key={c.id} className="dm-bottom-strip-row">
+                    <div className="dm-bottom-strip-row-left">
+                      <span className="dm-bottom-strip-row-name">{c.player_name}</span>
+                      <span className="dm-bottom-strip-row-meta">DC {c.dc}</span>
+                      <span className="dm-bottom-strip-row-meta">
+                        {new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <div className="dm-bottom-strip-row-right">
+                      <span className="dm-bottom-strip-row-status" style={{ color }}>{label}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </button>
   );
 }
 
@@ -263,6 +326,7 @@ export default function DMView() {
   const [joinCodes, setJoinCodes] = useState([]);
   const [encounterId, setEncounterId] = useState(null);
   const [rollingInit, setRollingInit] = useState(false);
+  const [openBottomStrip, setOpenBottomStrip] = useState(null);
 
   useEffect(() => { loadLatestEncounter(); }, []);
 
@@ -300,6 +364,12 @@ export default function DMView() {
   useEffect(() => {
     if (encounterId) refreshAll();
   }, [encounterId, refreshAll]);
+
+  useEffect(() => {
+    if (tab !== 'combat' && openBottomStrip !== null) {
+      setOpenBottomStrip(null);
+    }
+  }, [tab, openBottomStrip]);
 
   async function handleNextTurn() {
     if (!encounter) return;
@@ -371,6 +441,10 @@ export default function DMView() {
     setTab('manage');
   }
 
+  function toggleBottomStrip(name) {
+    setOpenBottomStrip(current => current === name ? null : name);
+  }
+
   if (loading) return <div className="splash"><div className="splash-text">Loading…</div></div>;
 
   if (!encounter) {
@@ -399,6 +473,7 @@ export default function DMView() {
   const pcCombatants = combatants.filter(c => c.side === 'PC');
   const nonPcCount = combatants.filter(c => c.side !== 'PC').length;
   const pendingAlertCount = playerStates.filter(s => s.concentration_check_dc != null).length;
+  const combatContentClass = tab === 'combat' ? 'main-content main-content--with-bottom-dock' : 'main-content';
 
   return (
     <div className="app-shell">
@@ -423,7 +498,7 @@ export default function DMView() {
         <button className={`tab-btn ${tab === 'manage'  ? 'active' : ''}`} onClick={() => setTab('manage')}>⚙ Manage</button>
       </div>
 
-      <div className="main-content">
+      <div className={combatContentClass}>
         {tab === 'combat' && (
           <>
             {pcCombatants.map(c => {
@@ -461,8 +536,18 @@ export default function DMView() {
               </div>
             </div>
 
-            <RecentRollsStrip encounterId={encounter.id} />
-            <RecentAlertsStrip encounterId={encounter.id} />
+            <div className="dm-bottom-dock">
+              <RecentRollsStrip
+                encounterId={encounter.id}
+                expanded={openBottomStrip === 'rolls'}
+                onToggle={() => toggleBottomStrip('rolls')}
+              />
+              <RecentAlertsStrip
+                encounterId={encounter.id}
+                expanded={openBottomStrip === 'alerts'}
+                onToggle={() => toggleBottomStrip('alerts')}
+              />
+            </div>
           </>
         )}
 
