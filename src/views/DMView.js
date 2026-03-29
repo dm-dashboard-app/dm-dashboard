@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase, signOut } from '../supabaseClient';
 import usePolling from '../hooks/usePolling';
 import PlayerCard from '../components/PlayerCard';
@@ -13,6 +13,377 @@ function flattenStates(data) {
     wildshape_form_name: s.profiles_wildshape?.form_name ?? null,
     wildshape_hp_max: s.profiles_wildshape?.hp_max ?? null,
   }));
+}
+
+function findExistingKey(source, candidates = []) {
+  if (!source) return null;
+  for (const key of candidates) {
+    if (Object.prototype.hasOwnProperty.call(source, key)) return key;
+  }
+  return null;
+}
+
+function readNumberField(source, candidates = [], fallback = null) {
+  const key = findExistingKey(source, candidates);
+  if (!key) return fallback;
+  const raw = source[key];
+  if (raw === null || raw === undefined || raw === '') return fallback;
+  const n = parseInt(raw, 10);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function buildShortRestResourcePatch(state = {}, profile = {}) {
+  const patch = {};
+
+  function setCurrentToMax(currentCandidates = [], maxCandidates = []) {
+    const currentKey = findExistingKey(state, currentCandidates);
+    const maxKey = findExistingKey(state, maxCandidates);
+    if (!currentKey || !maxKey) return;
+    const maxValue = readNumberField(state, [maxKey], null);
+    if (maxValue === null) return;
+    patch[currentKey] = maxValue;
+  }
+
+  function setToggle(toggleCandidates = [], nextValue) {
+    const key = findExistingKey(state, toggleCandidates);
+    if (!key) return;
+    patch[key] = nextValue;
+  }
+
+  setCurrentToMax(
+    ['bardic_inspiration_current', 'bardic_inspiration_uses_current', 'bardic_inspiration_remaining'],
+    ['bardic_inspiration_max', 'bardic_inspiration_uses_max']
+  );
+
+  setCurrentToMax(
+    ['ki_current', 'ki_points_current'],
+    ['ki_max', 'ki_points_max']
+  );
+
+  setCurrentToMax(
+    ['warlock_slots_current', 'warlock_spell_slots_current'],
+    ['warlock_slots_max', 'warlock_spell_slots_max']
+  );
+
+  setCurrentToMax(
+    ['action_surge_current', 'action_surge_uses_current'],
+    ['action_surge_max', 'action_surge_uses_max']
+  );
+
+  setCurrentToMax(
+    ['superiority_dice_current'],
+    ['superiority_dice_max']
+  );
+
+  setToggle(['second_wind_used'], false);
+
+  const wildshapeKey = findExistingKey(state, ['wildshape_uses_remaining']);
+  if (wildshapeKey) {
+    const explicitMax = readNumberField(state, ['wildshape_uses_max'], null);
+    patch[wildshapeKey] = explicitMax ?? (profile?.wildshape_enabled ? 2 : state[wildshapeKey]);
+  }
+
+  return patch;
+}
+
+function buildShortRestPatch(state = {}, healAmount = 0, spentHitDice = 0) {
+  const patch = {};
+
+  const hpCurrent = readNumberField(state, ['current_hp'], 0);
+  const maxHp = (() => {
+    const override = readNumberField(state, ['max_hp_override'], null);
+    if (override !== null) return override;
+    const profileMax = readNumberField(state?.profiles_players, ['max_hp'], null);
+    if (profileMax !== null) return profileMax;
+    return readNumberField(state, ['current_hp'], 0);
+  })();
+
+  const safeHeal = Math.max(0, parseInt(healAmount, 10) || 0);
+  const nextHp = Math.min(maxHp, hpCurrent + safeHeal);
+  patch.current_hp = nextHp;
+
+  const hitDiceCurrentKey = findExistingKey(state, ['hit_dice_current', 'hit_dice_remaining']);
+  if (hitDiceCurrentKey) {
+    const currentDice = readNumberField(state, [hitDiceCurrentKey], 0);
+    const spend = Math.max(0, Math.min(currentDice, parseInt(spentHitDice, 10) || 0));
+    patch[hitDiceCurrentKey] = currentDice - spend;
+  }
+
+  return patch;
+}
+
+function mergeDefined(...objects) {
+  const merged = {};
+  objects.forEach(obj => {
+    Object.entries(obj || {}).forEach(([key, value]) => {
+      if (value !== undefined) merged[key] = value;
+    });
+  });
+  return merged;
+}
+
+function formatTime(ts) {
+  return new Date(ts).toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+// ============================================================
+// SHORT REST MODAL
+// ============================================================
+function ShortRestModal({ open, playerStates, encounterId, onClose, onComplete }) {
+  const [drafts, setDrafts] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const next = {};
+    (playerStates || []).forEach(state => {
+      next[state.id] = { heal: '', spend: '' };
+    });
+    setDrafts(next);
+  }, [open, playerStates]);
+
+  const rows = useMemo(() => {
+    return (playerStates || []).map(state => {
+      const profile = state?.profiles_players || {};
+      const name = profile.name || 'Unknown Player';
+      const currentHp = readNumberField(state, ['current_hp'], 0);
+      const maxHpOverride = readNumberField(state, ['max_hp_override'], null);
+      const profileMax = readNumberField(profile, ['max_hp'], 0);
+      const maxHp = maxHpOverride !== null ? maxHpOverride : profileMax;
+      const hitDiceCurrent = readNumberField(state, ['hit_dice_current', 'hit_dice_remaining'], null);
+      const hitDiceMax = readNumberField(state, ['hit_dice_max'], null);
+      const hitDieSize = readNumberField(state, ['hit_die_size'], readNumberField(profile, ['hit_die_size'], null));
+
+      return {
+        state,
+        profile,
+        name,
+        currentHp,
+        maxHp,
+        hitDiceCurrent,
+        hitDiceMax,
+        hitDieSize,
+      };
+    });
+  }, [playerStates]);
+
+  function updateDraft(stateId, field, value) {
+    setDrafts(current => ({
+      ...current,
+      [stateId]: {
+        ...(current[stateId] || { heal: '', spend: '' }),
+        [field]: value,
+      },
+    }));
+  }
+
+  async function handleApplyShortRest() {
+    if (!encounterId || submitting) return;
+
+    setSubmitting(true);
+    try {
+      for (const row of rows) {
+        const state = row.state;
+        const profile = row.profile;
+        const draft = drafts[state.id] || { heal: '', spend: '' };
+        const healAmount = Math.max(0, parseInt(draft.heal, 10) || 0);
+        const spentHitDice = Math.max(0, parseInt(draft.spend, 10) || 0);
+
+        const basePatch = buildShortRestPatch(state, healAmount, spentHitDice);
+        const resourcePatch = buildShortRestResourcePatch(state, profile);
+        const patch = mergeDefined(basePatch, resourcePatch);
+
+        if (Object.keys(patch).length > 0) {
+          await supabase
+            .from('player_encounter_state')
+            .update(patch)
+            .eq('id', state.id);
+        }
+
+        if (healAmount > 0 || spentHitDice > 0) {
+          const fromHp = readNumberField(state, ['current_hp'], 0);
+          const toHp = patch.current_hp ?? fromHp;
+
+          await supabase.from('combat_log').insert({
+            encounter_id: encounterId,
+            actor: 'DM',
+            action: 'heal',
+            detail: `${row.name}: short rest${healAmount > 0 ? ` +${healAmount} HP (${fromHp} → ${toHp})` : ''}${spentHitDice > 0 ? `${healAmount > 0 ? ' •' : ''} ${spentHitDice} hit dice spent` : ''}`,
+          });
+        }
+      }
+
+      await supabase
+        .from('encounters')
+        .update({ round: 1, turn_index: 0 })
+        .eq('id', encounterId);
+
+      await supabase.from('combat_log').insert({
+        encounter_id: encounterId,
+        actor: 'DM',
+        action: 'rest',
+        detail: 'Short Rest completed — short-rest resources restored and round reset to 1',
+      });
+
+      onComplete?.();
+      onClose?.();
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (!open) return null;
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 1200,
+        background: 'rgba(5, 10, 18, 0.78)',
+        display: 'flex',
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+        padding: 12,
+      }}
+      onClick={onClose}
+    >
+      <div
+        className="panel"
+        style={{
+          width: '100%',
+          maxWidth: 760,
+          maxHeight: '88vh',
+          overflowY: 'auto',
+          borderRadius: 16,
+          border: '1px solid var(--border-strong)',
+          background: 'var(--bg-panel-2)',
+          boxShadow: '0 20px 50px rgba(0,0,0,0.45)',
+          padding: 14,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div className="panel-title" style={{ margin: 0 }}>Short Rest</div>
+            <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+              Enter each player&apos;s total healing rolled. Hit dice spend is optional but supported when tracked.
+            </div>
+          </div>
+          <button className="btn btn-ghost" onClick={onClose} disabled={submitting}>Close</button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {rows.length === 0 && (
+            <div className="empty-state">No player states found for this encounter.</div>
+          )}
+
+          {rows.map(row => {
+            const draft = drafts[row.state.id] || { heal: '', spend: '' };
+            const healPreview = Math.max(0, parseInt(draft.heal, 10) || 0);
+            const previewHp = Math.min(row.maxHp, row.currentHp + healPreview);
+
+            return (
+              <div
+                key={row.state.id}
+                style={{
+                  border: '1px solid var(--border)',
+                  borderRadius: 12,
+                  background: 'var(--bg-panel-3)',
+                  padding: 10,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 10,
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>{row.name}</span>
+                    <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                      HP {row.currentHp} / {row.maxHp}
+                      {healPreview > 0 ? ` → ${previewHp} / ${row.maxHp}` : ''}
+                    </span>
+                  </div>
+
+                  {row.hitDiceCurrent !== null && (
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                      Hit Dice {row.hitDiceCurrent}{row.hitDiceMax !== null ? ` / ${row.hitDiceMax}` : ''}{row.hitDieSize ? ` • d${row.hitDieSize}` : ''}
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: '1 1 150px' }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      Healing Applied
+                    </span>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      min={0}
+                      value={draft.heal}
+                      onChange={e => updateDraft(row.state.id, 'heal', e.target.value)}
+                      placeholder="0"
+                      style={{
+                        minHeight: 40,
+                        borderRadius: 10,
+                        border: '1px solid var(--border-strong)',
+                        background: 'var(--bg-panel)',
+                        color: 'var(--text-primary)',
+                        padding: '0 10px',
+                        fontSize: 14,
+                      }}
+                    />
+                  </label>
+
+                  {row.hitDiceCurrent !== null && (
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: '1 1 150px' }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        Hit Dice Spent
+                      </span>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min={0}
+                        max={row.hitDiceCurrent}
+                        value={draft.spend}
+                        onChange={e => updateDraft(row.state.id, 'spend', e.target.value)}
+                        placeholder="0"
+                        style={{
+                          minHeight: 40,
+                          borderRadius: 10,
+                          border: '1px solid var(--border-strong)',
+                          background: 'var(--bg-panel)',
+                          color: 'var(--text-primary)',
+                          padding: '0 10px',
+                          fontSize: 14,
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+          <button className="btn btn-ghost" onClick={onClose} disabled={submitting}>
+            Cancel
+          </button>
+          <button className="btn btn-primary" onClick={handleApplyShortRest} disabled={submitting}>
+            {submitting ? 'Applying…' : 'Apply Short Rest'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ============================================================
@@ -54,9 +425,7 @@ function RecentRollsStrip({ encounterId, expanded, onToggle }) {
             <>
               <span className="dm-bottom-strip-summary-name">{latest.profiles_players?.name || 'Unknown'}</span>
               <span className="dm-bottom-strip-summary-meta">{latest.skill}</span>
-              <span className="dm-bottom-strip-summary-meta">
-                {new Date(latest.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </span>
+              <span className="dm-bottom-strip-summary-meta">{formatTime(latest.created_at)}</span>
               <span className="dm-bottom-strip-summary-value">{latest.total}</span>
             </>
           ) : (
@@ -78,9 +447,7 @@ function RecentRollsStrip({ encounterId, expanded, onToggle }) {
                     <span className="dm-bottom-strip-row-meta" style={{ color: 'var(--accent-gold)', textTransform: 'capitalize' }}>
                       {r.skill}
                     </span>
-                    <span className="dm-bottom-strip-row-meta">
-                      {new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
+                    <span className="dm-bottom-strip-row-meta">{formatTime(r.created_at)}</span>
                   </div>
                   <div className="dm-bottom-strip-row-right">
                     <span className="dm-bottom-strip-row-value">{r.total}</span>
@@ -117,7 +484,7 @@ function RecentAlertsStrip({ encounterId, expanded, onToggle }) {
 
   function resultStyle(result) {
     if (result === 'passed') return { color: 'var(--accent-green)', label: '✅ Passed' };
-    if (result === 'failed') return { color: 'var(--accent-red)',   label: '❌ Failed' };
+    if (result === 'failed') return { color: 'var(--accent-red)', label: '❌ Failed' };
     return { color: 'var(--accent-gold)', label: '⏳ Pending' };
   }
 
@@ -142,9 +509,7 @@ function RecentAlertsStrip({ encounterId, expanded, onToggle }) {
             <>
               <span className="dm-bottom-strip-summary-name">{latest.player_name}</span>
               <span className="dm-bottom-strip-summary-meta">DC {latest.dc}</span>
-              <span className="dm-bottom-strip-summary-meta">
-                {new Date(latest.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </span>
+              <span className="dm-bottom-strip-summary-meta">{formatTime(latest.created_at)}</span>
               <span className="dm-bottom-strip-summary-status" style={{ color: latestResult.color }}>
                 {latestResult.label}
               </span>
@@ -168,9 +533,7 @@ function RecentAlertsStrip({ encounterId, expanded, onToggle }) {
                     <div className="dm-bottom-strip-row-left">
                       <span className="dm-bottom-strip-row-name">{c.player_name}</span>
                       <span className="dm-bottom-strip-row-meta">DC {c.dc}</span>
-                      <span className="dm-bottom-strip-row-meta">
-                        {new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
+                      <span className="dm-bottom-strip-row-meta">{formatTime(c.created_at)}</span>
                     </div>
                     <div className="dm-bottom-strip-row-right">
                       <span className="dm-bottom-strip-row-status" style={{ color }}>{label}</span>
@@ -229,17 +592,18 @@ function CombatLog({ encounterId }) {
 
   function actionClass(action) {
     if (action === 'damage') return 'log-item--dmg';
-    if (action === 'heal')   return 'log-item--heal';
+    if (action === 'heal') return 'log-item--heal';
     if (action === 'remove') return 'log-item--remove';
-    if (action === 'turn')   return 'log-item--turn';
-    if (action === 'con')    return 'log-item--con';
+    if (action === 'turn') return 'log-item--turn';
+    if (action === 'con') return 'log-item--con';
+    if (action === 'rest') return 'log-item--heal';
     return '';
   }
 
   function resultLabel(r) {
     if (r === 'pending') return { text: '⏳ Pending', cls: 'con-log-result-badge--pending' };
-    if (r === 'passed')  return { text: '✅ Passed',  cls: 'con-log-result-badge--passed' };
-    if (r === 'failed')  return { text: '❌ Failed',  cls: 'con-log-result-badge--failed' };
+    if (r === 'passed') return { text: '✅ Passed', cls: 'con-log-result-badge--passed' };
+    if (r === 'failed') return { text: '❌ Failed', cls: 'con-log-result-badge--failed' };
     return { text: r, cls: '' };
   }
 
@@ -327,6 +691,7 @@ export default function DMView() {
   const [encounterId, setEncounterId] = useState(null);
   const [rollingInit, setRollingInit] = useState(false);
   const [openBottomStrip, setOpenBottomStrip] = useState(null);
+  const [shortRestOpen, setShortRestOpen] = useState(false);
 
   useEffect(() => { loadLatestEncounter(); }, []);
 
@@ -336,7 +701,10 @@ export default function DMView() {
       .from('encounters').select('*')
       .order('created_at', { ascending: false })
       .limit(1).maybeSingle();
-    if (data) { setEncounter(data); setEncounterId(data.id); }
+    if (data) {
+      setEncounter(data);
+      setEncounterId(data.id);
+    }
     setLoading(false);
   }
 
@@ -483,19 +851,19 @@ export default function DMView() {
         <button className="btn btn-ghost" onClick={handleRollEnemyInitiative} disabled={rollingInit}>
           {rollingInit ? 'Rolling…' : 'Initiative'}
         </button>
-        <button className="btn btn-ghost" disabled title="Short Rest is the next implementation phase.">
+        <button className="btn btn-ghost" onClick={() => setShortRestOpen(true)}>
           Short Rest
         </button>
         <button className="btn btn-ghost" onClick={handleLongRest}>Long Rest</button>
       </div>
 
       <div className="tab-bar">
-        <button className={`tab-btn ${tab === 'combat'  ? 'active' : ''}`} onClick={() => setTab('combat')}>⚔ Combat</button>
-        <button className={`tab-btn ${tab === 'rolls'   ? 'active' : ''}`} onClick={() => setTab('rolls')}>🎲 Rolls</button>
-        <button className={`tab-btn ${tab === 'log'     ? 'active' : ''}`} onClick={() => setTab('log')}>
+        <button className={`tab-btn ${tab === 'combat' ? 'active' : ''}`} onClick={() => setTab('combat')}>⚔ Combat</button>
+        <button className={`tab-btn ${tab === 'rolls' ? 'active' : ''}`} onClick={() => setTab('rolls')}>🎲 Rolls</button>
+        <button className={`tab-btn ${tab === 'log' ? 'active' : ''}`} onClick={() => setTab('log')}>
           📋 Log{pendingAlertCount > 0 ? <span className="tab-badge">{pendingAlertCount}</span> : ''}
         </button>
-        <button className={`tab-btn ${tab === 'manage'  ? 'active' : ''}`} onClick={() => setTab('manage')}>⚙ Manage</button>
+        <button className={`tab-btn ${tab === 'manage' ? 'active' : ''}`} onClick={() => setTab('manage')}>⚙ Manage</button>
       </div>
 
       <div className={combatContentClass}>
@@ -532,6 +900,7 @@ export default function DMView() {
                     {rollingInit ? 'Rolling…' : 'Initiative'}
                   </button>
                 )}
+                <button className="btn btn-ghost" onClick={() => setShortRestOpen(true)}>Open Short Rest</button>
                 <button className="btn btn-ghost" onClick={() => setTab('manage')}>Open Manage</button>
               </div>
             </div>
@@ -551,8 +920,8 @@ export default function DMView() {
           </>
         )}
 
-        {tab === 'rolls'  && <SecretRollInbox encounterId={encounter.id} />}
-        {tab === 'log'    && <CombatLog encounterId={encounter.id} />}
+        {tab === 'rolls' && <SecretRollInbox encounterId={encounter.id} />}
+        {tab === 'log' && <CombatLog encounterId={encounter.id} />}
         {tab === 'manage' && (
           <ManagementScreens
             onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); setTab('combat'); }}
@@ -567,6 +936,14 @@ export default function DMView() {
           />
         )}
       </div>
+
+      <ShortRestModal
+        open={shortRestOpen}
+        playerStates={playerStates}
+        encounterId={encounter.id}
+        onClose={() => setShortRestOpen(false)}
+        onComplete={refreshAll}
+      />
     </div>
   );
 }
