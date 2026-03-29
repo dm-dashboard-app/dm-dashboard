@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
+import {
+  deriveCombatantResourceFields,
+  derivePlayerEncounterStateResources,
+} from '../utils/classResources';
 
 function toInt(value, fallback = 0) {
   const n = parseInt(value, 10);
@@ -139,6 +143,7 @@ export default function EncounterSetup({ onEncounterCreated }) {
           subclass_name_2: profile.subclass_name_2 || null,
           class_level_2: profile.class_level_2 != null ? toInt(profile.class_level_2, 0) : null,
           ancestry_name: profile.ancestry_name || null,
+          ...deriveCombatantResourceFields(profile),
         });
 
         const { data: combatant, error: combatantError } = await insertCombatantWithFallback(
@@ -157,10 +162,7 @@ export default function EncounterSetup({ onEncounterCreated }) {
 
         const enrichedPlayerStatePayload = compactObject({
           ...basePlayerStatePayload,
-          temp_hp: 0,
-          hit_die_size: profile.hit_die_size != null ? toInt(profile.hit_die_size, 0) : null,
-          hit_dice_max: profile.hit_dice_max != null ? toInt(profile.hit_dice_max, 0) : null,
-          hit_dice_current: profile.hit_dice_max != null ? toInt(profile.hit_dice_max, 0) : null,
+          ...derivePlayerEncounterStateResources(profile),
         });
 
         const { error: playerStateError } = await insertPlayerStateWithFallback(
@@ -225,6 +227,7 @@ export default function EncounterSetup({ onEncounterCreated }) {
             subclass_name_2: template.subclass_name_2 || null,
             class_level_2: template.class_level_2 != null ? toInt(template.class_level_2, 0) : null,
             mini_marker: template.mini_marker || null,
+            ...deriveCombatantResourceFields(template),
           });
 
           const { error: monsterInsertError } = await insertCombatantWithFallback(
