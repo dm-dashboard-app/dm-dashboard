@@ -1354,6 +1354,9 @@ function AddCombatantModal({ encounterId, onUpdate, onClose }) {
   const [className, setClassName] = useState('');
   const [subclassName, setSubclassName] = useState('');
   const [classLevel, setClassLevel] = useState('');
+  const [className2, setClassName2] = useState('');
+  const [subclassName2, setSubclassName2] = useState('');
+  const [classLevel2, setClassLevel2] = useState('');
   const [miniMarker, setMiniMarker] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -1417,6 +1420,9 @@ function AddCombatantModal({ encounterId, onUpdate, onClose }) {
       class_name: template.class_name || null,
       subclass_name: template.subclass_name || null,
       class_level: template.class_level != null ? toInt(template.class_level, 1) : null,
+      class_name_2: template.class_name_2 || null,
+      subclass_name_2: template.subclass_name_2 || null,
+      class_level_2: template.class_level_2 != null ? toInt(template.class_level_2, 0) : null,
       mini_marker: template.mini_marker || null,
     });
 
@@ -1450,6 +1456,9 @@ function AddCombatantModal({ encounterId, onUpdate, onClose }) {
       class_name: className.trim() || null,
       subclass_name: subclassName.trim() || null,
       class_level: classLevel !== '' ? toInt(classLevel, 1) : null,
+      class_name_2: className2.trim() || null,
+      subclass_name_2: subclassName2.trim() || null,
+      class_level_2: classLevel2 !== '' ? toInt(classLevel2, 0) : null,
       mini_marker: miniMarker.trim() || null,
     });
 
@@ -1572,20 +1581,35 @@ function AddCombatantModal({ encounterId, onUpdate, onClose }) {
 
             <div className="form-row add-combatant-manual-grid">
               <div className="form-group">
-                <label className="form-label">Class</label>
+                <label className="form-label">Primary Class</label>
                 <input className="form-input" value={className} onChange={e => setClassName(e.target.value)} placeholder="e.g. Fighter" />
               </div>
               <div className="form-group">
-                <label className="form-label">Subclass</label>
+                <label className="form-label">Primary Subclass</label>
                 <input className="form-input" value={subclassName} onChange={e => setSubclassName(e.target.value)} placeholder="Optional" />
               </div>
               <div className="form-group">
-                <label className="form-label">Level</label>
+                <label className="form-label">Primary Level</label>
                 <input className="form-input" type="number" value={classLevel} onChange={e => setClassLevel(e.target.value)} placeholder="Optional" />
               </div>
               <div className="form-group">
                 <label className="form-label">Mini Marker</label>
                 <input className="form-input" value={miniMarker} onChange={e => setMiniMarker(e.target.value)} placeholder="A / 1 / 🔴" maxLength={8} />
+              </div>
+            </div>
+
+            <div className="form-row add-combatant-manual-grid">
+              <div className="form-group">
+                <label className="form-label">Secondary Class</label>
+                <input className="form-input" value={className2} onChange={e => setClassName2(e.target.value)} placeholder="Optional" />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Secondary Subclass</label>
+                <input className="form-input" value={subclassName2} onChange={e => setSubclassName2(e.target.value)} placeholder="Optional" />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Secondary Level</label>
+                <input className="form-input" type="number" value={classLevel2} onChange={e => setClassLevel2(e.target.value)} placeholder="Optional" />
               </div>
             </div>
 
