@@ -75,6 +75,23 @@ export function getHighestHitDie(source = {}, fallback = 8) {
   return dice.length > 0 ? Math.max(...dice) : fallback;
 }
 
+function getProficiencyBonus(totalLevel) {
+  if (totalLevel <= 0) return 0;
+  if (totalLevel <= 4) return 2;
+  if (totalLevel <= 8) return 3;
+  if (totalLevel <= 12) return 4;
+  if (totalLevel <= 16) return 5;
+  return 6;
+}
+
+function getBardicInspirationDie(level) {
+  if (level >= 15) return 'd12';
+  if (level >= 10) return 'd10';
+  if (level >= 5) return 'd8';
+  if (level >= 1) return 'd6';
+  return '';
+}
+
 function getWarlockSlotProgression(level) {
   if (level <= 0) return { slots: 0, slotLevel: 0 };
   if (level === 1) return { slots: 1, slotLevel: 1 };
@@ -141,10 +158,10 @@ function getBattleMasterLevel(source = {}) {
 }
 
 function getSuperiorityDieSize(level) {
-  if (level >= 18) return 12;
-  if (level >= 10) return 10;
-  if (level >= 3) return 8;
-  return 0;
+  if (level >= 18) return 'd12';
+  if (level >= 10) return 'd10';
+  if (level >= 3) return 'd8';
+  return '';
 }
 
 function getSuperiorityDiceCount(level) {
@@ -164,6 +181,9 @@ export function derivePlayerProfileDefaults(source = {}) {
 
 export function derivePlayerEncounterStateResources(source = {}) {
   const totalLevel = getTotalLevel(source);
+  const proficiencyBonus = getProficiencyBonus(totalLevel);
+
+  const bardLevel = getClassLevel(source, 'bard');
   const monkLevel = getClassLevel(source, 'monk');
   const warlockLevel = getClassLevel(source, 'warlock');
   const fighterLevel = getClassLevel(source, 'fighter');
@@ -180,6 +200,7 @@ export function derivePlayerEncounterStateResources(source = {}) {
   const rageUses = getBarbarianRages(barbarianLevel);
   const channelDivinityUses = getChannelDivinityUses(source);
   const layOnHands = getLayOnHandsPool(source);
+  const bardicInspirationDie = getBardicInspirationDie(bardLevel);
 
   return compactObject({
     temp_hp: 0,
@@ -188,20 +209,24 @@ export function derivePlayerEncounterStateResources(source = {}) {
     hit_dice_max: totalLevel > 0 ? totalLevel : undefined,
     hit_dice_current: totalLevel > 0 ? totalLevel : undefined,
 
-    ki_max: monkLevel > 0 ? monkLevel : undefined,
-    ki_current: monkLevel > 0 ? monkLevel : undefined,
+    bardic_inspiration_max: bardLevel > 0 ? proficiencyBonus : undefined,
+    bardic_inspiration_current: bardLevel > 0 ? proficiencyBonus : undefined,
+    bardic_inspiration_die: bardicInspirationDie || undefined,
+
+    ki_points_max: monkLevel > 0 ? monkLevel : undefined,
+    ki_points_current: monkLevel > 0 ? monkLevel : undefined,
 
     warlock_slots_max: warlockSlots > 0 ? warlockSlots : undefined,
     warlock_slots_current: warlockSlots > 0 ? warlockSlots : undefined,
-    warlock_slot_level: warlockSlotLevel > 0 ? warlockSlotLevel : undefined,
+    warlock_slots_level: warlockSlotLevel > 0 ? warlockSlotLevel : undefined,
 
     action_surge_max: fighterLevel > 0 ? getFighterActionSurges(fighterLevel) : undefined,
     action_surge_current: fighterLevel > 0 ? getFighterActionSurges(fighterLevel) : undefined,
-    second_wind_used: fighterLevel > 0 ? false : undefined,
+    second_wind_available: fighterLevel > 0 ? true : undefined,
 
     superiority_dice_max: superiorityDice > 0 ? superiorityDice : undefined,
     superiority_dice_current: superiorityDice > 0 ? superiorityDice : undefined,
-    superiority_die_size: superiorityDieSize > 0 ? superiorityDieSize : undefined,
+    superiority_die_size: superiorityDieSize || undefined,
 
     rage_max: barbarianLevel > 0 ? rageUses : undefined,
     rage_current: barbarianLevel > 0 ? rageUses : undefined,
@@ -215,9 +240,16 @@ export function derivePlayerEncounterStateResources(source = {}) {
     lay_on_hands_max: layOnHands > 0 ? layOnHands : undefined,
     lay_on_hands_current: layOnHands > 0 ? layOnHands : undefined,
 
+    arcane_recovery_available: wizardLevel > 0 ? true : undefined,
     arcane_recovery_used: wizardLevel > 0 ? false : undefined,
+
+    natural_recovery_available: druidLevel > 0 ? true : undefined,
     natural_recovery_used: druidLevel > 0 ? false : undefined,
 
+    relentless_endurance_available:
+      source.feat_relentless_endurance || normalizeText(source.ancestry_name) === 'half-orc'
+        ? true
+        : undefined,
     relentless_endurance_used:
       source.feat_relentless_endurance || normalizeText(source.ancestry_name) === 'half-orc'
         ? false
@@ -225,40 +257,6 @@ export function derivePlayerEncounterStateResources(source = {}) {
   });
 }
 
-export function deriveCombatantResourceFields(source = {}) {
-  const warlockLevel = getClassLevel(source, 'warlock');
-  const barbarianLevel = getClassLevel(source, 'barbarian');
-  const battleMasterLevel = getBattleMasterLevel(source);
-  const fighterLevel = getClassLevel(source, 'fighter');
-  const sorcererLevel = getClassLevel(source, 'sorcerer');
-  const paladinLevel = getClassLevel(source, 'paladin');
-
-  const { slots: warlockSlots, slotLevel: warlockSlotLevel } = getWarlockSlotProgression(warlockLevel);
-  const superiorityDice = getSuperiorityDiceCount(battleMasterLevel);
-  const superiorityDieSize = getSuperiorityDieSize(battleMasterLevel);
-  const rageUses = getBarbarianRages(barbarianLevel);
-  const layOnHands = paladinLevel > 0 ? paladinLevel * 5 : 0;
-
-  return compactObject({
-    warlock_slots_max: warlockSlots > 0 ? warlockSlots : undefined,
-    warlock_slots_current: warlockSlots > 0 ? warlockSlots : undefined,
-    warlock_slot_level: warlockSlotLevel > 0 ? warlockSlotLevel : undefined,
-
-    action_surge_max: fighterLevel > 0 ? getFighterActionSurges(fighterLevel) : undefined,
-    action_surge_current: fighterLevel > 0 ? getFighterActionSurges(fighterLevel) : undefined,
-    second_wind_used: fighterLevel > 0 ? false : undefined,
-
-    superiority_dice_max: superiorityDice > 0 ? superiorityDice : undefined,
-    superiority_dice_current: superiorityDice > 0 ? superiorityDice : undefined,
-    superiority_die_size: superiorityDieSize > 0 ? superiorityDieSize : undefined,
-
-    rage_max: barbarianLevel > 0 ? rageUses : undefined,
-    rage_current: barbarianLevel > 0 ? rageUses : undefined,
-
-    sorcery_points_max: sorcererLevel > 0 ? sorcererLevel : undefined,
-    sorcery_points_current: sorcererLevel > 0 ? sorcererLevel : undefined,
-
-    lay_on_hands_max: layOnHands > 0 ? layOnHands : undefined,
-    lay_on_hands_current: layOnHands > 0 ? layOnHands : undefined,
-  });
+export function deriveCombatantResourceFields() {
+  return {};
 }
