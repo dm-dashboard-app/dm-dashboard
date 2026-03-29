@@ -17,6 +17,255 @@ function nextZeroHpConditions(newHp, conditions = []) {
   return next;
 }
 
+function toNumber(value, fallback = 0) {
+  const n = parseInt(value, 10);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function compactObject(obj) {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([, value]) => value !== undefined)
+  );
+}
+
+function findExistingKey(source, candidates = []) {
+  if (!source) return null;
+  for (const key of candidates) {
+    if (Object.prototype.hasOwnProperty.call(source, key)) return key;
+  }
+  return null;
+}
+
+function readNumberField(source, candidates = [], fallback = null) {
+  const key = findExistingKey(source, candidates);
+  if (!key) return fallback;
+  const raw = source[key];
+  if (raw === null || raw === undefined || raw === '') return fallback;
+  const n = parseInt(raw, 10);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function readBooleanField(source, candidates = [], fallback = null) {
+  const key = findExistingKey(source, candidates);
+  if (!key) return fallback;
+  const raw = source[key];
+  if (raw === null || raw === undefined) return fallback;
+  return !!raw;
+}
+
+function getResourceConfig(profile = {}, state = {}) {
+  const className = (profile.class_name || '').toLowerCase();
+
+  const resources = [];
+
+  const hitDiceCurrentKey = findExistingKey(state, ['hit_dice_current', 'hit_dice_remaining']);
+  const hitDiceMaxKey = findExistingKey(state, ['hit_dice_max']);
+  const hitDieSizeKey = findExistingKey(state, ['hit_die_size']);
+
+  if (hitDiceCurrentKey || hitDiceMaxKey || hitDieSizeKey) {
+    resources.push({
+      id: 'hit-dice',
+      label: 'Hit Dice',
+      type: 'counter',
+      currentKey: hitDiceCurrentKey || 'hit_dice_current',
+      maxKey: hitDiceMaxKey || 'hit_dice_max',
+      displaySuffix: readNumberField(state, ['hit_die_size']) || readNumberField(profile, ['hit_die_size'])
+        ? `d${readNumberField(state, ['hit_die_size'], readNumberField(profile, ['hit_die_size'], 0))}`
+        : '',
+    });
+  }
+
+  if (profile.feat_lucky || findExistingKey(state, ['lucky_uses_current', 'lucky_uses_remaining', 'lucky_used'])) {
+    const luckyCurrentKey = findExistingKey(state, ['lucky_uses_current', 'lucky_uses_remaining']);
+    const luckyMaxKey = findExistingKey(state, ['lucky_uses_max']);
+    const luckyUsedKey = findExistingKey(state, ['lucky_used']);
+
+    if (luckyCurrentKey || luckyMaxKey) {
+      resources.push({
+        id: 'lucky',
+        label: 'Lucky',
+        type: 'pips',
+        currentKey: luckyCurrentKey || 'lucky_uses_current',
+        maxKey: luckyMaxKey || 'lucky_uses_max',
+      });
+    } else if (luckyUsedKey) {
+      resources.push({
+        id: 'lucky',
+        label: 'Lucky',
+        type: 'toggle',
+        boolKey: luckyUsedKey,
+        trueLabel: 'Used',
+        falseLabel: 'Ready',
+      });
+    }
+  }
+
+  if (profile.feat_relentless_endurance || findExistingKey(state, ['relentless_endurance_used'])) {
+    resources.push({
+      id: 'relentless-endurance',
+      label: 'Relentless Endurance',
+      type: 'toggle',
+      boolKey: findExistingKey(state, ['relentless_endurance_used']) || 'relentless_endurance_used',
+      trueLabel: 'Used',
+      falseLabel: 'Ready',
+    });
+  }
+
+  const genericClassResources = [
+    {
+      id: 'bardic-inspiration',
+      match: ['bard'],
+      label: 'Bardic Inspiration',
+      type: 'pips',
+      currentKeys: ['bardic_inspiration_current', 'bardic_inspiration_uses_current', 'bardic_inspiration_remaining'],
+      maxKeys: ['bardic_inspiration_max', 'bardic_inspiration_uses_max'],
+      meta: () => {
+        const die = readNumberField(state, ['bardic_inspiration_die_size'], readNumberField(profile, ['bardic_inspiration_die_size'], null));
+        return die ? `d${die}` : '';
+      },
+    },
+    {
+      id: 'ki',
+      match: ['monk'],
+      label: 'Ki',
+      type: 'counter',
+      currentKeys: ['ki_current', 'ki_points_current'],
+      maxKeys: ['ki_max', 'ki_points_max'],
+    },
+    {
+      id: 'channel-divinity',
+      match: ['cleric', 'paladin'],
+      label: 'Channel Divinity',
+      type: 'pips',
+      currentKeys: ['channel_divinity_current', 'channel_divinity_uses_current'],
+      maxKeys: ['channel_divinity_max', 'channel_divinity_uses_max'],
+    },
+    {
+      id: 'rage',
+      match: ['barbarian'],
+      label: 'Rage',
+      type: 'pips',
+      currentKeys: ['rage_current', 'rage_uses_current', 'rages_current'],
+      maxKeys: ['rage_max', 'rage_uses_max', 'rages_max'],
+    },
+    {
+      id: 'sorcery-points',
+      match: ['sorcerer'],
+      label: 'Sorcery Points',
+      type: 'counter',
+      currentKeys: ['sorcery_points_current'],
+      maxKeys: ['sorcery_points_max'],
+    },
+    {
+      id: 'second-wind',
+      match: ['fighter'],
+      label: 'Second Wind',
+      type: 'toggle',
+      boolKeys: ['second_wind_used'],
+      trueLabel: 'Used',
+      falseLabel: 'Ready',
+    },
+    {
+      id: 'action-surge',
+      match: ['fighter'],
+      label: 'Action Surge',
+      type: 'pips',
+      currentKeys: ['action_surge_current', 'action_surge_uses_current'],
+      maxKeys: ['action_surge_max', 'action_surge_uses_max'],
+    },
+    {
+      id: 'superiority-dice',
+      match: ['fighter'],
+      label: 'Superiority Dice',
+      type: 'pips',
+      currentKeys: ['superiority_dice_current'],
+      maxKeys: ['superiority_dice_max'],
+      meta: () => {
+        const die = readNumberField(state, ['superiority_die_size'], readNumberField(profile, ['superiority_die_size'], null));
+        return die ? `d${die}` : '';
+      },
+    },
+    {
+      id: 'lay-on-hands',
+      match: ['paladin'],
+      label: 'Lay on Hands',
+      type: 'counter',
+      currentKeys: ['lay_on_hands_current'],
+      maxKeys: ['lay_on_hands_max'],
+    },
+    {
+      id: 'arcane-recovery',
+      match: ['wizard'],
+      label: 'Arcane Recovery',
+      type: 'toggle',
+      boolKeys: ['arcane_recovery_used'],
+      trueLabel: 'Used',
+      falseLabel: 'Ready',
+    },
+    {
+      id: 'natural-recovery',
+      match: ['druid'],
+      label: 'Natural Recovery',
+      type: 'toggle',
+      boolKeys: ['natural_recovery_used'],
+      trueLabel: 'Used',
+      falseLabel: 'Ready',
+    },
+    {
+      id: 'warlock-slots',
+      match: ['warlock'],
+      label: 'Warlock Slots',
+      type: 'pips',
+      currentKeys: ['warlock_slots_current', 'warlock_spell_slots_current'],
+      maxKeys: ['warlock_slots_max', 'warlock_spell_slots_max'],
+      meta: () => {
+        const lvl = readNumberField(state, ['warlock_slot_level'], readNumberField(profile, ['warlock_slot_level'], null));
+        return lvl ? `Lv ${lvl}` : '';
+      },
+    },
+  ];
+
+  genericClassResources.forEach(resource => {
+    const matchedByClass = resource.match.includes(className);
+    const matchedBySchema =
+      findExistingKey(state, resource.currentKeys || []) ||
+      findExistingKey(state, resource.maxKeys || []) ||
+      findExistingKey(state, resource.boolKeys || []);
+
+    if (!matchedByClass && !matchedBySchema) return;
+
+    if (resource.type === 'toggle') {
+      const boolKey = findExistingKey(state, resource.boolKeys || []);
+      if (!boolKey) return;
+      resources.push({
+        id: resource.id,
+        label: resource.label,
+        type: 'toggle',
+        boolKey,
+        trueLabel: resource.trueLabel || 'Used',
+        falseLabel: resource.falseLabel || 'Ready',
+        meta: resource.meta ? resource.meta() : '',
+      });
+      return;
+    }
+
+    const currentKey = findExistingKey(state, resource.currentKeys || []);
+    const maxKey = findExistingKey(state, resource.maxKeys || []);
+    if (!currentKey && !maxKey) return;
+
+    resources.push({
+      id: resource.id,
+      label: resource.label,
+      type: resource.type,
+      currentKey: currentKey || (resource.currentKeys || [])[0],
+      maxKey: maxKey || (resource.maxKeys || [])[0],
+      meta: resource.meta ? resource.meta() : '',
+    });
+  });
+
+  return resources;
+}
+
 export default function PlayerCard({ combatant, state, role, isEditMode, encounterId, onUpdate }) {
   const profile = state?.profiles_players;
   const canEdit = role === 'dm' || role === 'player';
@@ -39,12 +288,13 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   const reactionUsed = state?.reaction_used ?? false;
   const isBloodied = hp > 0 && hp <= Math.floor(maxHp / 2);
 
-  // CON check DC — read from DB, persistent until confirmed
-  // Only show when player is concentrating (if they're not, there's nothing to check)
   const pendingConDc = concentration ? (state?.concentration_check_dc ?? null) : null;
-
-  // Passive perception = 10 + perception skill modifier
   const passivePerception = profile ? (10 + (profile.skill_perception ?? 0)) : null;
+
+  const classLine = [profile?.class_name, profile?.subclass_name].filter(Boolean).join(' • ');
+  const levelLine = profile?.class_level ? `Level ${profile.class_level}` : '';
+  const ancestryLine = profile?.ancestry_name || '';
+  const resourceConfigs = getResourceConfig(profile || {}, state || {});
 
   useEffect(() => { setLocalHp(null); }, [dbHp]);
 
@@ -64,11 +314,9 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   async function applyDamage(amount) {
     if (!state || readOnly || !amount || amount <= 0) return;
 
-    // If concentrating, write DC to DB for persistent player banner
     if (concentration) {
       const dc = Math.max(10, Math.floor(amount / 2));
       await supabase.from('player_encounter_state').update({ concentration_check_dc: dc }).eq('id', state.id);
-      // Log the check
       const playerName = profile?.name || combatant?.name || 'PC';
       supabase.from('concentration_checks').insert({
         encounter_id: encounterId,
@@ -91,7 +339,6 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
       updates.current_hp = newHp;
       updates.conditions = updatedConditions;
       await supabase.from('player_encounter_state').update(updates).eq('id', state.id);
-      // Combat log
       const actor = isPlayer ? (profile?.name || 'Player') : 'DM';
       supabase.from('combat_log').insert({
         encounter_id: encounterId,
@@ -178,17 +425,14 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
 
   async function toggleConcentration() {
     if (readOnly || !state) return;
-    // If turning off concentration, also clear any pending check
     const updates = { concentration: !concentration };
     if (concentration) updates.concentration_check_dc = null;
     await supabase.from('player_encounter_state').update(updates).eq('id', state.id);
     onUpdate();
   }
 
-  // CON check confirmation handlers
   async function handleConPass() {
     if (!state) return;
-    // Find the most recent pending check and mark it passed
     const playerName = profile?.name || combatant?.name;
     if (playerName) {
       const { data: checks } = await supabase
@@ -209,7 +453,6 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
 
   async function handleConFail() {
     if (!state) return;
-    // Find the most recent pending check and mark it failed
     const playerName = profile?.name || combatant?.name;
     if (playerName) {
       const { data: checks } = await supabase
@@ -224,11 +467,18 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
         await supabase.from('concentration_checks').update({ result: 'failed' }).eq('id', checks[0].id);
       }
     }
-    // Clear DC and end concentration
     await supabase.from('player_encounter_state').update({
       concentration_check_dc: null,
       concentration: false,
     }).eq('id', state.id);
+    onUpdate();
+  }
+
+  async function updateResourceFields(updates) {
+    if (!state || readOnly) return;
+    const payload = compactObject(updates);
+    if (Object.keys(payload).length === 0) return;
+    await supabase.from('player_encounter_state').update(payload).eq('id', state.id);
     onUpdate();
   }
 
@@ -248,14 +498,12 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
       </div>
 
       <div className="card-body">
-        {/* Header */}
         <div className="card-header-row">
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', flex: 1 }}>
             <span className="card-name">{combatant?.name}</span>
             {isBloodied && <span className="badge badge-bloodied">BLOODIED</span>}
           </div>
           <div className="card-header-badges">
-            {/* Reaction pill on player card — prominent, always visible */}
             {canEdit ? (
               <button
                 className={`reaction-pill reaction-pill--clickable ${reactionUsed ? 'reaction-pill--used' : 'reaction-pill--ready'}`}
@@ -272,7 +520,19 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
           </div>
         </div>
 
-        {/* CON Save Banner — persistent, DB-driven, player must confirm */}
+        {(classLine || levelLine || ancestryLine) && (
+          <div className="player-class-line" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {(classLine || levelLine) && (
+              <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 }}>
+                {[classLine, levelLine].filter(Boolean).join(' • ')}
+              </span>
+            )}
+            {ancestryLine && (
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{ancestryLine}</span>
+            )}
+          </div>
+        )}
+
         {pendingConDc !== null && (
           <div className="con-check-banner">
             <div className="con-check-banner-header">
@@ -286,7 +546,6 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
           </div>
         )}
 
-        {/* HP bar */}
         <div style={{ position: 'relative' }}>
           <div className="hp-bar-track" style={{ height: 10 }}>
             <div className="hp-bar-fill" style={{ width: `${hpPercent}%`, background: hpColor(hpPercent) }} />
@@ -299,7 +558,6 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
           </div>
         </div>
 
-        {/* HP numbers */}
         <div className="hp-numbers-row">
           {!readOnly ? (
             <HpEditableNumber value={hp} onSet={setHpDirect} />
@@ -323,12 +581,10 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
           )}
         </div>
 
-        {/* DMG / HEAL widget */}
         {canEdit && (
           <DmgHealRow onDamage={applyDamage} onHeal={applyHeal} />
         )}
 
-        {/* Max HP override (DM only) */}
         {canRestore && (
           <div className="max-hp-override-row">
             <span className="max-hp-override-label">Max HP {maxHpOverride !== null ? '✦' : ''}</span>
@@ -341,7 +597,6 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
           </div>
         )}
 
-        {/* Core stats — PP shown after AC */}
         <div className="stats-row">
           <StatPill label="AC" value={profile?.ac ?? combatant?.ac ?? '—'} />
           {passivePerception !== null && <StatPill label="PP" value={passivePerception} />}
@@ -349,7 +604,16 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
           {!!profile?.spell_attack_bonus && <StatPill label="Spell ATK" value={`+${profile.spell_attack_bonus}`} />}
         </div>
 
-        {/* Saves */}
+        {resourceConfigs.length > 0 && (
+          <ResourceSection
+            resources={resourceConfigs}
+            state={state}
+            readOnly={readOnly}
+            canRestore={canRestore}
+            onUpdateFields={updateResourceFields}
+          />
+        )}
+
         {profile && (
           <div className="saves-grid">
             {['str','dex','con','int','wis','cha'].map(s => (
@@ -361,7 +625,6 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
           </div>
         )}
 
-        {/* Spell slots */}
         {profile && (
           <SpellSlotGrid
             profile={profile}
@@ -372,7 +635,6 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
           />
         )}
 
-        {/* Conditions */}
         <ConditionChipRow
           conditions={state?.conditions || []}
           concentration={concentration}
@@ -381,7 +643,6 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
           onUpdate={onUpdate}
         />
 
-        {/* Concentration toggle */}
         {!readOnly && (
           <button
             onClick={toggleConcentration}
@@ -402,7 +663,6 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
           <span className="condition-chip condition-chip-con">CON</span>
         )}
 
-        {/* Wild Shape */}
         {profile?.wildshape_enabled && state && (
           <WildShapeBlock state={state} readOnly={readOnly} canRestore={canRestore} onUpdate={onUpdate} />
         )}
@@ -411,9 +671,6 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   );
 }
 
-// ============================================================
-// DMG / HEAL WIDGET — exported for use in InitiativePanel
-// ============================================================
 export function DmgHealRow({ onDamage, onHeal, compact = false }) {
   const [amount, setAmount] = useState('');
   const inputRef = useRef(null);
@@ -456,7 +713,157 @@ export function DmgHealRow({ onDamage, onHeal, compact = false }) {
   );
 }
 
-// ---- Sub-components ----
+function ResourceSection({ resources, state, readOnly, canRestore, onUpdateFields }) {
+  return (
+    <div className="player-resource-section" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        Resources
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {resources.map(resource => (
+          <ResourceRow
+            key={resource.id}
+            resource={resource}
+            state={state}
+            readOnly={readOnly}
+            canRestore={canRestore}
+            onUpdateFields={onUpdateFields}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ResourceRow({ resource, state, readOnly, canRestore, onUpdateFields }) {
+  if (resource.type === 'toggle') {
+    const value = readBooleanField(state, [resource.boolKey], false);
+    const canToggle = !readOnly;
+
+    async function handleToggle() {
+      if (!canToggle) return;
+      await onUpdateFields({ [resource.boolKey]: !value });
+    }
+
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{resource.label}</span>
+          {resource.meta ? (
+            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{resource.meta}</span>
+          ) : null}
+        </div>
+
+        {canToggle ? (
+          <button
+            className="btn btn-ghost"
+            style={{
+              fontSize: 11,
+              padding: '4px 10px',
+              borderColor: value ? 'var(--accent-red)' : 'var(--accent-green)',
+              color: value ? 'var(--accent-red)' : 'var(--accent-green)',
+            }}
+            onClick={handleToggle}
+          >
+            {value ? (resource.trueLabel || 'Used') : (resource.falseLabel || 'Ready')}
+          </button>
+        ) : (
+          <span style={{ fontSize: 11, fontWeight: 700, color: value ? 'var(--accent-red)' : 'var(--accent-green)' }}>
+            {value ? (resource.trueLabel || 'Used') : (resource.falseLabel || 'Ready')}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  const current = readNumberField(state, [resource.currentKey], 0);
+  const max = readNumberField(state, [resource.maxKey], null);
+
+  if (resource.type === 'counter') {
+    const upperBound = max ?? Math.max(current, 0);
+
+    async function adjust(delta) {
+      if (readOnly) return;
+      const next = Math.max(0, Math.min(upperBound, current + delta));
+      if (next === current) return;
+      await onUpdateFields({ [resource.currentKey]: next });
+    }
+
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{resource.label}</span>
+          {(resource.meta || resource.displaySuffix) ? (
+            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+              {[resource.meta, resource.displaySuffix].filter(Boolean).join(' • ')}
+            </span>
+          ) : null}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {!readOnly && (
+            <button className="btn btn-icon btn-ghost" style={{ minWidth: 28, minHeight: 28, fontSize: 13 }} onClick={() => adjust(-1)}>−</button>
+          )}
+          <span style={{ minWidth: 54, textAlign: 'center', fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>
+            {current}{max !== null ? ` / ${max}` : ''}
+          </span>
+          {!readOnly && (
+            <button className="btn btn-icon btn-ghost" style={{ minWidth: 28, minHeight: 28, fontSize: 13 }} onClick={() => adjust(1)}>+</button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  const safeMax = Math.max(0, max ?? current ?? 0);
+  const safeCurrent = Math.max(0, Math.min(safeMax, current ?? 0));
+  const filled = safeCurrent;
+
+  async function setPips(nextCurrent) {
+    if (readOnly) return;
+    const clamped = Math.max(0, Math.min(safeMax, nextCurrent));
+    await onUpdateFields({ [resource.currentKey]: clamped });
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between', flexWrap: 'wrap' }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{resource.label}</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+          {[resource.meta, `${filled}/${safeMax}`].filter(Boolean).join(' • ')}
+        </span>
+      </div>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+        {Array.from({ length: safeMax }).map((_, i) => {
+          const active = i < filled;
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => setPips(active ? i : i + 1)}
+              disabled={readOnly}
+              title={readOnly ? undefined : active ? 'Spend / reduce' : 'Restore / add'}
+              style={{
+                width: 16,
+                height: 16,
+                borderRadius: '50%',
+                padding: 0,
+                border: `2px solid ${active ? 'var(--accent-blue)' : 'var(--border-strong)'}`,
+                background: active ? 'var(--accent-blue)' : 'transparent',
+                cursor: readOnly ? 'default' : 'pointer',
+                opacity: readOnly ? 0.9 : 1,
+              }}
+            />
+          );
+        })}
+        {safeMax === 0 && (
+          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>No charges</span>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function StatPill({ label, value }) {
   return (
