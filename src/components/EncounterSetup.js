@@ -14,10 +14,28 @@ function compactObject(obj) {
 
 function formatClassLine(entity) {
   const parts = [];
-  if (entity.class_name) parts.push(entity.class_name);
-  if (entity.subclass_name) parts.push(entity.subclass_name);
-  if (entity.class_level) parts.push(`Lv ${entity.class_level}`);
-  return parts.join(' • ');
+
+  if (entity.class_name) {
+    parts.push(
+      [
+        entity.class_name,
+        entity.class_level ? `Lv ${entity.class_level}` : null,
+        entity.subclass_name || null,
+      ].filter(Boolean).join(' • ')
+    );
+  }
+
+  if (entity.class_name_2) {
+    parts.push(
+      [
+        entity.class_name_2,
+        entity.class_level_2 ? `Lv ${entity.class_level_2}` : null,
+        entity.subclass_name_2 || null,
+      ].filter(Boolean).join(' • ')
+    );
+  }
+
+  return parts.join(' / ');
 }
 
 async function insertCombatantWithFallback(payload, fallbackPayload) {
@@ -117,6 +135,9 @@ export default function EncounterSetup({ onEncounterCreated }) {
           class_name: profile.class_name || null,
           subclass_name: profile.subclass_name || null,
           class_level: profile.class_level != null ? toInt(profile.class_level, 1) : null,
+          class_name_2: profile.class_name_2 || null,
+          subclass_name_2: profile.subclass_name_2 || null,
+          class_level_2: profile.class_level_2 != null ? toInt(profile.class_level_2, 0) : null,
           ancestry_name: profile.ancestry_name || null,
         });
 
@@ -200,6 +221,9 @@ export default function EncounterSetup({ onEncounterCreated }) {
             class_name: template.class_name || null,
             subclass_name: template.subclass_name || null,
             class_level: template.class_level != null ? toInt(template.class_level, 1) : null,
+            class_name_2: template.class_name_2 || null,
+            subclass_name_2: template.subclass_name_2 || null,
+            class_level_2: template.class_level_2 != null ? toInt(template.class_level_2, 0) : null,
             mini_marker: template.mini_marker || null,
           });
 
