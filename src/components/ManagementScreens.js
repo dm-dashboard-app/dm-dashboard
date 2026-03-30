@@ -215,6 +215,20 @@ function SelectField({ value, onChange, options }) {
   );
 }
 
+function DerivedValueField({ label, value, helpText = '' }) {
+  return (
+    <div className="form-group" style={{ flex: 1 }}>
+      <label className="form-label">{label}</label>
+      <div className="form-input" style={{ display: 'flex', alignItems: 'center', color: 'var(--text-primary)', fontWeight: 600 }}>
+        {value ?? '—'}
+      </div>
+      {helpText ? (
+        <div style={{ marginTop: 4, fontSize: 11, color: 'var(--text-muted)' }}>{helpText}</div>
+      ) : null}
+    </div>
+  );
+}
+
 // ============================================================
 // PLAYER PROFILE MANAGER
 // ============================================================
@@ -369,14 +383,16 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
       <Field label="Ancestry / Heritage"><input className="form-input" value={f.ancestry_name || ''} onChange={e => set('ancestry_name', e.target.value)} /></Field>
 
       <div className="form-row" style={{ flexWrap: 'wrap' }}>
-        <div className="form-group" style={{ flex: 1 }}>
-          <label className="form-label">Hit Die Size</label>
-          <NumInput value={f.hit_die_size ?? 8} onChange={v => set('hit_die_size', v)} />
-        </div>
-        <div className="form-group" style={{ flex: 1 }}>
-          <label className="form-label">Hit Dice Max</label>
-          <NumInput value={f.hit_dice_max ?? 1} onChange={v => set('hit_dice_max', v)} />
-        </div>
+        <DerivedValueField
+          label="Hit Die Size"
+          value={f.hit_die_size ? `d${f.hit_die_size}` : '—'}
+          helpText="Derived automatically from class selection."
+        />
+        <DerivedValueField
+          label="Hit Dice Max"
+          value={f.hit_dice_max ?? '—'}
+          helpText="Derived automatically from total character level."
+        />
       </div>
 
       <label className="checkbox-row">
@@ -421,6 +437,9 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
       ))}
 
       <div className="panel-title" style={{ marginTop: 12 }}>Spell Slots (max per level)</div>
+      <div style={{ marginTop: -6, marginBottom: 8, fontSize: 11, color: 'var(--text-muted)' }}>
+        These remain manual for now.
+      </div>
       <div className="saves-grid">
         {[1,2,3,4,5,6,7,8,9].map(l => (
           <div key={l} className="form-group">
