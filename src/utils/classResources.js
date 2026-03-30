@@ -13,6 +13,33 @@ const CLASS_HIT_DIE = {
   wizard: 6,
 };
 
+const FULL_CASTER_CLASSES = ['bard', 'cleric', 'druid', 'sorcerer', 'wizard'];
+const HALF_CASTER_CLASSES = ['paladin', 'ranger'];
+
+const SPELL_SLOT_TABLE = {
+  0: [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  1: [2, 0, 0, 0, 0, 0, 0, 0, 0],
+  2: [3, 0, 0, 0, 0, 0, 0, 0, 0],
+  3: [4, 2, 0, 0, 0, 0, 0, 0, 0],
+  4: [4, 3, 0, 0, 0, 0, 0, 0, 0],
+  5: [4, 3, 2, 0, 0, 0, 0, 0, 0],
+  6: [4, 3, 3, 0, 0, 0, 0, 0, 0],
+  7: [4, 3, 3, 1, 0, 0, 0, 0, 0],
+  8: [4, 3, 3, 2, 0, 0, 0, 0, 0],
+  9: [4, 3, 3, 3, 1, 0, 0, 0, 0],
+  10: [4, 3, 3, 3, 2, 0, 0, 0, 0],
+  11: [4, 3, 3, 3, 2, 1, 0, 0, 0],
+  12: [4, 3, 3, 3, 2, 1, 0, 0, 0],
+  13: [4, 3, 3, 3, 2, 1, 1, 0, 0],
+  14: [4, 3, 3, 3, 2, 1, 1, 0, 0],
+  15: [4, 3, 3, 3, 2, 1, 1, 1, 0],
+  16: [4, 3, 3, 3, 2, 1, 1, 1, 0],
+  17: [4, 3, 3, 3, 2, 1, 1, 1, 1],
+  18: [4, 3, 3, 3, 3, 1, 1, 1, 1],
+  19: [4, 3, 3, 3, 3, 2, 1, 1, 1],
+  20: [4, 3, 3, 3, 3, 2, 2, 1, 1],
+};
+
 export const HIT_DIE_SIZES = [6, 8, 10, 12];
 
 function toInt(value, fallback = 0) {
@@ -95,6 +122,33 @@ export function formatHitDiceSummary(source = {}) {
   return HIT_DIE_SIZES
     .filter(size => (pools[size] || 0) > 0)
     .map(size => `${pools[size]} × d${size}`)
+    .join(' • ');
+}
+
+export function getStandardCasterLevel(source = {}) {
+  const entries = getClassEntries(source);
+  return entries.reduce((sum, entry) => {
+    if (FULL_CASTER_CLASSES.includes(entry.className)) return sum + entry.level;
+    if (HALF_CASTER_CLASSES.includes(entry.className)) return sum + Math.floor(entry.level / 2);
+    return sum;
+  }, 0);
+}
+
+export function getStandardSpellSlots(source = {}) {
+  const casterLevel = Math.max(0, Math.min(20, getStandardCasterLevel(source)));
+  const slots = SPELL_SLOT_TABLE[casterLevel] || SPELL_SLOT_TABLE[0];
+  const result = {};
+  for (let level = 1; level <= 9; level += 1) {
+    result[`slots_max_${level}`] = slots[level - 1] || 0;
+  }
+  return result;
+}
+
+export function formatStandardSpellSlotsSummary(source = {}) {
+  const slots = getStandardSpellSlots(source);
+  return Array.from({ length: 9 }, (_, index) => index + 1)
+    .filter(level => (slots[`slots_max_${level}`] || 0) > 0)
+    .map(level => `L${level} ${slots[`slots_max_${level}`]}`)
     .join(' • ');
 }
 
@@ -189,6 +243,7 @@ export function derivePlayerProfileDefaults(source = {}) {
   return compactObject({
     hit_die_size: totalLevel > 0 ? getHighestHitDie(source, 8) : undefined,
     hit_dice_max: totalLevel > 0 ? totalLevel : undefined,
+    ...getStandardSpellSlots(source),
   });
 }
 
