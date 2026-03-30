@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase, uploadPortrait } from '../supabaseClient';
 import { derivePlayerProfileDefaults, formatHitDiceSummary, formatStandardSpellSlotsSummary, getClassLevel } from '../utils/classResources';
+import SpellManagementPanel from './SpellManagementPanel';
 
 const CLASS_OPTIONS = ['', 'Barbarian', 'Bard', 'Cleric', 'Druid', 'Fighter', 'Monk', 'Paladin', 'Ranger', 'Rogue', 'Sorcerer', 'Warlock', 'Wizard'];
 
@@ -25,11 +26,13 @@ export default function ManagementScreens({ onEncounterCreated, currentEncounter
         {currentEncounter && <button className={`tab-btn ${tab === 'session' ? 'active' : ''}`} onClick={() => setTab('session')}>Session</button>}
         <button className={`tab-btn ${tab === 'players' ? 'active' : ''}`} onClick={() => setTab('players')}>Players</button>
         <button className={`tab-btn ${tab === 'monsters' ? 'active' : ''}`} onClick={() => setTab('monsters')}>Monsters & NPCs</button>
+        <button className={`tab-btn ${tab === 'spells' ? 'active' : ''}`} onClick={() => setTab('spells')}>Spells</button>
         <button className={`tab-btn ${tab === 'wildshape' ? 'active' : ''}`} onClick={() => setTab('wildshape')}>Wild Shape</button>
       </div>
       {tab === 'session' && currentEncounter && <SessionControls currentEncounter={currentEncounter} displayToken={displayToken} joinCodes={joinCodes} onToggleEditMode={onToggleEditMode} onGenerateDisplayToken={onGenerateDisplayToken} onRevokeDisplayToken={onRevokeDisplayToken} onFrontScreen={onFrontScreen} onSignOut={onSignOut} />}
       {tab === 'players' && <PlayerProfileManager />}
       {tab === 'monsters' && <MonsterTemplateManager />}
+      {tab === 'spells' && <SpellManagementPanel />}
       {tab === 'wildshape' && <WildShapeLibrary />}
     </div>
   );
