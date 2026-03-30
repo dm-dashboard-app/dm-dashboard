@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase, uploadPortrait } from '../supabaseClient';
+import { derivePlayerProfileDefaults } from '../utils/classResources';
 
 const CLASS_OPTIONS = [
   '',
@@ -16,27 +17,6 @@ const CLASS_OPTIONS = [
   'Warlock',
   'Wizard',
 ];
-
-const HIT_DIE_BY_CLASS = {
-  Barbarian: 12,
-  Bard: 8,
-  Cleric: 8,
-  Druid: 8,
-  Fighter: 10,
-  Monk: 8,
-  Paladin: 10,
-  Ranger: 10,
-  Rogue: 8,
-  Sorcerer: 6,
-  Warlock: 8,
-  Wizard: 6,
-};
-
-function defaultHitDieForClasses(primaryClass, secondaryClass) {
-  const primary = HIT_DIE_BY_CLASS[primaryClass] || 0;
-  const secondary = HIT_DIE_BY_CLASS[secondaryClass] || 0;
-  return Math.max(primary, secondary, 8);
-}
 
 function classSummary(entity = {}) {
   const parts = [];
@@ -62,6 +42,13 @@ function classSummary(entity = {}) {
   }
 
   return parts.join(' / ');
+}
+
+function applyDerivedPlayerDefaults(profile = {}) {
+  return {
+    ...profile,
+    ...derivePlayerProfileDefaults(profile),
+  };
 }
 
 export default function ManagementScreens({
@@ -228,6 +215,20 @@ function SelectField({ value, onChange, options }) {
   );
 }
 
+function DerivedValueField({ label, value, helpText = '' }) {
+  return (
+    <div className="form-group" style={{ flex: 1 }}>
+      <label className="form-label">{label}</label>
+      <div className="form-input" style={{ display: 'flex', alignItems: 'center', color: 'var(--text-primary)', fontWeight: 600 }}>
+        {value ?? '—'}
+      </div>
+      {helpText ? (
+        <div style={{ marginTop: 4, fontSize: 11, color: 'var(--text-muted)' }}>{helpText}</div>
+      ) : null}
+    </div>
+  );
+}
+
 // ============================================================
 // PLAYER PROFILE MANAGER
 // ============================================================
@@ -243,10 +244,12 @@ function PlayerProfileManager() {
   }
 
   async function save(profile) {
-    if (profile.id) {
-      await supabase.from('profiles_players').update(profile).eq('id', profile.id);
+    const finalProfile = applyDerivedPlayerDefaults(profile);
+
+    if (finalProfile.id) {
+      await supabase.from('profiles_players').update(finalProfile).eq('id', finalProfile.id);
     } else {
-      await supabase.from('profiles_players').insert(profile);
+      await supabase.from('profiles_players').insert(finalProfile);
     }
     setEditing(null);
     load();
@@ -319,10 +322,12 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
 
   useEffect(() => {
-    if (!initial?.id && (f.class_name || f.class_name_2) && (!f.hit_die_size || f.hit_die_size === 0)) {
-      set('hit_die_size', defaultHitDieForClasses(f.class_name, f.class_name_2));
-    }
-  }, [f.class_name, f.class_name_2]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!f.class_name && !f.class_name_2) return;
+    setF(current => ({
+      ...current,
+      ...derivePlayerProfileDefaults(current),
+    }));
+  }, [f.class_name, f.class_level, f.class_name_2, f.class_level_2]);
 
   async function handlePortraitUpload(e) {
     const file = e.target.files?.[0];
@@ -352,12 +357,7 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
       <Field label="Primary Class">
         <SelectField
           value={f.class_name}
-          onChange={v => {
-            set('class_name', v);
-            if (!f.hit_die_size || f.hit_die_size === 0) {
-              set('hit_die_size', defaultHitDieForClasses(v, f.class_name_2));
-            }
-          }}
+          onChange={v => set('class_name', v)}
           options={CLASS_OPTIONS}
         />
       </Field>
@@ -373,9 +373,6 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
               set('subclass_name_2', '');
               set('class_level_2', 0);
             }
-            if (!f.hit_die_size || f.hit_die_size === 0) {
-              set('hit_die_size', defaultHitDieForClasses(f.class_name, v));
-            }
           }}
           options={CLASS_OPTIONS}
         />
@@ -386,14 +383,16 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
       <Field label="Ancestry / Heritage"><input className="form-input" value={f.ancestry_name || ''} onChange={e => set('ancestry_name', e.target.value)} /></Field>
 
       <div className="form-row" style={{ flexWrap: 'wrap' }}>
-        <div className="form-group" style={{ flex: 1 }}>
-          <label className="form-label">Hit Die Size</label>
-          <NumInput value={f.hit_die_size ?? defaultHitDieForClasses(f.class_name, f.class_name_2)} onChange={v => set('hit_die_size', v)} />
-        </div>
-        <div className="form-group" style={{ flex: 1 }}>
-          <label className="form-label">Hit Dice Max</label>
-          <NumInput value={f.hit_dice_max ?? ((f.class_level || 0) + (f.class_level_2 || 0) || 1)} onChange={v => set('hit_dice_max', v)} />
-        </div>
+        <DerivedValueField
+          label="Hit Die Size"
+          value={f.hit_die_size ? `d${f.hit_die_size}` : '—'}
+          helpText="Derived automatically from class selection."
+        />
+        <DerivedValueField
+          label="Hit Dice Max"
+          value={f.hit_dice_max ?? '—'}
+          helpText="Derived automatically from total character level."
+        />
       </div>
 
       <label className="checkbox-row">
@@ -438,6 +437,9 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
       ))}
 
       <div className="panel-title" style={{ marginTop: 12 }}>Spell Slots (max per level)</div>
+      <div style={{ marginTop: -6, marginBottom: 8, fontSize: 11, color: 'var(--text-muted)' }}>
+        These remain manual for now.
+      </div>
       <div className="saves-grid">
         {[1,2,3,4,5,6,7,8,9].map(l => (
           <div key={l} className="form-group">
