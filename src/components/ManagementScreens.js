@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase, uploadPortrait } from '../supabaseClient';
-import { derivePlayerProfileDefaults } from '../utils/classResources';
+import { derivePlayerProfileDefaults, formatHitDiceSummary } from '../utils/classResources';
 
 const CLASS_OPTIONS = [
   '',
@@ -220,7 +220,7 @@ function DerivedValueField({ label, value, helpText = '' }) {
     <div className="form-group" style={{ flex: 1 }}>
       <label className="form-label">{label}</label>
       <div className="form-input" style={{ display: 'flex', alignItems: 'center', color: 'var(--text-primary)', fontWeight: 600 }}>
-        {value ?? '—'}
+        {value || '—'}
       </div>
       {helpText ? (
         <div style={{ marginTop: 4, fontSize: 11, color: 'var(--text-muted)' }}>{helpText}</div>
@@ -319,15 +319,10 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
 
-  const set = (k, v) => setF(p => ({ ...p, [k]: v }));
+  const derivedProfile = applyDerivedPlayerDefaults(f);
+  const hitDiceSummary = formatHitDiceSummary(f);
 
-  useEffect(() => {
-    if (!f.class_name && !f.class_name_2) return;
-    setF(current => ({
-      ...current,
-      ...derivePlayerProfileDefaults(current),
-    }));
-  }, [f.class_name, f.class_level, f.class_name_2, f.class_level_2]);
+  const set = (k, v) => setF(p => ({ ...p, [k]: v }));
 
   async function handlePortraitUpload(e) {
     const file = e.target.files?.[0];
@@ -384,14 +379,14 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
 
       <div className="form-row" style={{ flexWrap: 'wrap' }}>
         <DerivedValueField
-          label="Hit Die Size"
-          value={f.hit_die_size ? `d${f.hit_die_size}` : '—'}
-          helpText="Derived automatically from class selection."
+          label="Hit Dice"
+          value={hitDiceSummary || '—'}
+          helpText="Derived automatically from class selection and multiclass levels."
         />
         <DerivedValueField
-          label="Hit Dice Max"
-          value={f.hit_dice_max ?? '—'}
-          helpText="Derived automatically from total character level."
+          label="Legacy Summary"
+          value={derivedProfile.hit_die_size && derivedProfile.hit_dice_max ? `${derivedProfile.hit_dice_max} total • d${derivedProfile.hit_die_size} highest` : '—'}
+          helpText="Shown only as a compatibility summary for older flows."
         />
       </div>
 
@@ -455,7 +450,7 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
       </label>
 
       <div className="form-row" style={{ marginTop: 16 }}>
-        <button className="btn btn-primary" onClick={() => onSave(f)} disabled={!f.name || uploading}>Save</button>
+        <button className="btn btn-primary" onClick={() => onSave(derivedProfile)} disabled={!f.name || uploading}>Save</button>
         <button className="btn btn-ghost" onClick={onCancel}>Cancel</button>
       </div>
     </div>
