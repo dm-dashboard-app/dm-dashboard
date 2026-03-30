@@ -48,6 +48,14 @@ function readBooleanField(source, candidates = [], fallback = null) {
   return !!raw;
 }
 
+function readTextField(source, candidates = [], fallback = '') {
+  const key = findExistingKey(source, candidates);
+  if (!key) return fallback;
+  const raw = source[key];
+  if (raw === null || raw === undefined || raw === '') return fallback;
+  return String(raw);
+}
+
 function getClassEntries(profile = {}) {
   const entries = [];
 
@@ -98,27 +106,56 @@ function hasClass(profile = {}, classNames = []) {
   return getClassEntries(profile).some(entry => allowed.includes(entry.className));
 }
 
-function getResourceConfig(profile = {}, state = {}) {
-  const resources = [];
+function getHitDicePoolResources(state = {}, profile = {}) {
+  const poolSpecs = [
+    { size: 6, currentKey: 'hit_dice_d6_current', maxKey: 'hit_dice_d6_max' },
+    { size: 8, currentKey: 'hit_dice_d8_current', maxKey: 'hit_dice_d8_max' },
+    { size: 10, currentKey: 'hit_dice_d10_current', maxKey: 'hit_dice_d10_max' },
+    { size: 12, currentKey: 'hit_dice_d12_current', maxKey: 'hit_dice_d12_max' },
+  ];
+
+  const resources = poolSpecs
+    .map(spec => {
+      const maxValue = readNumberField(state, [spec.maxKey], 0);
+      const currentValue = readNumberField(state, [spec.currentKey], 0);
+      if (!maxValue && !currentValue) return null;
+      return {
+        id: `hit-dice-d${spec.size}`,
+        label: 'Hit Dice',
+        type: 'counter',
+        currentKey: spec.currentKey,
+        maxKey: spec.maxKey,
+        displaySuffix: `d${spec.size}`,
+      };
+    })
+    .filter(Boolean);
+
+  if (resources.length > 0) return resources;
 
   const hitDiceCurrentKey = findExistingKey(state, ['hit_dice_current', 'hit_dice_remaining']);
   const hitDiceMaxKey = findExistingKey(state, ['hit_dice_max']);
   const hitDieSize = readNumberField(state, ['hit_die_size'], readNumberField(profile, ['hit_die_size'], null));
 
   if (hitDiceCurrentKey || hitDiceMaxKey || hitDieSize || profile.hit_dice_max || profile.hit_die_size) {
-    resources.push({
+    return [{
       id: 'hit-dice',
       label: 'Hit Dice',
       type: 'counter',
       currentKey: hitDiceCurrentKey || 'hit_dice_current',
       maxKey: hitDiceMaxKey || 'hit_dice_max',
       displaySuffix: hitDieSize ? `d${hitDieSize}` : '',
-    });
+    }];
   }
 
+  return [];
+}
+
+function getResourceConfig(profile = {}, state = {}) {
+  const resources = [...getHitDicePoolResources(state, profile)];
+
   if (profile.feat_lucky) {
-    const luckyCurrentKey = findExistingKey(state, ['lucky_uses_current', 'lucky_uses_remaining']);
-    const luckyMaxKey = findExistingKey(state, ['lucky_uses_max']);
+    const luckyCurrentKey = findExistingKey(state, ['lucky_current', 'lucky_uses_current', 'lucky_uses_remaining']);
+    const luckyMaxKey = findExistingKey(state, ['lucky_max', 'lucky_uses_max']);
     const luckyUsedKey = findExistingKey(state, ['lucky_used']);
 
     if (luckyCurrentKey || luckyMaxKey) {
@@ -126,8 +163,8 @@ function getResourceConfig(profile = {}, state = {}) {
         id: 'lucky',
         label: 'Lucky',
         type: 'pips',
-        currentKey: luckyCurrentKey || 'lucky_uses_current',
-        maxKey: luckyMaxKey || 'lucky_uses_max',
+        currentKey: luckyCurrentKey || 'lucky_current',
+        maxKey: luckyMaxKey || 'lucky_max',
       });
     } else if (luckyUsedKey) {
       resources.push({
@@ -163,10 +200,7 @@ function getResourceConfig(profile = {}, state = {}) {
       type: 'pips',
       currentKeys: ['bardic_inspiration_current', 'bardic_inspiration_uses_current', 'bardic_inspiration_remaining'],
       maxKeys: ['bardic_inspiration_max', 'bardic_inspiration_uses_max'],
-      meta: () => {
-        const die = readNumberField(state, ['bardic_inspiration_die_size'], readNumberField(profile, ['bardic_inspiration_die_size'], null));
-        return die ? `d${die}` : '';
-      },
+      meta: () => readTextField(state, ['bardic_inspiration_die', 'bardic_inspiration_die_size'], ''),
     },
     {
       id: 'ki',
@@ -205,9 +239,9 @@ function getResourceConfig(profile = {}, state = {}) {
       classes: ['fighter'],
       label: 'Second Wind',
       type: 'toggle',
-      boolKeys: ['second_wind_used'],
-      trueLabel: 'Used',
-      falseLabel: 'Ready',
+      boolKeys: ['second_wind_available', 'second_wind_used'],
+      trueLabel: 'Ready',
+      falseLabel: 'Spent',
     },
     {
       id: 'action-surge',
@@ -224,10 +258,7 @@ function getResourceConfig(profile = {}, state = {}) {
       type: 'pips',
       currentKeys: ['superiority_dice_current'],
       maxKeys: ['superiority_dice_max'],
-      meta: () => {
-        const die = readNumberField(state, ['superiority_die_size'], readNumberField(profile, ['superiority_die_size'], null));
-        return die ? `d${die}` : '';
-      },
+      meta: () => readTextField(state, ['superiority_die_size'], ''),
     },
     {
       id: 'lay-on-hands',
@@ -263,7 +294,7 @@ function getResourceConfig(profile = {}, state = {}) {
       currentKeys: ['warlock_slots_current', 'warlock_spell_slots_current'],
       maxKeys: ['warlock_slots_max', 'warlock_spell_slots_max'],
       meta: () => {
-        const lvl = readNumberField(state, ['warlock_slot_level'], readNumberField(profile, ['warlock_slot_level'], null));
+        const lvl = readNumberField(state, ['warlock_slots_level', 'warlock_slot_level'], null);
         return lvl ? `Lv ${lvl}` : '';
       },
     },
@@ -800,15 +831,15 @@ function ResourceRow({ resource, state, readOnly, onUpdateFields }) {
             style={{
               fontSize: 11,
               padding: '4px 10px',
-              borderColor: value ? 'var(--accent-red)' : 'var(--accent-green)',
-              color: value ? 'var(--accent-red)' : 'var(--accent-green)',
+              borderColor: value ? 'var(--accent-green)' : 'var(--accent-red)',
+              color: value ? 'var(--accent-green)' : 'var(--accent-red)',
             }}
             onClick={handleToggle}
           >
             {value ? (resource.trueLabel || 'Used') : (resource.falseLabel || 'Ready')}
           </button>
         ) : (
-          <span style={{ fontSize: 11, fontWeight: 700, color: value ? 'var(--accent-red)' : 'var(--accent-green)' }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: value ? 'var(--accent-green)' : 'var(--accent-red)' }}>
             {value ? (resource.trueLabel || 'Used') : (resource.falseLabel || 'Ready')}
           </span>
         )}
@@ -914,8 +945,8 @@ function StatPill({ label, value }) {
 }
 
 function formatMod(val) {
-  const n = parseInt(val);
-  if (isNaN(n)) return '—';
+  const n = parseInt(val, 10);
+  if (Number.isNaN(n)) return '—';
   return n >= 0 ? `+${n}` : `${n}`;
 }
 
@@ -928,8 +959,8 @@ function HpEditableNumber({ value, onSet }) {
 
   function commit() {
     setEditing(false);
-    const n = parseInt(draft);
-    if (!isNaN(n) && n !== value) onSet(n);
+    const n = parseInt(draft, 10);
+    if (!Number.isNaN(n) && n !== value) onSet(n);
   }
 
   if (!editing) {
@@ -973,7 +1004,7 @@ function TempHpControl({ tempHp, onSet }) {
       type="number"
       value={draft}
       onChange={e => setDraft(e.target.value)}
-      onBlur={() => { setEditing(false); const n = parseInt(draft); if (!isNaN(n)) onSet(n); }}
+      onBlur={() => { setEditing(false); const n = parseInt(draft, 10); if (!Number.isNaN(n)) onSet(n); }}
       onKeyDown={e => { if (e.key === 'Enter') e.target.blur(); if (e.key === 'Escape') setEditing(false); }}
       autoFocus
     />

@@ -13,6 +13,8 @@ const CLASS_HIT_DIE = {
   wizard: 6,
 };
 
+export const HIT_DIE_SIZES = [6, 8, 10, 12];
+
 function toInt(value, fallback = 0) {
   const n = parseInt(value, 10);
   return Number.isFinite(n) ? n : fallback;
@@ -73,6 +75,27 @@ export function getHighestHitDie(source = {}, fallback = 8) {
     .filter(Boolean);
 
   return dice.length > 0 ? Math.max(...dice) : fallback;
+}
+
+export function getHitDiePools(source = {}) {
+  const pools = { 6: 0, 8: 0, 10: 0, 12: 0 };
+
+  getClassEntries(source).forEach(entry => {
+    const dieSize = CLASS_HIT_DIE[entry.className];
+    if (!dieSize) return;
+    pools[dieSize] = (pools[dieSize] || 0) + (entry.level || 0);
+  });
+
+  return pools;
+}
+
+export function formatHitDiceSummary(source = {}) {
+  const pools = getHitDiePools(source);
+
+  return HIT_DIE_SIZES
+    .filter(size => (pools[size] || 0) > 0)
+    .map(size => `${pools[size]} × d${size}`)
+    .join(' • ');
 }
 
 function getProficiencyBonus(totalLevel) {
@@ -138,16 +161,6 @@ function getLayOnHandsPool(source = {}) {
   return paladin > 0 ? paladin * 5 : 0;
 }
 
-function getSorceryPoints(source = {}) {
-  const sorcerer = getClassLevel(source, 'sorcerer');
-  return sorcerer > 0 ? sorcerer : 0;
-}
-
-function getKiPoints(source = {}) {
-  const monk = getClassLevel(source, 'monk');
-  return monk > 0 ? monk : 0;
-}
-
 function getBattleMasterLevel(source = {}) {
   const fighterEntry = getClassEntries(source).find(
     entry =>
@@ -182,6 +195,7 @@ export function derivePlayerProfileDefaults(source = {}) {
 export function derivePlayerEncounterStateResources(source = {}) {
   const totalLevel = getTotalLevel(source);
   const proficiencyBonus = getProficiencyBonus(totalLevel);
+  const hitDiePools = getHitDiePools(source);
 
   const bardLevel = getClassLevel(source, 'bard');
   const monkLevel = getClassLevel(source, 'monk');
@@ -208,6 +222,15 @@ export function derivePlayerEncounterStateResources(source = {}) {
     hit_die_size: totalLevel > 0 ? getHighestHitDie(source, 8) : undefined,
     hit_dice_max: totalLevel > 0 ? totalLevel : undefined,
     hit_dice_current: totalLevel > 0 ? totalLevel : undefined,
+
+    hit_dice_d6_max: hitDiePools[6] > 0 ? hitDiePools[6] : undefined,
+    hit_dice_d6_current: hitDiePools[6] > 0 ? hitDiePools[6] : undefined,
+    hit_dice_d8_max: hitDiePools[8] > 0 ? hitDiePools[8] : undefined,
+    hit_dice_d8_current: hitDiePools[8] > 0 ? hitDiePools[8] : undefined,
+    hit_dice_d10_max: hitDiePools[10] > 0 ? hitDiePools[10] : undefined,
+    hit_dice_d10_current: hitDiePools[10] > 0 ? hitDiePools[10] : undefined,
+    hit_dice_d12_max: hitDiePools[12] > 0 ? hitDiePools[12] : undefined,
+    hit_dice_d12_current: hitDiePools[12] > 0 ? hitDiePools[12] : undefined,
 
     bardic_inspiration_max: bardLevel > 0 ? proficiencyBonus : undefined,
     bardic_inspiration_current: bardLevel > 0 ? proficiencyBonus : undefined,
