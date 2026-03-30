@@ -517,7 +517,7 @@ function EnemySlotGrid({ combatant, onUpdate }) {
 // PC RESOURCE SUMMARY
 // ============================================================
 function PcResourceSummary({ profile, state, isDM, onUpdate }) {
-  const resources = getResourceConfig(profile || {}, state || {});
+  const resources = getResourceConfig(profile || {}, state || {}).filter(resource => !['hit-dice', 'warlock-slots', 'natural-recovery'].includes(resource.id));
   if (resources.length === 0) return null;
 
   async function updateResourceFields(updates) {
