@@ -1,41 +1,88 @@
 import React from 'react';
 import { supabase } from '../supabaseClient';
 
+function PactPip({ isUsed, onClick, disabled, title }) {
+  return (
+    <button
+      className={`slot-pip ${isUsed ? 'used' : 'available'}`}
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      style={{
+        borderColor: isUsed ? 'var(--accent-gold)' : '#8a6a1f',
+        background: isUsed ? 'rgba(240,180,41,0.18)' : 'transparent',
+        boxShadow: isUsed ? '0 0 0 1px rgba(240,180,41,0.25) inset' : 'none',
+        cursor: disabled ? 'default' : 'pointer',
+      }}
+    />
+  );
+}
+
 export default function SpellSlotGrid({ profile, state, readOnly, canRestore = false, onUpdate }) {
   const levels = [1,2,3,4,5,6,7,8,9];
-  const activeLevels = levels.filter(l => (profile[`slots_max_${l}`] || 0) > 0);
+  const standardActiveLevels = levels.filter(l => (profile[`slots_max_${l}`] || 0) > 0);
+  const pactLevel = state?.warlock_slots_level || 0;
+  const pactMax = state?.warlock_slots_max || 0;
+  const pactCurrent = state?.warlock_slots_current || 0;
+  const activeLevels = Array.from(new Set([...standardActiveLevels, ...(pactLevel > 0 && pactMax > 0 ? [pactLevel] : [])])).sort((a, b) => a - b);
   if (activeLevels.length === 0) return null;
 
-  async function useSlot(level) {
+  async function useStandardSlot(level) {
     if (!state) return;
     const used = state[`slots_used_${level}`] || 0;
     const max = profile[`slots_max_${level}`] || 0;
     if (used >= max) return;
-    await supabase
-      .from('player_encounter_state')
-      .update({ [`slots_used_${level}`]: used + 1 })
-      .eq('id', state.id);
+    await supabase.from('player_encounter_state').update({ [`slots_used_${level}`]: used + 1 }).eq('id', state.id);
     onUpdate();
   }
 
-  async function restoreSlot(level) {
+  async function restoreStandardSlot(level) {
     if (!state || !canRestore) return;
     const used = state[`slots_used_${level}`] || 0;
     if (used <= 0) return;
-    await supabase
-      .from('player_encounter_state')
-      .update({ [`slots_used_${level}`]: used - 1 })
-      .eq('id', state.id);
+    await supabase.from('player_encounter_state').update({ [`slots_used_${level}`]: used - 1 }).eq('id', state.id);
     onUpdate();
   }
 
   async function resetLevel(level) {
     if (!state || !canRestore) return;
-    await supabase
-      .from('player_encounter_state')
-      .update({ [`slots_used_${level}`]: 0 })
-      .eq('id', state.id);
+    await supabase.from('player_encounter_state').update({ [`slots_used_${level}`]: 0 }).eq('id', state.id);
     onUpdate();
+  }
+
+  async function usePactSlot() {
+    if (!state || pactCurrent <= 0) return;
+    await supabase.from('player_encounter_state').update({ warlock_slots_current: pactCurrent - 1 }).eq('id', state.id);
+    onUpdate();
+  }
+
+  async function restorePactSlot() {
+    if (!state || !canRestore || pactCurrent >= pactMax) return;
+    await supabase.from('player_encounter_state').update({ warlock_slots_current: pactCurrent + 1 }).eq('id', state.id);
+    onUpdate();
+  }
+
+  async function choosePlayerUse(level) {
+    const standardMax = profile[`slots_max_${level}`] || 0;
+    const standardUsed = state?.[`slots_used_${level}`] || 0;
+    const standardAvailable = standardMax - standardUsed > 0;
+    const pactAvailable = pactMax > 0 && pactCurrent > 0 && pactLevel >= level;
+
+    if (pactAvailable && standardAvailable) {
+      const usePact = window.confirm(`Use a Warlock pact slot for level ${level}?\n\nOK = Pact slot\nCancel = Standard slot`);
+      if (usePact) await usePactSlot();
+      else await useStandardSlot(level);
+      return;
+    }
+
+    if (pactAvailable) {
+      await usePactSlot();
+      return;
+    }
+
+    if (standardAvailable) {
+      await useStandardSlot(level);
+    }
   }
 
   return (
@@ -45,6 +92,9 @@ export default function SpellSlotGrid({ profile, state, readOnly, canRestore = f
         const used = state?.[`slots_used_${level}`] || 0;
         const allUsed = used >= max;
         const isPlayer = !canRestore && !readOnly;
+        const pactOnRow = pactMax > 0 && pactLevel === level;
+        const pactCanPowerThisLevel = pactMax > 0 && pactLevel >= level;
+        const pactAllUsed = pactCurrent <= 0;
 
         return (
           <div key={level} className="slots-row">
@@ -54,52 +104,63 @@ export default function SpellSlotGrid({ profile, state, readOnly, canRestore = f
               const isUsed = i < used;
               return (
                 <button
-                  key={i}
+                  key={`std-${i}`}
                   className={`slot-pip ${isUsed ? 'used' : 'available'}`}
                   onClick={() => {
                     if (readOnly) return;
-                    // DM: click used pip → restore; click available pip → expend
                     if (canRestore) {
-                      if (isUsed) restoreSlot(level);
-                      else useSlot(level);
+                      if (isUsed) restoreStandardSlot(level);
+                      else useStandardSlot(level);
                     }
                   }}
                   disabled={readOnly}
-                  title={
-                    canRestore
-                      ? isUsed ? 'Click to restore slot' : 'Click to expend slot'
-                      : isUsed ? 'Expended' : 'Available'
-                  }
+                  title={canRestore ? (isUsed ? 'Click to restore slot' : 'Click to expend slot') : isUsed ? 'Expended' : 'Available'}
                   style={{ cursor: canRestore ? 'pointer' : 'default' }}
                 />
               );
             })}
 
-            {/* Player: Use Slot button */}
+            {pactOnRow && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: max > 0 ? 8 : 0 }}>
+                <span className="slots-empty-label" style={{ color: 'var(--accent-gold)' }}>Pact</span>
+                {Array.from({ length: pactMax }).map((_, i) => {
+                  const isUsed = i >= pactCurrent;
+                  return (
+                    <PactPip
+                      key={`pact-${i}`}
+                      isUsed={isUsed}
+                      onClick={() => {
+                        if (readOnly) return;
+                        if (canRestore) {
+                          if (isUsed) restorePactSlot();
+                          else usePactSlot();
+                        }
+                      }}
+                      disabled={readOnly}
+                      title={canRestore ? (isUsed ? 'Click to restore pact slot' : 'Click to expend pact slot') : isUsed ? 'Expended pact slot' : 'Available pact slot'}
+                    />
+                  );
+                })}
+              </div>
+            )}
+
             {isPlayer && (
               <button
                 className="btn btn-ghost"
-                style={{ fontSize: 11, padding: '1px 6px', marginLeft: 4, opacity: allUsed ? 0.3 : 1 }}
-                onClick={() => useSlot(level)}
-                disabled={allUsed}
-                title={allUsed ? 'All slots expended' : 'Use one slot'}
+                style={{ fontSize: 11, padding: '1px 6px', marginLeft: 4, opacity: (!pactCanPowerThisLevel && allUsed) || (pactCanPowerThisLevel && pactAllUsed && allUsed) ? 0.3 : 1 }}
+                onClick={() => choosePlayerUse(level)}
+                disabled={(!pactCanPowerThisLevel && allUsed) || (pactCanPowerThisLevel && pactAllUsed && allUsed)}
+                title={pactCanPowerThisLevel ? 'Use a standard or pact slot' : allUsed ? 'All slots expended' : 'Use one slot'}
               >
                 Use
               </button>
             )}
 
-            {/* DM: restore-all button */}
             {canRestore && !readOnly && used > 0 && (
-              <button
-                className="slots-reset-btn"
-                onClick={() => resetLevel(level)}
-                title="Restore all slots at this level"
-              >↺</button>
+              <button className="slots-reset-btn" onClick={() => resetLevel(level)} title="Restore all standard slots at this level">↺</button>
             )}
 
-            {allUsed && !readOnly && (
-              <span className="slots-empty-label">expended</span>
-            )}
+            {allUsed && !readOnly && !pactCanPowerThisLevel && <span className="slots-empty-label">expended</span>}
           </div>
         );
       })}
