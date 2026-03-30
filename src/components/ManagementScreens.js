@@ -48,13 +48,36 @@ function SelectField({ value, onChange, options }) { return <select className="f
 function DerivedValueField({ label, value, helpText = '' }) { return <div className="form-group" style={{ flex: 1 }}><label className="form-label">{label}</label><div className="form-input" style={{ display: 'flex', alignItems: 'center', color: 'var(--text-primary)', fontWeight: 600 }}>{value || '—'}</div>{helpText ? <div style={{ marginTop: 4, fontSize: 11, color: 'var(--text-muted)' }}>{helpText}</div> : null}</div>; }
 
 function PlayerProfileManager() {
-  const [profiles, setProfiles] = useState([]); const [editing, setEditing] = useState(null);
+  const [profiles, setProfiles] = useState([]);
+  const [editing, setEditing] = useState(null);
+  const [deleteError, setDeleteError] = useState('');
   useEffect(() => { load(); }, []);
   async function load() { const { data } = await supabase.from('profiles_players').select('*').order('name'); setProfiles(data || []); }
   async function save(profile) { const finalProfile = applyDerivedPlayerDefaults(profile); if (finalProfile.id) await supabase.from('profiles_players').update(finalProfile).eq('id', finalProfile.id); else await supabase.from('profiles_players').insert(finalProfile); setEditing(null); load(); }
-  async function remove(id) { if (!window.confirm('Delete this player profile?')) return; await supabase.from('profiles_players').delete().eq('id', id); load(); }
+  async function remove(id) {
+    if (!window.confirm('Delete this player profile? This will also remove that player from saved encounter state and join sessions.')) return;
+    setDeleteError('');
+    const { data: ownedCombatants, error: combatantLookupError } = await supabase.from('combatants').select('id').eq('owner_player_id', id);
+    if (combatantLookupError) { setDeleteError(combatantLookupError.message || 'Failed to look up linked combatants.'); return; }
+    const combatantIds = (ownedCombatants || []).map(row => row.id);
+    if (combatantIds.length > 0) {
+      const { error: playerStateDeleteError } = await supabase.from('player_encounter_state').delete().in('combatant_id', combatantIds);
+      if (playerStateDeleteError) { setDeleteError(playerStateDeleteError.message || 'Failed to remove linked player encounter state.'); return; }
+      const { error: combatantDeleteError } = await supabase.from('combatants').delete().in('id', combatantIds);
+      if (combatantDeleteError) { setDeleteError(combatantDeleteError.message || 'Failed to remove linked combatants.'); return; }
+    }
+    const { error: directStateDeleteError } = await supabase.from('player_encounter_state').delete().eq('player_profile_id', id);
+    if (directStateDeleteError) { setDeleteError(directStateDeleteError.message || 'Failed to remove linked player encounter state.'); return; }
+    const { error: playerSessionDeleteError } = await supabase.from('player_sessions').delete().eq('player_profile_id', id);
+    if (playerSessionDeleteError) { setDeleteError(playerSessionDeleteError.message || 'Failed to remove linked player sessions.'); return; }
+    const { error: playerSpellsDeleteError } = await supabase.from('profile_player_spells').delete().eq('player_profile_id', id);
+    if (playerSpellsDeleteError) { setDeleteError(playerSpellsDeleteError.message || 'Failed to remove linked player spells.'); return; }
+    const { error: profileDeleteError } = await supabase.from('profiles_players').delete().eq('id', id);
+    if (profileDeleteError) { setDeleteError(profileDeleteError.message || 'Failed to delete player profile.'); return; }
+    load();
+  }
   if (editing !== null) return <PlayerProfileForm initial={editing} onSave={save} onCancel={() => setEditing(null)} />;
-  return <div>{profiles.map(p => <div key={p.id} className="manage-row"><span><strong>{p.name}</strong>{classSummary(p) ? <span style={{ color: 'var(--text-secondary)', marginLeft: 8, fontSize: 12 }}>{classSummary(p)}</span> : null}</span><div className="form-row"><button className="btn btn-ghost" onClick={() => setEditing(p)}>Edit</button><button className="btn btn-danger" onClick={() => remove(p.id)}>Delete</button></div></div>)}<button className="btn btn-primary" style={{ marginTop: 12 }} onClick={() => setEditing({})}>+ New Player</button></div>;
+  return <div>{deleteError && <div className="empty-state" style={{ color: 'var(--accent-red)', marginBottom: 10 }}>{deleteError}</div>}{profiles.map(p => <div key={p.id} className="manage-row"><span><strong>{p.name}</strong>{classSummary(p) ? <span style={{ color: 'var(--text-secondary)', marginLeft: 8, fontSize: 12 }}>{classSummary(p)}</span> : null}</span><div className="form-row"><button className="btn btn-ghost" onClick={() => setEditing(p)}>Edit</button><button className="btn btn-danger" onClick={() => remove(p.id)}>Delete</button></div></div>)}<button className="btn btn-primary" style={{ marginTop: 12 }} onClick={() => setEditing({})}>+ New Player</button></div>;
 }
 
 function PlayerProfileForm({ initial, onSave, onCancel }) {
