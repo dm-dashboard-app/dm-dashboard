@@ -52,40 +52,23 @@ function normalizeText(value) {
 }
 
 function compactObject(obj) {
-  return Object.fromEntries(
-    Object.entries(obj).filter(([, value]) => value !== undefined)
-  );
+  return Object.fromEntries(Object.entries(obj).filter(([, value]) => value !== undefined));
 }
 
 export function getClassEntries(source = {}) {
   const entries = [];
-
   if (source.class_name) {
-    entries.push({
-      className: normalizeText(source.class_name),
-      displayClass: source.class_name,
-      subclassName: normalizeText(source.subclass_name),
-      level: Math.max(0, toInt(source.class_level, 0)),
-    });
+    entries.push({ className: normalizeText(source.class_name), displayClass: source.class_name, subclassName: normalizeText(source.subclass_name), level: Math.max(0, toInt(source.class_level, 0)) });
   }
-
   if (source.class_name_2) {
-    entries.push({
-      className: normalizeText(source.class_name_2),
-      displayClass: source.class_name_2,
-      subclassName: normalizeText(source.subclass_name_2),
-      level: Math.max(0, toInt(source.class_level_2, 0)),
-    });
+    entries.push({ className: normalizeText(source.class_name_2), displayClass: source.class_name_2, subclassName: normalizeText(source.subclass_name_2), level: Math.max(0, toInt(source.class_level_2, 0)) });
   }
-
   return entries.filter(entry => entry.className);
 }
 
 export function getClassLevel(source = {}, targetClass) {
   const wanted = normalizeText(targetClass);
-  return getClassEntries(source)
-    .filter(entry => entry.className === wanted)
-    .reduce((sum, entry) => sum + (entry.level || 0), 0);
+  return getClassEntries(source).filter(entry => entry.className === wanted).reduce((sum, entry) => sum + (entry.level || 0), 0);
 }
 
 export function hasClass(source = {}, targetClass) {
@@ -97,32 +80,23 @@ export function getTotalLevel(source = {}) {
 }
 
 export function getHighestHitDie(source = {}, fallback = 8) {
-  const dice = getClassEntries(source)
-    .map(entry => CLASS_HIT_DIE[entry.className] || 0)
-    .filter(Boolean);
-
+  const dice = getClassEntries(source).map(entry => CLASS_HIT_DIE[entry.className] || 0).filter(Boolean);
   return dice.length > 0 ? Math.max(...dice) : fallback;
 }
 
 export function getHitDiePools(source = {}) {
   const pools = { 6: 0, 8: 0, 10: 0, 12: 0 };
-
   getClassEntries(source).forEach(entry => {
     const dieSize = CLASS_HIT_DIE[entry.className];
     if (!dieSize) return;
     pools[dieSize] = (pools[dieSize] || 0) + (entry.level || 0);
   });
-
   return pools;
 }
 
 export function formatHitDiceSummary(source = {}) {
   const pools = getHitDiePools(source);
-
-  return HIT_DIE_SIZES
-    .filter(size => (pools[size] || 0) > 0)
-    .map(size => `${pools[size]} × d${size}`)
-    .join(' • ');
+  return HIT_DIE_SIZES.filter(size => (pools[size] || 0) > 0).map(size => `${pools[size]} × d${size}`).join(' • ');
 }
 
 export function getStandardCasterLevel(source = {}) {
@@ -138,18 +112,13 @@ export function getStandardSpellSlots(source = {}) {
   const casterLevel = Math.max(0, Math.min(20, getStandardCasterLevel(source)));
   const slots = SPELL_SLOT_TABLE[casterLevel] || SPELL_SLOT_TABLE[0];
   const result = {};
-  for (let level = 1; level <= 9; level += 1) {
-    result[`slots_max_${level}`] = slots[level - 1] || 0;
-  }
+  for (let level = 1; level <= 9; level += 1) result[`slots_max_${level}`] = slots[level - 1] || 0;
   return result;
 }
 
 export function formatStandardSpellSlotsSummary(source = {}) {
   const slots = getStandardSpellSlots(source);
-  return Array.from({ length: 9 }, (_, index) => index + 1)
-    .filter(level => (slots[`slots_max_${level}`] || 0) > 0)
-    .map(level => `L${level} ${slots[`slots_max_${level}`]}`)
-    .join(' • ');
+  return Array.from({ length: 9 }, (_, index) => index + 1).filter(level => (slots[`slots_max_${level}`] || 0) > 0).map(level => `L${level} ${slots[`slots_max_${level}`]}`).join(' • ');
 }
 
 function getProficiencyBonus(totalLevel) {
@@ -216,11 +185,7 @@ function getLayOnHandsPool(source = {}) {
 }
 
 function getBattleMasterLevel(source = {}) {
-  const fighterEntry = getClassEntries(source).find(
-    entry =>
-      entry.className === 'fighter' &&
-      (entry.subclassName === 'battle master' || entry.subclassName === 'battlemaster')
-  );
+  const fighterEntry = getClassEntries(source).find(entry => entry.className === 'fighter' && (entry.subclassName === 'battle master' || entry.subclassName === 'battlemaster'));
   return fighterEntry?.level || 0;
 }
 
@@ -239,11 +204,12 @@ function getSuperiorityDiceCount(level) {
 
 export function derivePlayerProfileDefaults(source = {}) {
   const totalLevel = getTotalLevel(source);
-
+  const druidLevel = getClassLevel(source, 'druid');
   return compactObject({
     hit_die_size: totalLevel > 0 ? getHighestHitDie(source, 8) : undefined,
     hit_dice_max: totalLevel > 0 ? totalLevel : undefined,
     ...getStandardSpellSlots(source),
+    wildshape_enabled: druidLevel > 0,
   });
 }
 
@@ -251,7 +217,6 @@ export function derivePlayerEncounterStateResources(source = {}) {
   const totalLevel = getTotalLevel(source);
   const proficiencyBonus = getProficiencyBonus(totalLevel);
   const hitDiePools = getHitDiePools(source);
-
   const bardLevel = getClassLevel(source, 'bard');
   const monkLevel = getClassLevel(source, 'monk');
   const warlockLevel = getClassLevel(source, 'warlock');
@@ -262,7 +227,6 @@ export function derivePlayerEncounterStateResources(source = {}) {
   const wizardLevel = getClassLevel(source, 'wizard');
   const druidLevel = getClassLevel(source, 'druid');
   const battleMasterLevel = getBattleMasterLevel(source);
-
   const { slots: warlockSlots, slotLevel: warlockSlotLevel } = getWarlockSlotProgression(warlockLevel);
   const superiorityDice = getSuperiorityDiceCount(battleMasterLevel);
   const superiorityDieSize = getSuperiorityDieSize(battleMasterLevel);
@@ -273,11 +237,9 @@ export function derivePlayerEncounterStateResources(source = {}) {
 
   return compactObject({
     temp_hp: 0,
-
     hit_die_size: totalLevel > 0 ? getHighestHitDie(source, 8) : undefined,
     hit_dice_max: totalLevel > 0 ? totalLevel : undefined,
     hit_dice_current: totalLevel > 0 ? totalLevel : undefined,
-
     hit_dice_d6_max: hitDiePools[6] > 0 ? hitDiePools[6] : undefined,
     hit_dice_d6_current: hitDiePools[6] > 0 ? hitDiePools[6] : undefined,
     hit_dice_d8_max: hitDiePools[8] > 0 ? hitDiePools[8] : undefined,
@@ -286,52 +248,37 @@ export function derivePlayerEncounterStateResources(source = {}) {
     hit_dice_d10_current: hitDiePools[10] > 0 ? hitDiePools[10] : undefined,
     hit_dice_d12_max: hitDiePools[12] > 0 ? hitDiePools[12] : undefined,
     hit_dice_d12_current: hitDiePools[12] > 0 ? hitDiePools[12] : undefined,
-
     bardic_inspiration_max: bardLevel > 0 ? proficiencyBonus : undefined,
     bardic_inspiration_current: bardLevel > 0 ? proficiencyBonus : undefined,
     bardic_inspiration_die: bardicInspirationDie || undefined,
-
     ki_points_max: monkLevel > 0 ? monkLevel : undefined,
     ki_points_current: monkLevel > 0 ? monkLevel : undefined,
-
     warlock_slots_max: warlockSlots > 0 ? warlockSlots : undefined,
     warlock_slots_current: warlockSlots > 0 ? warlockSlots : undefined,
     warlock_slots_level: warlockSlotLevel > 0 ? warlockSlotLevel : undefined,
-
     action_surge_max: fighterLevel > 0 ? getFighterActionSurges(fighterLevel) : undefined,
     action_surge_current: fighterLevel > 0 ? getFighterActionSurges(fighterLevel) : undefined,
     second_wind_available: fighterLevel > 0 ? true : undefined,
-
     superiority_dice_max: superiorityDice > 0 ? superiorityDice : undefined,
     superiority_dice_current: superiorityDice > 0 ? superiorityDice : undefined,
     superiority_die_size: superiorityDieSize || undefined,
-
     rage_max: barbarianLevel > 0 ? rageUses : undefined,
     rage_current: barbarianLevel > 0 ? rageUses : undefined,
-
     sorcery_points_max: sorcererLevel > 0 ? sorcererLevel : undefined,
     sorcery_points_current: sorcererLevel > 0 ? sorcererLevel : undefined,
-
     channel_divinity_max: channelDivinityUses > 0 ? channelDivinityUses : undefined,
     channel_divinity_current: channelDivinityUses > 0 ? channelDivinityUses : undefined,
-
     lay_on_hands_max: layOnHands > 0 ? layOnHands : undefined,
     lay_on_hands_current: layOnHands > 0 ? layOnHands : undefined,
-
     arcane_recovery_available: wizardLevel > 0 ? true : undefined,
     arcane_recovery_used: wizardLevel > 0 ? false : undefined,
-
-    natural_recovery_available: druidLevel > 0 ? true : undefined,
-    natural_recovery_used: druidLevel > 0 ? false : undefined,
-
-    relentless_endurance_available:
-      source.feat_relentless_endurance || normalizeText(source.ancestry_name) === 'half-orc'
-        ? true
-        : undefined,
-    relentless_endurance_used:
-      source.feat_relentless_endurance || normalizeText(source.ancestry_name) === 'half-orc'
-        ? false
-        : undefined,
+    wildshape_uses_remaining: druidLevel > 0 ? 2 : undefined,
+    fey_step_max: source.feat_fey_step ? proficiencyBonus : undefined,
+    fey_step_current: source.feat_fey_step ? proficiencyBonus : undefined,
+    celestial_revelation_available: source.feat_celestial_revelation ? true : undefined,
+    celestial_revelation_used: source.feat_celestial_revelation ? false : undefined,
+    relentless_endurance_available: source.feat_relentless_endurance || normalizeText(source.ancestry_name) === 'half-orc' ? true : undefined,
+    relentless_endurance_used: source.feat_relentless_endurance || normalizeText(source.ancestry_name) === 'half-orc' ? false : undefined,
   });
 }
 
