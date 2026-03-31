@@ -9,6 +9,7 @@ import {
   formatStandardSpellSlotsSummary,
   getAbilityModifiers,
   getClassLevel,
+  getJackOfAllTradesBonus,
   getPrimaryClassName,
   getProficiencyBonus,
   getSaveProficiencies,
@@ -69,7 +70,33 @@ function SessionControls({ currentEncounter, displayToken, joinCodes, onToggleEd
 function NumInput({ value, onChange, ...props }) {
   const [draft, setDraft] = useState(value === 0 ? '' : String(value ?? ''));
   useEffect(() => { setDraft(value === 0 ? '' : String(value ?? '')); }, [value]);
-  return <input {...props} className="form-input" type="number" value={draft} onChange={e => setDraft(e.target.value)} onBlur={() => { const n = parseInt(draft, 10); const fallback = props.min != null ? parseInt(props.min, 10) : 0; const final = Number.isNaN(n) ? fallback : n; setDraft(final === 0 && fallback === 0 ? '' : String(final)); onChange(final); }} />;
+
+  function normalize(nextDraft) {
+    const n = parseInt(nextDraft, 10);
+    const fallback = props.min != null ? parseInt(props.min, 10) : 0;
+    const final = Number.isNaN(n) ? fallback : n;
+    return { fallback, final };
+  }
+
+  return (
+    <input
+      {...props}
+      className="form-input"
+      type="number"
+      value={draft}
+      onChange={e => {
+        const nextDraft = e.target.value;
+        setDraft(nextDraft);
+        const { final } = normalize(nextDraft);
+        if (nextDraft !== '') onChange(final);
+      }}
+      onBlur={() => {
+        const { fallback, final } = normalize(draft);
+        setDraft(final === 0 && fallback === 0 ? '' : String(final));
+        onChange(final);
+      }}
+    />
+  );
 }
 function SelectField({ value, onChange, options }) { return <select className="form-input" value={value || ''} onChange={e => onChange(e.target.value)}>{options.map(opt => <option key={opt || 'blank'} value={opt}>{opt || '—'}</option>)}</select>; }
 function DerivedValueField({ label, value, helpText = '' }) { return <div className="form-group" style={{ flex: 1 }}><label className="form-label">{label}</label><div className="form-input" style={{ display: 'flex', alignItems: 'center', color: 'var(--text-primary)', fontWeight: 600 }}>{value || '—'}</div>{helpText ? <div style={{ marginTop: 4, fontSize: 11, color: 'var(--text-muted)' }}>{helpText}</div> : null}</div>; }
@@ -118,46 +145,16 @@ function PlayerProfileManager() {
 
 function PlayerProfileForm({ initial, onSave, onCancel }) {
   const [f, setF] = useState({
-    name: '',
-    max_hp: 10,
-    ac: 10,
-    initiative_mod: 0,
-    class_name: '',
-    subclass_name: '',
-    class_level: 1,
-    class_name_2: '',
-    subclass_name_2: '',
-    class_level_2: 0,
+    name: '', max_hp: 10, ac: 10, initiative_mod: 0,
+    class_name: '', subclass_name: '', class_level: 1,
+    class_name_2: '', subclass_name_2: '', class_level_2: 0,
     ancestry_name: '',
-    feat_lucky: false,
-    feat_relentless_endurance: false,
-    feat_fey_step: false,
-    feat_celestial_revelation: false,
-    ability_str: 10,
-    ability_dex: 10,
-    ability_con: 10,
-    ability_int: 10,
-    ability_wis: 10,
-    ability_cha: 10,
-    save_str: 0,
-    save_dex: 0,
-    save_con: 0,
-    save_int: 0,
-    save_wis: 0,
-    save_cha: 0,
-    spell_save_dc: 8,
-    spell_attack_bonus: 0,
-    slots_max_1: 0,
-    slots_max_2: 0,
-    slots_max_3: 0,
-    slots_max_4: 0,
-    slots_max_5: 0,
-    slots_max_6: 0,
-    slots_max_7: 0,
-    slots_max_8: 0,
-    slots_max_9: 0,
-    wildshape_enabled: false,
-    portrait_url: '',
+    feat_lucky: false, feat_relentless_endurance: false, feat_fey_step: false, feat_celestial_revelation: false,
+    ability_str: 10, ability_dex: 10, ability_con: 10, ability_int: 10, ability_wis: 10, ability_cha: 10,
+    save_str: 0, save_dex: 0, save_con: 0, save_int: 0, save_wis: 0, save_cha: 0,
+    spell_save_dc: 8, spell_attack_bonus: 0,
+    slots_max_1: 0, slots_max_2: 0, slots_max_3: 0, slots_max_4: 0, slots_max_5: 0, slots_max_6: 0, slots_max_7: 0, slots_max_8: 0, slots_max_9: 0,
+    wildshape_enabled: false, portrait_url: '',
     ...Object.fromEntries(SKILL_DEFINITIONS.map(skill => [`skill_${skill.key}_rank`, 0])),
     ...initial,
   });
@@ -175,32 +172,27 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
   const saveProficiencies = getSaveProficiencies(f);
   const skillTotals = getSkillTotals(f);
   const primaryClassName = getPrimaryClassName(f);
-
+  const jackOfAllTradesBonus = getJackOfAllTradesBonus(f);
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
 
   async function handlePortraitUpload(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!f.name.trim()) {
-      setUploadError('Enter the player name first.');
-      return;
-    }
-    setUploading(true);
-    setUploadError(null);
-    try {
-      const url = await uploadPortrait(file, f.name);
-      set('portrait_url', url);
-    } catch (err) {
-      setUploadError('Upload failed: ' + err.message);
-    } finally {
-      setUploading(false);
-    }
+    if (!f.name.trim()) { setUploadError('Enter the player name first.'); return; }
+    setUploading(true); setUploadError(null);
+    try { const url = await uploadPortrait(file, f.name); set('portrait_url', url); }
+    catch (err) { setUploadError('Upload failed: ' + err.message); }
+    finally { setUploading(false); }
+  }
+
+  function handleSave() {
+    if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur();
+    onSave(applyDerivedPlayerDefaults(f));
   }
 
   return (
     <div className="profile-form">
       <Field label="Name"><input className="form-input" value={f.name} onChange={e => set('name', e.target.value)} /></Field>
-
       <div className="panel-title" style={{ marginTop: 12 }}>Class & Identity</div>
       <Field label="Primary Class"><SelectField value={f.class_name} onChange={v => set('class_name', v)} options={CLASS_OPTIONS} /></Field>
       <Field label="Primary Subclass"><input className="form-input" value={f.subclass_name || ''} onChange={e => set('subclass_name', e.target.value)} /></Field>
@@ -210,70 +202,29 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
       <Field label="Secondary Level"><NumInput value={f.class_level_2 ?? 0} onChange={v => set('class_level_2', v)} min={0} /></Field>
       <Field label="Ancestry / Heritage"><input className="form-input" value={f.ancestry_name || ''} onChange={e => set('ancestry_name', e.target.value)} /></Field>
       <div className="form-row" style={{ flexWrap: 'wrap' }}><DerivedValueField label="Hit Dice" value={hitDiceSummary || '—'} helpText="Derived automatically from class selection and multiclass levels." /><DerivedValueField label="Spell Slots" value={spellSlotsSummary || 'No standard slots'} helpText="Derived automatically from multiclass caster level. Warlock pact slots remain separate in encounter state." /></div>
-
       <div className="panel-title" style={{ marginTop: 12 }}>Core Stats</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
-        {ABILITY_KEYS.map(key => (
-          <div key={key} style={{ border: '1px solid var(--border)', borderRadius: 8, padding: 10, background: 'var(--bg-panel-2)', display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)' }}>{ABILITY_LABELS[key]}</span>
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-blue)' }}>{formatModifier(abilityModifiers[key])}</span>
-            </div>
-            <NumInput value={f[`ability_${key}`]} onChange={v => set(`ability_${key}`, v)} min={1} max={30} />
-          </div>
-        ))}
-      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>{ABILITY_KEYS.map(key => <div key={key} style={{ border: '1px solid var(--border)', borderRadius: 8, padding: 10, background: 'var(--bg-panel-2)', display: 'flex', flexDirection: 'column', gap: 6 }}><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)' }}>{ABILITY_LABELS[key]}</span><span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-blue)' }}>{formatModifier(abilityModifiers[key])}</span></div><NumInput value={f[`ability_${key}`]} onChange={v => set(`ability_${key}`, v)} min={1} max={30} /></div>)}</div>
       <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Ability scores are entered as raw values from 1 to 30. Modifiers are derived automatically, including low and high ends.</div>
-
       <div className="panel-title" style={{ marginTop: 12 }}>Saving Throws</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
-        {ABILITY_KEYS.map(key => (
-          <div key={key} style={{ border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', background: 'var(--bg-panel-2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{ABILITY_LABELS[key]}</span>
-              <span style={{ fontSize: 10, color: saveProficiencies[key] ? 'var(--accent-green)' : 'var(--text-muted)' }}>{saveProficiencies[key] ? 'Proficient' : 'Not proficient'}</span>
-            </div>
-            <span style={{ fontSize: 16, fontWeight: 700 }}>{formatModifier(saveTotals[key])}</span>
-          </div>
-        ))}
-      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>{ABILITY_KEYS.map(key => <div key={key} style={{ border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', background: 'var(--bg-panel-2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}><div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}><span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{ABILITY_LABELS[key]}</span><span style={{ fontSize: 10, color: saveProficiencies[key] ? 'var(--accent-green)' : 'var(--text-muted)' }}>{saveProficiencies[key] ? 'Proficient' : 'Not proficient'}</span></div><span style={{ fontSize: 16, fontWeight: 700 }}>{formatModifier(saveTotals[key])}</span></div>)}</div>
       <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Save proficiency is linked to the primary class only{primaryClassName ? ` (${primaryClassName}).` : '.'}</div>
-
       <div className="panel-title" style={{ marginTop: 12 }}>Skills</div>
-      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Choose None, Proficient, or Expertise for each skill. Totals are derived from the linked ability modifier plus proficiency bonus ({formatModifier(proficiencyBonus)}).</div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {SKILL_DEFINITIONS.map(skill => (
-          <div key={skill.key} style={{ border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', background: 'var(--bg-panel-2)', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 120px 56px', gap: 8, alignItems: 'center' }}>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{skill.label}</div>
-              <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>{ABILITY_LABELS[skill.ability]} • base {formatModifier(abilityModifiers[skill.ability])}</div>
-            </div>
-            <SkillRankSelect value={getSkillRank(f, skill.key)} onChange={value => set(`skill_${skill.key}_rank`, value)} />
-            <div style={{ textAlign: 'right', fontSize: 16, fontWeight: 700 }}>{formatModifier(skillTotals[skill.key])}</div>
-          </div>
-        ))}
-      </div>
-
+      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Choose None, Proficient, or Expertise for each skill. Totals are derived from the linked ability modifier plus proficiency bonus ({formatModifier(proficiencyBonus)}).{jackOfAllTradesBonus > 0 ? ` Jack of All Trades is active, so unproficient Bard skills also gain ${formatModifier(jackOfAllTradesBonus)}.` : ''}</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>{SKILL_DEFINITIONS.map(skill => <div key={skill.key} style={{ border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', background: 'var(--bg-panel-2)', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 120px 56px', gap: 8, alignItems: 'center' }}><div style={{ minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{skill.label}</div><div style={{ fontSize: 10, color: 'var(--text-muted)' }}>{ABILITY_LABELS[skill.ability]} • base {formatModifier(abilityModifiers[skill.ability])}</div></div><SkillRankSelect value={getSkillRank(f, skill.key)} onChange={value => set(`skill_${skill.key}_rank`, value)} /><div style={{ textAlign: 'right', fontSize: 16, fontWeight: 700 }}>{formatModifier(skillTotals[skill.key])}</div></div>)}</div>
       <div className="panel-title" style={{ marginTop: 12 }}>Table Toggles</div>
       <label className="checkbox-row"><input type="checkbox" checked={!!f.feat_lucky} onChange={e => set('feat_lucky', e.target.checked)} /><span>Lucky</span></label>
       <label className="checkbox-row"><input type="checkbox" checked={!!f.feat_relentless_endurance} onChange={e => set('feat_relentless_endurance', e.target.checked)} /><span>Relentless Endurance</span></label>
       <label className="checkbox-row"><input type="checkbox" checked={!!f.feat_fey_step} onChange={e => set('feat_fey_step', e.target.checked)} /><span>Fey Step</span></label>
       <label className="checkbox-row"><input type="checkbox" checked={!!f.feat_celestial_revelation} onChange={e => set('feat_celestial_revelation', e.target.checked)} /><span>Celestial Revelation</span></label>
       {druidLevel > 0 && <div style={{ marginTop: 6, fontSize: 11, color: 'var(--text-muted)' }}>Wild Shape is auto-enabled for Druids.</div>}
-
       <PlayerProfileSpellManager profile={derivedProfile} />
-
       <Field label="Portrait"><div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>{f.portrait_url && <img src={f.portrait_url} alt="Portrait" style={{ width: 64, height: 80, objectFit: 'cover', borderRadius: 6 }} />}<input type="file" accept="image/*" onChange={handlePortraitUpload} disabled={uploading} style={{ fontSize: 13 }} />{uploading && <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Uploading…</span>}{uploadError && <span style={{ fontSize: 12, color: 'var(--accent-red)' }}>{uploadError}</span>}</div></Field>
       <Field label="Max HP"><NumInput value={f.max_hp} onChange={v => set('max_hp', v)} min={1} /></Field>
       <Field label="AC"><NumInput value={f.ac} onChange={v => set('ac', v)} min={1} /></Field>
       <Field label="Initiative Mod (tiebreaker only)"><NumInput value={f.initiative_mod ?? 0} onChange={v => set('initiative_mod', v)} /></Field>
       <Field label="Spell Save DC"><NumInput value={f.spell_save_dc} onChange={v => set('spell_save_dc', v)} min={0} /></Field>
       <Field label="Spell Attack Bonus"><NumInput value={f.spell_attack_bonus} onChange={v => set('spell_attack_bonus', v)} /></Field>
-
-      <div className="form-row" style={{ marginTop: 16 }}>
-        <button className="btn btn-primary" onClick={() => onSave(derivedProfile)} disabled={!f.name || uploading}>Save</button>
-        <button className="btn btn-ghost" onClick={onCancel}>Cancel</button>
-      </div>
+      <div className="form-row" style={{ marginTop: 16 }}><button className="btn btn-primary" onClick={handleSave} disabled={!f.name || uploading}>Save</button><button className="btn btn-ghost" onClick={onCancel}>Cancel</button></div>
     </div>
   );
 }
