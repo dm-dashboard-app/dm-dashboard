@@ -28,8 +28,20 @@ const CLASS_SAVE_PROFICIENCIES = {
   wizard: ['int', 'wis'],
 };
 
+const SPELLCASTING_ABILITY_BY_CLASS = {
+  bard: 'cha',
+  cleric: 'wis',
+  druid: 'wis',
+  paladin: 'cha',
+  ranger: 'wis',
+  sorcerer: 'cha',
+  warlock: 'cha',
+  wizard: 'int',
+};
+
 const FULL_CASTER_CLASSES = ['bard', 'cleric', 'druid', 'sorcerer', 'wizard'];
 const HALF_CASTER_CLASSES = ['paladin', 'ranger'];
+const SPELLCASTER_PRIORITY = ['wizard', 'sorcerer', 'warlock', 'bard', 'cleric', 'druid', 'paladin', 'ranger'];
 
 const SPELL_SLOT_TABLE = {
   0: [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -109,18 +121,13 @@ export function formatModifier(mod) {
 
 export function getClassEntries(source = {}) {
   const entries = [];
-  if (source.class_name) {
-    entries.push({ className: normalizeText(source.class_name), displayClass: source.class_name, subclassName: normalizeText(source.subclass_name), level: Math.max(0, toInt(source.class_level, 0)) });
-  }
-  if (source.class_name_2) {
-    entries.push({ className: normalizeText(source.class_name_2), displayClass: source.class_name_2, subclassName: normalizeText(source.subclass_name_2), level: Math.max(0, toInt(source.class_level_2, 0)) });
-  }
+  if (source.class_name) entries.push({ className: normalizeText(source.class_name), displayClass: source.class_name, subclassName: normalizeText(source.subclass_name), level: Math.max(0, toInt(source.class_level, 0)) });
+  if (source.class_name_2) entries.push({ className: normalizeText(source.class_name_2), displayClass: source.class_name_2, subclassName: normalizeText(source.subclass_name_2), level: Math.max(0, toInt(source.class_level_2, 0)) });
   return entries.filter(entry => entry.className);
 }
 
 export function getPrimaryClassName(source = {}) {
-  const entries = getClassEntries(source);
-  return entries[0]?.className || '';
+  return getClassEntries(source)[0]?.className || '';
 }
 
 export function getClassLevel(source = {}, targetClass) {
@@ -151,7 +158,7 @@ export function getAbilityScores(source = {}) {
 
 export function getAbilityModifiers(source = {}) {
   const scores = getAbilityScores(source);
-  return Object.fromEntries(ABILITY_KEYS.map(key => [key, getAbilityModifier(scores[key])]))
+  return Object.fromEntries(ABILITY_KEYS.map(key => [key, getAbilityModifier(scores[key])]));
 }
 
 export function getSaveProficiencies(source = {}) {
@@ -181,16 +188,74 @@ export function getSkillTotals(source = {}) {
   const modifiers = getAbilityModifiers(source);
   const proficiencyBonus = getProficiencyBonus(getTotalLevel(source));
   const jackOfAllTradesBonus = getJackOfAllTradesBonus(source);
+  return Object.fromEntries(SKILL_DEFINITIONS.map(skill => {
+    const rank = getSkillRank(source, skill.key);
+    const multiplier = rank === 2 ? 2 : rank === 1 ? 1 : 0;
+    const proficiencyContribution = proficiencyBonus * multiplier;
+    const jackContribution = rank === 0 ? jackOfAllTradesBonus : 0;
+    return [skill.key, modifiers[skill.ability] + proficiencyContribution + jackContribution];
+  }));
+}
 
-  return Object.fromEntries(
-    SKILL_DEFINITIONS.map(skill => {
-      const rank = getSkillRank(source, skill.key);
-      const multiplier = rank === 2 ? 2 : rank === 1 ? 1 : 0;
-      const proficiencyContribution = proficiencyBonus * multiplier;
-      const jackContribution = rank === 0 ? jackOfAllTradesBonus : 0;
-      return [skill.key, modifiers[skill.ability] + proficiencyContribution + jackContribution];
-    })
-  );
+export function getPrimarySpellcastingClass(source = {}) {
+  const classEntries = getClassEntries(source);
+  for (const className of SPELLCASTER_PRIORITY) {
+    const entry = classEntries.find(item => item.className === className && item.level > 0);
+    if (entry) return entry.className;
+  }
+  return '';
+}
+
+export function getSpellcastingAbilityKey(source = {}) {
+  return SPELLCASTING_ABILITY_BY_CLASS[getPrimarySpellcastingClass(source)] || '';
+}
+
+export function getSpellcastingAbilityModifier(source = {}) {
+  const abilityKey = getSpellcastingAbilityKey(source);
+  if (!abilityKey) return 0;
+  return getAbilityModifiers(source)[abilityKey] ?? 0;
+}
+
+export function getDerivedInitiativeModifier(source = {}) {
+  return getAbilityModifiers(source).dex ?? 0;
+}
+
+export function getManualInitiativeBonus(source = {}) {
+  return toInt(source.initiative_bonus, 0);
+}
+
+export function getManualSpellSaveBonus(source = {}) {
+  return toInt(source.spell_save_bonus, 0);
+}
+
+export function getManualSpellAttackBonus(source = {}) {
+  return toInt(source.spell_attack_bonus_mod, 0);
+}
+
+export function getFinalInitiativeModifier(source = {}) {
+  return getDerivedInitiativeModifier(source) + getManualInitiativeBonus(source);
+}
+
+export function getDerivedSpellSaveDC(source = {}) {
+  const abilityKey = getSpellcastingAbilityKey(source);
+  if (!abilityKey) return 0;
+  return 8 + getProficiencyBonus(getTotalLevel(source)) + getSpellcastingAbilityModifier(source);
+}
+
+export function getFinalSpellSaveDC(source = {}) {
+  const base = getDerivedSpellSaveDC(source);
+  return base > 0 ? base + getManualSpellSaveBonus(source) : 0;
+}
+
+export function getDerivedSpellAttackBonus(source = {}) {
+  const abilityKey = getSpellcastingAbilityKey(source);
+  if (!abilityKey) return 0;
+  return getProficiencyBonus(getTotalLevel(source)) + getSpellcastingAbilityModifier(source);
+}
+
+export function getFinalSpellAttackBonus(source = {}) {
+  const base = getDerivedSpellAttackBonus(source);
+  return base > 0 ? base + getManualSpellAttackBonus(source) : 0;
 }
 
 export function getHighestHitDie(source = {}, fallback = 8) {
@@ -323,6 +388,9 @@ export function derivePlayerProfileDefaults(source = {}) {
     ability_cha: abilityScores.cha,
     hit_die_size: totalLevel > 0 ? getHighestHitDie(source, 8) : undefined,
     hit_dice_max: totalLevel > 0 ? totalLevel : undefined,
+    initiative_mod: getFinalInitiativeModifier(source),
+    spell_save_dc: getFinalSpellSaveDC(source),
+    spell_attack_bonus: getFinalSpellAttackBonus(source),
     ...getStandardSpellSlots(source),
     save_str: saveTotals.str,
     save_dex: saveTotals.dex,
@@ -400,6 +468,7 @@ export function derivePlayerEncounterStateResources(source = {}) {
     celestial_revelation_used: source.feat_celestial_revelation ? false : undefined,
     relentless_endurance_available: source.feat_relentless_endurance || normalizeText(source.ancestry_name) === 'half-orc' ? true : undefined,
     relentless_endurance_used: source.feat_relentless_endurance || normalizeText(source.ancestry_name) === 'half-orc' ? false : undefined,
+    mage_armour_active: false,
   });
 }
 
