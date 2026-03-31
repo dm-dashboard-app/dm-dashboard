@@ -13,6 +13,21 @@ const CLASS_HIT_DIE = {
   wizard: 6,
 };
 
+const CLASS_SAVE_PROFICIENCIES = {
+  barbarian: ['str', 'con'],
+  bard: ['dex', 'cha'],
+  cleric: ['wis', 'cha'],
+  druid: ['int', 'wis'],
+  fighter: ['str', 'con'],
+  monk: ['str', 'dex'],
+  paladin: ['wis', 'cha'],
+  ranger: ['str', 'dex'],
+  rogue: ['dex', 'int'],
+  sorcerer: ['con', 'cha'],
+  warlock: ['wis', 'cha'],
+  wizard: ['int', 'wis'],
+};
+
 const FULL_CASTER_CLASSES = ['bard', 'cleric', 'druid', 'sorcerer', 'wizard'];
 const HALF_CASTER_CLASSES = ['paladin', 'ranger'];
 
@@ -41,6 +56,28 @@ const SPELL_SLOT_TABLE = {
 };
 
 export const HIT_DIE_SIZES = [6, 8, 10, 12];
+export const ABILITY_KEYS = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+export const DEFAULT_ABILITY_SCORE = 10;
+export const SKILL_DEFINITIONS = [
+  { key: 'acrobatics', label: 'Acrobatics', ability: 'dex' },
+  { key: 'animal_handling', label: 'Animal Handling', ability: 'wis' },
+  { key: 'arcana', label: 'Arcana', ability: 'int' },
+  { key: 'athletics', label: 'Athletics', ability: 'str' },
+  { key: 'deception', label: 'Deception', ability: 'cha' },
+  { key: 'history', label: 'History', ability: 'int' },
+  { key: 'insight', label: 'Insight', ability: 'wis' },
+  { key: 'intimidation', label: 'Intimidation', ability: 'cha' },
+  { key: 'investigation', label: 'Investigation', ability: 'int' },
+  { key: 'medicine', label: 'Medicine', ability: 'wis' },
+  { key: 'nature', label: 'Nature', ability: 'int' },
+  { key: 'perception', label: 'Perception', ability: 'wis' },
+  { key: 'performance', label: 'Performance', ability: 'cha' },
+  { key: 'persuasion', label: 'Persuasion', ability: 'cha' },
+  { key: 'religion', label: 'Religion', ability: 'int' },
+  { key: 'sleight_of_hand', label: 'Sleight of Hand', ability: 'dex' },
+  { key: 'stealth', label: 'Stealth', ability: 'dex' },
+  { key: 'survival', label: 'Survival', ability: 'wis' },
+];
 
 function toInt(value, fallback = 0) {
   const n = parseInt(value, 10);
@@ -55,6 +92,21 @@ function compactObject(obj) {
   return Object.fromEntries(Object.entries(obj).filter(([, value]) => value !== undefined));
 }
 
+export function clampAbilityScore(value) {
+  const n = toInt(value, DEFAULT_ABILITY_SCORE);
+  return Math.max(1, Math.min(30, n));
+}
+
+export function getAbilityModifier(score) {
+  const safeScore = clampAbilityScore(score);
+  return Math.floor((safeScore - 10) / 2);
+}
+
+export function formatModifier(mod) {
+  const n = toInt(mod, 0);
+  return n >= 0 ? `+${n}` : `${n}`;
+}
+
 export function getClassEntries(source = {}) {
   const entries = [];
   if (source.class_name) {
@@ -64,6 +116,11 @@ export function getClassEntries(source = {}) {
     entries.push({ className: normalizeText(source.class_name_2), displayClass: source.class_name_2, subclassName: normalizeText(source.subclass_name_2), level: Math.max(0, toInt(source.class_level_2, 0)) });
   }
   return entries.filter(entry => entry.className);
+}
+
+export function getPrimaryClassName(source = {}) {
+  const entries = getClassEntries(source);
+  return entries[0]?.className || '';
 }
 
 export function getClassLevel(source = {}, targetClass) {
@@ -77,6 +134,59 @@ export function hasClass(source = {}, targetClass) {
 
 export function getTotalLevel(source = {}) {
   return getClassEntries(source).reduce((sum, entry) => sum + (entry.level || 0), 0);
+}
+
+export function getProficiencyBonus(totalLevel) {
+  if (totalLevel <= 0) return 0;
+  if (totalLevel <= 4) return 2;
+  if (totalLevel <= 8) return 3;
+  if (totalLevel <= 12) return 4;
+  if (totalLevel <= 16) return 5;
+  return 6;
+}
+
+export function getAbilityScores(source = {}) {
+  return Object.fromEntries(
+    ABILITY_KEYS.map(key => [key, clampAbilityScore(source[`ability_${key}`] ?? DEFAULT_ABILITY_SCORE)])
+  );
+}
+
+export function getAbilityModifiers(source = {}) {
+  const scores = getAbilityScores(source);
+  return Object.fromEntries(
+    ABILITY_KEYS.map(key => [key, getAbilityModifier(scores[key])])
+  );
+}
+
+export function getSaveProficiencies(source = {}) {
+  const primaryClass = getPrimaryClassName(source);
+  const profs = CLASS_SAVE_PROFICIENCIES[primaryClass] || [];
+  return Object.fromEntries(ABILITY_KEYS.map(key => [key, profs.includes(key)]));
+}
+
+export function getSavingThrowTotals(source = {}) {
+  const modifiers = getAbilityModifiers(source);
+  const saveProficiencies = getSaveProficiencies(source);
+  const proficiencyBonus = getProficiencyBonus(getTotalLevel(source));
+  return Object.fromEntries(
+    ABILITY_KEYS.map(key => [key, modifiers[key] + (saveProficiencies[key] ? proficiencyBonus : 0)])
+  );
+}
+
+export function getSkillRank(source = {}, skillKey) {
+  return Math.max(0, Math.min(2, toInt(source[`skill_${skillKey}_rank`], 0)));
+}
+
+export function getSkillTotals(source = {}) {
+  const modifiers = getAbilityModifiers(source);
+  const proficiencyBonus = getProficiencyBonus(getTotalLevel(source));
+  return Object.fromEntries(
+    SKILL_DEFINITIONS.map(skill => {
+      const rank = getSkillRank(source, skill.key);
+      const multiplier = rank === 2 ? 2 : rank === 1 ? 1 : 0;
+      return [skill.key, modifiers[skill.ability] + (proficiencyBonus * multiplier)];
+    })
+  );
 }
 
 export function getHighestHitDie(source = {}, fallback = 8) {
@@ -119,15 +229,6 @@ export function getStandardSpellSlots(source = {}) {
 export function formatStandardSpellSlotsSummary(source = {}) {
   const slots = getStandardSpellSlots(source);
   return Array.from({ length: 9 }, (_, index) => index + 1).filter(level => (slots[`slots_max_${level}`] || 0) > 0).map(level => `L${level} ${slots[`slots_max_${level}`]}`).join(' • ');
-}
-
-function getProficiencyBonus(totalLevel) {
-  if (totalLevel <= 0) return 0;
-  if (totalLevel <= 4) return 2;
-  if (totalLevel <= 8) return 3;
-  if (totalLevel <= 12) return 4;
-  if (totalLevel <= 16) return 5;
-  return 6;
 }
 
 function getBardicInspirationDie(level) {
@@ -205,10 +306,27 @@ function getSuperiorityDiceCount(level) {
 export function derivePlayerProfileDefaults(source = {}) {
   const totalLevel = getTotalLevel(source);
   const druidLevel = getClassLevel(source, 'druid');
+  const saveTotals = getSavingThrowTotals(source);
+  const skillTotals = getSkillTotals(source);
+  const abilityScores = getAbilityScores(source);
+
   return compactObject({
+    ability_str: abilityScores.str,
+    ability_dex: abilityScores.dex,
+    ability_con: abilityScores.con,
+    ability_int: abilityScores.int,
+    ability_wis: abilityScores.wis,
+    ability_cha: abilityScores.cha,
     hit_die_size: totalLevel > 0 ? getHighestHitDie(source, 8) : undefined,
     hit_dice_max: totalLevel > 0 ? totalLevel : undefined,
     ...getStandardSpellSlots(source),
+    save_str: saveTotals.str,
+    save_dex: saveTotals.dex,
+    save_con: saveTotals.con,
+    save_int: saveTotals.int,
+    save_wis: saveTotals.wis,
+    save_cha: saveTotals.cha,
+    ...Object.fromEntries(SKILL_DEFINITIONS.map(skill => [`skill_${skill.key}`, skillTotals[skill.key]])),
     wildshape_enabled: druidLevel > 0,
   });
 }
@@ -223,7 +341,6 @@ export function derivePlayerEncounterStateResources(source = {}) {
   const fighterLevel = getClassLevel(source, 'fighter');
   const barbarianLevel = getClassLevel(source, 'barbarian');
   const sorcererLevel = getClassLevel(source, 'sorcerer');
-  const paladinLevel = getClassLevel(source, 'paladin');
   const wizardLevel = getClassLevel(source, 'wizard');
   const druidLevel = getClassLevel(source, 'druid');
   const battleMasterLevel = getBattleMasterLevel(source);
