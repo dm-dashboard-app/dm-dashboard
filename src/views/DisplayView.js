@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 import usePolling from '../hooks/usePolling';
 import PlayerCard from '../components/PlayerCard';
@@ -10,6 +10,46 @@ function flattenStates(data) {
     wildshape_form_name: s.profiles_wildshape?.form_name ?? null,
     wildshape_hp_max: s.profiles_wildshape?.hp_max ?? null,
   }));
+}
+
+function sortCombatants(combatants) {
+  return [...combatants].sort((a, b) => {
+    const ai = a.initiative_total ?? -999;
+    const bi = b.initiative_total ?? -999;
+    if (bi !== ai) return bi - ai;
+    const am = a.initiative_mod ?? 0;
+    const bm = b.initiative_mod ?? 0;
+    if (bm !== am) return bm - am;
+    return a.id < b.id ? -1 : 1;
+  });
+}
+
+function rotateCombatants(combatants, turnIndex) {
+  if (!combatants.length) return [];
+  const safeIndex = Math.max(0, Math.min(turnIndex ?? 0, combatants.length - 1));
+  return [...combatants.slice(safeIndex), ...combatants.slice(0, safeIndex)];
+}
+
+function DisplayTurnFeature({ label, combatant, accentClass, stateLabel }) {
+  return (
+    <div className={`display-turn-feature ${accentClass}`}>
+      <div className="display-turn-feature-label">{label}</div>
+      {combatant ? (
+        <>
+          <div className="display-turn-feature-name-row">
+            <span className="display-turn-feature-name">{combatant.name}</span>
+            <span className={`badge badge-${combatant.side.toLowerCase()}`}>{combatant.side}</span>
+          </div>
+          <div className="display-turn-feature-meta">
+            <span>{stateLabel}</span>
+            {combatant.initiative_total != null && <span>Init {combatant.initiative_total}</span>}
+          </div>
+        </>
+      ) : (
+        <div className="display-turn-feature-empty">No combatant ready.</div>
+      )}
+    </div>
+  );
 }
 
 export default function DisplayView() {
@@ -78,6 +118,15 @@ export default function DisplayView() {
     window.location.reload();
   }
 
+  const pcCombatants = useMemo(() => combatants.filter(c => c.side === 'PC'), [combatants]);
+  const sortedCombatants = useMemo(() => sortCombatants(combatants), [combatants]);
+  const rotatedCombatants = useMemo(
+    () => rotateCombatants(sortedCombatants, encounter?.turn_index ?? 0),
+    [sortedCombatants, encounter?.turn_index]
+  );
+  const activeCombatant = rotatedCombatants[0] || null;
+  const onDeckCombatant = rotatedCombatants[1] || null;
+
   if (loading) return <div className="splash"><div className="splash-text">Connecting…</div></div>;
 
   if (error) return (
@@ -88,77 +137,56 @@ export default function DisplayView() {
     </div>
   );
 
-  const pcCombatants = combatants.filter(c => c.side === 'PC');
-
   return (
-    <div className="app-shell" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Top bar */}
+    <div className="app-shell display-screen-shell">
       <div className="top-bar">
         {encounter && <div className="top-bar-round">R{encounter.round}</div>}
         <span className="top-bar-title">{encounter?.name || 'Loading…'}</span>
         <button className="btn btn-ghost" style={{ fontSize: 12 }} onClick={handleLeave}>✕</button>
       </div>
 
-      {/* Two-column body */}
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'row',
-        gap: 16,
-        padding: '12px 16px',
-        overflow: 'hidden',
-        minHeight: 0,
-      }}>
-        {/* LEFT — Player cards */}
-        <div style={{
-          flex: '0 0 380px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 12,
-          overflowY: 'auto',
-        }}>
-          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', paddingBottom: 4, borderBottom: '1px solid var(--border)' }}>
-            Party
-          </div>
-          {pcCombatants.length === 0 && (
-            <div className="empty-state">No players in encounter.</div>
-          )}
-          {pcCombatants.map(c => {
-            const state = playerStates.find(s => s.combatant_id === c.id);
-            return (
-              <PlayerCard
-                key={c.id}
-                combatant={c}
-                state={state}
-                role="display"
-                isEditMode={false}
-                encounterId={encounter?.id}
-                onUpdate={() => {}}
-              />
-            );
-          })}
+      <div className="display-screen-body">
+        <div className="display-turn-state-grid">
+          <DisplayTurnFeature label="Current Turn" combatant={activeCombatant} accentClass="display-turn-feature--current" stateLabel="Acting now" />
+          <DisplayTurnFeature label="On Deck" combatant={onDeckCombatant} accentClass="display-turn-feature--next" stateLabel="Up next" />
         </div>
 
-        {/* RIGHT — Initiative order */}
-        <div style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          overflowY: 'auto',
-          minWidth: 0,
-        }}>
-          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', paddingBottom: 4, borderBottom: '1px solid var(--border)', marginBottom: 4 }}>
-            Initiative Order
+        <div className="display-reference-layout">
+          <div className="display-party-column">
+            <div className="display-section-header">Party</div>
+            <div className="display-party-card-stack">
+              {pcCombatants.length === 0 && (
+                <div className="empty-state">No players in encounter.</div>
+              )}
+              {pcCombatants.map(c => {
+                const state = playerStates.find(s => s.combatant_id === c.id);
+                return (
+                  <PlayerCard
+                    key={c.id}
+                    combatant={c}
+                    state={state}
+                    role="display"
+                    isEditMode={false}
+                    encounterId={encounter?.id}
+                    onUpdate={() => {}}
+                  />
+                );
+              })}
+            </div>
           </div>
-          {encounter && (
-            <InitiativePanel
-              encounter={encounter}
-              combatants={combatants}
-              playerStates={playerStates}
-              role="display"
-              onUpdate={() => {}}
-            />
-          )}
+
+          <div className="display-initiative-column">
+            <div className="display-section-header">Initiative Feed</div>
+            {encounter && (
+              <InitiativePanel
+                encounter={encounter}
+                combatants={combatants}
+                playerStates={playerStates}
+                role="display"
+                onUpdate={() => {}}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>

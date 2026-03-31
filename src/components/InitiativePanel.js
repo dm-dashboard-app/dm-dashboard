@@ -47,6 +47,12 @@ function sortCombatants(combatants) {
   });
 }
 
+export function getDisplayOrderedCombatants(combatants, turnIndex) {
+  if (!combatants.length) return [];
+  const safeIndex = Math.max(0, Math.min(turnIndex ?? 0, combatants.length - 1));
+  return [...combatants.slice(safeIndex), ...combatants.slice(0, safeIndex)];
+}
+
 function logCombat(encounterId, actor, action, detail) {
   if (!encounterId) return;
   supabase.from('combat_log').insert({ encounter_id: encounterId, actor, action, detail }).then(() => {});
@@ -685,13 +691,14 @@ function PcResourceChip({ resource, state, isDM, onUpdateFields }) {
 export default function InitiativePanel({ encounter, combatants, playerStates = [], role, onUpdate, myCombatantId = null }) {
   const isDM      = role === 'dm';
   const isDisplay = role === 'display';
-  const sorted    = sortCombatants(combatants);
+  const sortedOriginal = sortCombatants(combatants);
   const activeTurnIndex = encounter?.turn_index ?? 0;
+  const displayOrdered = getDisplayOrderedCombatants(sortedOriginal, activeTurnIndex);
   const [showAddCombatant, setShowAddCombatant] = useState(false);
 
   const activeRowRef = useRef(null);
   const lastActiveIdRef = useRef(null);
-  const activeCombatantId = sorted[activeTurnIndex]?.id ?? null;
+  const activeCombatantId = sortedOriginal[activeTurnIndex]?.id ?? null;
 
   useEffect(() => {
     if (!activeCombatantId || !activeRowRef.current) return;
@@ -707,22 +714,27 @@ export default function InitiativePanel({ encounter, combatants, playerStates = 
 
   return (
     <div className="panel">
-      <div className="panel-title">Initiative Order</div>
+      <div className="panel-title">{isDisplay ? 'Initiative Feed' : 'Initiative Order'}</div>
       <div className="initiative-list">
-        {sorted.length === 0 && <div className="empty-state">No combatants yet.</div>}
-        {sorted.map((c, idx) => {
+        {displayOrdered.length === 0 && <div className="empty-state">No combatants yet.</div>}
+        {displayOrdered.map((c, displayIndex) => {
           const playerState = playerStates.find(s => s.combatant_id === c.id);
+          const originalIndex = sortedOriginal.findIndex(item => item.id === c.id);
+          const isActive = c.id === activeCombatantId;
+          const isNextUp = displayIndex === 1;
+
           return (
-            <div key={c.id} ref={idx === activeTurnIndex ? activeRowRef : null}>
+            <div key={c.id} ref={isActive ? activeRowRef : null}>
               <InitiativeRow
                 combatant={c}
                 playerState={playerState}
-                isActive={idx === activeTurnIndex}
+                isActive={isActive}
+                isNextUp={isNextUp}
                 isDM={isDM}
                 isDisplay={isDisplay}
                 onUpdate={onUpdate}
-                sorted={sorted}
-                idx={idx}
+                sorted={sortedOriginal}
+                idx={originalIndex}
                 encounterId={encounter?.id}
                 myCombatantId={myCombatantId}
               />
@@ -751,7 +763,7 @@ export default function InitiativePanel({ encounter, combatants, playerStates = 
 // ============================================================
 // INITIATIVE ROW
 // ============================================================
-function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUpdate, sorted, idx, encounterId, myCombatantId }) {
+function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDisplay, onUpdate, sorted, idx, encounterId, myCombatantId }) {
   const [expanded, setExpanded]           = useState(false);
   const [condPickerOpen, setCondPickerOpen] = useState(false);
   const [resPicker, setResPicker]         = useState(false);
@@ -836,14 +848,14 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
   }
 
   async function moveUp() {
-    if (idx === 0) return;
+    if (idx <= 0) return;
     const neighbor = sorted[idx - 1];
     await supabase.rpc('set_initiative', { p_combatant_id: combatant.id, p_total: (neighbor.initiative_total ?? 0) + 1 });
     onUpdate();
   }
 
   async function moveDown() {
-    if (idx === sorted.length - 1) return;
+    if (idx === -1 || idx >= sorted.length - 1) return;
     const neighbor = sorted[idx + 1];
     await supabase.rpc('set_initiative', { p_combatant_id: combatant.id, p_total: Math.max(0, (neighbor.initiative_total ?? 0) - 1) });
     onUpdate();
@@ -1009,12 +1021,11 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
     onUpdate();
   }
 
-  const atTop    = idx === 0;
-  const atBottom = idx === sorted.length - 1;
+  const atTop = idx <= 0;
+  const atBottom = idx === -1 || idx === sorted.length - 1;
 
   return (
-    <div className={`initiative-row ${isActive ? 'active-turn' : ''}`} style={{ display: 'block', padding: '8px 12px' }}>
-
+    <div className={`initiative-row ${isActive ? 'active-turn' : ''} ${isNextUp ? 'initiative-row--next-up' : ''}`} style={{ display: 'block', padding: '8px 12px' }}>
       <div className="initiative-row-main" onClick={() => isDM && isNonPC && setExpanded(e => !e)}>
         {isDM && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1, marginRight: 2 }}>
@@ -1072,6 +1083,8 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
               </span>
             )}
             <span className="initiative-name">{combatant.name}</span>
+            {isActive && <span className="display-order-tag display-order-tag--active">Current</span>}
+            {!isActive && isNextUp && <span className="display-order-tag display-order-tag--next">On Deck</span>}
             <span className={`badge badge-${combatant.side.toLowerCase()}`}>{combatant.side}</span>
             {(enemyBloodied || pcBloodied) && <span className="badge badge-bloodied">BLOODIED</span>}
             {wsActive && <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3, background: '#1a3a1a', color: 'var(--accent-green)' }}>🐻 BEAST</span>}
@@ -1246,7 +1259,6 @@ function InitiativeRow({ combatant, playerState, isActive, isDM, isDisplay, onUp
 
       {isDM && isNonPC && expanded && (
         <div className="monster-dm-controls">
-
           <div style={{ marginBottom: 10 }}>
             <InlineDmgHeal onDamage={applyEnemyDamage} onHeal={applyEnemyHeal} />
             <div style={{ marginTop: 4, fontSize: 11, color: 'var(--text-muted)', textAlign: 'center' }}>
