@@ -275,6 +275,31 @@ function CombatLog({ encounterId }) {
   );
 }
 
+function PlayerCardsSection({ combatants, playerStates, encounterId, playerEditMode, onUpdate }) {
+  return (
+    <div className="panel">
+      <div className="panel-title">Party Status</div>
+      <div className="dm-player-card-stack">
+        {combatants.length === 0 && <div className="empty-state">No players in encounter.</div>}
+        {combatants.map(c => {
+          const s = playerStates.find(ps => ps.combatant_id === c.id);
+          return (
+            <PlayerCard
+              key={c.id}
+              combatant={c}
+              state={s}
+              role="dm"
+              isEditMode={playerEditMode}
+              encounterId={encounterId}
+              onUpdate={onUpdate}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function DMView() {
   const [encounter, setEncounter] = useState(null);
   const [combatants, setCombatants] = useState([]);
@@ -422,10 +447,12 @@ export default function DMView() {
     <div className="app-shell">
       <div className="top-bar top-bar--dm-actions">
         <div className="dm-action-round">Round {encounter.round}</div>
-        <button className="btn btn-primary" onClick={handleNextTurn}>▶ Next</button>
-        <button className="btn btn-ghost" onClick={handleRollEnemyInitiative} disabled={rollingInit}>{rollingInit ? 'Rolling…' : 'Initiative'}</button>
-        <button className="btn btn-ghost" onClick={() => setShortRestOpen(true)}>Short Rest</button>
-        <button className="btn btn-ghost" onClick={handleLongRest}>Long Rest</button>
+        <div className="dm-action-button-row">
+          <button className="btn btn-primary" onClick={handleNextTurn}>▶ Next</button>
+          <button className="btn btn-ghost" onClick={handleRollEnemyInitiative} disabled={rollingInit}>{rollingInit ? 'Rolling…' : 'Initiative'}</button>
+          <button className="btn btn-ghost" onClick={() => setShortRestOpen(true)}>Short Rest</button>
+          <button className="btn btn-ghost" onClick={handleLongRest}>Long Rest</button>
+        </div>
       </div>
 
       <div className="tab-bar">
@@ -438,20 +465,27 @@ export default function DMView() {
       <div className={combatContentClass}>
         {tab === 'combat' && (
           <>
-            {pcCombatants.map(c => {
-              const s = playerStates.find(ps => ps.combatant_id === c.id);
-              return <PlayerCard key={c.id} combatant={c} state={s} role="dm" isEditMode={encounter.player_edit_mode} encounterId={encounter.id} onUpdate={refreshAll} />;
-            })}
+            <div className="dm-combat-layout">
+              <div className="dm-initiative-column">
+                <InitiativePanel encounter={encounter} combatants={combatants} playerStates={playerStates} role="dm" onUpdate={refreshAll} />
 
-            <InitiativePanel encounter={encounter} combatants={combatants} playerStates={playerStates} role="dm" onUpdate={refreshAll} />
-
-            <div className="panel">
-              <div className="panel-title">Live Session</div>
-              <div className="form-row" style={{ flexWrap: 'wrap' }}>
-                {nonPcCount > 0 && <button className="btn btn-ghost" onClick={handleRollEnemyInitiative} disabled={rollingInit}>{rollingInit ? 'Rolling…' : 'Initiative'}</button>}
-                <button className="btn btn-ghost" onClick={() => setShortRestOpen(true)}>Open Short Rest</button>
-                <button className="btn btn-ghost" onClick={() => setTab('manage')}>Open Manage</button>
+                <div className="panel">
+                  <div className="panel-title">Live Session</div>
+                  <div className="dm-live-session-actions">
+                    {nonPcCount > 0 && <button className="btn btn-ghost" onClick={handleRollEnemyInitiative} disabled={rollingInit}>{rollingInit ? 'Rolling…' : 'Roll Enemy Initiative'}</button>}
+                    <button className="btn btn-ghost" onClick={() => setShortRestOpen(true)}>Open Short Rest</button>
+                    <button className="btn btn-ghost" onClick={() => setTab('manage')}>Open Manage</button>
+                  </div>
+                </div>
               </div>
+
+              <PlayerCardsSection
+                combatants={pcCombatants}
+                playerStates={playerStates}
+                encounterId={encounter.id}
+                playerEditMode={encounter.player_edit_mode}
+                onUpdate={refreshAll}
+              />
             </div>
 
             <div className="dm-bottom-dock">

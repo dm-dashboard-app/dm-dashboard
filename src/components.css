@@ -390,6 +390,100 @@
 .add-combatant-form { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-2); }
 .empty-state { color: var(--text-muted); font-size: var(--font-size-sm); font-style: italic; padding: var(--space-2) 0; }
 
+.display-order-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.display-order-tag--active {
+  background: rgba(74, 158, 255, 0.16);
+  color: var(--accent-blue);
+  border: 1px solid rgba(74, 158, 255, 0.45);
+}
+.display-order-tag--next {
+  background: rgba(240, 180, 41, 0.14);
+  color: var(--accent-gold);
+  border: 1px solid rgba(240, 180, 41, 0.4);
+}
+
+/* ---- Display turn feature boxes ---- */
+.display-turn-feature {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top left, rgba(255,255,255,0.05), transparent 38%),
+    linear-gradient(135deg, rgba(16, 22, 31, 0.98), rgba(26, 32, 43, 0.98));
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 18px 20px;
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+}
+
+.display-turn-feature::after {
+  content: '';
+  position: absolute;
+  inset: auto -30px -30px auto;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, rgba(255,255,255,0.06), transparent 70%);
+  pointer-events: none;
+}
+
+.display-turn-feature--current {
+  border-color: rgba(74, 158, 255, 0.6);
+  box-shadow: 0 0 0 1px rgba(74, 158, 255, 0.18), 0 16px 34px rgba(0, 0, 0, 0.24);
+}
+
+.display-turn-feature--next {
+  border-color: rgba(240, 180, 41, 0.5);
+}
+
+.display-turn-feature-label {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.display-turn-feature-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.display-turn-feature-name {
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.display-turn-feature-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.display-turn-feature-empty {
+  font-size: 16px;
+  color: var(--text-muted);
+}
+
 /* ---- Shared Bottom Sheet Modal ---- */
 .modal-overlay,
 .rest-modal-overlay {
@@ -642,11 +736,6 @@
   text-align: right;
 }
 
-/* ---- Display Mode ---- */
-.display-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4); }
-.display-encounter-name { font-size: var(--font-size-xl); font-weight: 700; }
-.display-round { font-size: var(--font-size-lg); color: var(--accent-blue); font-weight: 600; }
-
 /* ---- Display Token ---- */
 .display-token-row { display: flex; align-items: center; gap: var(--space-3); }
 .display-token-value { font-size: var(--font-size-lg); font-weight: 700; letter-spacing: 0.12em; color: var(--accent-gold); font-family: monospace; }
@@ -753,6 +842,15 @@
 
   .initiative-name {
     flex-basis: 110px;
+  }
+
+  .display-turn-feature {
+    min-height: 112px;
+    padding: 16px 16px;
+  }
+
+  .display-turn-feature-name {
+    font-size: 28px;
   }
 
   .rest-modal-player-card {
