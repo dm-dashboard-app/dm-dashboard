@@ -146,16 +146,12 @@ export function getProficiencyBonus(totalLevel) {
 }
 
 export function getAbilityScores(source = {}) {
-  return Object.fromEntries(
-    ABILITY_KEYS.map(key => [key, clampAbilityScore(source[`ability_${key}`] ?? DEFAULT_ABILITY_SCORE)])
-  );
+  return Object.fromEntries(ABILITY_KEYS.map(key => [key, clampAbilityScore(source[`ability_${key}`] ?? DEFAULT_ABILITY_SCORE)]));
 }
 
 export function getAbilityModifiers(source = {}) {
   const scores = getAbilityScores(source);
-  return Object.fromEntries(
-    ABILITY_KEYS.map(key => [key, getAbilityModifier(scores[key])])
-  );
+  return Object.fromEntries(ABILITY_KEYS.map(key => [key, getAbilityModifier(scores[key])]))
 }
 
 export function getSaveProficiencies(source = {}) {
@@ -168,23 +164,31 @@ export function getSavingThrowTotals(source = {}) {
   const modifiers = getAbilityModifiers(source);
   const saveProficiencies = getSaveProficiencies(source);
   const proficiencyBonus = getProficiencyBonus(getTotalLevel(source));
-  return Object.fromEntries(
-    ABILITY_KEYS.map(key => [key, modifiers[key] + (saveProficiencies[key] ? proficiencyBonus : 0)])
-  );
+  return Object.fromEntries(ABILITY_KEYS.map(key => [key, modifiers[key] + (saveProficiencies[key] ? proficiencyBonus : 0)]));
 }
 
 export function getSkillRank(source = {}, skillKey) {
   return Math.max(0, Math.min(2, toInt(source[`skill_${skillKey}_rank`], 0)));
 }
 
+export function getJackOfAllTradesBonus(source = {}) {
+  const bardLevel = getClassLevel(source, 'bard');
+  if (bardLevel < 2) return 0;
+  return Math.floor(getProficiencyBonus(getTotalLevel(source)) / 2);
+}
+
 export function getSkillTotals(source = {}) {
   const modifiers = getAbilityModifiers(source);
   const proficiencyBonus = getProficiencyBonus(getTotalLevel(source));
+  const jackOfAllTradesBonus = getJackOfAllTradesBonus(source);
+
   return Object.fromEntries(
     SKILL_DEFINITIONS.map(skill => {
       const rank = getSkillRank(source, skill.key);
       const multiplier = rank === 2 ? 2 : rank === 1 ? 1 : 0;
-      return [skill.key, modifiers[skill.ability] + (proficiencyBonus * multiplier)];
+      const proficiencyContribution = proficiencyBonus * multiplier;
+      const jackContribution = rank === 0 ? jackOfAllTradesBonus : 0;
+      return [skill.key, modifiers[skill.ability] + proficiencyContribution + jackContribution];
     })
   );
 }
