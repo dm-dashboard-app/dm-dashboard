@@ -9,6 +9,9 @@ import {
   formatStandardSpellSlotsSummary,
   getAbilityModifiers,
   getClassLevel,
+  getDerivedInitiativeModifier,
+  getDerivedSpellAttackBonus,
+  getDerivedSpellSaveDC,
   getJackOfAllTradesBonus,
   getPrimaryClassName,
   getProficiencyBonus,
@@ -16,6 +19,7 @@ import {
   getSavingThrowTotals,
   getSkillRank,
   getSkillTotals,
+  getSpellcastingAbilityKey,
   getTotalLevel,
 } from '../utils/classResources';
 import SpellManagementPanel from './SpellManagementPanel';
@@ -75,44 +79,15 @@ function SessionControls({ currentEncounter, displayToken, joinCodes, onToggleEd
 function NumInput({ value, onChange, ...props }) {
   const [draft, setDraft] = useState(value === 0 ? '' : String(value ?? ''));
   useEffect(() => { setDraft(value === 0 ? '' : String(value ?? '')); }, [value]);
-
-  function normalize(nextDraft) {
-    const n = parseInt(nextDraft, 10);
-    const fallback = props.min != null ? parseInt(props.min, 10) : 0;
-    const final = Number.isNaN(n) ? fallback : n;
-    return { fallback, final };
-  }
-
-  return (
-    <input
-      {...props}
-      className="form-input"
-      type="number"
-      value={draft}
-      onChange={e => {
-        const nextDraft = e.target.value;
-        setDraft(nextDraft);
-        const { final } = normalize(nextDraft);
-        if (nextDraft !== '') onChange(final);
-      }}
-      onBlur={() => {
-        const { fallback, final } = normalize(draft);
-        setDraft(final === 0 && fallback === 0 ? '' : String(final));
-        onChange(final);
-      }}
-    />
-  );
+  function normalize(nextDraft) { const n = parseInt(nextDraft, 10); const fallback = props.min != null ? parseInt(props.min, 10) : 0; const final = Number.isNaN(n) ? fallback : n; return { fallback, final }; }
+  return <input {...props} className="form-input" type="number" value={draft} onChange={e => { const nextDraft = e.target.value; setDraft(nextDraft); const { final } = normalize(nextDraft); if (nextDraft !== '') onChange(final); }} onBlur={() => { const { fallback, final } = normalize(draft); setDraft(final === 0 && fallback === 0 ? '' : String(final)); onChange(final); }} />;
 }
 function SelectField({ value, onChange, options }) { return <select className="form-input" value={value || ''} onChange={e => onChange(e.target.value)}>{options.map(opt => <option key={opt || 'blank'} value={opt}>{opt || '—'}</option>)}</select>; }
 function DerivedValueField({ label, value, helpText = '' }) { return <div className="form-group" style={{ flex: 1 }}><label className="form-label">{label}</label><div className="form-input" style={{ display: 'flex', alignItems: 'center', color: 'var(--text-primary)', fontWeight: 600 }}>{value || '—'}</div>{helpText ? <div style={{ marginTop: 4, fontSize: 11, color: 'var(--text-muted)' }}>{helpText}</div> : null}</div>; }
 function Field({ label, children }) { return <div className="form-group" style={{ marginBottom: 8 }}><label className="form-label">{label}</label>{children}</div>; }
 
 function SkillRankSelect({ name, value, onChange }) {
-  return (
-    <select name={name} className="form-input" value={value} onChange={e => onChange(parseInt(e.target.value, 10) || 0)} style={{ minHeight: 36, paddingTop: 0, paddingBottom: 0 }}>
-      {SKILL_RANK_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-    </select>
-  );
+  return <select name={name} className="form-input" value={value} onChange={e => onChange(parseInt(e.target.value, 10) || 0)} style={{ minHeight: 36, paddingTop: 0, paddingBottom: 0 }}>{SKILL_RANK_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select>;
 }
 
 function PlayerProfileManager() {
@@ -122,51 +97,16 @@ function PlayerProfileManager() {
   useEffect(() => { load(); }, []);
   async function load() { const { data } = await supabase.from('profiles_players').select('*').order('name'); setProfiles(data || []); }
   async function save(profile) { const finalProfile = applyDerivedPlayerDefaults(profile); if (finalProfile.id) await supabase.from('profiles_players').update(finalProfile).eq('id', finalProfile.id); else await supabase.from('profiles_players').insert(finalProfile); setEditing(null); load(); }
-  async function remove(id) {
-    if (!window.confirm('Delete this player profile? This will also remove that player from saved encounter state and join sessions.')) return;
-    setDeleteError('');
-    const { data: ownedCombatants, error: combatantLookupError } = await supabase.from('combatants').select('id').eq('owner_player_id', id);
-    if (combatantLookupError) { setDeleteError(combatantLookupError.message || 'Failed to look up linked combatants.'); return; }
-    const combatantIds = (ownedCombatants || []).map(row => row.id);
-    if (combatantIds.length > 0) {
-      const { error: playerStateDeleteError } = await supabase.from('player_encounter_state').delete().in('combatant_id', combatantIds);
-      if (playerStateDeleteError) { setDeleteError(playerStateDeleteError.message || 'Failed to remove linked player encounter state.'); return; }
-      const { error: combatantDeleteError } = await supabase.from('combatants').delete().in('id', combatantIds);
-      if (combatantDeleteError) { setDeleteError(combatantDeleteError.message || 'Failed to remove linked combatants.'); return; }
-    }
-    const { error: directStateDeleteError } = await supabase.from('player_encounter_state').delete().eq('player_profile_id', id);
-    if (directStateDeleteError) { setDeleteError(directStateDeleteError.message || 'Failed to remove linked player encounter state.'); return; }
-    const { error: playerSessionDeleteError } = await supabase.from('player_sessions').delete().eq('player_profile_id', id);
-    if (playerSessionDeleteError) { setDeleteError(playerSessionDeleteError.message || 'Failed to remove linked player sessions.'); return; }
-    const { error: playerSpellsDeleteError } = await supabase.from('profile_player_spells').delete().eq('player_profile_id', id);
-    if (playerSpellsDeleteError) { setDeleteError(playerSpellsDeleteError.message || 'Failed to remove linked player spells.'); return; }
-    const { error: profileDeleteError } = await supabase.from('profiles_players').delete().eq('id', id);
-    if (profileDeleteError) { setDeleteError(profileDeleteError.message || 'Failed to delete player profile.'); return; }
-    load();
-  }
+  async function remove(id) { if (!window.confirm('Delete this player profile? This will also remove that player from saved encounter state and join sessions.')) return; setDeleteError(''); const { data: ownedCombatants, error: combatantLookupError } = await supabase.from('combatants').select('id').eq('owner_player_id', id); if (combatantLookupError) { setDeleteError(combatantLookupError.message || 'Failed to look up linked combatants.'); return; } const combatantIds = (ownedCombatants || []).map(row => row.id); if (combatantIds.length > 0) { const { error: playerStateDeleteError } = await supabase.from('player_encounter_state').delete().in('combatant_id', combatantIds); if (playerStateDeleteError) { setDeleteError(playerStateDeleteError.message || 'Failed to remove linked player encounter state.'); return; } const { error: combatantDeleteError } = await supabase.from('combatants').delete().in('id', combatantIds); if (combatantDeleteError) { setDeleteError(combatantDeleteError.message || 'Failed to remove linked combatants.'); return; } } const { error: directStateDeleteError } = await supabase.from('player_encounter_state').delete().eq('player_profile_id', id); if (directStateDeleteError) { setDeleteError(directStateDeleteError.message || 'Failed to remove linked player encounter state.'); return; } const { error: playerSessionDeleteError } = await supabase.from('player_sessions').delete().eq('player_profile_id', id); if (playerSessionDeleteError) { setDeleteError(playerSessionDeleteError.message || 'Failed to remove linked player sessions.'); return; } const { error: playerSpellsDeleteError } = await supabase.from('profile_player_spells').delete().eq('player_profile_id', id); if (playerSpellsDeleteError) { setDeleteError(playerSpellsDeleteError.message || 'Failed to remove linked player spells.'); return; } const { error: profileDeleteError } = await supabase.from('profiles_players').delete().eq('id', id); if (profileDeleteError) { setDeleteError(profileDeleteError.message || 'Failed to delete player profile.'); return; } load(); }
   if (editing !== null) return <PlayerProfileForm initial={editing} onSave={save} onCancel={() => setEditing(null)} />;
   return <div>{deleteError && <div className="empty-state" style={{ color: 'var(--accent-red)', marginBottom: 10 }}>{deleteError}</div>}{profiles.map(p => <div key={p.id} className="manage-row"><span><strong>{p.name}</strong>{classSummary(p) ? <span style={{ color: 'var(--text-secondary)', marginLeft: 8, fontSize: 12 }}>{classSummary(p)}</span> : null}</span><div className="form-row"><button className="btn btn-ghost" onClick={() => setEditing(p)}>Edit</button><button className="btn btn-danger" onClick={() => remove(p.id)}>Delete</button></div></div>)}<button className="btn btn-primary" style={{ marginTop: 12 }} onClick={() => setEditing({})}>+ New Player</button></div>;
 }
 
 function PlayerProfileForm({ initial, onSave, onCancel }) {
   const formRef = useRef(null);
-  const [f, setF] = useState({
-    name: '', max_hp: 10, ac: 10, initiative_mod: 0,
-    class_name: '', subclass_name: '', class_level: 1,
-    class_name_2: '', subclass_name_2: '', class_level_2: 0,
-    ancestry_name: '',
-    feat_lucky: false, feat_relentless_endurance: false, feat_fey_step: false, feat_celestial_revelation: false,
-    ability_str: 10, ability_dex: 10, ability_con: 10, ability_int: 10, ability_wis: 10, ability_cha: 10,
-    save_str: 0, save_dex: 0, save_con: 0, save_int: 0, save_wis: 0, save_cha: 0,
-    spell_save_dc: 8, spell_attack_bonus: 0,
-    slots_max_1: 0, slots_max_2: 0, slots_max_3: 0, slots_max_4: 0, slots_max_5: 0, slots_max_6: 0, slots_max_7: 0, slots_max_8: 0, slots_max_9: 0,
-    wildshape_enabled: false, portrait_url: '',
-    ...Object.fromEntries(SKILL_DEFINITIONS.map(skill => [`skill_${skill.key}_rank`, 0])),
-    ...initial,
-  });
+  const [f, setF] = useState({ name: '', max_hp: 10, ac: 10, initiative_mod: 0, initiative_bonus: 0, spell_save_bonus: 0, spell_attack_bonus_mod: 0, class_name: '', subclass_name: '', class_level: 1, class_name_2: '', subclass_name_2: '', class_level_2: 0, ancestry_name: '', feat_lucky: false, feat_relentless_endurance: false, feat_fey_step: false, feat_celestial_revelation: false, ability_str: 10, ability_dex: 10, ability_con: 10, ability_int: 10, ability_wis: 10, ability_cha: 10, save_str: 0, save_dex: 0, save_con: 0, save_int: 0, save_wis: 0, save_cha: 0, spell_save_dc: 8, spell_attack_bonus: 0, slots_max_1: 0, slots_max_2: 0, slots_max_3: 0, slots_max_4: 0, slots_max_5: 0, slots_max_6: 0, slots_max_7: 0, slots_max_8: 0, slots_max_9: 0, wildshape_enabled: false, portrait_url: '', ...Object.fromEntries(SKILL_DEFINITIONS.map(skill => [`skill_${skill.key}_rank`, 0])), ...initial });
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
-
   const derivedProfile = applyDerivedPlayerDefaults(f);
   const hitDiceSummary = formatHitDiceSummary(f);
   const spellSlotsSummary = formatStandardSpellSlotsSummary(f);
@@ -179,48 +119,14 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
   const skillTotals = getSkillTotals(f);
   const primaryClassName = getPrimaryClassName(f);
   const jackOfAllTradesBonus = getJackOfAllTradesBonus(f);
+  const derivedInitiativeModifier = getDerivedInitiativeModifier(f);
+  const derivedSpellSaveDC = getDerivedSpellSaveDC(f);
+  const derivedSpellAttackBonus = getDerivedSpellAttackBonus(f);
+  const spellcastingAbilityKey = getSpellcastingAbilityKey(f);
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
-
-  async function handlePortraitUpload(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!f.name.trim()) { setUploadError('Enter the player name first.'); return; }
-    setUploading(true); setUploadError(null);
-    try { const url = await uploadPortrait(file, f.name); set('portrait_url', url); }
-    catch (err) { setUploadError('Upload failed: ' + err.message); }
-    finally { setUploading(false); }
-  }
-
-  function buildSavePayload() {
-    const form = formRef.current;
-    if (!form) return applyDerivedPlayerDefaults(f);
-    const fd = new FormData(form);
-    const next = {
-      ...f,
-      ability_str: intFromForm(fd.get('ability_str'), 10),
-      ability_dex: intFromForm(fd.get('ability_dex'), 10),
-      ability_con: intFromForm(fd.get('ability_con'), 10),
-      ability_int: intFromForm(fd.get('ability_int'), 10),
-      ability_wis: intFromForm(fd.get('ability_wis'), 10),
-      ability_cha: intFromForm(fd.get('ability_cha'), 10),
-      max_hp: intFromForm(fd.get('max_hp'), 1),
-      ac: intFromForm(fd.get('ac'), 1),
-      initiative_mod: intFromForm(fd.get('initiative_mod'), 0),
-      spell_save_dc: intFromForm(fd.get('spell_save_dc'), 0),
-      spell_attack_bonus: intFromForm(fd.get('spell_attack_bonus'), 0),
-      class_level: intFromForm(fd.get('class_level'), 1),
-      class_level_2: intFromForm(fd.get('class_level_2'), 0),
-    };
-    SKILL_DEFINITIONS.forEach(skill => {
-      next[`skill_${skill.key}_rank`] = intFromForm(fd.get(`skill_${skill.key}_rank`), 0);
-    });
-    return applyDerivedPlayerDefaults(next);
-  }
-
-  function handleSave() {
-    if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur();
-    onSave(buildSavePayload());
-  }
+  async function handlePortraitUpload(e) { const file = e.target.files?.[0]; if (!file) return; if (!f.name.trim()) { setUploadError('Enter the player name first.'); return; } setUploading(true); setUploadError(null); try { const url = await uploadPortrait(file, f.name); set('portrait_url', url); } catch (err) { setUploadError('Upload failed: ' + err.message); } finally { setUploading(false); } }
+  function buildSavePayload() { const form = formRef.current; if (!form) return applyDerivedPlayerDefaults(f); const fd = new FormData(form); const next = { ...f, ability_str: intFromForm(fd.get('ability_str'), 10), ability_dex: intFromForm(fd.get('ability_dex'), 10), ability_con: intFromForm(fd.get('ability_con'), 10), ability_int: intFromForm(fd.get('ability_int'), 10), ability_wis: intFromForm(fd.get('ability_wis'), 10), ability_cha: intFromForm(fd.get('ability_cha'), 10), max_hp: intFromForm(fd.get('max_hp'), 1), ac: intFromForm(fd.get('ac'), 1), class_level: intFromForm(fd.get('class_level'), 1), class_level_2: intFromForm(fd.get('class_level_2'), 0), initiative_bonus: intFromForm(fd.get('initiative_bonus'), 0), spell_save_bonus: intFromForm(fd.get('spell_save_bonus'), 0), spell_attack_bonus_mod: intFromForm(fd.get('spell_attack_bonus_mod'), 0) }; SKILL_DEFINITIONS.forEach(skill => { next[`skill_${skill.key}_rank`] = intFromForm(fd.get(`skill_${skill.key}_rank`), 0); }); return applyDerivedPlayerDefaults(next); }
+  function handleSave() { if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); onSave(buildSavePayload()); }
 
   return (
     <form ref={formRef} className="profile-form" onSubmit={e => { e.preventDefault(); handleSave(); }}>
@@ -243,6 +149,10 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
       <div className="panel-title" style={{ marginTop: 12 }}>Skills</div>
       <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Choose None, Proficient, or Expertise for each skill. Totals are derived from the linked ability modifier plus proficiency bonus ({formatModifier(proficiencyBonus)}).{jackOfAllTradesBonus > 0 ? ` Jack of All Trades is active, so unproficient Bard skills also gain ${formatModifier(jackOfAllTradesBonus)}.` : ''}</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>{SKILL_DEFINITIONS.map(skill => <div key={skill.key} style={{ border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', background: 'var(--bg-panel-2)', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 120px 56px', gap: 8, alignItems: 'center' }}><div style={{ minWidth: 0 }}><div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{skill.label}</div><div style={{ fontSize: 10, color: 'var(--text-muted)' }}>{ABILITY_LABELS[skill.ability]} • base {formatModifier(abilityModifiers[skill.ability])}</div></div><SkillRankSelect name={`skill_${skill.key}_rank`} value={getSkillRank(f, skill.key)} onChange={value => set(`skill_${skill.key}_rank`, value)} /><div style={{ textAlign: 'right', fontSize: 16, fontWeight: 700 }}>{formatModifier(skillTotals[skill.key])}</div></div>)}</div>
+      <div className="panel-title" style={{ marginTop: 12 }}>Derived Combat Maths</div>
+      <div className="form-row" style={{ flexWrap: 'wrap' }}><DerivedValueField label="Derived Initiative" value={formatModifier(derivedInitiativeModifier)} helpText="DEX modifier" /><div className="form-group" style={{ flex: 1 }}><label className="form-label">Initiative Bonus</label><NumInput name="initiative_bonus" value={f.initiative_bonus ?? 0} onChange={v => set('initiative_bonus', v)} /></div><DerivedValueField label="Final Initiative" value={formatModifier(derivedProfile.initiative_mod || 0)} helpText="Derived + bonus" /></div>
+      <div className="form-row" style={{ flexWrap: 'wrap' }}><DerivedValueField label="Derived Spell Save DC" value={derivedSpellSaveDC > 0 ? String(derivedSpellSaveDC) : '—'} helpText={spellcastingAbilityKey ? `Uses ${ABILITY_LABELS[spellcastingAbilityKey]}` : 'No spellcasting class found'} /><div className="form-group" style={{ flex: 1 }}><label className="form-label">Spell Save Bonus</label><NumInput name="spell_save_bonus" value={f.spell_save_bonus ?? 0} onChange={v => set('spell_save_bonus', v)} /></div><DerivedValueField label="Final Spell Save DC" value={derivedProfile.spell_save_dc > 0 ? String(derivedProfile.spell_save_dc) : '—'} helpText="Derived + bonus" /></div>
+      <div className="form-row" style={{ flexWrap: 'wrap' }}><DerivedValueField label="Derived Spell Attack" value={derivedSpellAttackBonus > 0 ? formatModifier(derivedSpellAttackBonus) : '—'} helpText={spellcastingAbilityKey ? `Uses ${ABILITY_LABELS[spellcastingAbilityKey]}` : 'No spellcasting class found'} /><div className="form-group" style={{ flex: 1 }}><label className="form-label">Spell Attack Bonus</label><NumInput name="spell_attack_bonus_mod" value={f.spell_attack_bonus_mod ?? 0} onChange={v => set('spell_attack_bonus_mod', v)} /></div><DerivedValueField label="Final Spell Attack" value={derivedProfile.spell_attack_bonus ? formatModifier(derivedProfile.spell_attack_bonus) : '—'} helpText="Derived + bonus" /></div>
       <div className="panel-title" style={{ marginTop: 12 }}>Table Toggles</div>
       <label className="checkbox-row"><input type="checkbox" checked={!!f.feat_lucky} onChange={e => set('feat_lucky', e.target.checked)} /><span>Lucky</span></label>
       <label className="checkbox-row"><input type="checkbox" checked={!!f.feat_relentless_endurance} onChange={e => set('feat_relentless_endurance', e.target.checked)} /><span>Relentless Endurance</span></label>
@@ -251,11 +161,8 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
       {druidLevel > 0 && <div style={{ marginTop: 6, fontSize: 11, color: 'var(--text-muted)' }}>Wild Shape is auto-enabled for Druids.</div>}
       <PlayerProfileSpellManager profile={derivedProfile} />
       <Field label="Portrait"><div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>{f.portrait_url && <img src={f.portrait_url} alt="Portrait" style={{ width: 64, height: 80, objectFit: 'cover', borderRadius: 6 }} />}<input type="file" accept="image/*" onChange={handlePortraitUpload} disabled={uploading} style={{ fontSize: 13 }} />{uploading && <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Uploading…</span>}{uploadError && <span style={{ fontSize: 12, color: 'var(--accent-red)' }}>{uploadError}</span>}</div></Field>
+      <Field label="Base AC"><NumInput name="ac" value={f.ac} onChange={v => set('ac', v)} min={1} /></Field>
       <Field label="Max HP"><NumInput name="max_hp" value={f.max_hp} onChange={v => set('max_hp', v)} min={1} /></Field>
-      <Field label="AC"><NumInput name="ac" value={f.ac} onChange={v => set('ac', v)} min={1} /></Field>
-      <Field label="Initiative Mod (tiebreaker only)"><NumInput name="initiative_mod" value={f.initiative_mod ?? 0} onChange={v => set('initiative_mod', v)} /></Field>
-      <Field label="Spell Save DC"><NumInput name="spell_save_dc" value={f.spell_save_dc} onChange={v => set('spell_save_dc', v)} min={0} /></Field>
-      <Field label="Spell Attack Bonus"><NumInput name="spell_attack_bonus" value={f.spell_attack_bonus} onChange={v => set('spell_attack_bonus', v)} /></Field>
       <div className="form-row" style={{ marginTop: 16 }}><button type="submit" className="btn btn-primary" disabled={!f.name || uploading}>Save</button><button type="button" className="btn btn-ghost" onClick={onCancel}>Cancel</button></div>
     </form>
   );
