@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 import usePolling from '../hooks/usePolling';
 import PlayerCard from '../components/PlayerCard';
-import InitiativePanel from '../components/InitiativePanel';
+import InitiativePanel from '../components/InitiativePanelNext';
 
 function flattenStates(data) {
   return (data || []).map(s => ({
