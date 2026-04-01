@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase, signOut } from '../supabaseClient';
 import usePolling from '../hooks/usePolling';
 import PlayerCard from '../components/PlayerCard';
-import InitiativePanel from '../components/InitiativePanel';
+import InitiativePanel from '../components/InitiativePanelNext';
 import SecretRollInbox from '../components/SecretRollInbox';
 import EncounterSetup from '../components/EncounterSetup';
 import ManagementScreens from '../components/ManagementScreens';
