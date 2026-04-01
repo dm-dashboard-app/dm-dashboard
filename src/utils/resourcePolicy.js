@@ -45,6 +45,15 @@ function shouldIncludeNaturalRecoveryForSurface(surface) {
   return false;
 }
 
+function resolveRestMaxValue(state, resource) {
+  const fallbackMax = resource.fallbackMax ?? null;
+  const maxKey = resource.maxKey ? findExistingKey(state, [resource.maxKey]) || resource.maxKey : null;
+  const rawMax = maxKey ? readNumberField(state, [maxKey], null) : null;
+  if (rawMax === null) return fallbackMax;
+  if (rawMax <= 0 && fallbackMax !== null && fallbackMax > 0) return fallbackMax;
+  return rawMax;
+}
+
 export function getSurfaceResourceConfig(profile = {}, state = {}, surface = RESOURCE_SURFACES.PLAYER_CARD) {
   const base = getUnifiedResourceConfig(profile, state, {
     compactLabels: surface === RESOURCE_SURFACES.INITIATIVE,
@@ -95,10 +104,10 @@ export function getShortRestResourcePatch(state = {}, profile = {}) {
     }
 
     if (!resource.currentKey) return;
-    const maxKey = resource.maxKey ? findExistingKey(state, [resource.maxKey]) || resource.maxKey : null;
-    const maxValue = maxKey ? readNumberField(state, [maxKey], resource.fallbackMax ?? null) : (resource.fallbackMax ?? null);
+    const maxValue = resolveRestMaxValue(state, resource);
     if (maxValue === null) return;
     patch[resource.currentKey] = maxValue;
+    if (resource.maxKey) patch[resource.maxKey] = maxValue;
   });
 
   const wildshapeKey = findExistingKey(state, ['wildshape_uses_remaining']);
@@ -131,10 +140,10 @@ export function getLongRestResourcePatch(state = {}, profile = {}) {
     }
 
     if (!resource.currentKey) return;
-    const maxKey = resource.maxKey ? findExistingKey(state, [resource.maxKey]) || resource.maxKey : null;
-    const maxValue = maxKey ? readNumberField(state, [maxKey], resource.fallbackMax ?? null) : (resource.fallbackMax ?? null);
+    const maxValue = resolveRestMaxValue(state, resource);
     if (maxValue === null) return;
     patch[resource.currentKey] = maxValue;
+    if (resource.maxKey) patch[resource.maxKey] = maxValue;
   });
 
   const pools = getHitDiePools(profile);
@@ -143,11 +152,13 @@ export function getLongRestResourcePatch(state = {}, profile = {}) {
     const maxKey = `hit_dice_d${size}_max`;
     if (findExistingKey(state, [currentKey, maxKey]) || pools[size] > 0) {
       patch[currentKey] = readNumberField(state, [maxKey], pools[size] || 0);
+      patch[maxKey] = readNumberField(state, [maxKey], pools[size] || 0);
     }
   });
 
   if (findExistingKey(state, ['hit_dice_current'])) {
     patch.hit_dice_current = readNumberField(state, ['hit_dice_max'], profile?.hit_dice_max ?? 0);
+    patch.hit_dice_max = readNumberField(state, ['hit_dice_max'], profile?.hit_dice_max ?? 0);
   }
 
   for (let level = 1; level <= 9; level += 1) {

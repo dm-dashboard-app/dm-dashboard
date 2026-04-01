@@ -1,5 +1,25 @@
 import { supabase } from '../supabaseClient';
 
+function getClassLevel(profile = {}, className) {
+  const wanted = String(className || '').trim().toLowerCase();
+  const entries = [
+    [profile.class_name, profile.class_level],
+    [profile.class_name_2, profile.class_level_2],
+  ];
+  return entries.reduce((sum, [name, level]) => {
+    return String(name || '').trim().toLowerCase() === wanted ? sum + (parseInt(level, 10) || 0) : sum;
+  }, 0);
+}
+
+function getWarlockFallback(profile = {}) {
+  const level = getClassLevel(profile, 'warlock');
+  if (level <= 0) return { slots: 0, slotLevel: 0 };
+  if (level === 1) return { slots: 1, slotLevel: 1 };
+  if (level <= 10) return { slots: 2, slotLevel: Math.ceil(level / 2) };
+  if (level <= 16) return { slots: 3, slotLevel: 5 };
+  return { slots: 4, slotLevel: 5 };
+}
+
 export function getStandardSlotState(profile = {}, state = {}, level) {
   const max = profile?.[`slots_max_${level}`] || 0;
   const used = state?.[`slots_used_${level}`] || 0;
@@ -15,10 +35,11 @@ export function getStandardSlotState(profile = {}, state = {}, level) {
   };
 }
 
-export function getPactSlotState(state = {}, level = 0) {
-  const pactLevel = state?.warlock_slots_level || 0;
-  const max = state?.warlock_slots_max || 0;
-  const current = state?.warlock_slots_current || 0;
+export function getPactSlotState(profile = {}, state = {}, level = 0) {
+  const fallback = getWarlockFallback(profile);
+  const pactLevel = state?.warlock_slots_level > 0 ? state.warlock_slots_level : fallback.slotLevel;
+  const max = state?.warlock_slots_max > 0 ? state.warlock_slots_max : fallback.slots;
+  const current = state?.warlock_slots_current > 0 ? state.warlock_slots_current : (max > 0 && (state?.warlock_slots_current === 0) && (state?.warlock_slots_max || 0) <= 0 ? max : (state?.warlock_slots_current || 0));
   const canPowerLevel = max > 0 && pactLevel >= level;
   return {
     level: pactLevel,
@@ -34,7 +55,7 @@ export function getPactSlotState(state = {}, level = 0) {
 
 export function getSpellSlotAvailability(profile = {}, state = {}, level) {
   const standard = getStandardSlotState(profile, state, level);
-  const pact = getPactSlotState(state, level);
+  const pact = getPactSlotState(profile, state, level);
   return {
     standard,
     pact,
@@ -73,25 +94,24 @@ export async function resetStandardSlotsForLevel(stateId, level) {
   return true;
 }
 
-export async function spendPactSlot(stateId, state = {}) {
+export async function spendPactSlot(stateId, profile = {}, state = {}) {
   if (!stateId) return false;
-  const current = state?.warlock_slots_current || 0;
-  if (current <= 0) return false;
+  const pact = getPactSlotState(profile, state, 1);
+  if (pact.current <= 0) return false;
   await supabase
     .from('player_encounter_state')
-    .update({ warlock_slots_current: current - 1 })
+    .update({ warlock_slots_current: pact.current - 1, warlock_slots_max: pact.max, warlock_slots_level: pact.level })
     .eq('id', stateId);
   return true;
 }
 
-export async function restorePactSlot(stateId, state = {}) {
+export async function restorePactSlot(stateId, profile = {}, state = {}) {
   if (!stateId) return false;
-  const current = state?.warlock_slots_current || 0;
-  const max = state?.warlock_slots_max || 0;
-  if (current >= max) return false;
+  const pact = getPactSlotState(profile, state, 1);
+  if (pact.current >= pact.max) return false;
   await supabase
     .from('player_encounter_state')
-    .update({ warlock_slots_current: current + 1 })
+    .update({ warlock_slots_current: pact.current + 1, warlock_slots_max: pact.max, warlock_slots_level: pact.level })
     .eq('id', stateId);
   return true;
 }
@@ -108,12 +128,12 @@ export async function spendSpellSlotWithChoice({
   const { standard, pact } = getSpellSlotAvailability(profile, state, level);
 
   if (standard.canSpend && pact.canSpend) {
-    if (preferPact === true) return spendPactSlot(stateId, state);
+    if (preferPact === true) return spendPactSlot(stateId, profile, state);
     if (preferPact === false) return spendStandardSlot(stateId, profile, state, level);
     return false;
   }
 
-  if (pact.canSpend) return spendPactSlot(stateId, state);
+  if (pact.canSpend) return spendPactSlot(stateId, profile, state);
   if (standard.canSpend) return spendStandardSlot(stateId, profile, state, level);
   return false;
 }

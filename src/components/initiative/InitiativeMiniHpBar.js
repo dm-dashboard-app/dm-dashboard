@@ -1,9 +1,14 @@
 import React from 'react';
 
+function resolveThresholdColor(pct) {
+  return pct > 50 ? 'var(--hp-high)' : pct > 25 ? 'var(--hp-mid)' : 'var(--hp-low)';
+}
+
 export default function InitiativeMiniHpBar({ current, max, tempHp = 0, color, label }) {
   const pct = max > 0 ? Math.max(0, Math.min(100, (current / max) * 100)) : 0;
   const tempPct = max > 0 ? Math.max(0, Math.min(100, (tempHp / max) * 100)) : 0;
-  const barColor = color || (pct > 50 ? 'var(--hp-high)' : pct > 25 ? 'var(--hp-mid)' : 'var(--hp-low)');
+  const looksLikeWildShape = typeof label === 'string' && (label.includes('🐻') || label.toLowerCase().includes('beast'));
+  const barColor = looksLikeWildShape ? resolveThresholdColor(pct) : (color || resolveThresholdColor(pct));
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
