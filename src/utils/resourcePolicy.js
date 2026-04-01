@@ -15,7 +15,7 @@ export const RESOURCE_SURFACES = {
 
 const SURFACE_RULES = {
   'hit-dice': { playerCard: true, initiative: false, display: false, shortRest: true },
-  'warlock-slots': { playerCard: false, initiative: false, display: false, shortRest: true, managedBySpellSlotGrid: true },
+  'warlock-slots': { playerCard: true, initiative: false, display: false, shortRest: true, managedBySpellSlotGrid: true },
   'natural-recovery': { playerCard: false, initiative: false, display: false, shortRest: true },
   lucky: { playerCard: true, initiative: true, display: false, shortRest: false },
   'relentless-endurance': { playerCard: true, initiative: true, display: false, shortRest: false },
@@ -150,13 +150,23 @@ export function getLongRestResourcePatch(state = {}, profile = {}) {
     patch.hit_dice_current = readNumberField(state, ['hit_dice_max'], profile?.hit_dice_max ?? 0);
   }
 
+  for (let level = 1; level <= 9; level += 1) {
+    const usedKey = findExistingKey(state, [`slots_used_${level}`]);
+    const hasProfileSlots = readNumberField(profile, [`slots_max_${level}`], 0) > 0;
+    if (usedKey || hasProfileSlots) {
+      patch[`slots_used_${level}`] = 0;
+    }
+  }
+
   patch.temp_hp = 0;
   patch.concentration = false;
   patch.concentration_check_dc = null;
+  patch.concentration_spell_id = null;
   patch.reaction_used = false;
   patch.wildshape_active = false;
   patch.wildshape_form_id = null;
   patch.wildshape_hp_current = null;
+  patch.mage_armour_active = false;
 
   const wildshapeKey = findExistingKey(state, ['wildshape_uses_remaining']);
   if (wildshapeKey) {
