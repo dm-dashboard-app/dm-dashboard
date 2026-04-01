@@ -5,28 +5,8 @@ import PlayerCard from '../components/PlayerCard';
 import InitiativePanel from '../components/InitiativePanelNext';
 import SecretRollPanel from '../components/SecretRollPanel';
 import SpellbookPanel from '../components/SpellbookPanel';
-
-function flattenStates(data) {
-  return (data || []).map(s => ({
-    ...s,
-    wildshape_form_name: s.profiles_wildshape?.form_name ?? null,
-    wildshape_hp_max: s.profiles_wildshape?.hp_max ?? null,
-  }));
-}
-
-function ConCheckLog({ encounterId, playerName, pendingDc, onPass, onFail }) {
-  const [checks, setChecks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const load = useCallback(async () => {
-    if (!encounterId || !playerName) return;
-    const { data } = await supabase.from('concentration_checks').select('*').eq('encounter_id', encounterId).eq('player_name', playerName).order('created_at', { ascending: false }).limit(20);
-    setChecks(data || []); setLoading(false);
-  }, [encounterId, playerName]);
-  usePolling(load, 3000, !!encounterId && !!playerName);
-  function timeLabel(ts) { return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
-  function resultLabel(r) { if (r === 'pending') return { text: 'Pending', cls: 'con-log-result-badge--pending' }; if (r === 'passed') return { text: 'Passed', cls: 'con-log-result-badge--passed' }; if (r === 'failed') return { text: 'Failed', cls: 'con-log-result-badge--failed' }; return { text: r, cls: '' }; }
-  return <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>{pendingDc !== null && <div className="panel" style={{ border: '1.5px solid var(--accent-gold)' }}><div className="panel-title" style={{ color: 'var(--accent-gold)' }}>🔮 Concentration Check Required</div><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}><div><div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>You took damage while concentrating</div><div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Roll a CON saving throw</div></div><div style={{ textAlign: 'center' }}><div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase' }}>DC</div><div style={{ fontSize: 36, fontWeight: 700, color: 'var(--accent-gold)', lineHeight: 1 }}>{pendingDc}</div></div></div><div style={{ display: 'flex', gap: 8 }}><button className="con-check-pass" onClick={onPass} style={{ flex: 1, padding: '10px 0', fontSize: 15 }}>✅ Passed — keep concentration</button><button className="con-check-fail" onClick={onFail} style={{ flex: 1, padding: '10px 0', fontSize: 15 }}>❌ Failed — lose concentration</button></div></div>}<div className="panel"><div className="panel-title">Concentration Check History</div>{loading && <div className="empty-state">Loading…</div>}{!loading && checks.length === 0 && <div className="empty-state">No concentration checks this session.</div>}<div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>{checks.map(c => { const { text, cls } = resultLabel(c.result); return <div key={c.id} className={`con-log-item con-log-item--${c.result}`}><div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}><span style={{ fontWeight: 600, fontSize: 13 }}>DC {c.dc}</span><span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{timeLabel(c.created_at)}</span></div><span className={`con-log-result-badge ${cls}`}>{text}</span></div>; })}</div></div></div>;
-}
+import { flattenStates } from './player/playerViewUtils';
+import PlayerConCheckLog from './player/PlayerConCheckLog';
 
 export default function PlayerView() {
   const [encounter, setEncounter] = useState(null);
@@ -66,7 +46,11 @@ export default function PlayerView() {
   }, [encounterId, profileId]);
 
   useEffect(() => {
-    if (!profileId || !encounterId) { setError('Session not found. Please re-enter your join code.'); setLoading(false); return; }
+    if (!profileId || !encounterId) {
+      setError('Session not found. Please re-enter your join code.');
+      setLoading(false);
+      return;
+    }
     refreshAll().then(() => setLoading(false));
   }, [refreshAll, profileId, encounterId]);
 
@@ -76,15 +60,24 @@ export default function PlayerView() {
     if (!combatant || !initiativeInput) return;
     const total = parseInt(initiativeInput, 10);
     if (isNaN(total)) return;
-    setInitError(null); setInitSuccess(false);
+    setInitError(null);
+    setInitSuccess(false);
     try {
       const { error } = await supabase.rpc('set_initiative', { p_combatant_id: combatant.id, p_total: total });
       if (error) throw error;
-      setInitSuccess(true); setTimeout(() => setInitSuccess(false), 2000); refreshAll();
-    } catch (err) { setInitError(err.message); }
+      setInitSuccess(true);
+      setTimeout(() => setInitSuccess(false), 2000);
+      refreshAll();
+    } catch (err) {
+      setInitError(err.message);
+    }
   }
 
-  function handleLeave() { clearPlayerSession(); window.location.reload(); }
+  function handleLeave() {
+    clearPlayerSession();
+    window.location.reload();
+  }
+
   const concentration = state?.concentration ?? false;
   const pendingConDc = concentration ? (state?.concentration_check_dc ?? null) : null;
   const playerName = state?.profiles_players?.name || combatant?.name || null;
@@ -128,9 +121,14 @@ export default function PlayerView() {
       <div className="main-content">
         {tab === 'char' && combatant && state && <PlayerCard combatant={combatant} state={state} role="player" isEditMode={encounter?.player_edit_mode} encounterId={encounterId} onUpdate={refreshAll} />}
         {tab === 'spells' && state?.profiles_players && <SpellbookPanel profile={state.profiles_players} state={state} encounterId={encounterId} onUpdate={refreshAll} role="player" />}
-        {tab === 'combat' && <>{combatant && <div className="panel"><div className="panel-title">Initiative</div><div className="form-row"><input className="form-input" type="number" inputMode="numeric" value={initiativeInput} onChange={e => setInitiativeInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSubmitInitiative()} style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, width: 140, textAlign: 'center' }} /><button className={`btn ${initSuccess ? 'btn-success' : 'btn-primary'}`} onClick={handleSubmitInitiative} disabled={!initiativeInput}>{initSuccess ? '✓ Set' : 'Set Initiative'}</button></div>{initError && <div style={{ color: 'var(--accent-red)', fontSize: 12, marginTop: 4 }}>{initError}</div>}</div>}<InitiativePanel encounter={encounter} combatants={combatants} playerStates={playerStates} role="player" myCombatantId={combatant?.id} onUpdate={refreshAll} /></>}
+        {tab === 'combat' && (
+          <>
+            {combatant && <div className="panel"><div className="panel-title">Initiative</div><div className="form-row"><input className="form-input" type="number" inputMode="numeric" value={initiativeInput} onChange={e => setInitiativeInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSubmitInitiative()} style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, width: 140, textAlign: 'center' }} /><button className={`btn ${initSuccess ? 'btn-success' : 'btn-primary'}`} onClick={handleSubmitInitiative} disabled={!initiativeInput}>{initSuccess ? '✓ Set' : 'Set Initiative'}</button></div>{initError && <div style={{ color: 'var(--accent-red)', fontSize: 12, marginTop: 4 }}>{initError}</div>}</div>}
+            <InitiativePanel encounter={encounter} combatants={combatants} playerStates={playerStates} role="player" myCombatantId={combatant?.id} onUpdate={refreshAll} />
+          </>
+        )}
         {tab === 'rolls' && combatant && <SecretRollPanel playerId={profileId} encounterId={encounterId} />}
-        {tab === 'con' && <ConCheckLog encounterId={encounterId} playerName={playerName} pendingDc={pendingConDc} onPass={handleConPass} onFail={handleConFail} />}
+        {tab === 'con' && <PlayerConCheckLog encounterId={encounterId} playerName={playerName} pendingDc={pendingConDc} onPass={handleConPass} onFail={handleConFail} />}
       </div>
       <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border)' }}><button className="btn btn-ghost" style={{ fontSize: 12, color: 'var(--text-muted)' }} onClick={handleLeave}>Leave Session</button></div>
     </div>
