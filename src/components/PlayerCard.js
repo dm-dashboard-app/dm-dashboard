@@ -57,6 +57,7 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   const readOnly = role === 'display';
   const canRestore = role === 'dm';
   const isPlayer = role === 'player';
+  const actionActor = isPlayer ? (profile?.name || 'Player') : 'DM';
 
   const [localHp, setLocalHp] = useState(null);
   const dbHp = state?.current_hp ?? combatant?.hp_current ?? 0;
@@ -96,7 +97,7 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
       combatant,
       encounterId,
       amount,
-      actor: isPlayer ? (profile?.name || 'Player') : 'DM',
+      actor: actionActor,
     });
     if (result?.updates?.current_hp !== undefined) {
       setLocalHp(result.updates.current_hp);
@@ -111,7 +112,7 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
       combatant,
       encounterId,
       amount,
-      actor: isPlayer ? (profile?.name || 'Player') : 'DM',
+      actor: actionActor,
     });
     if (result?.updates?.current_hp !== undefined) {
       setLocalHp(result.updates.current_hp);
@@ -385,7 +386,15 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
         {readOnly && concentration && <span className="condition-chip condition-chip-con">CON</span>}
 
         {profile?.wildshape_enabled && state && (
-          <WildShapeBlock state={state} readOnly={readOnly} canRestore={canRestore} onUpdate={onUpdate} />
+          <WildShapeBlock
+            state={state}
+            readOnly={readOnly}
+            canRestore={canRestore}
+            onUpdate={onUpdate}
+            encounterId={encounterId}
+            combatant={combatant}
+            actor={actionActor}
+          />
         )}
       </div>
     </div>
