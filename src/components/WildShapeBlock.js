@@ -6,6 +6,12 @@ function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
+function getWildShapeBarColor(percent) {
+  if (percent > 50) return 'var(--accent-green)';
+  if (percent > 25) return 'var(--accent-gold)';
+  return 'var(--accent-red)';
+}
+
 export default function WildShapeBlock({
   state,
   readOnly,
@@ -168,7 +174,7 @@ export default function WildShapeBlock({
                 className="hp-bar-fill"
                 style={{
                   width: `${formPct}%`,
-                  background: formPct > 50 ? 'var(--hp-high)' : formPct > 25 ? 'var(--hp-mid)' : 'var(--hp-low)',
+                  background: getWildShapeBarColor(formPct),
                 }}
               />
             </div>

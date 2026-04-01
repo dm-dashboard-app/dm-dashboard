@@ -465,6 +465,10 @@ function ResourceSection({ resources, state, readOnly, onUpdateFields }) {
 }
 
 function ResourceRow({ resource, state, readOnly, onUpdateFields }) {
+  const isWarlockSlots = resource.id === 'warlock-slots';
+  const accentColor = isWarlockSlots ? 'var(--accent-gold)' : 'var(--accent-blue)';
+  const accentFill = isWarlockSlots ? 'rgba(240,180,41,0.22)' : 'var(--accent-blue)';
+
   if (resource.type === 'toggle') {
     const toggleState = resolveResourceToggleState(resource, state);
 
@@ -526,7 +530,7 @@ function ResourceRow({ resource, state, readOnly, onUpdateFields }) {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           {!readOnly && <button className="btn btn-icon btn-ghost" style={{ minWidth: 28, minHeight: 28, fontSize: 13 }} onClick={() => adjust(-1)}>−</button>}
-          <span style={{ minWidth: 54, textAlign: 'center', fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>
+          <span style={{ minWidth: 54, textAlign: 'center', fontSize: 12, fontWeight: 700, color: isWarlockSlots ? accentColor : 'var(--text-primary)' }}>
             {current}{max !== null ? ` / ${max}` : ''}
           </span>
           {!readOnly && <button className="btn btn-icon btn-ghost" style={{ minWidth: 28, minHeight: 28, fontSize: 13 }} onClick={() => adjust(1)}>+</button>}
@@ -548,7 +552,7 @@ function ResourceRow({ resource, state, readOnly, onUpdateFields }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between', flexWrap: 'wrap' }}>
         <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{resource.label}</span>
-        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{[resource.meta, `${safeCurrent}/${safeMax}`].filter(Boolean).join(' • ')}</span>
+        <span style={{ fontSize: 11, color: isWarlockSlots ? accentColor : 'var(--text-muted)' }}>{[resource.meta, `${safeCurrent}/${safeMax}`].filter(Boolean).join(' • ')}</span>
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
         {Array.from({ length: safeMax }).map((_, i) => {
@@ -565,8 +569,8 @@ function ResourceRow({ resource, state, readOnly, onUpdateFields }) {
                 height: 16,
                 borderRadius: '50%',
                 padding: 0,
-                border: `2px solid ${active ? 'var(--accent-blue)' : 'var(--border-strong)'}`,
-                background: active ? 'var(--accent-blue)' : 'transparent',
+                border: `2px solid ${active ? accentColor : 'var(--border-strong)'}`,
+                background: active ? accentFill : 'transparent',
                 cursor: readOnly ? 'default' : 'pointer',
                 opacity: readOnly ? 0.9 : 1,
               }}
