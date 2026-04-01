@@ -12,6 +12,8 @@ import RecentAlertsStrip from './dm/RecentAlertsStrip';
 import DMCombatLog from './dm/DMCombatLog';
 import DMPlayerCardsSection from './dm/DMPlayerCardsSection';
 
+const ACTIVITY_AUTO_HIDE_MS = 15000;
+
 export default function DMView() {
   const [encounter, setEncounter] = useState(null);
   const [combatants, setCombatants] = useState([]);
@@ -24,6 +26,8 @@ export default function DMView() {
   const [rollingInit, setRollingInit] = useState(false);
   const [openBottomStrip, setOpenBottomStrip] = useState(null);
   const [shortRestOpen, setShortRestOpen] = useState(false);
+  const [recentRollCount, setRecentRollCount] = useState(0);
+  const [recentAlertCount, setRecentAlertCount] = useState(0);
 
   useEffect(() => {
     loadLatestEncounter();
@@ -60,15 +64,42 @@ export default function DMView() {
     setJoinCodes(codes.data || []);
   }, [encounterId]);
 
+  const refreshActivityPresence = useCallback(async () => {
+    if (!encounterId) return;
+    const [rolls, alerts] = await Promise.all([
+      supabase.from('secret_rolls').select('id', { count: 'exact', head: true }).eq('encounter_id', encounterId),
+      supabase.from('concentration_checks').select('id', { count: 'exact', head: true }).eq('encounter_id', encounterId),
+    ]);
+    setRecentRollCount(rolls.count || 0);
+    setRecentAlertCount(alerts.count || 0);
+  }, [encounterId]);
+
   usePolling(refreshAll, 2000, !!encounterId);
+  usePolling(refreshActivityPresence, 3000, !!encounterId);
 
   useEffect(() => {
-    if (encounterId) refreshAll();
-  }, [encounterId, refreshAll]);
+    if (encounterId) {
+      refreshAll();
+      refreshActivityPresence();
+    }
+  }, [encounterId, refreshAll, refreshActivityPresence]);
 
   useEffect(() => {
     if (tab !== 'combat' && openBottomStrip !== null) setOpenBottomStrip(null);
   }, [tab, openBottomStrip]);
+
+  useEffect(() => {
+    if (!openBottomStrip) return undefined;
+    const timeout = window.setTimeout(() => {
+      setOpenBottomStrip(current => (current === openBottomStrip ? null : current));
+    }, ACTIVITY_AUTO_HIDE_MS);
+    return () => window.clearTimeout(timeout);
+  }, [openBottomStrip]);
+
+  useEffect(() => {
+    if (openBottomStrip === 'rolls' && recentRollCount === 0) setOpenBottomStrip(null);
+    if (openBottomStrip === 'alerts' && recentAlertCount === 0) setOpenBottomStrip(null);
+  }, [openBottomStrip, recentRollCount, recentAlertCount]);
 
   async function handleNextTurn() {
     if (!encounter) return;
@@ -166,6 +197,8 @@ export default function DMView() {
   const pendingAlertCount = playerStates.filter(s => s.concentration_check_dc != null).length;
   const hasRecentRolls = tab === 'combat' && encounter?.id && openBottomStrip === 'rolls';
   const hasRecentAlerts = tab === 'combat' && encounter?.id && openBottomStrip === 'alerts';
+  const showRollsControl = recentRollCount > 0 || hasRecentRolls;
+  const showAlertsControl = recentAlertCount > 0 || hasRecentAlerts;
 
   return (
     <div className="app-shell">
@@ -199,10 +232,20 @@ export default function DMView() {
                   <button className="btn btn-ghost" onClick={() => setShortRestOpen(true)}>Open Short Rest</button>
                   <button className="btn btn-ghost" onClick={() => setTab('manage')}>Open Manage</button>
                 </div>
-                <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  <button className="btn btn-ghost" style={{ fontSize: 11, padding: '4px 8px' }} onClick={() => toggleBottomStrip('rolls')}>{hasRecentRolls ? 'Hide recent rolls' : 'Show recent rolls'}</button>
-                  <button className="btn btn-ghost" style={{ fontSize: 11, padding: '4px 8px' }} onClick={() => toggleBottomStrip('alerts')}>{hasRecentAlerts ? 'Hide alerts' : 'Show alerts'}</button>
-                </div>
+                {(showRollsControl || showAlertsControl) && (
+                  <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {showRollsControl && (
+                      <button className="btn btn-ghost" style={{ fontSize: 11, padding: '4px 8px' }} onClick={() => toggleBottomStrip('rolls')}>
+                        {hasRecentRolls ? 'Hide recent rolls' : `Show recent rolls${recentRollCount > 0 ? ` (${recentRollCount})` : ''}`}
+                      </button>
+                    )}
+                    {showAlertsControl && (
+                      <button className="btn btn-ghost" style={{ fontSize: 11, padding: '4px 8px' }} onClick={() => toggleBottomStrip('alerts')}>
+                        {hasRecentAlerts ? 'Hide alerts' : `Show alerts${recentAlertCount > 0 ? ` (${recentAlertCount})` : ''}`}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
 
               {hasRecentRolls && <RecentRollsStrip encounterId={encounter.id} expanded onToggle={() => toggleBottomStrip('rolls')} />}
