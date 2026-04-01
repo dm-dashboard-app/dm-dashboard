@@ -17,14 +17,14 @@ const SURFACE_RULES = {
   'hit-dice': { playerCard: true, initiative: false, display: false, shortRest: true },
   'warlock-slots': { playerCard: false, initiative: false, display: false, shortRest: true, managedBySpellSlotGrid: true },
   'natural-recovery': { playerCard: false, initiative: false, display: false, shortRest: true },
-  'lucky': { playerCard: true, initiative: true, display: false, shortRest: false },
+  lucky: { playerCard: true, initiative: true, display: false, shortRest: false },
   'relentless-endurance': { playerCard: true, initiative: true, display: false, shortRest: false },
   'fey-step': { playerCard: true, initiative: false, display: false, shortRest: false },
   'celestial-revelation': { playerCard: true, initiative: false, display: false, shortRest: false },
   'bardic-inspiration': { playerCard: true, initiative: true, display: false, shortRest: true },
-  'ki': { playerCard: true, initiative: true, display: false, shortRest: true },
+  ki: { playerCard: true, initiative: true, display: false, shortRest: true },
   'channel-divinity': { playerCard: true, initiative: true, display: false, shortRest: true },
-  'rage': { playerCard: true, initiative: true, display: false, shortRest: false },
+  rage: { playerCard: true, initiative: true, display: false, shortRest: false },
   'sorcery-points': { playerCard: true, initiative: true, display: false, shortRest: false },
   'second-wind': { playerCard: true, initiative: true, display: false, shortRest: true },
   'action-surge': { playerCard: true, initiative: true, display: false, shortRest: true },
@@ -121,8 +121,7 @@ export function getLongRestResourcePatch(state = {}, profile = {}) {
 
   resources.forEach(resource => {
     const familyId = resource.id.startsWith('hit-dice-d') ? 'hit-dice' : resource.id;
-    const rules = SURFACE_RULES[familyId];
-    const restoreOnLongRest = familyId === 'hit-dice' || familyId === 'warlock-slots' || familyId === 'fey-step' || familyId === 'celestial-revelation' || familyId === 'relentless-endurance' || familyId === 'rage' || familyId === 'sorcery-points' || familyId === 'lay-on-hands' || !rules?.shortRest;
+    const restoreOnLongRest = familyId !== 'natural-recovery';
     if (!restoreOnLongRest) return;
 
     if (resource.type === 'toggle') {
