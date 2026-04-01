@@ -20,6 +20,15 @@ function getPlayerName(combatant = {}, profile = {}) {
   return profile?.name || combatant?.name || 'PC';
 }
 
+function canUseRelentlessEndurance(state = {}, profile = {}) {
+  const hasFeature = !!(
+    profile?.feat_relentless_endurance ||
+    String(profile?.ancestry_name || '').trim().toLowerCase() === 'half-orc' ||
+    state?.relentless_endurance_used !== undefined
+  );
+  return hasFeature && !state?.relentless_endurance_used;
+}
+
 async function insertConcentrationCheck(encounterId, playerName, dc) {
   if (!encounterId || !playerName || !dc) return;
   await supabase.from('concentration_checks').insert({ encounter_id: encounterId, player_name: playerName, dc });
@@ -68,11 +77,20 @@ export async function applyPlayerDamage({ state, combatant, encounterId, amount,
     }
 
     if (overflow > 0) {
-      const newBaseHp = Math.max(0, currentBaseHp - overflow);
-      updates.current_hp = newBaseHp;
-      updates.conditions = nextZeroHpConditions(newBaseHp, currentConditions);
+      const droppedBaseHp = Math.max(0, currentBaseHp - overflow);
+      if (droppedBaseHp === 0 && canUseRelentlessEndurance(state, profile)) {
+        updates.current_hp = 1;
+        updates.relentless_endurance_used = true;
+        updates.conditions = nextZeroHpConditions(1, currentConditions);
+        await supabase.from('player_encounter_state').update(updates).eq('id', state.id);
+        await logCombat(encounterId, actor, 'feature', `${playerName}: Relentless Endurance triggered after Wild Shape dropped`);
+        return { updated: true, updates };
+      }
+
+      updates.current_hp = droppedBaseHp;
+      updates.conditions = nextZeroHpConditions(droppedBaseHp, currentConditions);
       await supabase.from('player_encounter_state').update(updates).eq('id', state.id);
-      await logCombat(encounterId, actor, 'damage', `${playerName}: -${amount} HP (${currentBaseHp} → ${newBaseHp})`);
+      await logCombat(encounterId, actor, 'damage', `${playerName}: -${amount} HP (${currentBaseHp} → ${droppedBaseHp})`);
       return { updated: true, updates };
     }
 
@@ -82,11 +100,20 @@ export async function applyPlayerDamage({ state, combatant, encounterId, amount,
   }
 
   if (remaining > 0) {
-    const newBaseHp = Math.max(0, currentBaseHp - remaining);
-    updates.current_hp = newBaseHp;
-    updates.conditions = nextZeroHpConditions(newBaseHp, currentConditions);
+    const droppedBaseHp = Math.max(0, currentBaseHp - remaining);
+    if (droppedBaseHp === 0 && canUseRelentlessEndurance(state, profile)) {
+      updates.current_hp = 1;
+      updates.relentless_endurance_used = true;
+      updates.conditions = nextZeroHpConditions(1, currentConditions);
+      await supabase.from('player_encounter_state').update(updates).eq('id', state.id);
+      await logCombat(encounterId, actor, 'feature', `${playerName}: Relentless Endurance triggered`);
+      return { updated: true, updates };
+    }
+
+    updates.current_hp = droppedBaseHp;
+    updates.conditions = nextZeroHpConditions(droppedBaseHp, currentConditions);
     await supabase.from('player_encounter_state').update(updates).eq('id', state.id);
-    await logCombat(encounterId, actor, 'damage', `${playerName}: -${amount} HP (${currentBaseHp} → ${newBaseHp})`);
+    await logCombat(encounterId, actor, 'damage', `${playerName}: -${amount} HP (${currentBaseHp} → ${droppedBaseHp})`);
     return { updated: true, updates };
   }
 
