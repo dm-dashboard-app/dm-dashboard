@@ -1,11 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
+import { applyPlayerDamage, applyPlayerHeal } from '../utils/playerStateMutations';
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
-export default function WildShapeBlock({ state, readOnly, canRestore, onUpdate }) {
+export default function WildShapeBlock({
+  state,
+  readOnly,
+  canRestore,
+  onUpdate,
+  encounterId = null,
+  combatant = null,
+  actor = 'DM',
+}) {
   const [forms, setForms] = useState([]);
   const [selectedFormId, setSelectedFormId] = useState(state.wildshape_form_id || '');
   const [localHp, setLocalHp] = useState(null);
@@ -27,7 +36,7 @@ export default function WildShapeBlock({ state, readOnly, canRestore, onUpdate }
   const activeForm = forms.find(f => f.id === state.wildshape_form_id);
   const formHpDb = state.wildshape_hp_current ?? activeForm?.hp_max ?? 0;
   const formHp = localHp !== null ? localHp : formHpDb;
-  const formMax = activeForm?.hp_max ?? 1;
+  const formMax = state?.wildshape_hp_max ?? activeForm?.hp_max ?? 1;
   const formPct = Math.max(0, Math.min(100, (formHp / formMax) * 100));
 
   async function handleActivate() {
@@ -63,16 +72,41 @@ export default function WildShapeBlock({ state, readOnly, canRestore, onUpdate }
   }
 
   async function adjustFormHp(delta) {
-    if (!activeForm) return;
-    const newHp = clamp(formHp + delta, 0, formMax);
-    setLocalHp(newHp);
-    await supabase
-      .from('player_encounter_state')
-      .update({
-        wildshape_hp_current: newHp,
-      })
-      .eq('id', state.id);
-    onUpdate();
+    if (!activeForm || !delta) return;
+
+    if (delta < 0) {
+      const result = await applyPlayerDamage({
+        state,
+        combatant,
+        encounterId,
+        amount: Math.abs(delta),
+        actor,
+      });
+      if (result?.updates?.wildshape_hp_current !== undefined) {
+        setLocalHp(result.updates.wildshape_hp_current ?? null);
+      } else {
+        setLocalHp(null);
+      }
+      onUpdate();
+      return;
+    }
+
+    if (delta > 0) {
+      const result = await applyPlayerHeal({
+        state: {
+          ...state,
+          wildshape_hp_max: formMax,
+        },
+        combatant,
+        encounterId,
+        amount: delta,
+        actor,
+      });
+      if (result?.updates?.wildshape_hp_current !== undefined) {
+        setLocalHp(result.updates.wildshape_hp_current);
+      }
+      onUpdate();
+    }
   }
 
   async function adjustUses(delta) {
