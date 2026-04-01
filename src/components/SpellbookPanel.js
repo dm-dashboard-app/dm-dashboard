@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../supabaseClient';
+import { getStandardSlotState, getPactSlotState, spendSpellSlotWithChoice } from '../utils/spellSlotMutations';
 
 function readBool(obj, keys, fallback = false) {
   for (const key of keys) {
@@ -56,19 +57,15 @@ function getSpellRecord(row = {}) {
 function slotSummary(state = {}, profile = {}) {
   const parts = [];
   for (let level = 1; level <= 9; level += 1) {
-    const max = profile[`slots_max_${level}`] || 0;
-    const used = state?.[`slots_used_${level}`] || 0;
-    const available = Math.max(0, max - used);
-    if (max > 0) parts.push(`L${level} ${available}/${max}`);
+    const standard = getStandardSlotState(profile, state, level);
+    if (standard.max > 0) parts.push(`L${level} ${standard.available}/${standard.max}`);
   }
-  const pactMax = state?.warlock_slots_max || 0;
-  const pactCurrent = state?.warlock_slots_current || 0;
-  const pactLevel = state?.warlock_slots_level || 0;
-  if (pactMax > 0) parts.push(`Pact L${pactLevel} ${pactCurrent}/${pactMax}`);
+  const pact = getPactSlotState(state, 1);
+  if (pact.max > 0) parts.push(`Pact L${pact.level} ${pact.current}/${pact.max}`);
   return parts.join(' • ');
 }
 
-async function setConcentrationSpell(stateId, encounterId, spellId, spellName) {
+async function setConcentrationSpell(stateId, encounterId, spellId, spellName, actor = 'Player') {
   const updates = {
     concentration: true,
     concentration_spell_id: spellId || null,
@@ -78,14 +75,14 @@ async function setConcentrationSpell(stateId, encounterId, spellId, spellName) {
   if (encounterId) {
     await supabase.from('combat_log').insert({
       encounter_id: encounterId,
-      actor: 'Player',
+      actor,
       action: 'con',
       detail: spellName ? `Concentration started: ${spellName}` : 'Concentration started',
     });
   }
 }
 
-async function clearConcentrationSpell(stateId, encounterId, spellName = '') {
+async function clearConcentrationSpell(stateId, encounterId, spellName = '', actor = 'Player') {
   await supabase.from('player_encounter_state').update({
     concentration: false,
     concentration_spell_id: null,
@@ -94,7 +91,7 @@ async function clearConcentrationSpell(stateId, encounterId, spellName = '') {
   if (encounterId) {
     await supabase.from('combat_log').insert({
       encounter_id: encounterId,
-      actor: 'Player',
+      actor,
       action: 'con',
       detail: spellName ? `Concentration ended: ${spellName}` : 'Concentration ended',
     });
@@ -106,6 +103,7 @@ export default function SpellbookPanel({ profile, state, encounterId, onUpdate, 
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('prepared');
   const [castingId, setCastingId] = useState(null);
+  const actorName = role === 'dm' ? 'DM' : (profile?.name || 'Player');
 
   useEffect(() => {
     let cancelled = false;
@@ -141,33 +139,31 @@ export default function SpellbookPanel({ profile, state, encounterId, onUpdate, 
     setCastingId(spell.rowId);
     try {
       if (spell.level > 0) {
-        const standardMax = profile?.[`slots_max_${spell.level}`] || 0;
-        const standardUsed = state?.[`slots_used_${spell.level}`] || 0;
-        const standardAvailable = standardMax - standardUsed > 0;
-        const pactAvailable = (state?.warlock_slots_max || 0) > 0 && (state?.warlock_slots_current || 0) > 0 && (state?.warlock_slots_level || 0) >= spell.level;
+        const standard = getStandardSlotState(profile, state, spell.level);
+        const pact = getPactSlotState(state, spell.level);
+        let preferPact = null;
 
-        if (pactAvailable && standardAvailable) {
-          const usePact = window.confirm(`Use a Warlock pact slot for ${spell.name}?\n\nOK = Pact slot\nCancel = Standard slot`);
-          if (usePact) {
-            await supabase.from('player_encounter_state').update({ warlock_slots_current: Math.max(0, (state.warlock_slots_current || 0) - 1) }).eq('id', state.id);
-          } else {
-            await supabase.from('player_encounter_state').update({ [`slots_used_${spell.level}`]: standardUsed + 1 }).eq('id', state.id);
-          }
-        } else if (pactAvailable) {
-          await supabase.from('player_encounter_state').update({ warlock_slots_current: Math.max(0, (state.warlock_slots_current || 0) - 1) }).eq('id', state.id);
-        } else if (standardAvailable) {
-          await supabase.from('player_encounter_state').update({ [`slots_used_${spell.level}`]: standardUsed + 1 }).eq('id', state.id);
+        if (pact.canSpend && standard.canSpend) {
+          preferPact = window.confirm(`Use a Warlock pact slot for ${spell.name}?\n\nOK = Pact slot\nCancel = Standard slot`);
         }
+
+        await spendSpellSlotWithChoice({
+          stateId: state.id,
+          profile,
+          state,
+          level: spell.level,
+          preferPact,
+        });
       }
 
       if (spell.concentration) {
-        await setConcentrationSpell(state.id, encounterId, spell.spellId, spell.name);
+        await setConcentrationSpell(state.id, encounterId, spell.spellId, spell.name, actorName);
       }
 
       if (encounterId) {
         await supabase.from('combat_log').insert({
           encounter_id: encounterId,
-          actor: role === 'dm' ? 'DM' : (profile?.name || 'Player'),
+          actor: actorName,
           action: 'cast',
           detail: `${profile?.name || 'Player'} cast ${spell.name}${spell.level > 0 ? ` (L${spell.level})` : ' (Cantrip)'}`,
         });
@@ -207,7 +203,7 @@ export default function SpellbookPanel({ profile, state, encounterId, onUpdate, 
       {state?.concentration && (
         <div style={{ fontSize: 11, color: 'var(--accent-gold)', marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <span>🔮 Concentrating{concentrationSpellName ? ` on ${concentrationSpellName}` : ''}</span>
-          <button className="btn btn-ghost" style={{ fontSize: 11, padding: '1px 6px' }} onClick={() => clearConcentrationSpell(state.id, encounterId, concentrationSpellName).then(() => onUpdate?.())}>End</button>
+          <button className="btn btn-ghost" style={{ fontSize: 11, padding: '1px 6px' }} onClick={() => clearConcentrationSpell(state.id, encounterId, concentrationSpellName, actorName).then(() => onUpdate?.())}>End</button>
         </div>
       )}
 
@@ -238,7 +234,7 @@ export default function SpellbookPanel({ profile, state, encounterId, onUpdate, 
                   {castingId === spell.rowId ? 'Casting…' : 'Cast'}
                 </button>
                 {spell.concentration && state?.concentration_spell_id !== spell.spellId && (
-                  <button className="btn btn-ghost" style={{ fontSize: 11, padding: '3px 10px' }} onClick={() => setConcentrationSpell(state.id, encounterId, spell.spellId, spell.name).then(() => onUpdate?.())}>
+                  <button className="btn btn-ghost" style={{ fontSize: 11, padding: '3px 10px' }} onClick={() => setConcentrationSpell(state.id, encounterId, spell.spellId, spell.name, actorName).then(() => onUpdate?.())}>
                     Set Concentration
                   </button>
                 )}
