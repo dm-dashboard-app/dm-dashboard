@@ -9,12 +9,9 @@ import ShortRestModal from '../components/ShortRestModal';
 import { readNumberField } from '../utils/classResources';
 import { getLongRestResourcePatch } from '../utils/resourcePolicy';
 import { flattenStates } from './dm/dmViewUtils';
-import RecentRollsStrip from './dm/RecentRollsStrip';
 import RecentAlertsStrip from './dm/RecentAlertsStrip';
 import DMCombatLog from './dm/DMCombatLog';
 import DMPlayerCardsSection from './dm/DMPlayerCardsSection';
-
-const ACTIVITY_AUTO_HIDE_MS = 15000;
 
 function buildLongRestStatePatch(state = {}) {
   const profile = state?.profiles_players || {};
@@ -43,7 +40,6 @@ export default function DMView() {
   const [joinCodes, setJoinCodes] = useState([]);
   const [encounterId, setEncounterId] = useState(null);
   const [rollingInit, setRollingInit] = useState(false);
-  const [openBottomStrip, setOpenBottomStrip] = useState(null);
   const [shortRestOpen, setShortRestOpen] = useState(false);
   const [recentRollCount, setRecentRollCount] = useState(0);
   const [recentAlertCount, setRecentAlertCount] = useState(0);
@@ -102,23 +98,6 @@ export default function DMView() {
       refreshActivityPresence();
     }
   }, [encounterId, refreshAll, refreshActivityPresence]);
-
-  useEffect(() => {
-    if (tab !== 'combat' && openBottomStrip !== null) setOpenBottomStrip(null);
-  }, [tab, openBottomStrip]);
-
-  useEffect(() => {
-    if (!openBottomStrip) return undefined;
-    const timeout = window.setTimeout(() => {
-      setOpenBottomStrip(current => (current === openBottomStrip ? null : current));
-    }, ACTIVITY_AUTO_HIDE_MS);
-    return () => window.clearTimeout(timeout);
-  }, [openBottomStrip]);
-
-  useEffect(() => {
-    if (openBottomStrip === 'rolls' && recentRollCount === 0) setOpenBottomStrip(null);
-    if (openBottomStrip === 'alerts' && recentAlertCount === 0) setOpenBottomStrip(null);
-  }, [openBottomStrip, recentRollCount, recentAlertCount]);
 
   async function handleNextTurn() {
     if (!encounter) return;
@@ -208,10 +187,6 @@ export default function DMView() {
     setTab('manage');
   }
 
-  function toggleBottomStrip(name) {
-    setOpenBottomStrip(current => (current === name ? null : name));
-  }
-
   if (loading) return <div className="splash"><div className="splash-text">Loading…</div></div>;
 
   if (!encounter) {
@@ -229,15 +204,12 @@ export default function DMView() {
   const pcCombatants = combatants.filter(c => c.side === 'PC');
   const nonPcCount = combatants.filter(c => c.side !== 'PC').length;
   const pendingAlertCount = playerStates.filter(s => s.concentration_check_dc != null).length;
-  const hasRecentRolls = tab === 'combat' && encounter?.id && openBottomStrip === 'rolls';
-  const hasRecentAlerts = tab === 'combat' && encounter?.id && openBottomStrip === 'alerts';
-  const showRollsControl = recentRollCount > 0 || hasRecentRolls;
-  const showAlertsControl = recentAlertCount > 0 || hasRecentAlerts;
+  const activityCount = recentRollCount + recentAlertCount + pendingAlertCount;
 
   return (
     <div className="app-shell">
       <div className="top-bar top-bar--dm-actions">
-        <div className="dm-action-round">Round {encounter.round}</div>
+        <span className="top-bar-title">{encounter.name || 'DM Dashboard'}</span>
         <div className="dm-action-button-row">
           <button className="btn btn-primary" onClick={handleNextTurn}>▶ Next</button>
           <button className="btn btn-ghost" onClick={handleRollEnemyInitiative} disabled={rollingInit}>{rollingInit ? 'Rolling…' : 'Initiative'}</button>
@@ -248,8 +220,8 @@ export default function DMView() {
 
       <div className="tab-bar">
         <button className={`tab-btn ${tab === 'combat' ? 'active' : ''}`} onClick={() => setTab('combat')}>⚔ Combat</button>
-        <button className={`tab-btn ${tab === 'rolls' ? 'active' : ''}`} onClick={() => setTab('rolls')}>🎲 Rolls</button>
-        <button className={`tab-btn ${tab === 'log' ? 'active' : ''}`} onClick={() => setTab('log')}>📋 Activity{pendingAlertCount > 0 ? <span className="tab-badge">{pendingAlertCount}</span> : ''}</button>
+        <button className={`tab-btn ${tab === 'players' ? 'active' : ''}`} onClick={() => setTab('players')}>🧙 Players</button>
+        <button className={`tab-btn ${tab === 'activity' ? 'active' : ''}`} onClick={() => setTab('activity')}>📋 Activity{activityCount > 0 ? <span className="tab-badge">{activityCount}</span> : ''}</button>
         <button className={`tab-btn ${tab === 'manage' ? 'active' : ''}`} onClick={() => setTab('manage')}>⚙ Manage</button>
       </div>
 
@@ -257,47 +229,39 @@ export default function DMView() {
         {tab === 'combat' && (
           <div className="dm-combat-layout">
             <div className="dm-initiative-column">
-              <InitiativePanel encounter={encounter} combatants={combatants} playerStates={playerStates} role="dm" onUpdate={refreshAll} />
-
-              <div className="panel">
-                <div className="panel-title">Live Session</div>
+              <div className="panel" style={{ marginBottom: 12 }}>
+                <div className="panel-title">Round {encounter.round}</div>
                 <div className="dm-live-session-actions">
                   {nonPcCount > 0 && <button className="btn btn-ghost" onClick={handleRollEnemyInitiative} disabled={rollingInit}>{rollingInit ? 'Rolling…' : 'Roll Enemy Initiative'}</button>}
                   <button className="btn btn-ghost" onClick={() => setShortRestOpen(true)}>Open Short Rest</button>
-                  <button className="btn btn-ghost" onClick={() => setTab('manage')}>Open Manage</button>
+                  <button className="btn btn-ghost" onClick={() => setTab('players')}>Open Players</button>
+                  <button className="btn btn-ghost" onClick={() => setTab('activity')}>Open Activity{activityCount > 0 ? ` (${activityCount})` : ''}</button>
                 </div>
-                {(showRollsControl || showAlertsControl) && (
-                  <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {showRollsControl && (
-                      <button className="btn btn-ghost" style={{ fontSize: 11, padding: '4px 8px' }} onClick={() => toggleBottomStrip('rolls')}>
-                        {hasRecentRolls ? 'Hide recent rolls' : `Show recent rolls${recentRollCount > 0 ? ` (${recentRollCount})` : ''}`}
-                      </button>
-                    )}
-                    {showAlertsControl && (
-                      <button className="btn btn-ghost" style={{ fontSize: 11, padding: '4px 8px' }} onClick={() => toggleBottomStrip('alerts')}>
-                        {hasRecentAlerts ? 'Hide alerts' : `Show alerts${recentAlertCount > 0 ? ` (${recentAlertCount})` : ''}`}
-                      </button>
-                    )}
-                  </div>
-                )}
               </div>
 
-              {hasRecentRolls && <RecentRollsStrip encounterId={encounter.id} expanded onToggle={() => toggleBottomStrip('rolls')} />}
-              {hasRecentAlerts && <RecentAlertsStrip encounterId={encounter.id} expanded onToggle={() => toggleBottomStrip('alerts')} />}
+              <InitiativePanel encounter={encounter} combatants={combatants} playerStates={playerStates} role="dm" onUpdate={refreshAll} />
             </div>
-
-            <DMPlayerCardsSection
-              combatants={pcCombatants}
-              playerStates={playerStates}
-              encounterId={encounter.id}
-              playerEditMode={encounter.player_edit_mode}
-              onUpdate={refreshAll}
-            />
           </div>
         )}
 
-        {tab === 'rolls' && <SecretRollInbox encounterId={encounter.id} />}
-        {tab === 'log' && <DMCombatLog encounterId={encounter.id} />}
+        {tab === 'players' && (
+          <DMPlayerCardsSection
+            combatants={pcCombatants}
+            playerStates={playerStates}
+            encounterId={encounter.id}
+            playerEditMode={encounter.player_edit_mode}
+            onUpdate={refreshAll}
+          />
+        )}
+
+        {tab === 'activity' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <RecentAlertsStrip encounterId={encounter.id} expanded onToggle={() => {}} />
+            <SecretRollInbox encounterId={encounter.id} />
+            <DMCombatLog encounterId={encounter.id} />
+          </div>
+        )}
+
         {tab === 'manage' && <ManagementScreens onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); setTab('combat'); }} currentEncounter={encounter} displayToken={displayToken} joinCodes={joinCodes} onToggleEditMode={handleToggleEditMode} onGenerateDisplayToken={handleGenerateDisplayToken} onRevokeDisplayToken={handleRevokeDisplayToken} onFrontScreen={handleFrontScreen} onSignOut={signOut} />}
       </div>
 
