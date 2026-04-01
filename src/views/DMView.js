@@ -6,6 +6,8 @@ import SecretRollInbox from '../components/SecretRollInbox';
 import EncounterSetup from '../components/EncounterSetup';
 import ManagementScreens from '../components/ManagementScreens';
 import ShortRestModal from '../components/ShortRestModal';
+import { readNumberField } from '../utils/classResources';
+import { getLongRestResourcePatch } from '../utils/resourcePolicy';
 import { flattenStates } from './dm/dmViewUtils';
 import RecentRollsStrip from './dm/RecentRollsStrip';
 import RecentAlertsStrip from './dm/RecentAlertsStrip';
@@ -13,6 +15,23 @@ import DMCombatLog from './dm/DMCombatLog';
 import DMPlayerCardsSection from './dm/DMPlayerCardsSection';
 
 const ACTIVITY_AUTO_HIDE_MS = 15000;
+
+function buildLongRestStatePatch(state = {}) {
+  const profile = state?.profiles_players || {};
+  const patch = { ...getLongRestResourcePatch(state, profile) };
+  const maxHpOverride = readNumberField(state, ['max_hp_override'], null);
+  const profileMax = readNumberField(profile, ['max_hp'], 0);
+  const maxHp = maxHpOverride !== null ? maxHpOverride : profileMax;
+
+  if (maxHp > 0) {
+    patch.current_hp = maxHp;
+  }
+
+  const currentConditions = state.conditions || [];
+  patch.conditions = currentConditions.filter(code => code !== 'UNC' && code !== 'PRN');
+
+  return patch;
+}
 
 export default function DMView() {
   const [encounter, setEncounter] = useState(null);
@@ -128,8 +147,23 @@ export default function DMView() {
   async function handleLongRest() {
     if (!encounter) return;
     if (!window.confirm('Long Rest — restore all player HP, spell slots, and wild shape uses?')) return;
+
     await supabase.rpc('long_rest', { p_encounter_id: encounter.id });
+
+    for (const state of playerStates) {
+      const patch = buildLongRestStatePatch(state);
+      if (Object.keys(patch).length > 0) {
+        await supabase.from('player_encounter_state').update(patch).eq('id', state.id);
+      }
+    }
+
     await supabase.from('encounters').update({ round: 1, turn_index: 0 }).eq('id', encounter.id);
+    await supabase.from('combat_log').insert({
+      encounter_id: encounter.id,
+      actor: 'DM',
+      action: 'rest',
+      detail: 'Long Rest completed — HP and long-rest resources restored and round reset to 1',
+    });
     refreshAll();
   }
 
