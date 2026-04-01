@@ -3,14 +3,7 @@ import { supabase } from '../supabaseClient';
 import usePolling from '../hooks/usePolling';
 import PlayerCard from '../components/PlayerCard';
 import InitiativePanel from '../components/InitiativePanelNext';
-
-function flattenStates(data) {
-  return (data || []).map(s => ({
-    ...s,
-    wildshape_form_name: s.profiles_wildshape?.form_name ?? null,
-    wildshape_hp_max: s.profiles_wildshape?.hp_max ?? null,
-  }));
-}
+import { flattenEncounterStates } from '../utils/encounterState';
 
 function sortCombatants(combatants) {
   return [...combatants].sort((a, b) => {
@@ -103,7 +96,7 @@ export default function DisplayView() {
     ]);
     if (enc.data) setEncounter(enc.data);
     setCombatants(comb.data || []);
-    setPlayerStates(flattenStates(states.data));
+    setPlayerStates(flattenEncounterStates(states.data));
   }, [displayToken]);
 
   usePolling(refresh, 2000, !!displayToken && !loading && !error);
