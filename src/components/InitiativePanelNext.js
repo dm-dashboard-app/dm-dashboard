@@ -261,13 +261,26 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
   const atTop = idx <= 0;
   const atBottom = idx === -1 || idx >= sorted.length - 1;
 
+  const reactionPill = (
+    <button
+      className={`reaction-pill ${rxUsed ? 'reaction-pill--used' : 'reaction-pill--ready'} ${canToggleReaction ? 'reaction-pill--clickable' : ''}`}
+      onClick={e => {
+        e.stopPropagation();
+        handleToggleReaction();
+      }}
+      style={{ cursor: canToggleReaction ? 'pointer' : 'default' }}
+    >
+      ⚡ {rxUsed ? 'USED' : 'REACT'}
+    </button>
+  );
+
   return (
-    <div className={`initiative-row ${isActive ? 'active-turn' : ''} ${isNextUp ? 'initiative-row--next-up' : ''}`} style={{ display: 'block', padding: '8px 12px' }}>
+    <div className={`initiative-row ${isActive ? 'active-turn' : ''} ${isNextUp ? 'initiative-row--next-up' : ''}`} style={{ display: 'block', padding: '10px 12px' }}>
       <div className="initiative-row-main" onClick={() => isDM && isNonPC && setExpanded(e => !e)}>
         {isDM && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 1, marginRight: 2 }}>
-            <button style={{ fontSize: 9, lineHeight: 1, padding: '1px 3px', opacity: atTop ? 0.15 : 0.5, cursor: atTop ? 'default' : 'pointer', background: 'none', border: 'none', color: 'var(--text-secondary)' }} onClick={e => { e.stopPropagation(); moveUp(); }} disabled={atTop}>▲</button>
-            <button style={{ fontSize: 9, lineHeight: 1, padding: '1px 3px', opacity: atBottom ? 0.15 : 0.5, cursor: atBottom ? 'default' : 'pointer', background: 'none', border: 'none', color: 'var(--text-secondary)' }} onClick={e => { e.stopPropagation(); moveDown(); }} disabled={atBottom}>▼</button>
+          <div className="initiative-sort-controls">
+            <button className="initiative-sort-btn" onClick={e => { e.stopPropagation(); moveUp(); }} disabled={atTop}>▲</button>
+            <button className="initiative-sort-btn" onClick={e => { e.stopPropagation(); moveDown(); }} disabled={atBottom}>▼</button>
           </div>
         )}
         {isDM ? (
@@ -275,35 +288,45 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
         ) : (
           <span className="initiative-number">{combatant.initiative_total ?? '—'}</span>
         )}
-        <InitiativeNameplate miniMarker={miniMarker} name={combatant.name} isActive={isActive} isNextUp={isNextUp} side={combatant.side} showBloodied={enemyBloodied || pcBloodied} wsActive={wsActive} classLine={classLine} ancestryLine={ancestryLine} />
-        <button className={`reaction-pill ${rxUsed ? 'reaction-pill--used' : 'reaction-pill--ready'} ${canToggleReaction ? 'reaction-pill--clickable' : ''}`} onClick={e => { e.stopPropagation(); handleToggleReaction(); }} style={{ cursor: canToggleReaction ? 'pointer' : 'default' }}>⚡ {rxUsed ? 'USED' : 'REACT'}</button>
+        <InitiativeNameplate
+          miniMarker={miniMarker}
+          name={combatant.name}
+          isActive={isActive}
+          isNextUp={isNextUp}
+          side={combatant.side}
+          showBloodied={enemyBloodied || pcBloodied}
+          wsActive={wsActive}
+          classLine={classLine}
+          ancestryLine={ancestryLine}
+          reactionPill={reactionPill}
+        />
         {isDM && isNonPC && <span className="expand-toggle" style={{ marginLeft: 4 }}>{expanded ? '▲' : '▼'}</span>}
       </div>
 
       {(showPcHp || showNonPcHp) && (
-        <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div className="initiative-secondary-block initiative-secondary-block--hp">
           {isPC && wsActive && wsHpMax != null && <InitiativeMiniHpBar current={wsHpCurrent} max={wsHpMax} color="var(--accent-green)" label={wsFormName ? `🐻 ${wsFormName}` : '🐻 Beast Form'} />}
           {showPcHp && <InitiativeMiniHpBar current={pcHpCurrent} max={pcHpMax} tempHp={tempHp} label={wsActive ? 'Player HP' : null} />}
           {showNonPcHp && <InitiativeMiniHpBar current={enemyHpCurrent} max={enemyHpMax} />}
-          {isDisplay && isNPC && showNonPcHp && <div style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'right' }}>{enemyHpCurrent} / {enemyHpMax} HP</div>}
+          {isDisplay && isNPC && showNonPcHp && <div className="initiative-support-line initiative-support-line--right">{enemyHpCurrent} / {enemyHpMax} HP</div>}
         </div>
       )}
 
       {isPC && isDM && (
-        <div style={{ marginTop: 4, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-          {passivePerception !== null && <span style={{ fontSize: 10, color: 'var(--text-muted)', background: 'var(--bg-panel-3)', border: '1px solid var(--border)', borderRadius: 3, padding: '1px 5px' }}>PP {passivePerception}</span>}
-          <button onClick={e => { e.stopPropagation(); handleTogglePcConcentration(); }} style={{ fontSize: 10, padding: '1px 7px', borderRadius: 3, fontWeight: 700, cursor: 'pointer', border: `1px solid ${concentration ? 'var(--accent-gold)' : 'var(--border)'}`, background: concentration ? '#3a2e00' : 'var(--bg-panel-3)', color: concentration ? 'var(--accent-gold)' : 'var(--text-muted)' }}>🔮 {concentration ? 'Concentrating' : 'Concentration'}</button>
+        <div className="initiative-support-row">
+          {passivePerception !== null && <span className="initiative-support-chip">PP {passivePerception}</span>}
+          <button onClick={e => { e.stopPropagation(); handleTogglePcConcentration(); }} className={`initiative-support-chip initiative-support-chip--button ${concentration ? 'initiative-support-chip--con' : ''}`}>🔮 {concentration ? 'Concentrating' : 'Concentration'}</button>
         </div>
       )}
-      {isPC && !isDM && concentration && <div style={{ marginTop: 4 }}><span style={{ fontSize: 10, color: 'var(--accent-gold)', background: '#3a2e00', border: '1px solid var(--accent-gold)', borderRadius: 3, padding: '1px 5px' }}>🔮 CON</span></div>}
+      {isPC && !isDM && concentration && <div className="initiative-support-row"><span className="initiative-support-chip initiative-support-chip--con">🔮 CON</span></div>}
       {isPC && playerState && <InitiativePcResourceSummary profile={pcProfile} state={playerState} isDM={isDM} onUpdate={onUpdate} />}
 
-      {displayConditions.length > 0 && <div style={{ marginTop: 4, display: 'flex', flexWrap: 'wrap', gap: 4 }}>{displayConditions.map(code => <span key={code} className="condition-chip" style={{ background: CONDITION_COLOURS[code] || 'var(--cond-default)', cursor: isDM ? 'pointer' : 'default', userSelect: 'none' }} onClick={e => { if (!isDM) return; e.stopPropagation(); isPC ? togglePcCondition(code) : toggleEnemyCondition(code); }}>{code}</span>)}</div>}
-      {isDM && isPC && <div style={{ marginTop: 4 }}><button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={e => { e.stopPropagation(); setCondPickerOpen(p => !p); }}>{condPickerOpen ? 'Close Conditions' : '+ Conditions'}</button>{condPickerOpen && <div className="condition-picker" style={{ marginTop: 6 }}>{CONDITIONS.map(({ code }) => <button key={code} className={`condition-picker-btn ${pcConditions.includes(code) ? 'active' : ''}`} style={{ background: pcConditions.includes(code) ? CONDITION_COLOURS[code] : undefined }} onClick={e => { e.stopPropagation(); togglePcCondition(code); }}>{code}</button>)}</div>}</div>}
+      {displayConditions.length > 0 && <div className="initiative-chip-row">{displayConditions.map(code => <span key={code} className="condition-chip" style={{ background: CONDITION_COLOURS[code] || 'var(--cond-default)', cursor: isDM ? 'pointer' : 'default', userSelect: 'none' }} onClick={e => { if (!isDM) return; e.stopPropagation(); isPC ? togglePcCondition(code) : toggleEnemyCondition(code); }}>{code}</span>)}</div>}
+      {isDM && isPC && <div className="initiative-secondary-block"><button className="btn btn-ghost initiative-small-action" onClick={e => { e.stopPropagation(); setCondPickerOpen(p => !p); }}>{condPickerOpen ? 'Close Conditions' : '+ Conditions'}</button>{condPickerOpen && <div className="condition-picker" style={{ marginTop: 6 }}>{CONDITIONS.map(({ code }) => <button key={code} className={`condition-picker-btn ${pcConditions.includes(code) ? 'active' : ''}`} style={{ background: pcConditions.includes(code) ? CONDITION_COLOURS[code] : undefined }} onClick={e => { e.stopPropagation(); togglePcCondition(code); }}>{code}</button>)}</div>}</div>}
 
-      {hasLegendary && <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4, paddingLeft: 2 }}>{laMax > 0 && <InitiativeLegendaryPips label="LA" max={laMax} used={laUsed} isDM={isDM} onSpend={() => spendLegendary('legendary_actions_used', laMax)} onRestore={() => restoreLegendary('legendary_actions_used')} onReset={() => resetLegendary('legendary_actions_used')} isActive={isActive} />}{lrMax > 0 && <InitiativeLegendaryPips label="LR" max={lrMax} used={lrUsed} isDM={isDM} onSpend={() => spendLegendary('legendary_resistances_used', lrMax)} onRestore={() => restoreLegendary('legendary_resistances_used')} onReset={() => resetLegendary('legendary_resistances_used')} isActive={false} />}</div>}
+      {hasLegendary && <div className="initiative-secondary-block initiative-secondary-block--legendary">{laMax > 0 && <InitiativeLegendaryPips label="LA" max={laMax} used={laUsed} isDM={isDM} onSpend={() => spendLegendary('legendary_actions_used', laMax)} onRestore={() => restoreLegendary('legendary_actions_used')} onReset={() => resetLegendary('legendary_actions_used')} isActive={isActive} />}{lrMax > 0 && <InitiativeLegendaryPips label="LR" max={lrMax} used={lrUsed} isDM={isDM} onSpend={() => spendLegendary('legendary_resistances_used', lrMax)} onRestore={() => restoreLegendary('legendary_resistances_used')} onReset={() => resetLegendary('legendary_resistances_used')} isActive={false} />}</div>}
       {conDc !== null && <div className="con-check-banner con-check-banner--dm" style={{ marginTop: 6 }}><span className="con-check-label">🔮 CON SAVE</span><span className="con-check-dc">DC {conDc}</span></div>}
-      {isPC && isDM && showPcHp && <div style={{ marginTop: 6 }}><InitiativeInlineDmgHeal onDamage={applyPcDamage} onHeal={applyPcHeal} /></div>}
+      {isPC && isDM && showPcHp && <div className="initiative-secondary-block"><InitiativeInlineDmgHeal onDamage={applyPcDamage} onHeal={applyPcHeal} /></div>}
 
       {isDM && isNonPC && expanded && (
         <div className="monster-dm-controls">
