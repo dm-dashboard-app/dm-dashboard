@@ -210,7 +210,7 @@ export default function DMView() {
         <div className="shell-nav-stack">
           <div className="top-bar"><div className="top-bar-spacer" /></div>
         </div>
-        <div className="main-content">
+        <div className="main-content dm-main-content">
           <EncounterSetup onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); setTab('combat'); }} />
           <ManagementScreens currentEncounter={null} displayToken={null} joinCodes={[]} onGenerateDisplayToken={null} onRevokeDisplayToken={null} onFrontScreen={null} onSignOut={signOut} />
         </div>
@@ -243,28 +243,50 @@ export default function DMView() {
         </div>
       </div>
 
-      <div className="main-content">
+      <div className="main-content dm-main-content">
         {tab === 'combat' && (
-          <div className="dm-combat-layout">
+          <div className="dm-combat-layout dm-combat-layout--enhanced">
             <div className="dm-initiative-column">
               <div className="initiative-top-bar">
                 <div className="initiative-top-bar-primary">Round {encounter.round}</div>
               </div>
-
               <InitiativePanel encounter={encounter} combatants={combatants} playerStates={playerStates} role="dm" onUpdate={refreshAll} />
+            </div>
+            <div className="dm-combat-side-column">
+              <DMPlayerCardsSection
+                combatants={pcCombatants}
+                playerStates={playerStates}
+                encounterId={encounter.id}
+                playerEditMode={encounter.player_edit_mode}
+                onUpdate={refreshAll}
+                title="Party Status"
+                subtitle={`${pcCombatants.length} player${pcCombatants.length === 1 ? '' : 's'} in encounter`}
+              />
             </div>
           </div>
         )}
 
         {tab === 'players' && (
-          <DMPlayerCardsSection combatants={pcCombatants} playerStates={playerStates} encounterId={encounter.id} playerEditMode={encounter.player_edit_mode} onUpdate={refreshAll} />
+          <DMPlayerCardsSection
+            combatants={pcCombatants}
+            playerStates={playerStates}
+            encounterId={encounter.id}
+            playerEditMode={encounter.player_edit_mode}
+            onUpdate={refreshAll}
+            title="Players"
+            subtitle={`${pcCombatants.length} player${pcCombatants.length === 1 ? '' : 's'} in encounter`}
+          />
         )}
 
         {tab === 'activity' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <RecentAlertsStrip encounterId={encounter.id} expanded onToggle={() => {}} />
-            <SecretRollInbox encounterId={encounter.id} />
-            <DMCombatLog encounterId={encounter.id} />
+          <div className="dm-activity-layout">
+            <div className="dm-activity-primary">
+              <RecentAlertsStrip encounterId={encounter.id} mode="panel" />
+              <SecretRollInbox encounterId={encounter.id} />
+            </div>
+            <div className="dm-activity-secondary">
+              <DMCombatLog encounterId={encounter.id} />
+            </div>
           </div>
         )}
 

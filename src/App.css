@@ -203,6 +203,10 @@
   margin: 0 auto;
 }
 
+.dm-main-content {
+  max-width: 1180px;
+}
+
 .main-content--with-bottom-dock {
   padding-bottom: 158px;
 }
@@ -213,16 +217,90 @@
   gap: var(--space-4);
 }
 
-.dm-initiative-column {
+.dm-combat-layout--enhanced {
+  align-items: stretch;
+}
+
+.dm-initiative-column,
+.dm-combat-side-column,
+.dm-activity-primary,
+.dm-activity-secondary {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  min-width: 0;
 }
 
 .dm-player-card-stack {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.dm-section-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dm-section-heading-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dm-section-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: -4px;
+}
+
+.dm-activity-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.95fr) minmax(0, 1.05fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.dm-alerts-panel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dm-log-panel {
+  min-height: 0;
+}
+
+.dm-log-tab-row {
+  display: flex;
+  gap: 8px;
+}
+
+.dm-log-tab {
+  flex: 1;
+  border-color: var(--border);
+  color: var(--text-secondary);
+}
+
+.dm-log-tab.active {
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+}
+
+.dm-log-tab--alerts.active {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+.dm-log-scroll-area {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 68vh;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .dm-live-session-actions {
@@ -803,7 +881,7 @@
 
   .dm-combat-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+    grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
     align-items: start;
   }
 
@@ -813,6 +891,12 @@
 }
 
 /* Mobile adjustments */
+@media (max-width: 900px) {
+  .dm-activity-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 700px) {
   .display-turn-state-grid,
   .display-reference-layout {
@@ -876,6 +960,10 @@
 
   .initiative-top-bar-primary {
     font-size: 1rem;
+  }
+
+  .dm-log-tab-row {
+    flex-direction: column;
   }
 
   .display-turn-feature {
