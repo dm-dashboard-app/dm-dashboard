@@ -3,7 +3,7 @@ import { supabase } from '../../supabaseClient';
 import usePolling from '../../hooks/usePolling';
 import { formatTime } from './dmViewUtils';
 
-export default function RecentAlertsStrip({ encounterId, expanded, onToggle }) {
+export default function RecentAlertsStrip({ encounterId, expanded = false, onToggle = null, mode = 'strip' }) {
   const [checks, setChecks] = useState([]);
 
   const load = useCallback(async () => {
@@ -27,6 +27,42 @@ export default function RecentAlertsStrip({ encounterId, expanded, onToggle }) {
 
   const latest = checks[0];
   const latestResult = latest ? resultStyle(latest.result) : null;
+  const isPanel = mode === 'panel' || typeof onToggle !== 'function';
+
+  if (isPanel) {
+    return (
+      <div className="panel dm-section-panel">
+        <div className="dm-section-heading-row">
+          <div>
+            <div className="panel-title">Recent Alerts</div>
+            <div className="dm-section-subtitle">Latest concentration check outcomes</div>
+          </div>
+        </div>
+
+        <div className="dm-alerts-panel-list">
+          {checks.length === 0 ? (
+            <div className="empty-state">No alerts this encounter.</div>
+          ) : (
+            checks.map(c => {
+              const { color, label } = resultStyle(c.result);
+              return (
+                <div key={c.id} className="dm-bottom-strip-row">
+                  <div className="dm-bottom-strip-row-left">
+                    <span className="dm-bottom-strip-row-name">{c.player_name}</span>
+                    <span className="dm-bottom-strip-row-meta">DC {c.dc}</span>
+                    <span className="dm-bottom-strip-row-meta">{formatTime(c.created_at)}</span>
+                  </div>
+                  <div className="dm-bottom-strip-row-right">
+                    <span className="dm-bottom-strip-row-status" style={{ color }}>{label}</span>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <button type="button" className={`dm-bottom-strip ${expanded ? 'expanded' : ''}`} onClick={onToggle} aria-expanded={expanded}>

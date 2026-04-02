@@ -60,23 +60,29 @@ export default function DMCombatLog({ encounterId }) {
   const pendingAlertCount = alerts.filter(c => c.result === 'pending').length;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div style={{ display: 'flex', gap: 6 }}>
-        <button className="btn btn-ghost" style={{ flex: 1, borderColor: logSection === 'combat' ? 'var(--accent-blue)' : 'var(--border)', color: logSection === 'combat' ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => { setLogSection('combat'); loadCombat(); }}>⚔ Events</button>
-        <button className="btn btn-ghost" style={{ flex: 1, borderColor: logSection === 'alerts' ? 'var(--accent-gold)' : 'var(--border)', color: logSection === 'alerts' ? 'var(--accent-gold)' : 'var(--text-secondary)' }} onClick={() => { setLogSection('alerts'); loadAlerts(); }}>⚠ Alerts {pendingAlertCount > 0 && <span className="tab-badge">{pendingAlertCount}</span>}</button>
+    <div className="panel dm-section-panel dm-log-panel">
+      <div className="dm-section-heading-row">
+        <div>
+          <div className="panel-title">Activity Log</div>
+          <div className="dm-section-subtitle">Combat events and concentration history</div>
+        </div>
+      </div>
+
+      <div className="dm-log-tab-row">
+        <button className={`btn btn-ghost dm-log-tab ${logSection === 'combat' ? 'active' : ''}`} onClick={() => { setLogSection('combat'); loadCombat(); }}>⚔ Events</button>
+        <button className={`btn btn-ghost dm-log-tab dm-log-tab--alerts ${logSection === 'alerts' ? 'active' : ''}`} onClick={() => { setLogSection('alerts'); loadAlerts(); }}>⚠ Alerts {pendingAlertCount > 0 && <span className="tab-badge">{pendingAlertCount}</span>}</button>
       </div>
 
       {logSection === 'combat' && (
-        <div className="panel">
-          <div className="panel-title">Combat Events</div>
+        <div className="dm-log-scroll-area">
           {loadingCombat && <div className="empty-state">Loading…</div>}
           {!loadingCombat && combatEntries.length === 0 && <div className="empty-state">No events logged yet.</div>}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 5, maxHeight: '60vh', overflowY: 'auto' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {combatEntries.map(e => (
               <div key={e.id} className={`log-item ${actionClass(e.action)}`}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
                   <span className="log-item-action">{e.detail || e.action}</span>
-                  <span className="log-item-meta" style={{ flexShrink: 0, marginLeft: 8 }}>{timeLabel(e.created_at)}</span>
+                  <span className="log-item-meta" style={{ flexShrink: 0 }}>{timeLabel(e.created_at)}</span>
                 </div>
                 {e.actor && <span className="log-item-meta">by {e.actor}</span>}
               </div>
@@ -86,11 +92,10 @@ export default function DMCombatLog({ encounterId }) {
       )}
 
       {logSection === 'alerts' && (
-        <div className="panel">
-          <div className="panel-title">Alerts</div>
+        <div className="dm-log-scroll-area">
           {loadingAlerts && <div className="empty-state">Loading…</div>}
           {!loadingAlerts && alerts.length === 0 && <div className="empty-state">No alerts this encounter.</div>}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: '60vh', overflowY: 'auto' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {alerts.map(c => {
               const { text, cls } = resultLabel(c.result);
               return (
