@@ -278,8 +278,8 @@ export default function DMView() {
 
       <div className="dm-bottom-action-bar">
         <div className="dm-bottom-action-row">
-          <button className="btn btn-ghost" onClick={() => setShortRestOpen(true)}>Short Rest</button>
           <button className="btn btn-ghost" onClick={handleLongRest}>Long Rest</button>
+          <button className="btn btn-ghost" onClick={() => setShortRestOpen(true)}>Short Rest</button>
           <button className="btn btn-ghost" onClick={handleRollEnemyInitiative} disabled={rollingInit}>{rollingInit ? 'Rolling…' : 'Initiative'}</button>
           <button className="btn btn-primary dm-bottom-action-next" onClick={handleNextTurn}>▶ Next</button>
         </div>
