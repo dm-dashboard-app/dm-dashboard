@@ -6,6 +6,7 @@ import SecretRollInbox from '../components/SecretRollInbox';
 import EncounterSetup from '../components/EncounterSetup';
 import ManagementScreens from '../components/ManagementScreens';
 import ShortRestModal from '../components/ShortRestModal';
+import DMNotificationOverlay from '../components/DMNotificationOverlay';
 import { readNumberField } from '../utils/classResources';
 import { getLongRestResourcePatch } from '../utils/resourcePolicy';
 import { flattenStates } from './dm/dmViewUtils';
@@ -225,17 +226,8 @@ export default function DMView() {
   return (
     <div className="app-shell">
       <div className="shell-nav-stack">
-        <div className="top-bar top-bar--dm-actions">
-          <div className="top-bar-spacer" />
-          <div className="dm-action-button-row">
-            <button className="btn btn-primary" onClick={handleNextTurn}>▶ Next</button>
-            <button className="btn btn-ghost" onClick={handleRollEnemyInitiative} disabled={rollingInit}>{rollingInit ? 'Rolling…' : 'Initiative'}</button>
-            <button className="btn btn-ghost" onClick={() => setShortRestOpen(true)}>Short Rest</button>
-            <button className="btn btn-ghost" onClick={handleLongRest}>Long Rest</button>
-          </div>
-        </div>
-
-        <div className="tab-bar">
+        <div className="top-bar"><div className="top-bar-spacer" /></div>
+        <div className="tab-bar dm-tab-bar-bottom-adjusted">
           <button className={`tab-btn ${tab === 'combat' ? 'active' : ''}`} onClick={() => setTab('combat')}>⚔ Combat</button>
           <button className={`tab-btn ${tab === 'players' ? 'active' : ''}`} onClick={() => setTab('players')}>🧙 Players</button>
           <button className={`tab-btn ${tab === 'activity' ? 'active' : ''}`} onClick={() => setTab('activity')}>📋 Activity{activityCount > 0 ? <span className="tab-badge">{activityCount}</span> : ''}</button>
@@ -243,25 +235,16 @@ export default function DMView() {
         </div>
       </div>
 
-      <div className="main-content dm-main-content">
+      <DMNotificationOverlay encounterId={encounter.id} />
+
+      <div className="main-content dm-main-content main-content--with-bottom-dock">
         {tab === 'combat' && (
-          <div className="dm-combat-layout dm-combat-layout--enhanced">
+          <div className="dm-combat-layout">
             <div className="dm-initiative-column">
               <div className="initiative-top-bar">
                 <div className="initiative-top-bar-primary">Round {encounter.round}</div>
               </div>
               <InitiativePanel encounter={encounter} combatants={combatants} playerStates={playerStates} role="dm" onUpdate={refreshAll} />
-            </div>
-            <div className="dm-combat-side-column">
-              <DMPlayerCardsSection
-                combatants={pcCombatants}
-                playerStates={playerStates}
-                encounterId={encounter.id}
-                playerEditMode={encounter.player_edit_mode}
-                onUpdate={refreshAll}
-                title="Party Status"
-                subtitle={`${pcCombatants.length} player${pcCombatants.length === 1 ? '' : 's'} in encounter`}
-              />
             </div>
           </div>
         )}
@@ -291,6 +274,15 @@ export default function DMView() {
         )}
 
         {tab === 'manage' && <ManagementScreens onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); setTab('combat'); }} currentEncounter={encounter} displayToken={displayToken} joinCodes={joinCodes} onGenerateDisplayToken={handleGenerateDisplayToken} onRevokeDisplayToken={handleRevokeDisplayToken} onFrontScreen={handleFrontScreen} onSignOut={signOut} />}
+      </div>
+
+      <div className="dm-bottom-action-bar">
+        <div className="dm-bottom-action-row">
+          <button className="btn btn-ghost" onClick={() => setShortRestOpen(true)}>Short Rest</button>
+          <button className="btn btn-ghost" onClick={handleLongRest}>Long Rest</button>
+          <button className="btn btn-ghost" onClick={handleRollEnemyInitiative} disabled={rollingInit}>{rollingInit ? 'Rolling…' : 'Initiative'}</button>
+          <button className="btn btn-primary dm-bottom-action-next" onClick={handleNextTurn}>▶ Next</button>
+        </div>
       </div>
 
       <ShortRestModal open={shortRestOpen} playerStates={playerStates} encounterId={encounter.id} onClose={() => setShortRestOpen(false)} onComplete={refreshAll} />

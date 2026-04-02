@@ -125,35 +125,34 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
     onUpdate();
   }
 
-  async function setTempHpDirect(val) {
-    if (!state || readOnly) return;
-    const newTemp = Math.max(0, parseInt(val, 10) || 0);
+  async function promptTempHp() {
+    if (!state || !canRestore) return;
+    const value = window.prompt('Set temporary HP to:', String(tempHp || 0));
+    if (value === null) return;
+    const newTemp = Math.max(0, parseInt(value, 10) || 0);
     await supabase.from('player_encounter_state').update({ temp_hp: newTemp }).eq('id', state.id);
     onUpdate();
   }
 
-  async function adjustMaxHp(delta) {
+  async function promptBonusHp() {
     if (!state || !canRestore) return;
-    const newMax = Math.max(1, maxHp + delta);
+    const value = window.prompt('Grant bonus max HP by how much?', '0');
+    if (value === null) return;
+    const delta = Math.max(0, parseInt(value, 10) || 0);
+    if (delta <= 0) return;
+    const newMax = maxHp + delta;
     const overrideVal = newMax === profileMax ? null : newMax;
-    const newHp = Math.min(hp, newMax);
-    const updates = { max_hp_override: overrideVal };
-    if (newHp !== hp) {
-      updates.current_hp = newHp;
-      setLocalHp(newHp);
-    }
-    await supabase.from('player_encounter_state').update(updates).eq('id', state.id);
+    const newHp = Math.min(hp + delta, newMax);
+    setLocalHp(newHp);
+    await supabase.from('player_encounter_state').update({ max_hp_override: overrideVal, current_hp: newHp }).eq('id', state.id);
     onUpdate();
   }
 
   async function resetMaxHp() {
     if (!state || !canRestore) return;
     const newHp = Math.min(hp, profileMax);
-    const updates = { max_hp_override: null };
-    if (newHp !== hp) {
-      updates.current_hp = newHp;
-      setLocalHp(newHp);
-    }
+    const updates = { max_hp_override: null, current_hp: newHp };
+    setLocalHp(newHp);
     await supabase.from('player_encounter_state').update(updates).eq('id', state.id);
     onUpdate();
   }
@@ -243,20 +242,18 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
         <div className="hp-numbers-row">
           {!readOnly ? <HpEditableNumber value={hp} onSet={setHpDirect} /> : <span className="hp-value">{hp}</span>}
           <span className="hp-slash">/</span>
-          <span className="hp-value" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>{maxHp}</span>
-          {tempHp > 0 ? (!readOnly ? <TempHpControl tempHp={tempHp} onSet={setTempHpDirect} /> : <span className="temp-hp-label">+{tempHp} temp</span>) : (!readOnly && <TempHpControl tempHp={tempHp} onSet={setTempHpDirect} />)}
+          <span className="hp-value" style={{ fontSize: 'var(--font-size-sm)', color: maxHpOverride !== null ? 'var(--accent-gold)' : 'var(--text-secondary)' }}>{maxHp}</span>
+          {tempHp > 0 ? <span className="temp-hp-label">+{tempHp} temp</span> : null}
           {maxHpOverride !== null && <span style={{ fontSize: 10, color: 'var(--accent-gold)', marginLeft: 2 }}>✦</span>}
         </div>
 
         {canEdit && <DmgHealRow onDamage={handleApplyDamage} onHeal={handleApplyHeal} />}
 
         {canRestore && (
-          <div className="max-hp-override-row">
-            <span className="max-hp-override-label">Max HP {maxHpOverride !== null ? '✦' : ''}</span>
-            <button className="btn btn-icon btn-ghost" style={{ minWidth: 28, minHeight: 28, fontSize: 13 }} onClick={() => adjustMaxHp(-1)}>−</button>
-            <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, minWidth: 28, textAlign: 'center' }}>{maxHp}</span>
-            <button className="btn btn-icon btn-ghost" style={{ minWidth: 28, minHeight: 28, fontSize: 13 }} onClick={() => adjustMaxHp(1)}>+</button>
-            {maxHpOverride !== null && <button className="btn btn-ghost" style={{ fontSize: 11, padding: '1px 6px' }} onClick={resetMaxHp}>↺ reset</button>}
+          <div className="dm-card-adjustment-row">
+            <button className="btn btn-ghost dm-card-adjustment-btn dm-card-adjustment-btn--gold" onClick={promptBonusHp}>Bonus HP</button>
+            <button className="btn btn-ghost dm-card-adjustment-btn dm-card-adjustment-btn--blue" onClick={promptTempHp}>Temp HP</button>
+            {maxHpOverride !== null ? <button className="btn btn-ghost dm-card-adjustment-btn" onClick={resetMaxHp}>Reset HP</button> : null}
           </div>
         )}
 
@@ -342,4 +339,3 @@ function ResourceRow({ resource, state, readOnly, onUpdateFields }) {
 function StatPill({ label, value }) { return <div className="stat-pill"><span className="stat-pill-label">{label}</span><span className="stat-pill-value">{value}</span></div>; }
 function formatMod(val) { const n = parseInt(val, 10); if (Number.isNaN(n)) return '—'; return n >= 0 ? `+${n}` : `${n}`; }
 function HpEditableNumber({ value, onSet }) { const [editing, setEditing] = useState(false); const [draft, setDraft] = useState(String(value)); const inputRef = useRef(null); useEffect(() => { if (!editing) setDraft(String(value)); }, [value, editing]); function commit() { setEditing(false); const n = parseInt(draft, 10); if (!Number.isNaN(n) && n !== value) onSet(n); } if (!editing) return <span className="hp-value hp-editable" onClick={() => { setDraft(String(value)); setEditing(true); setTimeout(() => inputRef.current?.select(), 0); }}>{value}</span>; return <input ref={inputRef} className="hp-inline-input hp-value" type="number" value={draft} onChange={e => setDraft(e.target.value)} onBlur={commit} onKeyDown={e => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') setEditing(false); }} autoFocus />; }
-function TempHpControl({ tempHp, onSet }) { const [editing, setEditing] = useState(false); const [draft, setDraft] = useState(String(tempHp)); useEffect(() => { if (!editing) setDraft(String(tempHp)); }, [tempHp, editing]); if (!editing) return <span className="temp-hp-label hp-editable" onClick={() => { setDraft(String(tempHp)); setEditing(true); }} title="Set temp HP">{tempHp > 0 ? `+${tempHp} tmp` : '+ tmp'}</span>; return <input className="hp-inline-input" style={{ width: 48, fontSize: 13 }} type="number" value={draft} onChange={e => setDraft(e.target.value)} onBlur={() => { setEditing(false); const n = parseInt(draft, 10); if (!Number.isNaN(n)) onSet(n); }} onKeyDown={e => { if (e.key === 'Enter') e.target.blur(); if (e.key === 'Escape') setEditing(false); }} autoFocus />; }
