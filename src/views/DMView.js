@@ -158,18 +158,11 @@ export default function DMView() {
     );
 
     const failedUpdate = updateResults.find(result => result.error);
-    if (failedUpdate?.error) {
-      return;
-    }
+    if (failedUpdate?.error) return;
 
     await supabase.from('concentration_checks').update({ result: 'cleared' }).eq('encounter_id', encounter.id).eq('result', 'pending');
     await supabase.from('encounters').update({ round: 1, turn_index: 0 }).eq('id', encounter.id);
-    await supabase.from('combat_log').insert({
-      encounter_id: encounter.id,
-      actor: 'DM',
-      action: 'rest',
-      detail: 'Long Rest completed — HP, spell slots, concentration, and Wild Shape reset',
-    });
+    await supabase.from('combat_log').insert({ encounter_id: encounter.id, actor: 'DM', action: 'rest', detail: 'Long Rest completed — HP, spell slots, concentration, and Wild Shape reset' });
     await refreshAll();
     await refreshActivityPresence();
   }

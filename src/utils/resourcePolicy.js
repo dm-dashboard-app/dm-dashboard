@@ -4,6 +4,7 @@ import {
   readNumberField,
   readBooleanField,
   getHitDiePools,
+  getClassLevel,
 } from './classResources';
 
 export const RESOURCE_SURFACES = {
@@ -16,7 +17,7 @@ export const RESOURCE_SURFACES = {
 const SURFACE_RULES = {
   'hit-dice': { playerCard: true, initiative: false, display: false, shortRest: true },
   'warlock-slots': { playerCard: false, initiative: false, display: false, shortRest: true, managedBySpellSlotGrid: true },
-  'natural-recovery': { playerCard: false, initiative: false, display: false, shortRest: true },
+  'natural-recovery': { playerCard: false, initiative: false, display: false, shortRest: false },
   lucky: { playerCard: true, initiative: true, display: false, shortRest: false },
   'relentless-endurance': { playerCard: true, initiative: true, display: false, shortRest: false },
   'fey-step': { playerCard: true, initiative: false, display: false, shortRest: false },
@@ -30,7 +31,7 @@ const SURFACE_RULES = {
   'action-surge': { playerCard: true, initiative: true, display: false, shortRest: true },
   'superiority-dice': { playerCard: true, initiative: true, display: false, shortRest: true },
   'lay-on-hands': { playerCard: true, initiative: true, display: false, shortRest: false },
-  'arcane-recovery': { playerCard: true, initiative: true, display: false, shortRest: true },
+  'arcane-recovery': { playerCard: true, initiative: true, display: false, shortRest: false },
 };
 
 function shouldIncludeHitDiceForSurface(surface) {
@@ -58,6 +59,13 @@ function resolveRestMaxValue(state, resource) {
   if (rawMax === null) return fallbackMax;
   if (rawMax <= 0 && fallbackMax !== null && fallbackMax > 0) return fallbackMax;
   return rawMax;
+}
+
+function shouldRestoreOnShortRest(profile = {}, familyId) {
+  if (familyId === 'bardic-inspiration') return getClassLevel(profile, 'bard') >= 5;
+  if (familyId === 'arcane-recovery') return false;
+  if (familyId === 'natural-recovery') return false;
+  return !!SURFACE_RULES[familyId]?.shortRest;
 }
 
 export function getSurfaceResourceConfig(profile = {}, state = {}, surface = RESOURCE_SURFACES.PLAYER_CARD) {
@@ -100,8 +108,7 @@ export function getShortRestResourcePatch(state = {}, profile = {}) {
 
   resources.forEach(resource => {
     const familyId = resource.id.startsWith('hit-dice-d') ? 'hit-dice' : resource.id;
-    const rules = SURFACE_RULES[familyId];
-    if (!rules?.shortRest) return;
+    if (!shouldRestoreOnShortRest(profile, familyId)) return;
 
     if (resource.type === 'toggle') {
       if (!resource.boolKey) return;
