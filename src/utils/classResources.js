@@ -48,6 +48,9 @@ export function getDerivedSpellSaveDC(source = {}) { return getSpellcastingAbili
 export function getFinalSpellSaveDC(source = {}) { const base = getDerivedSpellSaveDC(source); return base > 0 ? base + getManualSpellSaveBonus(source) : 0; }
 export function getDerivedSpellAttackBonus(source = {}) { return getSpellcastingAbilityKey(source) ? getProficiencyBonus(getTotalLevel(source)) + getSpellcastingAbilityModifier(source) : 0; }
 export function getFinalSpellAttackBonus(source = {}) { const base = getDerivedSpellAttackBonus(source); return base > 0 ? base + getManualSpellAttackBonus(source) : 0; }
+export function getBaseArmorClass(source = {}) { return readNumberField(source, ['ac'], 10) ?? 10; }
+export function getMageArmourArmorClass(source = {}) { return 13 + (getAbilityModifiers(source).dex ?? 0); }
+export function getFinalArmorClass(profile = {}, state = {}) { return readBooleanField(state, ['mage_armour_active'], false) ? getMageArmourArmorClass(profile) : getBaseArmorClass(profile); }
 export function getHighestHitDie(source = {}, fallback = 8) { const dice = getClassEntries(source).map(entry => CLASS_HIT_DIE[entry.className] || 0).filter(Boolean); return dice.length ? Math.max(...dice) : fallback; }
 export function getHitDiePools(source = {}) { const pools = { 6:0, 8:0, 10:0, 12:0 }; getClassEntries(source).forEach(entry => { const size = CLASS_HIT_DIE[entry.className]; if (size) pools[size] += entry.level || 0; }); return pools; }
 export function formatHitDiceSummary(source = {}) { const pools = getHitDiePools(source); return HIT_DIE_SIZES.filter(size => pools[size] > 0).map(size => `${pools[size]} × d${size}`).join(' • '); }
@@ -82,6 +85,7 @@ function getResourceFallback(profile = {}, resourceId) {
   if (resourceId === 'fey-step') return { current: profile.feat_fey_step ? prof : 0, max: profile.feat_fey_step ? prof : 0 };
   if (resourceId === 'celestial-revelation') return { ready: !!profile.feat_celestial_revelation };
   if (resourceId === 'relentless-endurance') return { ready: !!(profile.feat_relentless_endurance || normalizeText(profile.ancestry_name) === 'half-orc') };
+  if (resourceId === 'mage-armour') return { ready: false };
   if (resourceId === 'hit-dice') { const max = readNumberField(profile, ['hit_dice_max'], total); return { current: max, max, meta: `d${getHighestHitDie(profile, 8)}` }; }
   return { current: 0, max: 0, ready: false, meta: '' };
 }
@@ -126,6 +130,7 @@ export function getUnifiedResourceConfig(profile = {}, state = {}, options = {})
     { id:'lay-on-hands', label:label('LoH','Lay on Hands'), type:'counter', feature: getClassLevel(profile,'paladin')>0, currentKeys:['lay_on_hands_current'], maxKeys:['lay_on_hands_max'] },
     { id:'arcane-recovery', label:label('AR','Arcane Recovery'), type:'toggle', feature: getClassLevel(profile,'wizard')>0, availableKeys:['arcane_recovery_available'], usedKeys:['arcane_recovery_used'], defaultToggleMode:'available', readyLabel:'Ready', spentLabel:'Used' },
     { id:'natural-recovery', label:label('NR','Natural Recovery'), type:'toggle', feature: includeNaturalRecovery && getClassLevel(profile,'druid')>0, availableKeys:['natural_recovery_available'], usedKeys:['natural_recovery_used'], defaultToggleMode:'available', readyLabel:'Ready', spentLabel:'Used' },
+    { id:'mage-armour', label:label('Mage Armour','Mage Armour'), type:'toggle', feature: !!profile.mage_armour_enabled, availableKeys:['mage_armour_active'], defaultToggleMode:'available', readyLabel:'On', spentLabel:'Off' },
     { id:'warlock-slots', label:label('W Slots','Warlock Slots'), type:'pips', feature: includeWarlockSlots && getClassLevel(profile,'warlock')>0, currentKeys:['warlock_slots_current','warlock_spell_slots_current'], maxKeys:['warlock_slots_max','warlock_spell_slots_max'] },
   ];
   specs.forEach(spec => {
