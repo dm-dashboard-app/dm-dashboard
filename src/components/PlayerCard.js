@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
-import ConditionChipRow from './ConditionChipRow';
+import './PlayerCardRewrite.css';
 import SpellSlotGrid from './SpellSlotGrid';
 import WildShapeBlock from './WildShapeBlock';
 import SkillsModal from './SkillsModal';
 import {
   readNumberField,
-  getClassEntries,
   ABILITY_KEYS,
   getAbilityScores,
   getAbilityModifiers,
@@ -40,21 +39,6 @@ function nextZeroHpConditions(newHp, conditions = []) {
 
 function compactObject(obj) {
   return Object.fromEntries(Object.entries(obj).filter(([, value]) => value !== undefined));
-}
-
-function formatSingleClassEntry(entry) {
-  if (!entry) return '';
-  const classPart = [entry.displayClass, entry.subclassName].filter(Boolean).join(' • ');
-  const levelPart = entry.level ? `Level ${entry.level}` : '';
-  return [classPart, levelPart].filter(Boolean).join(' • ');
-}
-
-function getPlayerHeaderLines(profile = {}) {
-  const classEntries = getClassEntries(profile);
-  return {
-    classLine: classEntries.map(formatSingleClassEntry).filter(Boolean).join(' / '),
-    ancestryLine: profile.ancestry_name || '',
-  };
 }
 
 function resolveDisplayedValues(resource, state) {
@@ -92,22 +76,20 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   const maxHpOverride = state?.max_hp_override ?? null;
   const maxHp = maxHpOverride !== null ? maxHpOverride : profileMax;
   const tempHp = state?.temp_hp ?? 0;
-  const hpPercent = Math.max(0, Math.min(100, (hp / maxHp) * 100));
+  const hpPercent = Math.max(0, Math.min(100, (hp / Math.max(1, maxHp)) * 100));
   const concentration = state?.concentration ?? false;
   const reactionUsed = state?.reaction_used ?? false;
-  const isBloodied = hp > 0 && hp <= Math.floor(maxHp / 2);
   const pendingConDc = concentration ? (state?.concentration_check_dc ?? null) : null;
-  const passivePerception = profile ? 10 + (profile.skill_perception ?? 0) : null;
-  const { classLine, ancestryLine } = getPlayerHeaderLines(profile || {});
-  const classEntries = getClassEntries(profile || {});
-  const resourceConfigs = getSurfaceResourceConfig(profile || {}, state || {}, RESOURCE_SURFACES.PLAYER_CARD)
-    .filter(resource => resource.id !== 'warlock-slots');
+  const resourceConfigs = getSurfaceResourceConfig(profile || {}, state || {}, RESOURCE_SURFACES.PLAYER_CARD).filter(resource => resource.id !== 'warlock-slots');
+  const hitDiceResource = resourceConfigs.find(resource => resource.id === 'hit-dice' || resource.label === 'Hit Dice');
+  const otherResources = resourceConfigs.filter(resource => resource !== hitDiceResource);
   const abilityScores = getAbilityScores(profile || {});
   const abilityModifiers = getAbilityModifiers(profile || {});
   const saveTotals = getSavingThrowTotals(profile || {});
   const spellSaveDc = profile?.spell_save_dc || getFinalSpellSaveDC(profile || {});
   const spellAttackBonus = profile?.spell_attack_bonus || getFinalSpellAttackBonus(profile || {});
   const armorClass = profile?.ac ?? combatant?.ac ?? '—';
+  const passivePerception = profile ? 10 + (profile.skill_perception ?? 0) : null;
 
   useEffect(() => {
     setLocalHp(null);
@@ -224,75 +206,52 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
           {profile?.portrait_url ? <img src={profile.portrait_url} alt={combatant.name} className="portrait-img" /> : <div className="portrait-placeholder"><span className="portrait-initials">{initials}</span></div>}
         </div>
 
-        <div className="card-body">
-          <div className="card-header-row">
-            <div className="player-card-name-stack">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                <span className="card-name">{combatant?.name}</span>
-                {isBloodied && <span className="badge badge-bloodied">BLOODIED</span>}
-                {concentration && <span className="player-card-con-pill">Concentrating</span>}
-              </div>
-              {(classLine || ancestryLine) && (
-                <div className="player-class-line" style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  {classEntries.length > 0 && <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>{classEntries.map((entry, index) => <span key={`${entry.displayClass}-${index}`} style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 }}>{formatSingleClassEntry(entry)}</span>)}</div>}
-                  {!classEntries.length && classLine && <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 }}>{classLine}</span>}
-                  {ancestryLine && <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{ancestryLine}</span>}
-                </div>
-              )}
-            </div>
-
-            <div className="card-header-badges">
-              {canEdit ? <button className={`reaction-pill reaction-pill--clickable ${reactionUsed ? 'reaction-pill--used' : 'reaction-pill--ready'}`} onClick={handleToggleReaction} title={reactionUsed ? 'Restore reaction' : 'Mark reaction used'}>⚡ {reactionUsed ? 'USED' : 'REACT'}</button> : <span className={`reaction-pill ${reactionUsed ? 'reaction-pill--used' : 'reaction-pill--ready'}`} style={{ cursor: 'default' }}>⚡ {reactionUsed ? 'USED' : 'REACT'}</span>}
-            </div>
+        <div className="card-body player-card-body-reflow">
+          <div className="player-card-line player-card-line--header">
+            <span className="card-name">{combatant?.name}</span>
+            <button className={`reaction-pill ${canEdit ? 'reaction-pill--clickable' : ''} ${reactionUsed ? 'reaction-pill--used' : 'reaction-pill--ready'}`} onClick={handleToggleReaction} disabled={!canEdit} title={reactionUsed ? 'Restore reaction' : 'Mark reaction used'}>⚡ {reactionUsed ? 'USED' : 'REACT'}</button>
           </div>
 
           {pendingConDc !== null && (
             <div className="con-check-banner">
-              <div className="con-check-banner-header"><span className="con-check-label">🔮 CONCENTRATION CHECK</span><span className="con-check-dc">DC {pendingConDc}</span></div>
-              <div className="con-check-actions"><button className="con-check-pass" onClick={handleConPass}>✅ Passed</button><button className="con-check-fail" onClick={handleConFail}>❌ Failed — lose concentration</button></div>
+              <div className="con-check-banner-header"><span className="con-check-label">Concentration Check</span><span className="con-check-dc">DC {pendingConDc}</span></div>
+              <div className="con-check-actions"><button className="con-check-pass" onClick={handleConPass}>Passed</button><button className="con-check-fail" onClick={handleConFail}>Failed</button></div>
             </div>
           )}
 
-          <div className="player-card-priority-grid">
-            <div className="player-ac-block">
-              <span className="player-priority-label">AC</span>
-              <span className="player-ac-value">{armorClass}</span>
-            </div>
+          <button className={`player-concentration-bar ${concentration ? 'player-concentration-bar--active' : ''}`} onClick={handleToggleConcentration} disabled={!canEdit}>
+            <span className="player-concentration-label">Concentration</span>
+            <span className="player-concentration-value">{concentration ? 'Active' : 'Off'}</span>
+          </button>
 
-            <div className="player-card-key-stats">
-              {passivePerception !== null && <div className="player-key-stat"><span className="player-key-stat-label">PP</span><span className="player-key-stat-value">{passivePerception}</span></div>}
-              {spellSaveDc > 0 && <div className="player-key-stat"><span className="player-key-stat-label">Spell DC</span><span className="player-key-stat-value">{spellSaveDc}</span></div>}
-              {!!spellAttackBonus && <div className="player-key-stat"><span className="player-key-stat-label">Spell ATK</span><span className="player-key-stat-value">{formatModifier(spellAttackBonus)}</span></div>}
-              <div className={`player-key-stat ${concentration ? 'player-key-stat--concentration' : ''}`}><span className="player-key-stat-label">Concentration</span><span className="player-key-stat-value">{concentration ? 'Active' : 'Off'}</span></div>
-            </div>
+          <div className="player-card-four-up">
+            <InfoStatBox label="AC" value={armorClass} highlight="ac" />
+            <InfoStatBox label="PP" value={passivePerception ?? '—'} />
+            <InfoStatBox label="Spell DC" value={spellSaveDc > 0 ? spellSaveDc : '—'} />
+            <InfoStatBox label="Spell ATK" value={spellAttackBonus ? formatModifier(spellAttackBonus) : '—'} />
           </div>
 
-          <div style={{ position: 'relative' }}>
-            <div className="hp-bar-track" style={{ height: 10 }}>
-              <div className="hp-bar-fill" style={{ width: `${hpPercent}%`, background: hpColor(hpPercent) }} />
-              {tempHp > 0 && <div className="hp-bar-temp" style={{ left: `${hpPercent}%`, width: `${Math.min(100 - hpPercent, (tempHp / maxHp) * 100)}%` }} />}
+          <div className="player-hp-hero-wrap">
+            <div className="player-hp-hero-track">
+              <div className="player-hp-hero-fill" style={{ width: `${hpPercent}%`, background: hpColor(hpPercent) }} />
+              {tempHp > 0 && <div className="player-hp-hero-temp" style={{ left: `${hpPercent}%`, width: `${Math.min(100 - hpPercent, (tempHp / Math.max(1, maxHp)) * 100)}%` }} />}
+              <div className="player-hp-hero-text">{hp} / {maxHp}{tempHp > 0 ? ` +${tempHp} temp` : ''}</div>
             </div>
-          </div>
-
-          <div className="hp-numbers-row">
-            {!readOnly ? <HpEditableNumber value={hp} onSet={setHpDirect} /> : <span className="hp-value">{hp}</span>}
-            <span className="hp-slash">/</span>
-            <span className="hp-value" style={{ fontSize: 'var(--font-size-sm)', color: maxHpOverride !== null ? 'var(--accent-gold)' : 'var(--text-secondary)' }}>{maxHp}</span>
-            {tempHp > 0 ? <span className="temp-hp-label">+{tempHp} temp</span> : null}
-            {maxHpOverride !== null && <span style={{ fontSize: 10, color: 'var(--accent-gold)', marginLeft: 2 }}>✦</span>}
           </div>
 
           {canEdit && <DmgHealRow onDamage={handleApplyDamage} onHeal={handleApplyHeal} />}
 
+          {hitDiceResource ? <HitDiceRow resource={hitDiceResource} state={state} readOnly={!canRestore} onUpdateFields={updateResourceFields} /> : null}
+
           {canRestore && (
-            <div className="dm-card-adjustment-row">
+            <div className="player-bonus-temp-row">
               <button className="btn btn-ghost dm-card-adjustment-btn dm-card-adjustment-btn--gold" onClick={promptBonusHp}>Bonus HP</button>
               <button className="btn btn-ghost dm-card-adjustment-btn dm-card-adjustment-btn--blue" onClick={promptTempHp}>Temp HP</button>
               {maxHpOverride !== null ? <button className="btn btn-ghost dm-card-adjustment-btn" onClick={resetMaxHp}>Reset HP</button> : null}
             </div>
           )}
 
-          <div className="player-ability-grid">
+          <SectionGrid title="Ability Scores" className="player-ability-grid">
             {ABILITY_KEYS.map(key => (
               <div key={key} className="player-ability-cell">
                 <span className="player-ability-label">{ABILITY_LABELS[key]}</span>
@@ -300,29 +259,24 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
                 <span className="player-ability-mod">{formatModifier(abilityModifiers[key])}</span>
               </div>
             ))}
-          </div>
+          </SectionGrid>
 
-          <div className="player-save-grid">
+          <SectionGrid title="Saving Throws" className="player-save-grid">
             {ABILITY_KEYS.map(key => (
               <div key={key} className="player-save-cell">
                 <span className="player-save-label">{ABILITY_LABELS[key]}</span>
                 <span className="player-save-value">{formatModifier(saveTotals[key])}</span>
               </div>
             ))}
-          </div>
+          </SectionGrid>
 
           {!readOnly && (
-            <div className="player-card-utility-row">
-              <button className="btn btn-ghost player-card-utility-btn" onClick={() => setShowSkills(true)}>Skills</button>
-              <button onClick={handleToggleConcentration} className={`btn btn-ghost player-card-utility-btn ${concentration ? 'player-card-utility-btn--concentration' : ''}`}>🔮 {concentration ? 'Concentration On' : 'Concentration'}</button>
-            </div>
+            <button className="btn btn-ghost player-card-skills-btn" onClick={() => setShowSkills(true)}>Skills</button>
           )}
 
-          {resourceConfigs.length > 0 && <ResourceSection resources={resourceConfigs} state={state} readOnly={readOnly} onUpdateFields={updateResourceFields} />}
+          {otherResources.length > 0 && <ResourceSection resources={otherResources} state={state} readOnly={readOnly} onUpdateFields={updateResourceFields} />}
 
           {profile && <SpellSlotGrid profile={profile} state={state} readOnly={readOnly} canRestore={canRestore} onUpdate={onUpdate} />}
-
-          <ConditionChipRow conditions={state?.conditions || []} concentration={concentration} stateId={state?.id} readOnly={readOnly} onUpdate={onUpdate} />}
 
           {profile?.wildshape_enabled && state && <WildShapeBlock state={state} readOnly={readOnly} canRestore={canRestore} onUpdate={onUpdate} encounterId={encounterId} combatant={combatant} actor={actionActor} />}
         </div>
@@ -330,6 +284,48 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
 
       {!readOnly && profile && <SkillsModal open={showSkills} onClose={() => setShowSkills(false)} profile={profile} title={`${combatant?.name || 'Character'} Skills`} />}
     </>
+  );
+}
+
+function SectionGrid({ title, className, children }) {
+  return (
+    <div className="player-card-section-group">
+      <div className="player-card-section-title">{title}</div>
+      <div className={className}>{children}</div>
+    </div>
+  );
+}
+
+function InfoStatBox({ label, value, highlight = '' }) {
+  return (
+    <div className={`player-info-stat-box ${highlight ? `player-info-stat-box--${highlight}` : ''}`}>
+      <span className="player-info-stat-label">{label}</span>
+      <span className="player-info-stat-value">{value}</span>
+    </div>
+  );
+}
+
+function HitDiceRow({ resource, state, readOnly, onUpdateFields }) {
+  const { current, max } = resolveDisplayedValues(resource, state);
+  async function adjust(delta) {
+    if (readOnly) return;
+    const upperBound = max ?? Math.max(current, 0);
+    const next = Math.max(0, Math.min(upperBound, current + delta));
+    if (next === current) return;
+    await onUpdateFields({ [resource.currentKey]: next, ...(resource.maxKey && max !== null ? { [resource.maxKey]: max } : {}) });
+  }
+  return (
+    <div className="player-hit-dice-row">
+      <div className="player-hit-dice-copy">
+        <span className="player-hit-dice-label">Hit Dice</span>
+        {resource.meta ? <span className="player-hit-dice-meta">{resource.meta}</span> : null}
+      </div>
+      <div className="player-hit-dice-controls">
+        {!readOnly ? <button className="btn btn-icon btn-ghost" style={{ minWidth: 28, minHeight: 28, fontSize: 13 }} onClick={() => adjust(-1)}>−</button> : null}
+        <span className="player-hit-dice-value">{current}{max !== null ? ` / ${max}` : ''}</span>
+        {!readOnly ? <button className="btn btn-icon btn-ghost" style={{ minWidth: 28, minHeight: 28, fontSize: 13 }} onClick={() => adjust(1)}>+</button> : null}
+      </div>
+    </div>
   );
 }
 
