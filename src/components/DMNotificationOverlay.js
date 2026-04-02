@@ -3,7 +3,7 @@ import { supabase } from '../supabaseClient';
 import usePolling from '../hooks/usePolling';
 import { appendDismissedId, readDismissedIds } from '../utils/dmAlertDismissals';
 
-export default function DMNotificationOverlay({ encounterId, docked = false, bottomOffset = 0 }) {
+export default function DMNotificationOverlay({ encounterId, inline = false, docked = false, bottomOffset = 0 }) {
   const [secretRolls, setSecretRolls] = useState([]);
   const [conChecks, setConChecks] = useState([]);
   const [dismissedRollIds, setDismissedRollIds] = useState(() => readDismissedIds(encounterId, 'rolls'));
@@ -39,11 +39,14 @@ export default function DMNotificationOverlay({ encounterId, docked = false, bot
 
   if (visibleRolls.length === 0 && visibleChecks.length === 0) return null;
 
+  const stackStyle = inline
+    ? { position: 'relative', inset: 'auto', left: 'auto', right: 'auto', top: 'auto', bottom: 'auto', maxWidth: 'none', width: '100%' }
+    : docked
+      ? { top: 'auto', bottom: bottomOffset, left: 12, right: 12, maxWidth: 'none' }
+      : undefined;
+
   return (
-    <div
-      className="dm-notification-stack"
-      style={docked ? { top: 'auto', bottom: bottomOffset, left: 12, right: 12, maxWidth: 'none' } : undefined}
-    >
+    <div className="dm-notification-stack" style={stackStyle}>
       {visibleChecks.map(check => (
         <div key={`check-${check.id}`} className="dm-notification-card dm-notification-card--alert">
           <div className="dm-notification-main">
