@@ -3,9 +3,17 @@ import { supabase } from '../supabaseClient';
 import ConditionChipRow from './ConditionChipRow';
 import SpellSlotGrid from './SpellSlotGrid';
 import WildShapeBlock from './WildShapeBlock';
+import SkillsModal from './SkillsModal';
 import {
   readNumberField,
   getClassEntries,
+  ABILITY_KEYS,
+  getAbilityScores,
+  getAbilityModifiers,
+  getSavingThrowTotals,
+  getFinalSpellSaveDC,
+  getFinalSpellAttackBonus,
+  formatModifier,
 } from '../utils/classResources';
 import {
   RESOURCE_SURFACES,
@@ -66,6 +74,8 @@ function resolveDisplayedValues(resource, state) {
   };
 }
 
+const ABILITY_LABELS = { str: 'STR', dex: 'DEX', con: 'CON', int: 'INT', wis: 'WIS', cha: 'CHA' };
+
 export default function PlayerCard({ combatant, state, role, isEditMode, encounterId, onUpdate }) {
   const profile = state?.profiles_players;
   const canEdit = role === 'dm' || role === 'player';
@@ -73,8 +83,9 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   const canRestore = role === 'dm';
   const isPlayer = role === 'player';
   const actionActor = isPlayer ? (profile?.name || 'Player') : 'DM';
-
   const [localHp, setLocalHp] = useState(null);
+  const [showSkills, setShowSkills] = useState(false);
+
   const dbHp = state?.current_hp ?? combatant?.hp_current ?? 0;
   const hp = localHp !== null ? localHp : dbHp;
   const profileMax = profile?.max_hp ?? combatant?.hp_max ?? 1;
@@ -91,6 +102,12 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   const classEntries = getClassEntries(profile || {});
   const resourceConfigs = getSurfaceResourceConfig(profile || {}, state || {}, RESOURCE_SURFACES.PLAYER_CARD)
     .filter(resource => resource.id !== 'warlock-slots');
+  const abilityScores = getAbilityScores(profile || {});
+  const abilityModifiers = getAbilityModifiers(profile || {});
+  const saveTotals = getSavingThrowTotals(profile || {});
+  const spellSaveDc = profile?.spell_save_dc || getFinalSpellSaveDC(profile || {});
+  const spellAttackBonus = profile?.spell_attack_bonus || getFinalSpellAttackBonus(profile || {});
+  const armorClass = profile?.ac ?? combatant?.ac ?? '—';
 
   useEffect(() => {
     setLocalHp(null);
@@ -151,9 +168,8 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   async function resetMaxHp() {
     if (!state || !canRestore) return;
     const newHp = Math.min(hp, profileMax);
-    const updates = { max_hp_override: null, current_hp: newHp };
     setLocalHp(newHp);
-    await supabase.from('player_encounter_state').update(updates).eq('id', state.id);
+    await supabase.from('player_encounter_state').update({ max_hp_override: null, current_hp: newHp }).eq('id', state.id);
     onUpdate();
   }
 
@@ -202,82 +218,118 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   const initials = (combatant?.name || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 
   return (
-    <div className="player-card">
-      <div className="portrait-strip">
-        {profile?.portrait_url ? <img src={profile.portrait_url} alt={combatant.name} className="portrait-img" /> : <div className="portrait-placeholder"><span className="portrait-initials">{initials}</span></div>}
+    <>
+      <div className="player-card">
+        <div className="portrait-strip">
+          {profile?.portrait_url ? <img src={profile.portrait_url} alt={combatant.name} className="portrait-img" /> : <div className="portrait-placeholder"><span className="portrait-initials">{initials}</span></div>}
+        </div>
+
+        <div className="card-body">
+          <div className="card-header-row">
+            <div className="player-card-name-stack">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                <span className="card-name">{combatant?.name}</span>
+                {isBloodied && <span className="badge badge-bloodied">BLOODIED</span>}
+                {concentration && <span className="player-card-con-pill">Concentrating</span>}
+              </div>
+              {(classLine || ancestryLine) && (
+                <div className="player-class-line" style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {classEntries.length > 0 && <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>{classEntries.map((entry, index) => <span key={`${entry.displayClass}-${index}`} style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 }}>{formatSingleClassEntry(entry)}</span>)}</div>}
+                  {!classEntries.length && classLine && <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 }}>{classLine}</span>}
+                  {ancestryLine && <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{ancestryLine}</span>}
+                </div>
+              )}
+            </div>
+
+            <div className="card-header-badges">
+              {canEdit ? <button className={`reaction-pill reaction-pill--clickable ${reactionUsed ? 'reaction-pill--used' : 'reaction-pill--ready'}`} onClick={handleToggleReaction} title={reactionUsed ? 'Restore reaction' : 'Mark reaction used'}>⚡ {reactionUsed ? 'USED' : 'REACT'}</button> : <span className={`reaction-pill ${reactionUsed ? 'reaction-pill--used' : 'reaction-pill--ready'}`} style={{ cursor: 'default' }}>⚡ {reactionUsed ? 'USED' : 'REACT'}</span>}
+            </div>
+          </div>
+
+          {pendingConDc !== null && (
+            <div className="con-check-banner">
+              <div className="con-check-banner-header"><span className="con-check-label">🔮 CONCENTRATION CHECK</span><span className="con-check-dc">DC {pendingConDc}</span></div>
+              <div className="con-check-actions"><button className="con-check-pass" onClick={handleConPass}>✅ Passed</button><button className="con-check-fail" onClick={handleConFail}>❌ Failed — lose concentration</button></div>
+            </div>
+          )}
+
+          <div className="player-card-priority-grid">
+            <div className="player-ac-block">
+              <span className="player-priority-label">AC</span>
+              <span className="player-ac-value">{armorClass}</span>
+            </div>
+
+            <div className="player-card-key-stats">
+              {passivePerception !== null && <div className="player-key-stat"><span className="player-key-stat-label">PP</span><span className="player-key-stat-value">{passivePerception}</span></div>}
+              {spellSaveDc > 0 && <div className="player-key-stat"><span className="player-key-stat-label">Spell DC</span><span className="player-key-stat-value">{spellSaveDc}</span></div>}
+              {!!spellAttackBonus && <div className="player-key-stat"><span className="player-key-stat-label">Spell ATK</span><span className="player-key-stat-value">{formatModifier(spellAttackBonus)}</span></div>}
+              <div className={`player-key-stat ${concentration ? 'player-key-stat--concentration' : ''}`}><span className="player-key-stat-label">Concentration</span><span className="player-key-stat-value">{concentration ? 'Active' : 'Off'}</span></div>
+            </div>
+          </div>
+
+          <div style={{ position: 'relative' }}>
+            <div className="hp-bar-track" style={{ height: 10 }}>
+              <div className="hp-bar-fill" style={{ width: `${hpPercent}%`, background: hpColor(hpPercent) }} />
+              {tempHp > 0 && <div className="hp-bar-temp" style={{ left: `${hpPercent}%`, width: `${Math.min(100 - hpPercent, (tempHp / maxHp) * 100)}%` }} />}
+            </div>
+          </div>
+
+          <div className="hp-numbers-row">
+            {!readOnly ? <HpEditableNumber value={hp} onSet={setHpDirect} /> : <span className="hp-value">{hp}</span>}
+            <span className="hp-slash">/</span>
+            <span className="hp-value" style={{ fontSize: 'var(--font-size-sm)', color: maxHpOverride !== null ? 'var(--accent-gold)' : 'var(--text-secondary)' }}>{maxHp}</span>
+            {tempHp > 0 ? <span className="temp-hp-label">+{tempHp} temp</span> : null}
+            {maxHpOverride !== null && <span style={{ fontSize: 10, color: 'var(--accent-gold)', marginLeft: 2 }}>✦</span>}
+          </div>
+
+          {canEdit && <DmgHealRow onDamage={handleApplyDamage} onHeal={handleApplyHeal} />}
+
+          {canRestore && (
+            <div className="dm-card-adjustment-row">
+              <button className="btn btn-ghost dm-card-adjustment-btn dm-card-adjustment-btn--gold" onClick={promptBonusHp}>Bonus HP</button>
+              <button className="btn btn-ghost dm-card-adjustment-btn dm-card-adjustment-btn--blue" onClick={promptTempHp}>Temp HP</button>
+              {maxHpOverride !== null ? <button className="btn btn-ghost dm-card-adjustment-btn" onClick={resetMaxHp}>Reset HP</button> : null}
+            </div>
+          )}
+
+          <div className="player-ability-grid">
+            {ABILITY_KEYS.map(key => (
+              <div key={key} className="player-ability-cell">
+                <span className="player-ability-label">{ABILITY_LABELS[key]}</span>
+                <span className="player-ability-score">{abilityScores[key]}</span>
+                <span className="player-ability-mod">{formatModifier(abilityModifiers[key])}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="player-save-grid">
+            {ABILITY_KEYS.map(key => (
+              <div key={key} className="player-save-cell">
+                <span className="player-save-label">{ABILITY_LABELS[key]}</span>
+                <span className="player-save-value">{formatModifier(saveTotals[key])}</span>
+              </div>
+            ))}
+          </div>
+
+          {!readOnly && (
+            <div className="player-card-utility-row">
+              <button className="btn btn-ghost player-card-utility-btn" onClick={() => setShowSkills(true)}>Skills</button>
+              <button onClick={handleToggleConcentration} className={`btn btn-ghost player-card-utility-btn ${concentration ? 'player-card-utility-btn--concentration' : ''}`}>🔮 {concentration ? 'Concentration On' : 'Concentration'}</button>
+            </div>
+          )}
+
+          {resourceConfigs.length > 0 && <ResourceSection resources={resourceConfigs} state={state} readOnly={readOnly} onUpdateFields={updateResourceFields} />}
+
+          {profile && <SpellSlotGrid profile={profile} state={state} readOnly={readOnly} canRestore={canRestore} onUpdate={onUpdate} />}
+
+          <ConditionChipRow conditions={state?.conditions || []} concentration={concentration} stateId={state?.id} readOnly={readOnly} onUpdate={onUpdate} />}
+
+          {profile?.wildshape_enabled && state && <WildShapeBlock state={state} readOnly={readOnly} canRestore={canRestore} onUpdate={onUpdate} encounterId={encounterId} combatant={combatant} actor={actionActor} />}
+        </div>
       </div>
-      <div className="card-body">
-        <div className="card-header-row">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', flex: 1 }}>
-            <span className="card-name">{combatant?.name}</span>
-            {isBloodied && <span className="badge badge-bloodied">BLOODIED</span>}
-          </div>
-          <div className="card-header-badges">
-            {canEdit ? <button className={`reaction-pill reaction-pill--clickable ${reactionUsed ? 'reaction-pill--used' : 'reaction-pill--ready'}`} onClick={handleToggleReaction} title={reactionUsed ? 'Restore reaction' : 'Mark reaction used'}>⚡ {reactionUsed ? 'USED' : 'REACT'}</button> : <span className={`reaction-pill ${reactionUsed ? 'reaction-pill--used' : 'reaction-pill--ready'}`} style={{ cursor: 'default' }}>⚡ {reactionUsed ? 'USED' : 'REACT'}</span>}
-          </div>
-        </div>
 
-        {(classLine || ancestryLine) && (
-          <div className="player-class-line" style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            {classEntries.length > 0 && <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>{classEntries.map((entry, index) => <span key={`${entry.displayClass}-${index}`} style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 }}>{formatSingleClassEntry(entry)}</span>)}</div>}
-            {!classEntries.length && classLine && <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 }}>{classLine}</span>}
-            {ancestryLine && <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{ancestryLine}</span>}
-          </div>
-        )}
-
-        {pendingConDc !== null && (
-          <div className="con-check-banner">
-            <div className="con-check-banner-header"><span className="con-check-label">🔮 CONCENTRATION CHECK</span><span className="con-check-dc">DC {pendingConDc}</span></div>
-            <div className="con-check-actions"><button className="con-check-pass" onClick={handleConPass}>✅ Passed</button><button className="con-check-fail" onClick={handleConFail}>❌ Failed — lose concentration</button></div>
-          </div>
-        )}
-
-        <div style={{ position: 'relative' }}>
-          <div className="hp-bar-track" style={{ height: 10 }}>
-            <div className="hp-bar-fill" style={{ width: `${hpPercent}%`, background: hpColor(hpPercent) }} />
-            {tempHp > 0 && <div className="hp-bar-temp" style={{ left: `${hpPercent}%`, width: `${Math.min(100 - hpPercent, (tempHp / maxHp) * 100)}%` }} />}
-          </div>
-        </div>
-
-        <div className="hp-numbers-row">
-          {!readOnly ? <HpEditableNumber value={hp} onSet={setHpDirect} /> : <span className="hp-value">{hp}</span>}
-          <span className="hp-slash">/</span>
-          <span className="hp-value" style={{ fontSize: 'var(--font-size-sm)', color: maxHpOverride !== null ? 'var(--accent-gold)' : 'var(--text-secondary)' }}>{maxHp}</span>
-          {tempHp > 0 ? <span className="temp-hp-label">+{tempHp} temp</span> : null}
-          {maxHpOverride !== null && <span style={{ fontSize: 10, color: 'var(--accent-gold)', marginLeft: 2 }}>✦</span>}
-        </div>
-
-        {canEdit && <DmgHealRow onDamage={handleApplyDamage} onHeal={handleApplyHeal} />}
-
-        {canRestore && (
-          <div className="dm-card-adjustment-row">
-            <button className="btn btn-ghost dm-card-adjustment-btn dm-card-adjustment-btn--gold" onClick={promptBonusHp}>Bonus HP</button>
-            <button className="btn btn-ghost dm-card-adjustment-btn dm-card-adjustment-btn--blue" onClick={promptTempHp}>Temp HP</button>
-            {maxHpOverride !== null ? <button className="btn btn-ghost dm-card-adjustment-btn" onClick={resetMaxHp}>Reset HP</button> : null}
-          </div>
-        )}
-
-        <div className="stats-row">
-          <StatPill label="AC" value={profile?.ac ?? combatant?.ac ?? '—'} />
-          {passivePerception !== null && <StatPill label="PP" value={passivePerception} />}
-          {profile?.spell_save_dc > 0 && <StatPill label="Spell DC" value={profile.spell_save_dc} />}
-          {!!profile?.spell_attack_bonus && <StatPill label="Spell ATK" value={`+${profile.spell_attack_bonus}`} />}
-        </div>
-
-        {resourceConfigs.length > 0 && <ResourceSection resources={resourceConfigs} state={state} readOnly={readOnly} onUpdateFields={updateResourceFields} />}
-
-        {profile && <div className="saves-grid">{['str', 'dex', 'con', 'int', 'wis', 'cha'].map(s => <div key={s} className="save-cell"><span className="save-label">{s.toUpperCase()}</span><span className="save-value">{formatMod(profile[`save_${s}`])}</span></div>)}</div>}
-
-        {profile && <SpellSlotGrid profile={profile} state={state} readOnly={readOnly} canRestore={canRestore} onUpdate={onUpdate} />}
-
-        <ConditionChipRow conditions={state?.conditions || []} concentration={concentration} stateId={state?.id} readOnly={readOnly} onUpdate={onUpdate} />
-
-        {!readOnly && <button onClick={handleToggleConcentration} style={{ alignSelf: 'flex-start', fontSize: 11, padding: '3px 9px', borderRadius: 'var(--radius-sm)', border: `1px solid ${concentration ? 'var(--accent-gold)' : 'var(--border-strong)'}`, background: concentration ? '#3a2e00' : 'var(--bg-panel-3)', color: concentration ? 'var(--accent-gold)' : 'var(--text-secondary)', cursor: 'pointer', fontWeight: 600, transition: 'all 0.15s' }}>🔮 {concentration ? 'Concentrating' : 'Concentration'}</button>}
-        {readOnly && concentration && <span className="condition-chip condition-chip-con">CON</span>}
-
-        {profile?.wildshape_enabled && state && <WildShapeBlock state={state} readOnly={readOnly} canRestore={canRestore} onUpdate={onUpdate} encounterId={encounterId} combatant={combatant} actor={actionActor} />}
-      </div>
-    </div>
+      {!readOnly && profile && <SkillsModal open={showSkills} onClose={() => setShowSkills(false)} profile={profile} title={`${combatant?.name || 'Character'} Skills`} />}
+    </>
   );
 }
 
@@ -336,6 +388,12 @@ function ResourceRow({ resource, state, readOnly, onUpdateFields }) {
   return <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}><div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between', flexWrap: 'wrap' }}><span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{resource.label}</span><span style={{ fontSize: 11, color: isWarlockSlots ? accentColor : 'var(--text-muted)' }}>{[resource.meta, `${safeCurrent}/${safeMax}`].filter(Boolean).join(' • ')}</span></div><div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>{Array.from({ length: safeMax }).map((_, i) => { const active = i < safeCurrent; return <button key={i} type="button" onClick={() => setPips(active ? i : i + 1)} disabled={readOnly} title={readOnly ? undefined : active ? 'Spend / reduce' : 'Restore / add'} style={{ width: 16, height: 16, borderRadius: '50%', padding: 0, border: `2px solid ${active ? accentColor : 'var(--border-strong)'}`, background: active ? accentFill : 'transparent', cursor: readOnly ? 'default' : 'pointer', opacity: readOnly ? 0.9 : 1 }} />; })}{safeMax === 0 && <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>No charges</span>}</div></div>;
 }
 
-function StatPill({ label, value }) { return <div className="stat-pill"><span className="stat-pill-label">{label}</span><span className="stat-pill-value">{value}</span></div>; }
-function formatMod(val) { const n = parseInt(val, 10); if (Number.isNaN(n)) return '—'; return n >= 0 ? `+${n}` : `${n}`; }
-function HpEditableNumber({ value, onSet }) { const [editing, setEditing] = useState(false); const [draft, setDraft] = useState(String(value)); const inputRef = useRef(null); useEffect(() => { if (!editing) setDraft(String(value)); }, [value, editing]); function commit() { setEditing(false); const n = parseInt(draft, 10); if (!Number.isNaN(n) && n !== value) onSet(n); } if (!editing) return <span className="hp-value hp-editable" onClick={() => { setDraft(String(value)); setEditing(true); setTimeout(() => inputRef.current?.select(), 0); }}>{value}</span>; return <input ref={inputRef} className="hp-inline-input hp-value" type="number" value={draft} onChange={e => setDraft(e.target.value)} onBlur={commit} onKeyDown={e => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') setEditing(false); }} autoFocus />; }
+function HpEditableNumber({ value, onSet }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(String(value));
+  const inputRef = useRef(null);
+  useEffect(() => { if (!editing) setDraft(String(value)); }, [value, editing]);
+  function commit() { setEditing(false); const n = parseInt(draft, 10); if (!Number.isNaN(n) && n !== value) onSet(n); }
+  if (!editing) return <span className="hp-value hp-editable" onClick={() => { setDraft(String(value)); setEditing(true); setTimeout(() => inputRef.current?.select(), 0); }}>{value}</span>;
+  return <input ref={inputRef} className="hp-inline-input hp-value" type="number" value={draft} onChange={e => setDraft(e.target.value)} onBlur={commit} onKeyDown={e => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') setEditing(false); }} autoFocus />;
+}

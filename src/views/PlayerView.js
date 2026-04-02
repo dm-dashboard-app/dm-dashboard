@@ -5,6 +5,7 @@ import PlayerCard from '../components/PlayerCard';
 import InitiativePanel from '../components/InitiativePanelNext';
 import SecretRollPanel from '../components/SecretRollPanel';
 import SpellbookPanel from '../components/SpellbookPanel';
+import SkillsModal from '../components/SkillsModal';
 import { flattenStates } from './player/playerViewUtils';
 import PlayerConCheckLog from './player/PlayerConCheckLog';
 
@@ -102,35 +103,37 @@ export default function PlayerView() {
     refreshAll();
   }
 
-  if (loading) return <div className="splash"><div className="splash-text">Joining session…</div></div>;
-  if (error) return <div className="splash"><div className="splash-text">⚠ {error}</div><button className="btn btn-ghost" onClick={handleLeave}>Back to Join Screen</button></div>;
+  if (loading) return <div className="splash"><div className="splash-text">Joining session...</div></div>;
+  if (error) return <div className="splash"><div className="splash-text">Warning: {error}</div><button className="btn btn-ghost" onClick={handleLeave}>Back to Join Screen</button></div>;
 
   return (
     <div className="app-shell">
       <div className="shell-nav-stack">
         <div className="top-bar"><div className="top-bar-spacer" /></div>
         <div className="tab-bar">
-          <button className={`tab-btn ${tab === 'char' ? 'active' : ''}`} onClick={() => setTab('char')}>🧙 Char</button>
-          <button className={`tab-btn ${tab === 'spells' ? 'active' : ''}`} onClick={() => setTab('spells')}>✨ Spells</button>
-          <button className={`tab-btn ${tab === 'combat' ? 'active' : ''}`} onClick={() => setTab('combat')}>⚔ Combat</button>
-          <button className={`tab-btn ${tab === 'rolls' ? 'active' : ''}`} onClick={() => setTab('rolls')}>🎲 Rolls</button>
-          <button className={`tab-btn ${tab === 'con' ? 'active' : ''}`} onClick={() => setTab('con')}>🔮 CON{pendingConDc !== null ? <span className="tab-badge">!</span> : ''}</button>
+          <button className={`tab-btn ${tab === 'char' ? 'active' : ''}`} onClick={() => setTab('char')}>Char</button>
+          <button className={`tab-btn ${tab === 'skills' ? 'active' : ''}`} onClick={() => setTab('skills')}>Skills</button>
+          <button className={`tab-btn ${tab === 'spells' ? 'active' : ''}`} onClick={() => setTab('spells')}>Spells</button>
+          <button className={`tab-btn ${tab === 'combat' ? 'active' : ''}`} onClick={() => setTab('combat')}>Combat</button>
+          <button className={`tab-btn ${tab === 'rolls' ? 'active' : ''}`} onClick={() => setTab('rolls')}>Rolls</button>
+          <button className={`tab-btn ${tab === 'con' ? 'active' : ''}`} onClick={() => setTab('con')}>CON{pendingConDc !== null ? <span className="tab-badge">!</span> : ''}</button>
         </div>
       </div>
 
       {pendingConDc !== null && tab !== 'char' && tab !== 'con' && (
-        <div style={{ background: 'rgba(240,180,41,0.12)', borderBottom: '1.5px solid var(--accent-gold)', padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: 'pointer' }} onClick={() => setTab('con')}><span style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent-gold)' }}>🔮 CON Save Required — DC {pendingConDc}</span><span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Tap to confirm →</span></div>
+        <div style={{ background: 'rgba(240,180,41,0.12)', borderBottom: '1.5px solid var(--accent-gold)', padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: 'pointer' }} onClick={() => setTab('con')}><span style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent-gold)' }}>CON Save Required - DC {pendingConDc}</span><span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Tap to confirm</span></div>
       )}
 
       <div className="main-content">
         {tab === 'char' && combatant && state && <PlayerCard combatant={combatant} state={state} role="player" isEditMode={encounter?.player_edit_mode} encounterId={encounterId} onUpdate={refreshAll} />}
+        {tab === 'skills' && state?.profiles_players && <SkillsModal variant="panel" profile={state.profiles_players} title="Skills" />}
         {tab === 'spells' && state?.profiles_players && <SpellbookPanel profile={state.profiles_players} state={state} encounterId={encounterId} onUpdate={refreshAll} role="player" />}
         {tab === 'combat' && (
           <>
             <div className="initiative-top-bar">
               <div className="initiative-top-bar-primary">Round {encounter?.round || 1}</div>
             </div>
-            {combatant && <div className="panel"><div className="panel-title">Initiative</div><div className="form-row"><input className="form-input" type="number" inputMode="numeric" value={initiativeInput} onChange={e => setInitiativeInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSubmitInitiative()} style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, width: 140, textAlign: 'center' }} /><button className={`btn ${initSuccess ? 'btn-success' : 'btn-primary'}`} onClick={handleSubmitInitiative} disabled={!initiativeInput}>{initSuccess ? '✓ Set' : 'Set Initiative'}</button></div>{initError && <div style={{ color: 'var(--accent-red)', fontSize: 12, marginTop: 4 }}>{initError}</div>}</div>}
+            {combatant && <div className="panel"><div className="panel-title">Initiative</div><div className="form-row"><input className="form-input" type="number" inputMode="numeric" value={initiativeInput} onChange={e => setInitiativeInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSubmitInitiative()} style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, width: 140, textAlign: 'center' }} /><button className={`btn ${initSuccess ? 'btn-success' : 'btn-primary'}`} onClick={handleSubmitInitiative} disabled={!initiativeInput}>{initSuccess ? 'Set' : 'Set Initiative'}</button></div>{initError && <div style={{ color: 'var(--accent-red)', fontSize: 12, marginTop: 4 }}>{initError}</div>}</div>}
             <InitiativePanel encounter={encounter} combatants={combatants} playerStates={playerStates} role="player" myCombatantId={combatant?.id} onUpdate={refreshAll} />
           </>
         )}
