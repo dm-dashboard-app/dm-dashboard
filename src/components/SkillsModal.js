@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   SKILL_DEFINITIONS,
   getAbilityModifiers,
@@ -54,6 +54,21 @@ function SkillContent({ profile }) {
 }
 
 export default function SkillsModal({ open = false, onClose = null, profile, title = 'Skills', variant = 'modal' }) {
+  useEffect(() => {
+    if (variant === 'panel' || !open) return undefined;
+
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = originalBodyOverflow;
+      document.documentElement.style.overflow = originalHtmlOverflow;
+    };
+  }, [open, variant]);
+
   if (!profile) return null;
 
   if (variant === 'panel') {
@@ -69,7 +84,7 @@ export default function SkillsModal({ open = false, onClose = null, profile, tit
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-panel skills-modal-panel" onClick={e => e.stopPropagation()}>
+      <div className="modal-panel skills-modal-panel" onClick={e => e.stopPropagation()} style={{ maxHeight: 'min(86vh, 900px)', overflowY: 'auto' }}>
         <div className="modal-header">
           <div>
             <div className="panel-title" style={{ marginBottom: 4 }}>{title}</div>
