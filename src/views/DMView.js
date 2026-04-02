@@ -20,16 +20,26 @@ function buildLongRestStatePatch(state = {}) {
   const profileMax = readNumberField(profile, ['max_hp'], 0);
   const maxHp = maxHpOverride !== null ? maxHpOverride : profileMax;
 
-  if (maxHp > 0) patch.current_hp = maxHp;
+  if (maxHp > 0 && Object.prototype.hasOwnProperty.call(state, 'current_hp')) {
+    patch.current_hp = maxHp;
+  }
 
-  const currentConditions = state.conditions || [];
-  patch.conditions = currentConditions.filter(code => code !== 'UNC' && code !== 'PRN');
-  patch.concentration = false;
-  patch.concentration_check_dc = null;
-  patch.concentration_spell_id = null;
+  if (Object.prototype.hasOwnProperty.call(state, 'conditions')) {
+    const currentConditions = state.conditions || [];
+    patch.conditions = currentConditions.filter(code => code !== 'UNC' && code !== 'PRN');
+  }
+
+  if (Object.prototype.hasOwnProperty.call(state, 'concentration')) patch.concentration = false;
+  if (Object.prototype.hasOwnProperty.call(state, 'concentration_check_dc')) patch.concentration_check_dc = null;
+  if (Object.prototype.hasOwnProperty.call(state, 'concentration_spell_id')) patch.concentration_spell_id = null;
+  if (Object.prototype.hasOwnProperty.call(state, 'wildshape_active')) patch.wildshape_active = false;
+  if (Object.prototype.hasOwnProperty.call(state, 'wildshape_form_id')) patch.wildshape_form_id = null;
+  if (Object.prototype.hasOwnProperty.call(state, 'wildshape_hp_current')) patch.wildshape_hp_current = null;
 
   for (let level = 1; level <= 9; level += 1) {
-    patch[`slots_used_${level}`] = 0;
+    if (Object.prototype.hasOwnProperty.call(state, `slots_used_${level}`)) {
+      patch[`slots_used_${level}`] = 0;
+    }
   }
 
   return patch;
@@ -49,12 +59,22 @@ export default function DMView() {
   const [recentRollCount, setRecentRollCount] = useState(0);
   const [recentAlertCount, setRecentAlertCount] = useState(0);
 
-  useEffect(() => { loadLatestEncounter(); }, []);
+  useEffect(() => {
+    loadLatestEncounter();
+  }, []);
 
   async function loadLatestEncounter() {
     setLoading(true);
-    const { data } = await supabase.from('encounters').select('*').order('created_at', { ascending: false }).limit(1).maybeSingle();
-    if (data) { setEncounter(data); setEncounterId(data.id); }
+    const { data } = await supabase
+      .from('encounters')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (data) {
+      setEncounter(data);
+      setEncounterId(data.id);
+    }
     setLoading(false);
   }
 
@@ -126,22 +146,30 @@ export default function DMView() {
       .from('player_encounter_state')
       .select('*, profiles_players(*), profiles_wildshape(form_name, hp_max)')
       .eq('encounter_id', encounter.id);
+
     if (latestStatesError) return;
 
     const states = flattenStates(latestStates || []);
-
-    await supabase.rpc('long_rest', { p_encounter_id: encounter.id });
-
-    await Promise.all(
-      states.map(state => {
+    const updateResults = await Promise.all(
+      states.map(async state => {
         const patch = buildLongRestStatePatch(state);
         return supabase.from('player_encounter_state').update(patch).eq('id', state.id);
       })
     );
 
+    const failedUpdate = updateResults.find(result => result.error);
+    if (failedUpdate?.error) {
+      return;
+    }
+
     await supabase.from('concentration_checks').update({ result: 'cleared' }).eq('encounter_id', encounter.id).eq('result', 'pending');
     await supabase.from('encounters').update({ round: 1, turn_index: 0 }).eq('id', encounter.id);
-    await supabase.from('combat_log').insert({ encounter_id: encounter.id, actor: 'DM', action: 'rest', detail: 'Long Rest completed — HP, concentration, and spell resources restored and round reset to 1' });
+    await supabase.from('combat_log').insert({
+      encounter_id: encounter.id,
+      actor: 'DM',
+      action: 'rest',
+      detail: 'Long Rest completed — HP, spell slots, concentration, and Wild Shape reset',
+    });
     await refreshAll();
     await refreshActivityPresence();
   }
@@ -153,10 +181,12 @@ export default function DMView() {
       const reroll = combatants.filter(c => c.side !== 'PC');
       if (!window.confirm('All enemies already have initiative. Reroll everyone and reset round to 1?')) return;
       setRollingInit(true);
-      await Promise.all(reroll.map(c => {
-        const roll = Math.floor(Math.random() * 20) + 1 + (c.initiative_mod ?? 0);
-        return supabase.rpc('set_initiative', { p_combatant_id: c.id, p_total: roll });
-      }));
+      await Promise.all(
+        reroll.map(c => {
+          const roll = Math.floor(Math.random() * 20) + 1 + (c.initiative_mod ?? 0);
+          return supabase.rpc('set_initiative', { p_combatant_id: c.id, p_total: roll });
+        })
+      );
       await supabase.from('encounters').update({ round: 1, turn_index: 0 }).eq('id', encounter.id);
       setRollingInit(false);
       refreshAll();
@@ -164,23 +194,39 @@ export default function DMView() {
     }
 
     setRollingInit(true);
-    await Promise.all(targets.map(c => {
-      const roll = Math.floor(Math.random() * 20) + 1 + (c.initiative_mod ?? 0);
-      return supabase.rpc('set_initiative', { p_combatant_id: c.id, p_total: roll });
-    }));
+    await Promise.all(
+      targets.map(c => {
+        const roll = Math.floor(Math.random() * 20) + 1 + (c.initiative_mod ?? 0);
+        return supabase.rpc('set_initiative', { p_combatant_id: c.id, p_total: roll });
+      })
+    );
     await supabase.from('encounters').update({ round: 1, turn_index: 0 }).eq('id', encounter.id);
     setRollingInit(false);
     refreshAll();
   }
 
   function handleFrontScreen() {
-    setEncounter(null); setEncounterId(null); setCombatants([]); setPlayerStates([]); setDisplayToken(null); setJoinCodes([]); setTab('manage');
+    setEncounter(null);
+    setEncounterId(null);
+    setCombatants([]);
+    setPlayerStates([]);
+    setDisplayToken(null);
+    setJoinCodes([]);
+    setTab('manage');
   }
 
   if (loading) return <div className="splash"><div className="splash-text">Loading…</div></div>;
 
   if (!encounter) {
-    return <div className="app-shell"><div className="top-bar"><span className="top-bar-title">DM Dashboard</span></div><div className="main-content"><EncounterSetup onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); setTab('combat'); }} /><ManagementScreens currentEncounter={null} displayToken={null} joinCodes={[]} onToggleEditMode={null} onGenerateDisplayToken={null} onRevokeDisplayToken={null} onFrontScreen={null} onSignOut={signOut} /></div></div>;
+    return (
+      <div className="app-shell">
+        <div className="top-bar"><span className="top-bar-title">DM Dashboard</span></div>
+        <div className="main-content">
+          <EncounterSetup onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); setTab('combat'); }} />
+          <ManagementScreens currentEncounter={null} displayToken={null} joinCodes={[]} onToggleEditMode={null} onGenerateDisplayToken={null} onRevokeDisplayToken={null} onFrontScreen={null} onSignOut={signOut} />
+        </div>
+      </div>
+    );
   }
 
   const pcCombatants = combatants.filter(c => c.side === 'PC');
@@ -208,9 +254,36 @@ export default function DMView() {
       </div>
 
       <div className="main-content">
-        {tab === 'combat' && <div className="dm-combat-layout"><div className="dm-initiative-column"><div className="panel" style={{ marginBottom: 12 }}><div className="panel-title">Round {encounter.round}</div><div className="dm-live-session-actions">{nonPcCount > 0 && <button className="btn btn-ghost" onClick={handleRollEnemyInitiative} disabled={rollingInit}>{rollingInit ? 'Rolling…' : 'Roll Enemy Initiative'}</button>}<button className="btn btn-ghost" onClick={() => setShortRestOpen(true)}>Open Short Rest</button><button className="btn btn-ghost" onClick={() => setTab('players')}>Open Players</button><button className="btn btn-ghost" onClick={() => setTab('activity')}>Open Activity{activityCount > 0 ? ` (${activityCount})` : ''}</button></div></div><InitiativePanel encounter={encounter} combatants={combatants} playerStates={playerStates} role="dm" onUpdate={refreshAll} /></div></div>}
-        {tab === 'players' && <DMPlayerCardsSection combatants={pcCombatants} playerStates={playerStates} encounterId={encounter.id} playerEditMode={encounter.player_edit_mode} onUpdate={refreshAll} />}
-        {tab === 'activity' && <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}><RecentAlertsStrip encounterId={encounter.id} expanded onToggle={() => {}} /><SecretRollInbox encounterId={encounter.id} /><DMCombatLog encounterId={encounter.id} /></div>}
+        {tab === 'combat' && (
+          <div className="dm-combat-layout">
+            <div className="dm-initiative-column">
+              <div className="panel" style={{ marginBottom: 12 }}>
+                <div className="panel-title">Round {encounter.round}</div>
+                <div className="dm-live-session-actions">
+                  {nonPcCount > 0 && <button className="btn btn-ghost" onClick={handleRollEnemyInitiative} disabled={rollingInit}>{rollingInit ? 'Rolling…' : 'Roll Enemy Initiative'}</button>}
+                  <button className="btn btn-ghost" onClick={() => setShortRestOpen(true)}>Open Short Rest</button>
+                  <button className="btn btn-ghost" onClick={() => setTab('players')}>Open Players</button>
+                  <button className="btn btn-ghost" onClick={() => setTab('activity')}>Open Activity{activityCount > 0 ? ` (${activityCount})` : ''}</button>
+                </div>
+              </div>
+
+              <InitiativePanel encounter={encounter} combatants={combatants} playerStates={playerStates} role="dm" onUpdate={refreshAll} />
+            </div>
+          </div>
+        )}
+
+        {tab === 'players' && (
+          <DMPlayerCardsSection combatants={pcCombatants} playerStates={playerStates} encounterId={encounter.id} playerEditMode={encounter.player_edit_mode} onUpdate={refreshAll} />
+        )}
+
+        {tab === 'activity' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <RecentAlertsStrip encounterId={encounter.id} expanded onToggle={() => {}} />
+            <SecretRollInbox encounterId={encounter.id} />
+            <DMCombatLog encounterId={encounter.id} />
+          </div>
+        )}
+
         {tab === 'manage' && <ManagementScreens onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); setTab('combat'); }} currentEncounter={encounter} displayToken={displayToken} joinCodes={joinCodes} onToggleEditMode={handleToggleEditMode} onGenerateDisplayToken={handleGenerateDisplayToken} onRevokeDisplayToken={handleRevokeDisplayToken} onFrontScreen={handleFrontScreen} onSignOut={signOut} />}
       </div>
 
