@@ -45,21 +45,6 @@ function buildLongRestStatePatch(state = {}) {
   return patch;
 }
 
-function getTurnLabels(encounter, combatants) {
-  if (!combatants.length) {
-    return { currentTurnLabel: 'No combatants', nextTurnLabel: '—' };
-  }
-
-  const safeIndex = Math.max(0, Math.min(encounter?.turn_index ?? 0, combatants.length - 1));
-  const current = combatants[safeIndex] || null;
-  const next = combatants[(safeIndex + 1) % combatants.length] || null;
-
-  return {
-    currentTurnLabel: current ? current.name : 'No combatants',
-    nextTurnLabel: next ? next.name : '—',
-  };
-}
-
 export default function DMView() {
   const [encounter, setEncounter] = useState(null);
   const [combatants, setCombatants] = useState([]);
@@ -223,7 +208,7 @@ export default function DMView() {
     return (
       <div className="app-shell">
         <div className="shell-nav-stack">
-          <div className="top-bar"><span className="top-bar-title">DM Dashboard</span></div>
+          <div className="top-bar"><div className="top-bar-spacer" /></div>
         </div>
         <div className="main-content">
           <EncounterSetup onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); setTab('combat'); }} />
@@ -236,13 +221,12 @@ export default function DMView() {
   const pcCombatants = combatants.filter(c => c.side === 'PC');
   const pendingAlertCount = playerStates.filter(s => s.concentration_check_dc != null).length;
   const activityCount = recentRollCount + recentAlertCount + pendingAlertCount;
-  const { currentTurnLabel, nextTurnLabel } = getTurnLabels(encounter, combatants);
 
   return (
     <div className="app-shell">
       <div className="shell-nav-stack">
         <div className="top-bar top-bar--dm-actions">
-          <span className="top-bar-title">DM Dashboard</span>
+          <div className="top-bar-spacer" />
           <div className="dm-action-button-row">
             <button className="btn btn-primary" onClick={handleNextTurn}>▶ Next</button>
             <button className="btn btn-ghost" onClick={handleRollEnemyInitiative} disabled={rollingInit}>{rollingInit ? 'Rolling…' : 'Initiative'}</button>
@@ -265,8 +249,6 @@ export default function DMView() {
             <div className="dm-initiative-column">
               <div className="initiative-top-bar">
                 <div className="initiative-top-bar-primary">Round {encounter.round}</div>
-                <div className="initiative-top-bar-secondary">Now: {currentTurnLabel}</div>
-                <div className="initiative-top-bar-secondary">Next: {nextTurnLabel}</div>
               </div>
 
               <InitiativePanel encounter={encounter} combatants={combatants} playerStates={playerStates} role="dm" onUpdate={refreshAll} />

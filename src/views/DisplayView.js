@@ -139,10 +139,7 @@ export default function DisplayView() {
     <div className="app-shell display-screen-shell">
       <div className="shell-nav-stack">
         <div className="top-bar top-bar--display">
-          <div className="top-bar-display-copy">
-            <span className="top-bar-title">Display</span>
-            <span className="top-bar-display-subtitle">Live encounter screen</span>
-          </div>
+          <div className="top-bar-spacer" />
           <button className="btn btn-ghost display-exit-button" style={{ fontSize: 12 }} onClick={handleLeave}>✕</button>
         </div>
       </div>
@@ -150,8 +147,6 @@ export default function DisplayView() {
       <div className="display-screen-body">
         <div className="initiative-top-bar initiative-top-bar--display">
           <div className="initiative-top-bar-primary">Round {encounter?.round || 1}</div>
-          <div className="initiative-top-bar-secondary">Now: {activeCombatant?.name || 'No combatants'}</div>
-          <div className="initiative-top-bar-secondary">Next: {onDeckCombatant?.name || '—'}</div>
         </div>
 
         <div className="display-turn-state-grid">

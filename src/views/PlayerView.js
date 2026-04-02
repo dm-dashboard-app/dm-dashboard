@@ -8,21 +8,6 @@ import SpellbookPanel from '../components/SpellbookPanel';
 import { flattenStates } from './player/playerViewUtils';
 import PlayerConCheckLog from './player/PlayerConCheckLog';
 
-function getTurnLabels(encounter, combatants) {
-  if (!combatants.length) {
-    return { currentTurnLabel: 'No combatants', nextTurnLabel: '—' };
-  }
-
-  const safeIndex = Math.max(0, Math.min(encounter?.turn_index ?? 0, combatants.length - 1));
-  const current = combatants[safeIndex] || null;
-  const next = combatants[(safeIndex + 1) % combatants.length] || null;
-
-  return {
-    currentTurnLabel: current ? current.name : 'No combatants',
-    nextTurnLabel: next ? next.name : '—',
-  };
-}
-
 export default function PlayerView() {
   const [encounter, setEncounter] = useState(null);
   const [combatant, setCombatant] = useState(null);
@@ -96,7 +81,6 @@ export default function PlayerView() {
   const concentration = state?.concentration ?? false;
   const pendingConDc = concentration ? (state?.concentration_check_dc ?? null) : null;
   const playerName = state?.profiles_players?.name || combatant?.name || null;
-  const { currentTurnLabel, nextTurnLabel } = getTurnLabels(encounter, combatants);
 
   async function handleConPass() {
     if (!state) return;
@@ -124,7 +108,7 @@ export default function PlayerView() {
   return (
     <div className="app-shell">
       <div className="shell-nav-stack">
-        <div className="top-bar"><span className="top-bar-title">Player View</span></div>
+        <div className="top-bar"><div className="top-bar-spacer" /></div>
         <div className="tab-bar">
           <button className={`tab-btn ${tab === 'char' ? 'active' : ''}`} onClick={() => setTab('char')}>🧙 Char</button>
           <button className={`tab-btn ${tab === 'spells' ? 'active' : ''}`} onClick={() => setTab('spells')}>✨ Spells</button>
@@ -145,8 +129,6 @@ export default function PlayerView() {
           <>
             <div className="initiative-top-bar">
               <div className="initiative-top-bar-primary">Round {encounter?.round || 1}</div>
-              <div className="initiative-top-bar-secondary">Now: {currentTurnLabel}</div>
-              <div className="initiative-top-bar-secondary">Next: {nextTurnLabel}</div>
             </div>
             {combatant && <div className="panel"><div className="panel-title">Initiative</div><div className="form-row"><input className="form-input" type="number" inputMode="numeric" value={initiativeInput} onChange={e => setInitiativeInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSubmitInitiative()} style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, width: 140, textAlign: 'center' }} /><button className={`btn ${initSuccess ? 'btn-success' : 'btn-primary'}`} onClick={handleSubmitInitiative} disabled={!initiativeInput}>{initSuccess ? '✓ Set' : 'Set Initiative'}</button></div>{initError && <div style={{ color: 'var(--accent-red)', fontSize: 12, marginTop: 4 }}>{initError}</div>}</div>}
             <InitiativePanel encounter={encounter} combatants={combatants} playerStates={playerStates} role="player" myCombatantId={combatant?.id} onUpdate={refreshAll} />
