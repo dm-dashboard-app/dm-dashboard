@@ -174,6 +174,17 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   }
 
   const initials = (combatant?.name || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  const barBaseStyle = {
+    minHeight: 44,
+    width: '100%',
+    padding: '10px 14px',
+    borderRadius: 14,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    fontWeight: 700,
+  };
 
   return (
     <>
@@ -182,29 +193,35 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
           {profile?.portrait_url ? <img src={profile.portrait_url} alt={combatant.name} className="portrait-img" /> : <div className="portrait-placeholder"><span className="portrait-initials">{initials}</span></div>}
         </div>
         <div className="card-body player-card-body-reflow" style={{ gap: 8 }}>
-          <div className="player-card-line player-card-line--header" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 142px', alignItems: 'start', gap: 10 }}>
+          <div>
             <span className="card-name" style={{ fontSize: 'clamp(1.05rem,2.25vw,1.42rem)', lineHeight: 1.02, minWidth: 0, maxWidth: '12ch', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis' }}>{combatant?.name}</span>
-            <button
-              className={`${canEdit ? 'reaction-pill--clickable' : ''}`}
-              onClick={handleToggleReaction}
-              disabled={!canEdit}
-              title={reactionLabel}
-              style={{
-                minHeight: 44,
-                width: '100%',
-                padding: '0 10px',
-                borderRadius: 14,
-                border: reactionUsed ? '1px solid rgba(191,59,74,.55)' : '1px solid rgba(72,225,124,.55)',
-                background: reactionUsed ? 'rgba(58,26,31,.88)' : 'rgba(26,58,42,.88)',
-                color: reactionUsed ? 'var(--accent-red)' : 'var(--accent-green)',
-                fontSize: 12,
-                fontWeight: 800,
-                textAlign: 'center'
-              }}
-            >
-              ⚡ {reactionLabel}
-            </button>
           </div>
+
+          <button
+            onClick={handleToggleReaction}
+            disabled={!canEdit}
+            title={reactionLabel}
+            style={{
+              ...barBaseStyle,
+              border: reactionUsed ? '1px solid rgba(191,59,74,.55)' : '1px solid rgba(72,225,124,.55)',
+              background: reactionUsed ? 'rgba(58,26,31,.88)' : 'rgba(26,58,42,.88)',
+              color: reactionUsed ? 'var(--accent-red)' : 'var(--accent-green)',
+              cursor: canEdit ? 'pointer' : 'default'
+            }}
+          >
+            <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.06em' }}>Reaction</span>
+            <span style={{ fontSize: 15, fontWeight: 800 }}>{reactionUsed ? 'Used' : 'Available'}</span>
+          </button>
+
+          <button
+            className={`player-concentration-bar ${concentration ? 'player-concentration-bar--active' : ''}`}
+            onClick={handleToggleConcentration}
+            disabled={!canEdit}
+            style={barBaseStyle}
+          >
+            <span className="player-concentration-label">Concentration</span>
+            <span className="player-concentration-value">{concentration ? 'Active' : 'Off'}</span>
+          </button>
 
           {pendingConDc !== null && (
             <div className="con-check-banner">
@@ -212,11 +229,6 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
               <div className="con-check-actions"><button className="con-check-pass" onClick={handleConPass}>Passed</button><button className="con-check-fail" onClick={handleConFail}>Failed</button></div>
             </div>
           )}
-
-          <button className={`player-concentration-bar ${concentration ? 'player-concentration-bar--active' : ''}`} onClick={handleToggleConcentration} disabled={!canEdit} style={{ padding: '10px 14px' }}>
-            <span className="player-concentration-label">Concentration</span>
-            <span className="player-concentration-value">{concentration ? 'Active' : 'Off'}</span>
-          </button>
 
           <div className="player-card-four-up" style={{ gap: 7 }}>
             <InfoStatBox label="AC" value={armorClass} highlight="ac" />
