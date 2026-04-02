@@ -340,7 +340,12 @@ export function DmgHealRow({ onDamage, onHeal, compact = false }) {
 }
 
 function ResourceSection({ resources, state, readOnly, onUpdateFields }) {
-  return <div className="player-resource-section" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}><div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Resources</div><div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>{resources.map(resource => <ResourceRow key={resource.id} resource={resource} state={state} readOnly={readOnly} onUpdateFields={onUpdateFields} />)}</div></div>;
+  return (
+    <div className="player-resource-section">
+      <div className="player-card-section-title">Resources</div>
+      {resources.map(resource => <ResourceRow key={resource.id} resource={resource} state={state} readOnly={readOnly} onUpdateFields={onUpdateFields} />)}
+    </div>
+  );
 }
 
 function ResourceRow({ resource, state, readOnly, onUpdateFields }) {
@@ -356,7 +361,17 @@ function ResourceRow({ resource, state, readOnly, onUpdateFields }) {
       const nextRaw = resource.toggleMode === 'available' ? nextReady : !nextReady;
       await onUpdateFields({ [resource.boolKey]: nextRaw });
     }
-    return <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between', flexWrap: 'wrap' }}><div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}><span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{resource.label}</span>{resource.meta ? <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{resource.meta}</span> : null}</div>{!readOnly ? <button className="btn btn-ghost" style={{ fontSize: 11, padding: '4px 10px', borderColor: toggleState.ready ? 'var(--accent-green)' : 'var(--accent-red)', color: toggleState.ready ? 'var(--accent-green)' : 'var(--accent-red)' }} onClick={handleToggle}>{toggleState.label}</button> : <span style={{ fontSize: 11, fontWeight: 700, color: toggleState.ready ? 'var(--accent-green)' : 'var(--accent-red)' }}>{toggleState.label}</span>}</div>;
+    return (
+      <div className="player-resource-row">
+        <div className="player-resource-copy">
+          <span className="player-resource-label">{resource.label}</span>
+          {resource.meta ? <span className="player-resource-meta">{resource.meta}</span> : null}
+        </div>
+        <div className="player-resource-controls">
+          {!readOnly ? <button className="btn btn-ghost" style={{ fontSize: 11, padding: '4px 10px', borderColor: toggleState.ready ? 'var(--accent-green)' : 'var(--accent-red)', color: toggleState.ready ? 'var(--accent-green)' : 'var(--accent-red)' }} onClick={handleToggle}>{toggleState.label}</button> : <span className="player-resource-value" style={{ color: toggleState.ready ? 'var(--accent-green)' : 'var(--accent-red)' }}>{toggleState.label}</span>}
+        </div>
+      </div>
+    );
   }
 
   const { current, max } = resolveDisplayedValues(resource, state);
@@ -369,7 +384,19 @@ function ResourceRow({ resource, state, readOnly, onUpdateFields }) {
       if (next === current) return;
       await onUpdateFields({ [resource.currentKey]: next, ...(resource.maxKey && max !== null ? { [resource.maxKey]: max } : {}) });
     }
-    return <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between', flexWrap: 'wrap' }}><div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}><span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{resource.label}</span>{(resource.meta || resource.displaySuffix) ? <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{[resource.meta, resource.displaySuffix].filter(Boolean).join(' • ')}</span> : null}</div><div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>{!readOnly && <button className="btn btn-icon btn-ghost" style={{ minWidth: 28, minHeight: 28, fontSize: 13 }} onClick={() => adjust(-1)}>−</button>}<span style={{ minWidth: 54, textAlign: 'center', fontSize: 12, fontWeight: 700, color: isWarlockSlots ? accentColor : 'var(--text-primary)' }}>{current}{max !== null ? ` / ${max}` : ''}</span>{!readOnly && <button className="btn btn-icon btn-ghost" style={{ minWidth: 28, minHeight: 28, fontSize: 13 }} onClick={() => adjust(1)}>+</button>}</div></div>;
+    return (
+      <div className="player-resource-row">
+        <div className="player-resource-copy">
+          <span className="player-resource-label">{resource.label}</span>
+          {(resource.meta || resource.displaySuffix) ? <span className="player-resource-meta">{[resource.meta, resource.displaySuffix].filter(Boolean).join(' • ')}</span> : null}
+        </div>
+        <div className="player-resource-controls">
+          {!readOnly && <button className="btn btn-icon btn-ghost" style={{ minWidth: 28, minHeight: 28, fontSize: 13 }} onClick={() => adjust(-1)}>−</button>}
+          <span className="player-resource-value" style={{ color: isWarlockSlots ? accentColor : undefined }}>{current}{max !== null ? ` / ${max}` : ''}</span>
+          {!readOnly && <button className="btn btn-icon btn-ghost" style={{ minWidth: 28, minHeight: 28, fontSize: 13 }} onClick={() => adjust(1)}>+</button>}
+        </div>
+      </div>
+    );
   }
 
   const safeMax = Math.max(0, max ?? current ?? 0);
@@ -381,15 +408,20 @@ function ResourceRow({ resource, state, readOnly, onUpdateFields }) {
     if (resource.maxKey && max !== null) updates[resource.maxKey] = max;
     await onUpdateFields(updates);
   }
-  return <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}><div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between', flexWrap: 'wrap' }}><span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{resource.label}</span><span style={{ fontSize: 11, color: isWarlockSlots ? accentColor : 'var(--text-muted)' }}>{[resource.meta, `${safeCurrent}/${safeMax}`].filter(Boolean).join(' • ')}</span></div><div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>{Array.from({ length: safeMax }).map((_, i) => { const active = i < safeCurrent; return <button key={i} type="button" onClick={() => setPips(active ? i : i + 1)} disabled={readOnly} title={readOnly ? undefined : active ? 'Spend / reduce' : 'Restore / add'} style={{ width: 16, height: 16, borderRadius: '50%', padding: 0, border: `2px solid ${active ? accentColor : 'var(--border-strong)'}`, background: active ? accentFill : 'transparent', cursor: readOnly ? 'default' : 'pointer', opacity: readOnly ? 0.9 : 1 }} />; })}{safeMax === 0 && <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>No charges</span>}</div></div>;
-}
-
-function HpEditableNumber({ value, onSet }) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(String(value));
-  const inputRef = useRef(null);
-  useEffect(() => { if (!editing) setDraft(String(value)); }, [value, editing]);
-  function commit() { setEditing(false); const n = parseInt(draft, 10); if (!Number.isNaN(n) && n !== value) onSet(n); }
-  if (!editing) return <span className="hp-value hp-editable" onClick={() => { setDraft(String(value)); setEditing(true); setTimeout(() => inputRef.current?.select(), 0); }}>{value}</span>;
-  return <input ref={inputRef} className="hp-inline-input hp-value" type="number" value={draft} onChange={e => setDraft(e.target.value)} onBlur={commit} onKeyDown={e => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') setEditing(false); }} autoFocus />;
+  return (
+    <div className="player-resource-row">
+      <div className="player-resource-copy">
+        <span className="player-resource-label">{resource.label}</span>
+        {[resource.meta, `${safeCurrent}/${safeMax}`].filter(Boolean).length > 0 ? <span className="player-resource-meta">{[resource.meta, `${safeCurrent}/${safeMax}`].filter(Boolean).join(' • ')}</span> : null}
+      </div>
+      <div className="player-resource-controls">
+        <div className="player-resource-pips">
+          {Array.from({ length: safeMax }).map((_, i) => {
+            const active = i < safeCurrent;
+            return <button key={i} type="button" onClick={() => setPips(active ? i : i + 1)} disabled={readOnly} title={readOnly ? undefined : active ? 'Spend / reduce' : 'Restore / add'} style={{ width: 16, height: 16, borderRadius: '50%', padding: 0, border: `2px solid ${active ? accentColor : 'var(--border-strong)'}`, background: active ? accentFill : 'transparent', cursor: readOnly ? 'default' : 'pointer', opacity: readOnly ? 0.9 : 1 }} />;
+          })}
+        </div>
+      </div>
+    </div>
+  );
 }
