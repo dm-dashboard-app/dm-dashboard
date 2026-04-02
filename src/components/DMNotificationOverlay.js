@@ -3,7 +3,7 @@ import { supabase } from '../supabaseClient';
 import usePolling from '../hooks/usePolling';
 import { appendDismissedId, readDismissedIds } from '../utils/dmAlertDismissals';
 
-export default function DMNotificationOverlay({ encounterId }) {
+export default function DMNotificationOverlay({ encounterId, docked = false, bottomOffset = 0 }) {
   const [secretRolls, setSecretRolls] = useState([]);
   const [conChecks, setConChecks] = useState([]);
   const [dismissedRollIds, setDismissedRollIds] = useState(() => readDismissedIds(encounterId, 'rolls'));
@@ -17,19 +17,8 @@ export default function DMNotificationOverlay({ encounterId }) {
   const load = useCallback(async () => {
     if (!encounterId) return;
     const [rollsResult, checksResult] = await Promise.all([
-      supabase
-        .from('secret_rolls')
-        .select('*, profiles_players(name)')
-        .eq('encounter_id', encounterId)
-        .order('created_at', { ascending: false })
-        .limit(10),
-      supabase
-        .from('concentration_checks')
-        .select('*')
-        .eq('encounter_id', encounterId)
-        .eq('result', 'pending')
-        .order('created_at', { ascending: false })
-        .limit(10),
+      supabase.from('secret_rolls').select('*, profiles_players(name)').eq('encounter_id', encounterId).order('created_at', { ascending: false }).limit(10),
+      supabase.from('concentration_checks').select('*').eq('encounter_id', encounterId).eq('result', 'pending').order('created_at', { ascending: false }).limit(10),
     ]);
     setSecretRolls(rollsResult.data || []);
     setConChecks(checksResult.data || []);
@@ -51,7 +40,10 @@ export default function DMNotificationOverlay({ encounterId }) {
   if (visibleRolls.length === 0 && visibleChecks.length === 0) return null;
 
   return (
-    <div className="dm-notification-stack">
+    <div
+      className="dm-notification-stack"
+      style={docked ? { top: 'auto', bottom: bottomOffset, left: 12, right: 12, maxWidth: 'none' } : undefined}
+    >
       {visibleChecks.map(check => (
         <div key={`check-${check.id}`} className="dm-notification-card dm-notification-card--alert">
           <div className="dm-notification-main">
