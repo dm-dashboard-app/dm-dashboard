@@ -38,13 +38,19 @@
   min-height: 100vh;
 }
 
-/* Top bar */
-.top-bar {
+.shell-nav-stack {
   position: sticky;
   top: 0;
   z-index: 100;
+  display: flex;
+  flex-direction: column;
   background: var(--bg-panel);
   border-bottom: 1px solid var(--border);
+}
+
+/* Top bar */
+.top-bar {
+  background: var(--bg-panel);
   padding: var(--space-3) var(--space-4);
   display: flex;
   align-items: center;
@@ -73,6 +79,10 @@
   gap: 10px;
   flex-wrap: wrap;
   padding: 10px 12px;
+}
+
+.top-bar--display {
+  justify-content: space-between;
 }
 
 .dm-action-round {
@@ -107,11 +117,8 @@
 /* Tab bar — sticky just below the top bar */
 .tab-bar {
   display: flex;
-  border-bottom: 1px solid var(--border);
+  border-top: 1px solid var(--border);
   background: var(--bg-panel);
-  position: sticky;
-  top: 56px;
-  z-index: 99;
 }
 
 .tab-btn {
@@ -127,6 +134,49 @@
 .tab-btn.active {
   color: var(--accent-blue);
   border-bottom-color: var(--accent-blue);
+}
+
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  margin-left: 6px;
+  border-radius: 999px;
+  background: rgba(74, 158, 255, 0.16);
+  color: var(--accent-blue);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.initiative-top-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-panel-2);
+}
+
+.initiative-top-bar-primary {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.initiative-top-bar-secondary {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.initiative-top-bar--display {
+  margin-bottom: 4px;
 }
 
 /* Main content area */
@@ -714,6 +764,21 @@
   .top-bar--dm-actions .btn,
   .top-bar--dm-actions .dm-action-round {
     font-size: 12px;
+  }
+
+  .tab-btn {
+    padding-left: 8px;
+    padding-right: 8px;
+    font-size: 12px;
+  }
+
+  .initiative-top-bar {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .initiative-top-bar-primary {
+    width: 100%;
   }
 
   .dm-bottom-dock {

@@ -46,11 +46,11 @@ function DisplayTurnFeature({ label, combatant, accentClass, stateLabel }) {
 }
 
 export default function DisplayView() {
-  const [encounter, setEncounter]       = useState(null);
-  const [combatants, setCombatants]     = useState([]);
+  const [encounter, setEncounter] = useState(null);
+  const [combatants, setCombatants] = useState([]);
   const [playerStates, setPlayerStates] = useState([]);
-  const [loading, setLoading]           = useState(true);
-  const [error, setError]               = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const displayToken = localStorage.getItem('display_token');
 
@@ -132,13 +132,20 @@ export default function DisplayView() {
 
   return (
     <div className="app-shell display-screen-shell">
-      <div className="top-bar">
-        {encounter && <div className="top-bar-round">R{encounter.round}</div>}
-        <span className="top-bar-title">{encounter?.name || 'Loading…'}</span>
-        <button className="btn btn-ghost" style={{ fontSize: 12 }} onClick={handleLeave}>✕</button>
+      <div className="shell-nav-stack">
+        <div className="top-bar top-bar--display">
+          <span className="top-bar-title">Display View</span>
+          <button className="btn btn-ghost" style={{ fontSize: 12 }} onClick={handleLeave}>✕</button>
+        </div>
       </div>
 
       <div className="display-screen-body">
+        <div className="initiative-top-bar initiative-top-bar--display">
+          <div className="initiative-top-bar-primary">Round {encounter?.round || 1}</div>
+          <div className="initiative-top-bar-secondary">Now: {activeCombatant?.name || 'No combatants'}</div>
+          <div className="initiative-top-bar-secondary">Next: {onDeckCombatant?.name || '—'}</div>
+        </div>
+
         <div className="display-turn-state-grid">
           <DisplayTurnFeature label="Current Turn" combatant={activeCombatant} accentClass="display-turn-feature--current" stateLabel="Acting now" />
           <DisplayTurnFeature label="On Deck" combatant={onDeckCombatant} accentClass="display-turn-feature--next" stateLabel="Up next" />

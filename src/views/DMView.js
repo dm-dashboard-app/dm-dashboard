@@ -45,6 +45,21 @@ function buildLongRestStatePatch(state = {}) {
   return patch;
 }
 
+function getTurnLabels(encounter, combatants) {
+  if (!combatants.length) {
+    return { currentTurnLabel: 'No combatants', nextTurnLabel: '—' };
+  }
+
+  const safeIndex = Math.max(0, Math.min(encounter?.turn_index ?? 0, combatants.length - 1));
+  const current = combatants[safeIndex] || null;
+  const next = combatants[(safeIndex + 1) % combatants.length] || null;
+
+  return {
+    currentTurnLabel: current ? current.name : 'No combatants',
+    nextTurnLabel: next ? next.name : '—',
+  };
+}
+
 export default function DMView() {
   const [encounter, setEncounter] = useState(null);
   const [combatants, setCombatants] = useState([]);
@@ -117,12 +132,6 @@ export default function DMView() {
   async function handleNextTurn() {
     if (!encounter) return;
     await supabase.rpc('advance_turn', { p_encounter_id: encounter.id });
-    refreshAll();
-  }
-
-  async function handleToggleEditMode() {
-    if (!encounter) return;
-    await supabase.from('encounters').update({ player_edit_mode: !encounter.player_edit_mode }).eq('id', encounter.id);
     refreshAll();
   }
 
@@ -213,51 +222,51 @@ export default function DMView() {
   if (!encounter) {
     return (
       <div className="app-shell">
-        <div className="top-bar"><span className="top-bar-title">DM Dashboard</span></div>
+        <div className="shell-nav-stack">
+          <div className="top-bar"><span className="top-bar-title">DM Dashboard</span></div>
+        </div>
         <div className="main-content">
           <EncounterSetup onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); setTab('combat'); }} />
-          <ManagementScreens currentEncounter={null} displayToken={null} joinCodes={[]} onToggleEditMode={null} onGenerateDisplayToken={null} onRevokeDisplayToken={null} onFrontScreen={null} onSignOut={signOut} />
+          <ManagementScreens currentEncounter={null} displayToken={null} joinCodes={[]} onGenerateDisplayToken={null} onRevokeDisplayToken={null} onFrontScreen={null} onSignOut={signOut} />
         </div>
       </div>
     );
   }
 
   const pcCombatants = combatants.filter(c => c.side === 'PC');
-  const nonPcCount = combatants.filter(c => c.side !== 'PC').length;
   const pendingAlertCount = playerStates.filter(s => s.concentration_check_dc != null).length;
   const activityCount = recentRollCount + recentAlertCount + pendingAlertCount;
+  const { currentTurnLabel, nextTurnLabel } = getTurnLabels(encounter, combatants);
 
   return (
     <div className="app-shell">
-      <div className="top-bar top-bar--dm-actions">
-        <span className="top-bar-title">{encounter.name || 'DM Dashboard'}</span>
-        <div className="dm-action-button-row">
-          <button className="btn btn-primary" onClick={handleNextTurn}>▶ Next</button>
-          <button className="btn btn-ghost" onClick={handleRollEnemyInitiative} disabled={rollingInit}>{rollingInit ? 'Rolling…' : 'Initiative'}</button>
-          <button className="btn btn-ghost" onClick={() => setShortRestOpen(true)}>Short Rest</button>
-          <button className="btn btn-ghost" onClick={handleLongRest}>Long Rest</button>
+      <div className="shell-nav-stack">
+        <div className="top-bar top-bar--dm-actions">
+          <span className="top-bar-title">DM Dashboard</span>
+          <div className="dm-action-button-row">
+            <button className="btn btn-primary" onClick={handleNextTurn}>▶ Next</button>
+            <button className="btn btn-ghost" onClick={handleRollEnemyInitiative} disabled={rollingInit}>{rollingInit ? 'Rolling…' : 'Initiative'}</button>
+            <button className="btn btn-ghost" onClick={() => setShortRestOpen(true)}>Short Rest</button>
+            <button className="btn btn-ghost" onClick={handleLongRest}>Long Rest</button>
+          </div>
         </div>
-      </div>
 
-      <div className="tab-bar">
-        <button className={`tab-btn ${tab === 'combat' ? 'active' : ''}`} onClick={() => setTab('combat')}>⚔ Combat</button>
-        <button className={`tab-btn ${tab === 'players' ? 'active' : ''}`} onClick={() => setTab('players')}>🧙 Players</button>
-        <button className={`tab-btn ${tab === 'activity' ? 'active' : ''}`} onClick={() => setTab('activity')}>📋 Activity{activityCount > 0 ? <span className="tab-badge">{activityCount}</span> : ''}</button>
-        <button className={`tab-btn ${tab === 'manage' ? 'active' : ''}`} onClick={() => setTab('manage')}>⚙ Manage</button>
+        <div className="tab-bar">
+          <button className={`tab-btn ${tab === 'combat' ? 'active' : ''}`} onClick={() => setTab('combat')}>⚔ Combat</button>
+          <button className={`tab-btn ${tab === 'players' ? 'active' : ''}`} onClick={() => setTab('players')}>🧙 Players</button>
+          <button className={`tab-btn ${tab === 'activity' ? 'active' : ''}`} onClick={() => setTab('activity')}>📋 Activity{activityCount > 0 ? <span className="tab-badge">{activityCount}</span> : ''}</button>
+          <button className={`tab-btn ${tab === 'manage' ? 'active' : ''}`} onClick={() => setTab('manage')}>⚙ Manage</button>
+        </div>
       </div>
 
       <div className="main-content">
         {tab === 'combat' && (
           <div className="dm-combat-layout">
             <div className="dm-initiative-column">
-              <div className="panel" style={{ marginBottom: 12 }}>
-                <div className="panel-title">Round {encounter.round}</div>
-                <div className="dm-live-session-actions">
-                  {nonPcCount > 0 && <button className="btn btn-ghost" onClick={handleRollEnemyInitiative} disabled={rollingInit}>{rollingInit ? 'Rolling…' : 'Roll Enemy Initiative'}</button>}
-                  <button className="btn btn-ghost" onClick={() => setShortRestOpen(true)}>Open Short Rest</button>
-                  <button className="btn btn-ghost" onClick={() => setTab('players')}>Open Players</button>
-                  <button className="btn btn-ghost" onClick={() => setTab('activity')}>Open Activity{activityCount > 0 ? ` (${activityCount})` : ''}</button>
-                </div>
+              <div className="initiative-top-bar">
+                <div className="initiative-top-bar-primary">Round {encounter.round}</div>
+                <div className="initiative-top-bar-secondary">Now: {currentTurnLabel}</div>
+                <div className="initiative-top-bar-secondary">Next: {nextTurnLabel}</div>
               </div>
 
               <InitiativePanel encounter={encounter} combatants={combatants} playerStates={playerStates} role="dm" onUpdate={refreshAll} />
@@ -277,7 +286,7 @@ export default function DMView() {
           </div>
         )}
 
-        {tab === 'manage' && <ManagementScreens onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); setTab('combat'); }} currentEncounter={encounter} displayToken={displayToken} joinCodes={joinCodes} onToggleEditMode={handleToggleEditMode} onGenerateDisplayToken={handleGenerateDisplayToken} onRevokeDisplayToken={handleRevokeDisplayToken} onFrontScreen={handleFrontScreen} onSignOut={signOut} />}
+        {tab === 'manage' && <ManagementScreens onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); setTab('combat'); }} currentEncounter={encounter} displayToken={displayToken} joinCodes={joinCodes} onGenerateDisplayToken={handleGenerateDisplayToken} onRevokeDisplayToken={handleRevokeDisplayToken} onFrontScreen={handleFrontScreen} onSignOut={signOut} />}
       </div>
 
       <ShortRestModal open={shortRestOpen} playerStates={playerStates} encounterId={encounter.id} onClose={() => setShortRestOpen(false)} onComplete={refreshAll} />
