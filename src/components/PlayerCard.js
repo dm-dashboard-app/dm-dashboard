@@ -194,7 +194,7 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
         </div>
         <div className="card-body player-card-body-reflow" style={{ gap: 8 }}>
           <div>
-            <span className="card-name" style={{ fontSize: 'clamp(1.05rem,2.25vw,1.42rem)', lineHeight: 1.02, minWidth: 0, maxWidth: '12ch', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis' }}>{combatant?.name}</span>
+            <span className="card-name" style={{ fontSize: 'clamp(1.05rem,2.25vw,1.42rem)', lineHeight: 1.02, minWidth: 0, maxWidth: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>{combatant?.name}</span>
           </div>
 
           <button
