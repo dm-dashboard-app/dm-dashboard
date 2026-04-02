@@ -26,7 +26,12 @@ function rotateCombatants(combatants, turnIndex) {
 function DisplayTurnFeature({ label, combatant, accentClass, stateLabel }) {
   return (
     <div className={`display-turn-feature ${accentClass}`}>
-      <div className="display-turn-feature-label">{label}</div>
+      <div className="display-turn-feature-label-row">
+        <div className="display-turn-feature-label">{label}</div>
+        {combatant?.initiative_total != null && (
+          <div className="display-turn-feature-init">Init {combatant.initiative_total}</div>
+        )}
+      </div>
       {combatant ? (
         <>
           <div className="display-turn-feature-name-row">
@@ -35,7 +40,7 @@ function DisplayTurnFeature({ label, combatant, accentClass, stateLabel }) {
           </div>
           <div className="display-turn-feature-meta">
             <span>{stateLabel}</span>
-            {combatant.initiative_total != null && <span>Init {combatant.initiative_total}</span>}
+            <span>{combatant.side === 'PC' ? 'Party turn' : 'Enemy turn'}</span>
           </div>
         </>
       ) : (
@@ -134,8 +139,11 @@ export default function DisplayView() {
     <div className="app-shell display-screen-shell">
       <div className="shell-nav-stack">
         <div className="top-bar top-bar--display">
-          <span className="top-bar-title">Display View</span>
-          <button className="btn btn-ghost" style={{ fontSize: 12 }} onClick={handleLeave}>✕</button>
+          <div className="top-bar-display-copy">
+            <span className="top-bar-title">Display</span>
+            <span className="top-bar-display-subtitle">Live encounter screen</span>
+          </div>
+          <button className="btn btn-ghost display-exit-button" style={{ fontSize: 12 }} onClick={handleLeave}>✕</button>
         </div>
       </div>
 
@@ -153,7 +161,7 @@ export default function DisplayView() {
 
         <div className="display-reference-layout">
           <div className="display-party-column">
-            <div className="display-section-header">Party</div>
+            <div className="display-section-header">Party{pcCombatants.length > 0 ? ` (${pcCombatants.length})` : ''}</div>
             <div className="display-party-card-stack">
               {pcCombatants.length === 0 && (
                 <div className="empty-state">No players in encounter.</div>
