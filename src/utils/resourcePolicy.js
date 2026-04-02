@@ -68,6 +68,14 @@ function shouldRestoreOnShortRest(profile = {}, familyId) {
   return !!SURFACE_RULES[familyId]?.shortRest;
 }
 
+function restoreHalfHitDice(current, max) {
+  const safeMax = Math.max(0, max ?? 0);
+  const safeCurrent = Math.max(0, current ?? 0);
+  if (safeMax <= 0) return safeCurrent;
+  const regain = Math.max(1, Math.floor(safeMax / 2));
+  return Math.min(safeMax, safeCurrent + regain);
+}
+
 export function getSurfaceResourceConfig(profile = {}, state = {}, surface = RESOURCE_SURFACES.PLAYER_CARD) {
   const base = getUnifiedResourceConfig(profile, state, {
     compactLabels: surface === RESOURCE_SURFACES.INITIATIVE,
@@ -143,7 +151,7 @@ export function getLongRestResourcePatch(state = {}, profile = {}) {
 
   resources.forEach(resource => {
     const familyId = resource.id.startsWith('hit-dice-d') ? 'hit-dice' : resource.id;
-    if (familyId === 'natural-recovery') return;
+    if (familyId === 'natural-recovery' || familyId === 'hit-dice') return;
 
     if (resource.type === 'toggle') {
       if (!resource.boolKey) return;
@@ -162,15 +170,19 @@ export function getLongRestResourcePatch(state = {}, profile = {}) {
   [6, 8, 10, 12].forEach(size => {
     const currentKey = `hit_dice_d${size}_current`;
     const maxKey = `hit_dice_d${size}_max`;
+    const currentValue = readNumberField(state, [currentKey], null);
+    const maxValue = readNumberField(state, [maxKey], pools[size] || 0);
     if (findExistingKey(state, [currentKey, maxKey]) || pools[size] > 0) {
-      assignIfPresent(state, patch, currentKey, readNumberField(state, [maxKey], pools[size] || 0));
-      assignIfPresent(state, patch, maxKey, readNumberField(state, [maxKey], pools[size] || 0));
+      assignIfPresent(state, patch, currentKey, restoreHalfHitDice(currentValue, maxValue));
+      assignIfPresent(state, patch, maxKey, maxValue);
     }
   });
 
   if (findExistingKey(state, ['hit_dice_current'])) {
-    assignIfPresent(state, patch, 'hit_dice_current', readNumberField(state, ['hit_dice_max'], profile?.hit_dice_max ?? 0));
-    assignIfPresent(state, patch, 'hit_dice_max', readNumberField(state, ['hit_dice_max'], profile?.hit_dice_max ?? 0));
+    const genericMax = readNumberField(state, ['hit_dice_max'], profile?.hit_dice_max ?? 0);
+    const genericCurrent = readNumberField(state, ['hit_dice_current'], genericMax);
+    assignIfPresent(state, patch, 'hit_dice_current', restoreHalfHitDice(genericCurrent, genericMax));
+    assignIfPresent(state, patch, 'hit_dice_max', genericMax);
   }
 
   for (let level = 1; level <= 9; level += 1) {

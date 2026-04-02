@@ -11,6 +11,10 @@ import {
   spendSpellSlotWithChoice,
 } from '../utils/spellSlotMutations';
 
+const PACT_COLOR = '#98b84f';
+const PACT_BG = 'rgba(54,76,22,0.92)';
+const PACT_BORDER = 'rgba(152,184,79,0.65)';
+
 function PactPip({ isAvailable, onClick, disabled, title }) {
   return (
     <button
@@ -18,6 +22,11 @@ function PactPip({ isAvailable, onClick, disabled, title }) {
       onClick={onClick}
       disabled={disabled}
       title={title}
+      style={{
+        borderColor: isAvailable ? PACT_COLOR : '#58703b',
+        background: isAvailable ? PACT_BG : 'rgba(26,32,17,0.8)',
+        boxShadow: isAvailable ? `0 0 0 1px ${PACT_BORDER} inset` : 'none',
+      }}
     />
   );
 }
@@ -93,7 +102,7 @@ export default function SpellSlotGrid({ profile, state, readOnly, canRestore = f
             <div key={level} className="player-slot-row">
               <div className="player-slot-row-head">
                 <span className="player-slot-row-level">Level {level}</span>
-                {pactOnRow && <span className="player-slot-row-pact-label">Pact</span>}
+                {pactOnRow && <span className="player-slot-row-pact-label" style={{ color: PACT_COLOR }}>Pact</span>}
               </div>
 
               <div className="player-slot-row-body">
