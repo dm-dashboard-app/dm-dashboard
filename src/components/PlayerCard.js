@@ -54,6 +54,8 @@ function resolveDisplayedValues(resource, state) {
 }
 
 const ABILITY_LABELS = { str: 'STR', dex: 'DEX', con: 'CON', int: 'INT', wis: 'WIS', cha: 'CHA' };
+const BONUS_HP_COLOR = 'var(--accent-gold)';
+const TEMP_HP_COLOR = 'var(--hp-temp)';
 
 export default function PlayerCard({ combatant, state, role, isEditMode, encounterId, onUpdate }) {
   const profile = state?.profiles_players;
@@ -71,7 +73,17 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   const maxHpOverride = state?.max_hp_override ?? null;
   const maxHp = maxHpOverride !== null ? maxHpOverride : profileMax;
   const tempHp = state?.temp_hp ?? 0;
+  const baseMaxHp = Math.max(0, profileMax || 0);
+  const bonusMaxHp = Math.max(0, maxHp - baseMaxHp);
+  const baseCurrentHp = Math.max(0, Math.min(hp, baseMaxHp));
+  const bonusCurrentHp = Math.max(0, hp - baseMaxHp);
+  const totalBarValue = Math.max(1, maxHp + tempHp);
   const hpPercent = Math.max(0, Math.min(100, (hp / Math.max(1, maxHp)) * 100));
+  const baseFillPercent = (baseCurrentHp / totalBarValue) * 100;
+  const bonusFillLeftPercent = (baseMaxHp / totalBarValue) * 100;
+  const bonusFillPercent = (bonusCurrentHp / totalBarValue) * 100;
+  const tempFillLeftPercent = (hp / totalBarValue) * 100;
+  const tempFillPercent = (tempHp / totalBarValue) * 100;
   const concentration = state?.concentration ?? false;
   const reactionUsed = state?.reaction_used ?? false;
   const pendingConDc = concentration ? (state?.concentration_check_dc ?? null) : null;
@@ -213,12 +225,7 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
             <span style={{ fontSize: 15, fontWeight: 800 }}>{reactionUsed ? 'Used' : 'Available'}</span>
           </button>
 
-          <button
-            className={`player-concentration-bar ${concentration ? 'player-concentration-bar--active' : ''}`}
-            onClick={handleToggleConcentration}
-            disabled={!canEdit}
-            style={barBaseStyle}
-          >
+          <button className={`player-concentration-bar ${concentration ? 'player-concentration-bar--active' : ''}`} onClick={handleToggleConcentration} disabled={!canEdit} style={barBaseStyle}>
             <span className="player-concentration-label">Concentration</span>
             <span className="player-concentration-value">{concentration ? 'Active' : 'Off'}</span>
           </button>
@@ -239,15 +246,16 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
 
           <div className="player-hp-hero-wrap">
             <div className="player-hp-hero-track" style={{ height: 44 }}>
-              <div className="player-hp-hero-fill" style={{ width: `${hpPercent}%`, background: hpColor(hpPercent) }} />
-              {tempHp > 0 && <div className="player-hp-hero-temp" style={{ left: `${hpPercent}%`, width: `${Math.min(100 - hpPercent, (tempHp / Math.max(1, maxHp)) * 100)}%` }} />}
+              <div className="player-hp-hero-fill" style={{ width: `${baseFillPercent}%`, background: hpColor(hpPercent) }} />
+              {bonusCurrentHp > 0 && <div className="player-hp-hero-temp" style={{ left: `${bonusFillLeftPercent}%`, width: `${bonusFillPercent}%`, background: BONUS_HP_COLOR, opacity: 0.72 }} />}
+              {tempHp > 0 && <div className="player-hp-hero-temp" style={{ left: `${tempFillLeftPercent}%`, width: `${tempFillPercent}%`, background: TEMP_HP_COLOR, opacity: 0.72 }} />}
               <div className="player-hp-hero-text" style={{ fontSize: 'clamp(1rem,2.5vw,1.2rem)' }}>{hp} / {maxHp}{tempHp > 0 ? ` +${tempHp} temp` : ''}</div>
             </div>
           </div>
 
           {canEdit && <DmgHealRow onDamage={handleApplyDamage} onHeal={handleApplyHeal} />}
           {hitDiceResource ? <HitDiceRow resource={hitDiceResource} state={state} readOnly={!canRestore} onUpdateFields={updateResourceFields} /> : null}
-          {canRestore && <div className="player-bonus-temp-row"> <button className="btn btn-ghost dm-card-adjustment-btn dm-card-adjustment-btn--gold" onClick={promptBonusHp}>Bonus HP</button><button className="btn btn-ghost dm-card-adjustment-btn dm-card-adjustment-btn--blue" onClick={promptTempHp}>Temp HP</button>{maxHpOverride !== null ? <button className="btn btn-ghost dm-card-adjustment-btn" onClick={resetMaxHp}>Reset HP</button> : null}</div>}
+          {canRestore && <div className="player-bonus-temp-row"><button className="btn btn-ghost dm-card-adjustment-btn dm-card-adjustment-btn--gold" onClick={promptBonusHp}>Bonus HP</button><button className="btn btn-ghost dm-card-adjustment-btn dm-card-adjustment-btn--blue" onClick={promptTempHp}>Temp HP</button>{maxHpOverride !== null ? <button className="btn btn-ghost dm-card-adjustment-btn" onClick={resetMaxHp}>Reset HP</button> : null}</div>}
           <SectionGrid title="Ability Scores" className="player-ability-grid">{ABILITY_KEYS.map(key => <div key={key} className="player-ability-cell"><span className="player-ability-label">{ABILITY_LABELS[key]}</span><span className="player-ability-score">{abilityScores[key]}</span><span className="player-ability-mod">{formatModifier(abilityModifiers[key])}</span></div>)}</SectionGrid>
           <SectionGrid title="Saving Throws" className="player-save-grid">{ABILITY_KEYS.map(key => <div key={key} className="player-save-cell"><span className="player-save-label">{ABILITY_LABELS[key]}</span><span className="player-save-value">{formatModifier(saveTotals[key])}</span></div>)}</SectionGrid>
           {!readOnly && <button className="btn btn-ghost player-card-skills-btn" onClick={() => setShowSkills(true)}>Skills</button>}
@@ -261,26 +269,96 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   );
 }
 
-function SectionGrid({ title, className, children }) { return <div className="player-card-section-group"><div className="player-card-section-title">{title}</div><div className={className}>{children}</div></div>; }
-function InfoStatBox({ label, value, highlight = '' }) { return <div className={`player-info-stat-box ${highlight ? `player-info-stat-box--${highlight}` : ''}`}><span className="player-info-stat-label">{label}</span><span className="player-info-stat-value">{value}</span></div>; }
+function SectionGrid({ title, className, children }) {
+  return <div className="player-card-section-group"><div className="player-card-section-title">{title}</div><div className={className}>{children}</div></div>;
+}
+
+function InfoStatBox({ label, value, highlight = '' }) {
+  return <div className={`player-info-stat-box ${highlight ? `player-info-stat-box--${highlight}` : ''}`}><span className="player-info-stat-label">{label}</span><span className="player-info-stat-value">{value}</span></div>;
+}
+
 function HitDiceRow({ resource, state, readOnly, onUpdateFields }) {
   const { current, max } = resolveDisplayedValues(resource, state);
-  async function adjust(delta) { if (readOnly) return; const upperBound = max ?? Math.max(current, 0); const next = Math.max(0, Math.min(upperBound, current + delta)); if (next === current) return; await onUpdateFields({ [resource.currentKey]: next, ...(resource.maxKey && max !== null ? { [resource.maxKey]: max } : {}) }); }
+  async function adjust(delta) {
+    if (readOnly) return;
+    const upperBound = max ?? Math.max(current, 0);
+    const next = Math.max(0, Math.min(upperBound, current + delta));
+    if (next === current) return;
+    await onUpdateFields({ [resource.currentKey]: next, ...(resource.maxKey && max !== null ? { [resource.maxKey]: max } : {}) });
+  }
   return <div className="player-hit-dice-row"><div className="player-hit-dice-copy"><span className="player-hit-dice-label">Hit Dice</span>{resource.meta ? <span className="player-hit-dice-meta">{resource.meta}</span> : null}</div><div className="player-hit-dice-controls">{!readOnly ? <button className="btn btn-icon btn-ghost" style={{ minWidth: 28, minHeight: 28, fontSize: 13 }} onClick={() => adjust(-1)}>−</button> : null}<span className="player-hit-dice-value">{current}{max !== null ? ` / ${max}` : ''}</span>{!readOnly ? <button className="btn btn-icon btn-ghost" style={{ minWidth: 28, minHeight: 28, fontSize: 13 }} onClick={() => adjust(1)}>+</button> : null}</div></div>;
 }
+
 export function DmgHealRow({ onDamage, onHeal, compact = false }) {
-  const [amount, setAmount] = useState(''); const inputRef = useRef(null); const n = parseInt(amount, 10); const valid = !isNaN(n) && n > 0;
+  const [amount, setAmount] = useState('');
+  const inputRef = useRef(null);
+  const n = parseInt(amount, 10);
+  const valid = !isNaN(n) && n > 0;
   function handleDamage() { if (!valid) return; onDamage(n); setAmount(''); setTimeout(() => inputRef.current?.focus(), 0); }
   function handleHeal() { if (!valid) return; onHeal(n); setAmount(''); setTimeout(() => inputRef.current?.focus(), 0); }
   return <div className={`hp-dmg-row${compact ? ' hp-dmg-row--compact' : ''}`}><button className="hp-action-btn hp-action-dmg" onClick={handleDamage} disabled={!valid}>⚔ DMG</button><input ref={inputRef} className={`hp-amount-input${compact ? ' hp-amount-input--compact' : ''}`} type="number" inputMode="numeric" value={amount} onChange={e => setAmount(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') handleDamage(); if (e.key === 'Escape') setAmount(''); }} placeholder="—" min={1} /><button className="hp-action-btn hp-action-heal" onClick={handleHeal} disabled={!valid}>HEAL ♥</button></div>;
 }
-function ResourceSection({ resources, state, readOnly, onUpdateFields }) { return <div className="player-resource-section"><div className="player-card-section-title">Resources</div>{resources.map(resource => <ResourceRow key={resource.id} resource={resource} state={state} readOnly={readOnly} onUpdateFields={onUpdateFields} />)}</div>; }
+
+function ResourceSection({ resources, state, readOnly, onUpdateFields }) {
+  return <div className="player-resource-section"><div className="player-card-section-title">Resources</div>{resources.map(resource => <ResourceRow key={resource.id} resource={resource} state={state} readOnly={readOnly} onUpdateFields={onUpdateFields} />)}</div>;
+}
+
 function ResourceRow({ resource, state, readOnly, onUpdateFields }) {
-  const isWarlockSlots = resource.id === 'warlock-slots'; const accentColor = isWarlockSlots ? 'var(--accent-gold)' : 'var(--accent-blue)'; const accentFill = isWarlockSlots ? 'rgba(240,180,41,0.22)' : 'var(--accent-blue)';
-  if (resource.type === 'toggle') { const toggleState = resolveResourceToggleState(resource, state); async function handleToggle() { if (readOnly) return; const nextReady = !toggleState.ready; const nextRaw = resource.toggleMode === 'available' ? nextReady : !nextReady; await onUpdateFields({ [resource.boolKey]: nextRaw }); } return <div className="player-resource-row"><div className="player-resource-copy"><span className="player-resource-label">{resource.label}</span>{resource.meta ? <span className="player-resource-meta">{resource.meta}</span> : null}</div><div className="player-resource-controls">{!readOnly ? <button className="btn btn-ghost" style={{ fontSize: 11, padding: '4px 10px', borderColor: toggleState.ready ? 'var(--accent-green)' : 'var(--accent-red)', color: toggleState.ready ? 'var(--accent-green)' : 'var(--accent-red)' }} onClick={handleToggle}>{toggleState.label}</button> : <span className="player-resource-value" style={{ color: toggleState.ready ? 'var(--accent-green)' : 'var(--accent-red)' }}>{toggleState.label}</span>}</div></div>; }
+  const accentColor = 'var(--accent-blue)';
+  const accentFill = 'var(--accent-blue)';
+
+  if (resource.type === 'toggle') {
+    const toggleState = resolveResourceToggleState(resource, state);
+    async function handleToggle() {
+      if (readOnly) return;
+      const nextReady = !toggleState.ready;
+      const nextRaw = resource.toggleMode === 'available' ? nextReady : !nextReady;
+      await onUpdateFields({ [resource.boolKey]: nextRaw });
+    }
+    const toggleStyles = toggleState.ready
+      ? { borderColor: 'rgba(72,225,124,.55)', background: 'rgba(26,58,42,.88)', color: 'var(--accent-green)' }
+      : { borderColor: 'rgba(191,59,74,.55)', background: 'rgba(58,26,31,.88)', color: 'var(--accent-red)' };
+
+    return (
+      <div className="player-resource-row">
+        <div className="player-resource-copy">
+          <span className="player-resource-label">{resource.label}</span>
+          {resource.meta ? <span className="player-resource-meta">{resource.meta}</span> : null}
+        </div>
+        <div className="player-resource-controls">
+          <button
+            className="btn"
+            onClick={handleToggle}
+            disabled={readOnly}
+            style={{ minHeight: 32, padding: '6px 12px', borderRadius: 999, border: `1px solid ${toggleStyles.borderColor}`, background: toggleStyles.background, color: toggleStyles.color, fontSize: 11, fontWeight: 800, cursor: readOnly ? 'default' : 'pointer' }}
+          >
+            {toggleState.label}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const { current, max } = resolveDisplayedValues(resource, state);
-  if (resource.type === 'counter') { const upperBound = max ?? Math.max(current, 0); async function adjust(delta) { if (readOnly) return; const next = Math.max(0, Math.min(upperBound, current + delta)); if (next === current) return; await onUpdateFields({ [resource.currentKey]: next, ...(resource.maxKey && max !== null ? { [resource.maxKey]: max } : {}) }); } return <div className="player-resource-row"><div className="player-resource-copy"><span className="player-resource-label">{resource.label}</span>{(resource.meta || resource.displaySuffix) ? <span className="player-resource-meta">{[resource.meta, resource.displaySuffix].filter(Boolean).join(' • ')}</span> : null}</div><div className="player-resource-controls">{!readOnly && <button className="btn btn-icon btn-ghost" style={{ minWidth: 28, minHeight: 28, fontSize: 13 }} onClick={() => adjust(-1)}>−</button>}<span className="player-resource-value" style={{ color: isWarlockSlots ? accentColor : undefined }}>{current}{max !== null ? ` / ${max}` : ''}</span>{!readOnly && <button className="btn btn-icon btn-ghost" style={{ minWidth: 28, minHeight: 28, fontSize: 13 }} onClick={() => adjust(1)}>+</button>}</div></div>; }
-  const safeMax = Math.max(0, max ?? current ?? 0); const safeCurrent = Math.max(0, Math.min(safeMax, current ?? 0));
-  async function setPips(nextCurrent) { if (readOnly) return; const clamped = Math.max(0, Math.min(safeMax, nextCurrent)); const updates = { [resource.currentKey]: clamped }; if (resource.maxKey && max !== null) updates[resource.maxKey] = max; await onUpdateFields(updates); }
+  if (resource.type === 'counter') {
+    const upperBound = max ?? Math.max(current, 0);
+    async function adjust(delta) {
+      if (readOnly) return;
+      const next = Math.max(0, Math.min(upperBound, current + delta));
+      if (next === current) return;
+      await onUpdateFields({ [resource.currentKey]: next, ...(resource.maxKey && max !== null ? { [resource.maxKey]: max } : {}) });
+    }
+    return <div className="player-resource-row"><div className="player-resource-copy"><span className="player-resource-label">{resource.label}</span>{(resource.meta || resource.displaySuffix) ? <span className="player-resource-meta">{[resource.meta, resource.displaySuffix].filter(Boolean).join(' • ')}</span> : null}</div><div className="player-resource-controls">{!readOnly && <button className="btn btn-icon btn-ghost" style={{ minWidth: 28, minHeight: 28, fontSize: 13 }} onClick={() => adjust(-1)}>−</button>}<span className="player-resource-value">{current}{max !== null ? ` / ${max}` : ''}</span>{!readOnly && <button className="btn btn-icon btn-ghost" style={{ minWidth: 28, minHeight: 28, fontSize: 13 }} onClick={() => adjust(1)}>+</button>}</div></div>;
+  }
+
+  const safeMax = Math.max(0, max ?? current ?? 0);
+  const safeCurrent = Math.max(0, Math.min(safeMax, current ?? 0));
+  async function setPips(nextCurrent) {
+    if (readOnly) return;
+    const clamped = Math.max(0, Math.min(safeMax, nextCurrent));
+    const updates = { [resource.currentKey]: clamped };
+    if (resource.maxKey && max !== null) updates[resource.maxKey] = max;
+    await onUpdateFields(updates);
+  }
   return <div className="player-resource-row"><div className="player-resource-copy"><span className="player-resource-label">{resource.label}</span>{[resource.meta, `${safeCurrent}/${safeMax}`].filter(Boolean).length > 0 ? <span className="player-resource-meta">{[resource.meta, `${safeCurrent}/${safeMax}`].filter(Boolean).join(' • ')}</span> : null}</div><div className="player-resource-controls"><div className="player-resource-pips">{Array.from({ length: safeMax }).map((_, i) => { const active = i < safeCurrent; return <button key={i} type="button" onClick={() => setPips(active ? i : i + 1)} disabled={readOnly} title={readOnly ? undefined : active ? 'Spend / reduce' : 'Restore / add'} style={{ width: 16, height: 16, borderRadius: '50%', padding: 0, border: `2px solid ${active ? accentColor : 'var(--border-strong)'}`, background: active ? accentFill : 'transparent', cursor: readOnly ? 'default' : 'pointer', opacity: readOnly ? 0.9 : 1 }} />; })}</div></div></div>;
 }

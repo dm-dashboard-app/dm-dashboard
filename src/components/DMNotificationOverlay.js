@@ -1,28 +1,18 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import usePolling from '../hooks/usePolling';
-
-function storageKey(encounterId, type) {
-  return `dm_dashboard_dismissed_${type}_${encounterId}`;
-}
-
-function readDismissed(encounterId, type) {
-  try {
-    return JSON.parse(localStorage.getItem(storageKey(encounterId, type)) || '[]');
-  } catch {
-    return [];
-  }
-}
-
-function writeDismissed(encounterId, type, ids) {
-  localStorage.setItem(storageKey(encounterId, type), JSON.stringify(ids));
-}
+import { appendDismissedId, readDismissedIds } from '../utils/dmAlertDismissals';
 
 export default function DMNotificationOverlay({ encounterId }) {
   const [secretRolls, setSecretRolls] = useState([]);
   const [conChecks, setConChecks] = useState([]);
-  const [dismissedRollIds, setDismissedRollIds] = useState(() => readDismissed(encounterId, 'rolls'));
-  const [dismissedCheckIds, setDismissedCheckIds] = useState(() => readDismissed(encounterId, 'checks'));
+  const [dismissedRollIds, setDismissedRollIds] = useState(() => readDismissedIds(encounterId, 'rolls'));
+  const [dismissedCheckIds, setDismissedCheckIds] = useState(() => readDismissedIds(encounterId, 'checks'));
+
+  useEffect(() => {
+    setDismissedRollIds(readDismissedIds(encounterId, 'rolls'));
+    setDismissedCheckIds(readDismissedIds(encounterId, 'checks'));
+  }, [encounterId]);
 
   const load = useCallback(async () => {
     if (!encounterId) return;
@@ -47,25 +37,15 @@ export default function DMNotificationOverlay({ encounterId }) {
 
   usePolling(load, 2000, !!encounterId);
 
-  const visibleRolls = useMemo(
-    () => secretRolls.filter(item => !dismissedRollIds.includes(item.id)),
-    [secretRolls, dismissedRollIds]
-  );
-  const visibleChecks = useMemo(
-    () => conChecks.filter(item => !dismissedCheckIds.includes(item.id)),
-    [conChecks, dismissedCheckIds]
-  );
+  const visibleRolls = useMemo(() => secretRolls.filter(item => !dismissedRollIds.includes(item.id)), [secretRolls, dismissedRollIds]);
+  const visibleChecks = useMemo(() => conChecks.filter(item => !dismissedCheckIds.includes(item.id)), [conChecks, dismissedCheckIds]);
 
   function dismissRoll(id) {
-    const next = [...dismissedRollIds, id];
-    setDismissedRollIds(next);
-    writeDismissed(encounterId, 'rolls', next);
+    setDismissedRollIds(ids => appendDismissedId(encounterId, 'rolls', ids, id));
   }
 
   function dismissCheck(id) {
-    const next = [...dismissedCheckIds, id];
-    setDismissedCheckIds(next);
-    writeDismissed(encounterId, 'checks', next);
+    setDismissedCheckIds(ids => appendDismissedId(encounterId, 'checks', ids, id));
   }
 
   if (visibleRolls.length === 0 && visibleChecks.length === 0) return null;

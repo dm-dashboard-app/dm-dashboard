@@ -1,10 +1,16 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import usePolling from '../../hooks/usePolling';
+import { appendDismissedId, readDismissedIds } from '../../utils/dmAlertDismissals';
 import { formatTime } from './dmViewUtils';
 
 export default function RecentAlertsStrip({ encounterId, expanded = false, onToggle = null, mode = 'strip' }) {
   const [checks, setChecks] = useState([]);
+  const [dismissedCheckIds, setDismissedCheckIds] = useState(() => readDismissedIds(encounterId, 'checks'));
+
+  useEffect(() => {
+    setDismissedCheckIds(readDismissedIds(encounterId, 'checks'));
+  }, [encounterId]);
 
   const load = useCallback(async () => {
     if (!encounterId) return;
@@ -13,7 +19,7 @@ export default function RecentAlertsStrip({ encounterId, expanded = false, onTog
       .select('*')
       .eq('encounter_id', encounterId)
       .order('created_at', { ascending: false })
-      .limit(5);
+      .limit(10);
     setChecks(data || []);
   }, [encounterId]);
 
@@ -25,9 +31,45 @@ export default function RecentAlertsStrip({ encounterId, expanded = false, onTog
     return { color: 'var(--accent-gold)', label: '⏳ Pending' };
   }
 
+  function dismissPendingAlert(id) {
+    setDismissedCheckIds(ids => appendDismissedId(encounterId, 'checks', ids, id));
+  }
+
   const latest = checks[0];
   const latestResult = latest ? resultStyle(latest.result) : null;
   const isPanel = mode === 'panel' || typeof onToggle !== 'function';
+
+  function renderRow(c) {
+    const { color, label } = resultStyle(c.result);
+    const isPending = c.result === 'pending';
+    const isDismissed = dismissedCheckIds.includes(c.id);
+
+    return (
+      <div key={c.id} className="dm-bottom-strip-row">
+        <div className="dm-bottom-strip-row-left">
+          <span className="dm-bottom-strip-row-name">{c.player_name}</span>
+          <span className="dm-bottom-strip-row-meta">DC {c.dc}</span>
+          <span className="dm-bottom-strip-row-meta">{formatTime(c.created_at)}</span>
+        </div>
+        <div className="dm-bottom-strip-row-right" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <span className="dm-bottom-strip-row-status" style={{ color }}>{label}</span>
+          {isPending && (
+            <button
+              className="btn btn-ghost"
+              style={{ fontSize: 11, minHeight: 28, padding: '4px 10px', borderColor: isDismissed ? 'var(--border-strong)' : 'var(--accent-gold)', color: isDismissed ? 'var(--text-muted)' : 'var(--accent-gold)' }}
+              disabled={isDismissed}
+              onClick={e => {
+                e.stopPropagation();
+                dismissPendingAlert(c.id);
+              }}
+            >
+              {isDismissed ? 'Dismissed' : 'Dismiss Popup'}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   if (isPanel) {
     return (
@@ -35,7 +77,7 @@ export default function RecentAlertsStrip({ encounterId, expanded = false, onTog
         <div className="dm-section-heading-row">
           <div>
             <div className="panel-title">Recent Alerts</div>
-            <div className="dm-section-subtitle">Latest concentration check outcomes</div>
+            <div className="dm-section-subtitle">Latest concentration check outcomes and popup control</div>
           </div>
         </div>
 
@@ -43,21 +85,7 @@ export default function RecentAlertsStrip({ encounterId, expanded = false, onTog
           {checks.length === 0 ? (
             <div className="empty-state">No alerts this encounter.</div>
           ) : (
-            checks.map(c => {
-              const { color, label } = resultStyle(c.result);
-              return (
-                <div key={c.id} className="dm-bottom-strip-row">
-                  <div className="dm-bottom-strip-row-left">
-                    <span className="dm-bottom-strip-row-name">{c.player_name}</span>
-                    <span className="dm-bottom-strip-row-meta">DC {c.dc}</span>
-                    <span className="dm-bottom-strip-row-meta">{formatTime(c.created_at)}</span>
-                  </div>
-                  <div className="dm-bottom-strip-row-right">
-                    <span className="dm-bottom-strip-row-status" style={{ color }}>{label}</span>
-                  </div>
-                </div>
-              );
-            })
+            checks.map(renderRow)
           )}
         </div>
       </div>
@@ -92,21 +120,7 @@ export default function RecentAlertsStrip({ encounterId, expanded = false, onTog
             <div className="empty-state" style={{ paddingTop: 4, paddingBottom: 0 }}>No alerts this encounter.</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {checks.map(c => {
-                const { color, label } = resultStyle(c.result);
-                return (
-                  <div key={c.id} className="dm-bottom-strip-row">
-                    <div className="dm-bottom-strip-row-left">
-                      <span className="dm-bottom-strip-row-name">{c.player_name}</span>
-                      <span className="dm-bottom-strip-row-meta">DC {c.dc}</span>
-                      <span className="dm-bottom-strip-row-meta">{formatTime(c.created_at)}</span>
-                    </div>
-                    <div className="dm-bottom-strip-row-right">
-                      <span className="dm-bottom-strip-row-status" style={{ color }}>{label}</span>
-                    </div>
-                  </div>
-                );
-              })}
+              {checks.map(renderRow)}
             </div>
           )}
         </div>
