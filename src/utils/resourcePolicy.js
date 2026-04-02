@@ -15,7 +15,7 @@ export const RESOURCE_SURFACES = {
 
 const SURFACE_RULES = {
   'hit-dice': { playerCard: true, initiative: false, display: false, shortRest: true },
-  'warlock-slots': { playerCard: true, initiative: false, display: false, shortRest: true, managedBySpellSlotGrid: true },
+  'warlock-slots': { playerCard: false, initiative: false, display: false, shortRest: true, managedBySpellSlotGrid: true },
   'natural-recovery': { playerCard: false, initiative: false, display: false, shortRest: true },
   lucky: { playerCard: true, initiative: true, display: false, shortRest: false },
   'relentless-endurance': { playerCard: true, initiative: true, display: false, shortRest: false },
@@ -37,12 +37,18 @@ function shouldIncludeHitDiceForSurface(surface) {
   return surface === RESOURCE_SURFACES.PLAYER_CARD;
 }
 
-function shouldIncludeWarlockSlotsForSurface(surface) {
-  return surface === RESOURCE_SURFACES.PLAYER_CARD;
+function shouldIncludeWarlockSlotsForSurface() {
+  return false;
 }
 
-function shouldIncludeNaturalRecoveryForSurface(surface) {
+function shouldIncludeNaturalRecoveryForSurface() {
   return false;
+}
+
+function assignIfPresent(state, patch, key, value) {
+  if (Object.prototype.hasOwnProperty.call(state || {}, key)) {
+    patch[key] = value;
+  }
 }
 
 function resolveRestMaxValue(state, resource) {
@@ -99,15 +105,15 @@ export function getShortRestResourcePatch(state = {}, profile = {}) {
 
     if (resource.type === 'toggle') {
       if (!resource.boolKey) return;
-      patch[resource.boolKey] = resource.toggleMode === 'available' ? true : false;
+      assignIfPresent(state, patch, resource.boolKey, resource.toggleMode === 'available' ? true : false);
       return;
     }
 
     if (!resource.currentKey) return;
     const maxValue = resolveRestMaxValue(state, resource);
     if (maxValue === null) return;
-    patch[resource.currentKey] = maxValue;
-    if (resource.maxKey) patch[resource.maxKey] = maxValue;
+    assignIfPresent(state, patch, resource.currentKey, maxValue);
+    if (resource.maxKey) assignIfPresent(state, patch, resource.maxKey, maxValue);
   });
 
   const wildshapeKey = findExistingKey(state, ['wildshape_uses_remaining']);
@@ -130,20 +136,19 @@ export function getLongRestResourcePatch(state = {}, profile = {}) {
 
   resources.forEach(resource => {
     const familyId = resource.id.startsWith('hit-dice-d') ? 'hit-dice' : resource.id;
-    const restoreOnLongRest = familyId !== 'natural-recovery';
-    if (!restoreOnLongRest) return;
+    if (familyId === 'natural-recovery') return;
 
     if (resource.type === 'toggle') {
       if (!resource.boolKey) return;
-      patch[resource.boolKey] = resource.toggleMode === 'available' ? true : false;
+      assignIfPresent(state, patch, resource.boolKey, resource.toggleMode === 'available' ? true : false);
       return;
     }
 
     if (!resource.currentKey) return;
     const maxValue = resolveRestMaxValue(state, resource);
     if (maxValue === null) return;
-    patch[resource.currentKey] = maxValue;
-    if (resource.maxKey) patch[resource.maxKey] = maxValue;
+    assignIfPresent(state, patch, resource.currentKey, maxValue);
+    if (resource.maxKey) assignIfPresent(state, patch, resource.maxKey, maxValue);
   });
 
   const pools = getHitDiePools(profile);
@@ -151,33 +156,30 @@ export function getLongRestResourcePatch(state = {}, profile = {}) {
     const currentKey = `hit_dice_d${size}_current`;
     const maxKey = `hit_dice_d${size}_max`;
     if (findExistingKey(state, [currentKey, maxKey]) || pools[size] > 0) {
-      patch[currentKey] = readNumberField(state, [maxKey], pools[size] || 0);
-      patch[maxKey] = readNumberField(state, [maxKey], pools[size] || 0);
+      assignIfPresent(state, patch, currentKey, readNumberField(state, [maxKey], pools[size] || 0));
+      assignIfPresent(state, patch, maxKey, readNumberField(state, [maxKey], pools[size] || 0));
     }
   });
 
   if (findExistingKey(state, ['hit_dice_current'])) {
-    patch.hit_dice_current = readNumberField(state, ['hit_dice_max'], profile?.hit_dice_max ?? 0);
-    patch.hit_dice_max = readNumberField(state, ['hit_dice_max'], profile?.hit_dice_max ?? 0);
+    assignIfPresent(state, patch, 'hit_dice_current', readNumberField(state, ['hit_dice_max'], profile?.hit_dice_max ?? 0));
+    assignIfPresent(state, patch, 'hit_dice_max', readNumberField(state, ['hit_dice_max'], profile?.hit_dice_max ?? 0));
   }
 
   for (let level = 1; level <= 9; level += 1) {
     const usedKey = findExistingKey(state, [`slots_used_${level}`]);
-    const hasProfileSlots = readNumberField(profile, [`slots_max_${level}`], 0) > 0;
-    if (usedKey || hasProfileSlots) {
-      patch[`slots_used_${level}`] = 0;
-    }
+    if (usedKey) patch[usedKey] = 0;
   }
 
-  patch.temp_hp = 0;
-  patch.concentration = false;
-  patch.concentration_check_dc = null;
-  patch.concentration_spell_id = null;
-  patch.reaction_used = false;
-  patch.wildshape_active = false;
-  patch.wildshape_form_id = null;
-  patch.wildshape_hp_current = null;
-  patch.mage_armour_active = false;
+  assignIfPresent(state, patch, 'temp_hp', 0);
+  assignIfPresent(state, patch, 'concentration', false);
+  assignIfPresent(state, patch, 'concentration_check_dc', null);
+  assignIfPresent(state, patch, 'concentration_spell_id', null);
+  assignIfPresent(state, patch, 'reaction_used', false);
+  assignIfPresent(state, patch, 'wildshape_active', false);
+  assignIfPresent(state, patch, 'wildshape_form_id', null);
+  assignIfPresent(state, patch, 'wildshape_hp_current', null);
+  assignIfPresent(state, patch, 'mage_armour_active', false);
 
   const wildshapeKey = findExistingKey(state, ['wildshape_uses_remaining']);
   if (wildshapeKey) {

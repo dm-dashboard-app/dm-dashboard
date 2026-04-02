@@ -89,7 +89,8 @@ export default function PlayerCard({ combatant, state, role, isEditMode, encount
   const passivePerception = profile ? 10 + (profile.skill_perception ?? 0) : null;
   const { classLine, ancestryLine } = getPlayerHeaderLines(profile || {});
   const classEntries = getClassEntries(profile || {});
-  const resourceConfigs = getSurfaceResourceConfig(profile || {}, state || {}, RESOURCE_SURFACES.PLAYER_CARD);
+  const resourceConfigs = getSurfaceResourceConfig(profile || {}, state || {}, RESOURCE_SURFACES.PLAYER_CARD)
+    .filter(resource => resource.id !== 'warlock-slots');
 
   useEffect(() => {
     setLocalHp(null);
