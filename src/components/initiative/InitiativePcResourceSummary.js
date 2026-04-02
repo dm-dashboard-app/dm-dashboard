@@ -8,7 +8,28 @@ import {
 } from '../../utils/resourcePolicy';
 import { compactObject } from './initiativeUtils';
 
+function resolveDisplayedValues(resource, state) {
+  const rawCurrent = readNumberField(state, [resource.currentKey], null);
+  const rawMax = readNumberField(state, [resource.maxKey], null);
+  const fallbackCurrent = resource.fallbackCurrent ?? 0;
+  const fallbackMax = resource.fallbackMax ?? null;
+
+  if ((rawMax === null || rawMax <= 0) && fallbackMax !== null && fallbackMax > 0) {
+    const current = rawCurrent === null || rawCurrent <= 0 ? fallbackCurrent : rawCurrent;
+    return { current, max: fallbackMax };
+  }
+
+  return {
+    current: rawCurrent ?? fallbackCurrent,
+    max: rawMax ?? fallbackMax,
+  };
+}
+
 function PcResourceChip({ resource, state, isDM, onUpdateFields }) {
+  const isWarlockSlots = resource.id === 'warlock-slots';
+  const accentColor = isWarlockSlots ? 'var(--accent-gold)' : 'var(--accent-blue)';
+  const accentFill = isWarlockSlots ? 'rgba(240,180,41,0.22)' : 'var(--accent-blue)';
+
   if (resource.type === 'toggle') {
     const toggleState = resolveResourceToggleState(resource, state);
 
@@ -47,8 +68,7 @@ function PcResourceChip({ resource, state, isDM, onUpdateFields }) {
     );
   }
 
-  const current = readNumberField(state, [resource.currentKey], resource.fallbackCurrent ?? 0);
-  const max = readNumberField(state, [resource.maxKey], resource.fallbackMax ?? null);
+  const { current, max } = resolveDisplayedValues(resource, state);
 
   if (resource.type === 'counter') {
     async function adjust(delta) {
@@ -56,7 +76,7 @@ function PcResourceChip({ resource, state, isDM, onUpdateFields }) {
       const upper = max ?? Math.max(current, 0);
       const next = Math.max(0, Math.min(upper, current + delta));
       if (next === current) return;
-      await onUpdateFields({ [resource.currentKey]: next });
+      await onUpdateFields({ [resource.currentKey]: next, ...(resource.maxKey && max !== null ? { [resource.maxKey]: max } : {}) });
     }
 
     return (
@@ -69,7 +89,7 @@ function PcResourceChip({ resource, state, isDM, onUpdateFields }) {
           borderRadius: 999,
           border: '1px solid var(--border)',
           background: 'var(--bg-panel-3)',
-          color: 'var(--text-primary)',
+          color: isWarlockSlots ? accentColor : 'var(--text-primary)',
           fontSize: 10,
           fontWeight: 700,
         }}
@@ -82,7 +102,7 @@ function PcResourceChip({ resource, state, isDM, onUpdateFields }) {
           </button>
         )}
         <span>{current}{max !== null ? `/${max}` : ''}</span>
-        {resource.meta ? <span style={{ color: 'var(--text-muted)' }}>{resource.meta}</span> : null}
+        {resource.meta ? <span style={{ color: isWarlockSlots ? accentColor : 'var(--text-muted)' }}>{resource.meta}</span> : null}
         {isDM && (
           <button onClick={() => adjust(1)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0 }}>
             +
@@ -98,7 +118,9 @@ function PcResourceChip({ resource, state, isDM, onUpdateFields }) {
   async function setPips(nextCurrent) {
     if (!isDM) return;
     const clamped = Math.max(0, Math.min(safeMax, nextCurrent));
-    await onUpdateFields({ [resource.currentKey]: clamped });
+    const updates = { [resource.currentKey]: clamped };
+    if (resource.maxKey && max !== null) updates[resource.maxKey] = max;
+    await onUpdateFields(updates);
   }
 
   return (
@@ -132,15 +154,15 @@ function PcResourceChip({ resource, state, isDM, onUpdateFields }) {
                 height: 10,
                 borderRadius: '50%',
                 padding: 0,
-                border: `1.5px solid ${active ? 'var(--accent-blue)' : 'var(--border-strong)'}`,
-                background: active ? 'var(--accent-blue)' : 'transparent',
+                border: `1.5px solid ${active ? accentColor : 'var(--border-strong)'}`,
+                background: active ? accentFill : 'transparent',
                 cursor: isDM ? 'pointer' : 'default',
               }}
             />
           );
         })}
       </span>
-      {resource.meta ? <span style={{ color: 'var(--text-muted)' }}>{resource.meta}</span> : null}
+      {resource.meta ? <span style={{ color: isWarlockSlots ? accentColor : 'var(--text-muted)' }}>{resource.meta}</span> : null}
     </div>
   );
 }
