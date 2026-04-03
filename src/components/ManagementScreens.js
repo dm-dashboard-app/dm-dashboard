@@ -58,7 +58,7 @@ export default function ManagementScreens({ onEncounterCreated, currentEncounter
       <div className="panel-title">Manage</div>
       <div className="tab-bar manage-tab-bar" style={{ position: 'static' }}>
         {currentEncounter && <button className={`tab-btn ${tab === 'session' ? 'active' : ''}`} onClick={() => setTab('session')}>Session</button>}
-        <button className={`tab-btn ${tab === 'players' ? 'active' : ''}`} onClick={() => setTab('players')}>Players</button>}
+        <button className={`tab-btn ${tab === 'players' ? 'active' : ''}`} onClick={() => setTab('players')}>Players</button>
         <button className={`tab-btn ${tab === 'monsters' ? 'active' : ''}`} onClick={() => setTab('monsters')}>Monsters & NPCs</button>
         <button className={`tab-btn ${tab === 'spells' ? 'active' : ''}`} onClick={() => setTab('spells')}>Spells</button>
         <button className={`tab-btn ${tab === 'wildshape' ? 'active' : ''}`} onClick={() => setTab('wildshape')}>Wild Shape</button>
