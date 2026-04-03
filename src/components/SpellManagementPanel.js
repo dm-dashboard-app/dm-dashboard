@@ -141,16 +141,26 @@ function SpellRow({ spell, assigned, targetType, assignmentMode, targetId, onAss
   let buttons = null;
   if (targetType === 'player') {
     if (assignmentMode === 'wizard') {
-      buttons = <><button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onAssign(spell, !isKnown)}>{isKnown ? 'Forget' : 'Learn'}</button>{!isCantrip && <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onPrepare(spell, !isPrepared)} disabled={!isKnown && !isPrepared}>{isPrepared ? 'Unprepare' : 'Prepare'}</button>}</>;
+      buttons = (
+        <>
+          <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onAssign(spell, !isKnown)}>{isKnown ? 'Forget' : 'Learn'}</button>
+          {!isCantrip && <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onPrepare(spell, !isPrepared)} disabled={!isKnown && !isPrepared}>{isPrepared ? 'Unprepare' : 'Prepare'}</button>}
+        </>
+      );
     } else if (assignmentMode === 'prepared') {
       buttons = isCantrip
-        ? <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onAssign(spell, !isKnown)}>{isKnown ? 'Remove Cantrip' : 'Add Cantrip'}</button>
-        : <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onPrepare(spell, !isPrepared)}>{isPrepared ? 'Unprepare' : 'Prepare'}</button>;
+        ? <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onAssign(spell, !isKnown)}>{isKnown ? 'Remove Cantrip' : 'Add Cantrip'}</button>
+        : <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onPrepare(spell, !isPrepared)}>{isPrepared ? 'Unprepare' : 'Prepare'}</button>;
     } else {
-      buttons = <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onAssign(spell, !isKnown)}>{isKnown ? 'Forget' : (isCantrip ? 'Add Cantrip' : 'Learn')}</button>;
+      buttons = <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onAssign(spell, !isKnown)}>{isKnown ? 'Forget' : (isCantrip ? 'Add Cantrip' : 'Learn')}</button>;
     }
   } else {
-    buttons = <><button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onAssign(spell, !isKnown)}>{isKnown ? 'Unassign' : 'Assign'}</button>{!isCantrip && targetId && isKnown && <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onPrepare(spell, !isPrepared)}>{isPrepared ? 'Unprep' : 'Prepare'}</button>}</>;
+    buttons = (
+      <>
+        <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onAssign(spell, !isKnown)}>{isKnown ? 'Unassign' : 'Assign'}</button>
+        {!isCantrip && targetId && isKnown && <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onPrepare(spell, !isPrepared)}>{isPrepared ? 'Unprep' : 'Prepare'}</button>}
+      </>
+    );
   }
 
   return (
@@ -171,7 +181,7 @@ function SpellRow({ spell, assigned, targetType, assignmentMode, targetId, onAss
           {spell.description && <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2, whiteSpace: 'pre-wrap' }}>{String(spell.description).slice(0, 220)}{String(spell.description).length > 220 ? '…' : ''}</div>}
         </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          {spell.source_type === 'homebrew' && <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onEditHomebrew(spell)}>Edit</button>}
+          {spell.source_type === 'homebrew' && <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onEditHomebrew(spell)}>Edit</button>}
           {buttons}
         </div>
       </div>
@@ -181,40 +191,69 @@ function SpellRow({ spell, assigned, targetType, assignmentMode, targetId, onAss
 }
 
 function HomebrewEditor({ form, setForm, onSave, onCancel, saving }) {
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') onCancel();
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onCancel]);
+
   function toggleClassTag(className) {
     const normalized = normalizeClassName(className);
-    setForm(current => ({ ...current, class_tags: current.class_tags.includes(normalized) ? current.class_tags.filter(tag => tag !== normalized) : [...current.class_tags, normalized] }));
+    setForm(current => ({
+      ...current,
+      class_tags: current.class_tags.includes(normalized)
+        ? current.class_tags.filter(tag => tag !== normalized)
+        : [...current.class_tags, normalized],
+    }));
   }
 
   return (
-    <div className="panel" style={{ marginTop: 12 }}>
-      <div className="panel-title">{form.id ? 'Edit Homebrew Spell' : 'New Homebrew Spell'}</div>
-      <div className="form-group"><label className="form-label">Name</label><input className="form-input" value={form.name} onChange={e => setForm(current => ({ ...current, name: e.target.value }))} /></div>
-      <div className="form-row" style={{ gap: 8 }}>
-        <div className="form-group" style={{ flex: 1 }}><label className="form-label">Level</label><input className="form-input" type="number" min={0} max={9} value={form.level} onChange={e => { const level = parseInt(e.target.value || '0', 10); setForm(current => ({ ...current, level, is_cantrip: level === 0 })); }} /></div>
-        <div className="form-group" style={{ flex: 1 }}><label className="form-label">School</label><input className="form-input" value={form.school} onChange={e => setForm(current => ({ ...current, school: e.target.value }))} /></div>
+    <div className="modal-overlay" onClick={onCancel}>
+      <div className="modal-panel" style={{ width: 'min(760px, calc(100vw - 24px))', maxHeight: '90vh', overflowY: 'auto' }} onClick={event => event.stopPropagation()}>
+        <div className="modal-header">
+          <div>
+            <div className="panel-title" style={{ marginBottom: 4 }}>{form.id ? 'Edit Homebrew Spell' : 'New Homebrew Spell'}</div>
+            <div className="modal-subtitle">Create or edit a homebrew spell in a focused editor.</div>
+          </div>
+          <button type="button" className="btn btn-ghost btn-icon" onClick={onCancel}>✕</button>
+        </div>
+
+        <div className="form-group"><label className="form-label">Name</label><input className="form-input" value={form.name} onChange={e => setForm(current => ({ ...current, name: e.target.value }))} /></div>
+        <div className="form-row" style={{ gap: 8 }}>
+          <div className="form-group" style={{ flex: 1 }}><label className="form-label">Level</label><input className="form-input" type="number" min={0} max={9} value={form.level} onChange={e => { const level = parseInt(e.target.value || '0', 10); setForm(current => ({ ...current, level, is_cantrip: level === 0 })); }} /></div>
+          <div className="form-group" style={{ flex: 1 }}><label className="form-label">School</label><input className="form-input" value={form.school} onChange={e => setForm(current => ({ ...current, school: e.target.value }))} /></div>
+        </div>
+        <div className="form-row" style={{ gap: 8 }}>
+          <div className="form-group" style={{ flex: 1 }}><label className="form-label">Casting Time</label><input className="form-input" value={form.casting_time} onChange={e => setForm(current => ({ ...current, casting_time: e.target.value }))} /></div>
+          <div className="form-group" style={{ flex: 1 }}><label className="form-label">Range</label><input className="form-input" value={form.range_text} onChange={e => setForm(current => ({ ...current, range_text: e.target.value }))} /></div>
+        </div>
+        <div className="form-row" style={{ gap: 8 }}>
+          <div className="form-group" style={{ flex: 1 }}><label className="form-label">Duration</label><input className="form-input" value={form.duration_text} onChange={e => setForm(current => ({ ...current, duration_text: e.target.value }))} /></div>
+          <div className="form-group" style={{ flex: 1 }}><label className="form-label">Components</label><input className="form-input" value={form.components_text} onChange={e => setForm(current => ({ ...current, components_text: e.target.value }))} placeholder="V, S, M" /></div>
+        </div>
+        <div className="form-group"><label className="form-label">Material</label><input className="form-input" value={form.material_text} onChange={e => setForm(current => ({ ...current, material_text: e.target.value }))} /></div>
+        <label className="checkbox-row"><input type="checkbox" checked={!!form.concentration} onChange={e => setForm(current => ({ ...current, concentration: e.target.checked }))} /><span>Concentration</span></label>
+        <label className="checkbox-row"><input type="checkbox" checked={!!form.ritual} onChange={e => setForm(current => ({ ...current, ritual: e.target.checked }))} /><span>Ritual</span></label>
+        <div className="panel-title" style={{ marginTop: 10 }}>Classes</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+          {CLASS_OPTIONS.map(className => {
+            const active = form.class_tags.includes(normalizeClassName(className));
+            return <button type="button" key={className} className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: active ? 'var(--accent-blue)' : 'var(--border)', color: active ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => toggleClassTag(className)}>{className}</button>;
+          })}
+        </div>
+        <div className="form-group"><label className="form-label">Description</label><textarea className="form-input" rows={5} value={form.description} onChange={e => setForm(current => ({ ...current, description: e.target.value }))} /></div>
+        <div className="form-group"><label className="form-label">Higher Level</label><textarea className="form-input" rows={3} value={form.higher_level} onChange={e => setForm(current => ({ ...current, higher_level: e.target.value }))} /></div>
+        <div className="form-row" style={{ marginTop: 12 }}><button type="button" className="btn btn-primary" onClick={onSave} disabled={saving || !form.name.trim()}>{saving ? 'Saving…' : 'Save Homebrew Spell'}</button><button type="button" className="btn btn-ghost" onClick={onCancel}>Cancel</button></div>
       </div>
-      <div className="form-row" style={{ gap: 8 }}>
-        <div className="form-group" style={{ flex: 1 }}><label className="form-label">Casting Time</label><input className="form-input" value={form.casting_time} onChange={e => setForm(current => ({ ...current, casting_time: e.target.value }))} /></div>
-        <div className="form-group" style={{ flex: 1 }}><label className="form-label">Range</label><input className="form-input" value={form.range_text} onChange={e => setForm(current => ({ ...current, range_text: e.target.value }))} /></div>
-      </div>
-      <div className="form-row" style={{ gap: 8 }}>
-        <div className="form-group" style={{ flex: 1 }}><label className="form-label">Duration</label><input className="form-input" value={form.duration_text} onChange={e => setForm(current => ({ ...current, duration_text: e.target.value }))} /></div>
-        <div className="form-group" style={{ flex: 1 }}><label className="form-label">Components</label><input className="form-input" value={form.components_text} onChange={e => setForm(current => ({ ...current, components_text: e.target.value }))} placeholder="V, S, M" /></div>
-      </div>
-      <div className="form-group"><label className="form-label">Material</label><input className="form-input" value={form.material_text} onChange={e => setForm(current => ({ ...current, material_text: e.target.value }))} /></div>
-      <label className="checkbox-row"><input type="checkbox" checked={!!form.concentration} onChange={e => setForm(current => ({ ...current, concentration: e.target.checked }))} /><span>Concentration</span></label>
-      <label className="checkbox-row"><input type="checkbox" checked={!!form.ritual} onChange={e => setForm(current => ({ ...current, ritual: e.target.checked }))} /><span>Ritual</span></label>
-      <div className="panel-title" style={{ marginTop: 10 }}>Classes</div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
-        {CLASS_OPTIONS.map(className => {
-          const active = form.class_tags.includes(normalizeClassName(className));
-          return <button key={className} className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: active ? 'var(--accent-blue)' : 'var(--border)', color: active ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => toggleClassTag(className)}>{className}</button>;
-        })}
-      </div>
-      <div className="form-group"><label className="form-label">Description</label><textarea className="form-input" rows={5} value={form.description} onChange={e => setForm(current => ({ ...current, description: e.target.value }))} /></div>
-      <div className="form-group"><label className="form-label">Higher Level</label><textarea className="form-input" rows={3} value={form.higher_level} onChange={e => setForm(current => ({ ...current, higher_level: e.target.value }))} /></div>
-      <div className="form-row" style={{ marginTop: 12 }}><button className="btn btn-primary" onClick={onSave} disabled={saving || !form.name.trim()}>{saving ? 'Saving…' : 'Save Homebrew Spell'}</button><button className="btn btn-ghost" onClick={onCancel}>Cancel</button></div>
     </div>
   );
 }
@@ -384,8 +423,8 @@ export default function SpellManagementPanel() {
       <div className="panel">
         <div className="panel-title">Spells</div>
         <div className="form-row" style={{ flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
-          <button className="btn btn-primary" onClick={handleImportSrd} disabled={importing}>{importing ? 'Importing…' : 'Import SRD 5.1'}</button>
-          <button className="btn btn-ghost" onClick={() => { setHomebrewForm(emptyHomebrewForm()); setHomebrewOpen(true); }}>+ Homebrew Spell</button>
+          <button type="button" className="btn btn-primary" onClick={handleImportSrd} disabled={importing}>{importing ? 'Importing…' : 'Import SRD 5.1'}</button>
+          <button type="button" className="btn btn-ghost" onClick={() => { setHomebrewForm(emptyHomebrewForm()); setHomebrewOpen(true); }}>+ Homebrew Spell</button>
         </div>
         {status && <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 8 }}>{status}</div>}
         <div className="form-row" style={{ flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
