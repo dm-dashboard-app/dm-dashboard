@@ -17,12 +17,28 @@ import {
   sortSpells,
 } from '../utils/spellWorkflow';
 
+function matchesAnySelectedFilter(spell, selectedFilters = []) {
+  if (!selectedFilters || selectedFilters.length === 0 || selectedFilters.includes('all')) return true;
+  return selectedFilters.some(filter => matchesSpellFilter(spell, filter));
+}
+
 function SpellRow({ spell, action, onOpenDetail, compact = false }) {
   return (
-    <div style={{ border: '1px solid var(--border)', borderRadius: 8, padding: compact ? '8px 10px' : '10px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => onOpenDetail(spell)}
+      onKeyDown={event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onOpenDetail(spell);
+        }
+      }}
+      style={{ border: '1px solid var(--border)', borderRadius: 8, padding: compact ? '8px 10px' : '10px 12px', display: 'flex', flexDirection: 'column', gap: 6, cursor: 'pointer' }}
+    >
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start' }}>
         <div style={{ minWidth: 0 }}>
-          <button type="button" className="btn btn-ghost" style={{ padding: 0, fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', border: 'none', background: 'transparent' }} onClick={() => onOpenDetail(spell)}>{spell.name}</button>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>{spell.name}</div>
           <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
             {Number(spell.level) === 0 ? 'Cantrip' : `Level ${spell.level}`}
             {getSpellSummary(spell) ? ` • ${getSpellSummary(spell)}` : ''}
@@ -30,27 +46,30 @@ function SpellRow({ spell, action, onOpenDetail, compact = false }) {
             {spell.concentration ? ' • Concentration' : ''}
           </div>
         </div>
-        {action ? <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{action}</div> : null}
+        {action ? <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }} onClick={event => event.stopPropagation()} onKeyDown={event => event.stopPropagation()}>{action}</div> : null}
       </div>
     </div>
   );
 }
 
-function PanelBody({ title, subtitle, tabs, activeTab, setActiveTab, filters, filter, setFilter, displayed, selectedSpell, setSelectedSpell, footer }) {
+function PanelBody({ title, subtitle, tabs, activeTab, setActiveTab, filters, selectedFilters, toggleFilter, displayed, selectedSpell, setSelectedSpell, footer }) {
   return (
     <>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 10 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 10 }}>
         {title ? <div className="panel-title" style={{ marginBottom: 0 }}>{title}</div> : null}
         {subtitle ? <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{subtitle}</div> : null}
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
           {tabs.map(tab => (
-            <button type="button" key={tab.value} className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: activeTab === tab.value ? 'var(--accent-blue)' : 'var(--border)', color: activeTab === tab.value ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setActiveTab(tab.value)}>{tab.label}</button>
+            <button type="button" key={tab.value} className="btn btn-ghost" style={{ minHeight: 40, fontSize: 13, padding: '8px 10px', borderColor: activeTab === tab.value ? 'var(--accent-blue)' : 'var(--border)', color: activeTab === tab.value ? 'var(--accent-blue)' : 'var(--text-secondary)', background: activeTab === tab.value ? 'rgba(74,158,255,0.12)' : 'transparent', fontWeight: 800 }} onClick={() => setActiveTab(tab.value)}>{tab.label}</button>
           ))}
         </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {filters.map(item => (
-            <button type="button" key={item.value} className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: filter === item.value ? 'var(--accent-blue)' : 'var(--border)', color: filter === item.value ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setFilter(item.value)}>{item.label}</button>
-          ))}
+          {filters.map(item => {
+            const selected = selectedFilters.includes(item.value);
+            return (
+              <button type="button" key={item.value} className="btn btn-ghost" style={{ fontSize: 11, padding: '3px 10px', borderColor: selected ? 'var(--accent-blue)' : 'var(--border)', color: selected ? 'var(--accent-blue)' : 'var(--text-secondary)', background: selected ? 'rgba(74,158,255,0.12)' : 'transparent' }} onClick={() => toggleFilter(item.value)}>{item.label}</button>
+            );
+          })}
         </div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -69,7 +88,7 @@ export default function SpellWorkflowPanel({ profile, state, encounterId, onUpda
   const [loading, setLoading] = useState(true);
   const [selectedSpell, setSelectedSpell] = useState(null);
   const [activeTab, setActiveTab] = useState('prepared');
-  const [filter, setFilter] = useState('all');
+  const [selectedFilters, setSelectedFilters] = useState(['all']);
 
   useEffect(() => {
     let cancelled = false;
@@ -148,10 +167,22 @@ export default function SpellWorkflowPanel({ profile, state, encounterId, onUpda
     await setPrepDirty();
   }
 
+  function toggleFilter(filterValue) {
+    setSelectedFilters(current => {
+      if (filterValue === 'all') return ['all'];
+      const withoutAll = current.filter(value => value !== 'all');
+      if (withoutAll.includes(filterValue)) {
+        const next = withoutAll.filter(value => value !== filterValue);
+        return next.length > 0 ? next : ['all'];
+      }
+      return [...withoutAll, filterValue];
+    });
+  }
+
   const preparedSource = mode === 'prep' ? preparedPrep : preparedRuntime;
   const displayedSource = activeTab === 'prepared' ? preparedSource : knownRuntime;
   const displayed = useMemo(() => {
-    const list = sortSpells(displayedSource.filter(spell => matchesSpellFilter(spell, filter)));
+    const list = sortSpells(displayedSource.filter(spell => matchesAnySelectedFilter(spell, selectedFilters)));
     return list.map(spell => ({
       ...spell,
       render: openDetail => {
@@ -162,7 +193,7 @@ export default function SpellWorkflowPanel({ profile, state, encounterId, onUpda
         return <SpellRow key={`${activeTab}-${spell.spellId}`} spell={spell} action={action} onOpenDetail={openDetail} />;
       },
     }));
-  }, [displayedSource, filter, mode, activeTab, preparedCount, prepCapTotal]);
+  }, [displayedSource, selectedFilters, mode, activeTab, preparedCount, prepCapTotal]);
 
   const actorLabel = role === 'dm' ? 'DM view' : 'Player view';
   const panelTitle = title || (mode === 'prep' ? 'Long Rest Preparation' : 'Spells');
@@ -181,7 +212,7 @@ export default function SpellWorkflowPanel({ profile, state, encounterId, onUpda
 
   const body = loading
     ? <div className="empty-state">Loading spells…</div>
-    : <PanelBody title={panelTitle} subtitle={panelSubtitle} tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} filters={SPELL_FILTERS} filter={filter} setFilter={setFilter} displayed={displayed} selectedSpell={selectedSpell} setSelectedSpell={setSelectedSpell} footer={footer} />;
+    : <PanelBody title={panelTitle} subtitle={panelSubtitle} tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} filters={SPELL_FILTERS} selectedFilters={selectedFilters} toggleFilter={toggleFilter} displayed={displayed} selectedSpell={selectedSpell} setSelectedSpell={setSelectedSpell} footer={footer} />;
 
   if (variant === 'modal') {
     return (
@@ -194,7 +225,7 @@ export default function SpellWorkflowPanel({ profile, state, encounterId, onUpda
             </div>
             {onClose ? <button type="button" className="btn btn-ghost btn-icon" onClick={onClose}>✕</button> : null}
           </div>
-          <div style={{ marginTop: 8 }}>{loading ? <div className="empty-state">Loading spells…</div> : <PanelBody title="" subtitle="" tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} filters={SPELL_FILTERS} filter={filter} setFilter={setFilter} displayed={displayed} selectedSpell={selectedSpell} setSelectedSpell={setSelectedSpell} footer={footer} />}</div>
+          <div style={{ marginTop: 8 }}>{loading ? <div className="empty-state">Loading spells…</div> : <PanelBody title="" subtitle="" tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} filters={SPELL_FILTERS} selectedFilters={selectedFilters} toggleFilter={toggleFilter} displayed={displayed} selectedSpell={selectedSpell} setSelectedSpell={setSelectedSpell} footer={footer} />}</div>
         </div>
       </div>
     );
