@@ -4,10 +4,11 @@ import usePolling from '../hooks/usePolling';
 import PlayerCard from '../components/PlayerCard';
 import InitiativePanel from '../components/InitiativePanelNext';
 import SecretRollPanel from '../components/SecretRollPanel';
-import SpellbookPanel from '../components/SpellbookPanel';
+import SpellWorkflowPanel from '../components/SpellWorkflowPanel';
 import SkillsModal from '../components/SkillsModal';
 import { flattenStates } from './player/playerViewUtils';
 import PlayerConCheckLog from './player/PlayerConCheckLog';
+import { hasPreparationRequirement } from '../utils/spellWorkflow';
 
 export default function PlayerView() {
   const [encounter, setEncounter] = useState(null);
@@ -82,6 +83,10 @@ export default function PlayerView() {
   const concentration = state?.concentration ?? false;
   const pendingConDc = concentration ? (state?.concentration_check_dc ?? null) : null;
   const playerName = state?.profiles_players?.name || combatant?.name || null;
+  const prepRequired = hasPreparationRequirement(state?.profiles_players || {});
+  const prepActive = !!encounter?.long_rest_prep_active;
+  const prepReady = !!state?.spell_prep_ready;
+  const showPrepModal = prepActive && prepRequired && !prepReady && !!state?.profiles_players;
 
   async function handleConPass() {
     if (!state) return;
@@ -103,6 +108,18 @@ export default function PlayerView() {
     refreshAll();
   }
 
+  async function markPrepReady() {
+    if (!state?.id) return;
+    await supabase.from('player_encounter_state').update({ spell_prep_ready: true }).eq('id', state.id);
+    refreshAll();
+  }
+
+  async function markPrepDirty() {
+    if (!state?.id) return;
+    await supabase.from('player_encounter_state').update({ spell_prep_ready: false }).eq('id', state.id);
+    refreshAll();
+  }
+
   if (loading) return <div className="splash"><div className="splash-text">Joining session...</div></div>;
   if (error) return <div className="splash"><div className="splash-text">Warning: {error}</div><button className="btn btn-ghost" onClick={handleLeave}>Back to Join Screen</button></div>;
 
@@ -120,6 +137,15 @@ export default function PlayerView() {
         </div>
       </div>
 
+      {prepActive && prepRequired && !showPrepModal && (
+        <div style={{ background: 'rgba(74,158,255,0.10)', borderBottom: '1.5px solid var(--accent-blue)', padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: prepReady ? 'var(--accent-green)' : 'var(--accent-blue)' }}>
+            {prepReady ? 'Long rest spell prep complete. Waiting for DM to finish the long rest.' : 'Long rest spell prep required.'}
+          </span>
+          {!prepReady && <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => setTab('spells')}>Open Spells</button>}
+        </div>
+      )}
+
       {pendingConDc !== null && tab !== 'char' && tab !== 'con' && (
         <div style={{ background: 'rgba(240,180,41,0.12)', borderBottom: '1.5px solid var(--accent-gold)', padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: 'pointer' }} onClick={() => setTab('con')}><span style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent-gold)' }}>CON Save Required - DC {pendingConDc}</span><span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Tap to confirm</span></div>
       )}
@@ -127,7 +153,7 @@ export default function PlayerView() {
       <div className="main-content">
         {tab === 'char' && combatant && state && <PlayerCard combatant={combatant} state={state} role="player" isEditMode={encounter?.player_edit_mode} encounterId={encounterId} onUpdate={refreshAll} />}
         {tab === 'skills' && state?.profiles_players && <SkillsModal variant="panel" profile={state.profiles_players} title="Skills" />}
-        {tab === 'spells' && state?.profiles_players && <SpellbookPanel profile={state.profiles_players} state={state} encounterId={encounterId} onUpdate={refreshAll} role="player" />}
+        {tab === 'spells' && state?.profiles_players && <SpellWorkflowPanel profile={state.profiles_players} state={state} encounterId={encounterId} onUpdate={refreshAll} role="player" mode="runtime" />}
         {tab === 'combat' && (
           <>
             <div className="initiative-top-bar">
@@ -141,6 +167,23 @@ export default function PlayerView() {
         {tab === 'con' && <PlayerConCheckLog encounterId={encounterId} playerName={playerName} pendingDc={pendingConDc} onPass={handleConPass} onFail={handleConFail} />}
       </div>
       <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border)' }}><button className="btn btn-ghost" style={{ fontSize: 12, color: 'var(--text-muted)' }} onClick={handleLeave}>Leave Session</button></div>
+
+      {showPrepModal && (
+        <SpellWorkflowPanel
+          variant="modal"
+          mode="prep"
+          role="player"
+          profile={state.profiles_players}
+          state={state}
+          encounterId={encounterId}
+          onUpdate={refreshAll}
+          prepReady={prepReady}
+          onMarkReady={markPrepReady}
+          onPrepChanged={markPrepDirty}
+          title="Long Rest Preparation"
+          subtitle="Choose your prepared spells, inspect details if needed, then mark ready."
+        />
+      )}
     </div>
   );
 }
