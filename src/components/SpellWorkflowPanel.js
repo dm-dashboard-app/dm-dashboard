@@ -22,7 +22,7 @@ function SpellRow({ spell, action, onOpenDetail, compact = false }) {
     <div style={{ border: '1px solid var(--border)', borderRadius: 8, padding: compact ? '8px 10px' : '10px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start' }}>
         <div style={{ minWidth: 0 }}>
-          <button className="btn btn-ghost" style={{ padding: 0, fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', border: 'none', background: 'transparent' }} onClick={() => onOpenDetail(spell)}>{spell.name}</button>
+          <button type="button" className="btn btn-ghost" style={{ padding: 0, fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', border: 'none', background: 'transparent' }} onClick={() => onOpenDetail(spell)}>{spell.name}</button>
           <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
             {Number(spell.level) === 0 ? 'Cantrip' : `Level ${spell.level}`}
             {getSpellSummary(spell) ? ` • ${getSpellSummary(spell)}` : ''}
@@ -44,12 +44,12 @@ function PanelBody({ title, subtitle, tabs, activeTab, setActiveTab, filters, fi
         {subtitle ? <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{subtitle}</div> : null}
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {tabs.map(tab => (
-            <button key={tab.value} className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: activeTab === tab.value ? 'var(--accent-blue)' : 'var(--border)', color: activeTab === tab.value ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setActiveTab(tab.value)}>{tab.label}</button>
+            <button type="button" key={tab.value} className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: activeTab === tab.value ? 'var(--accent-blue)' : 'var(--border)', color: activeTab === tab.value ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setActiveTab(tab.value)}>{tab.label}</button>
           ))}
         </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {filters.map(item => (
-            <button key={item.value} className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: filter === item.value ? 'var(--accent-blue)' : 'var(--border)', color: filter === item.value ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setFilter(item.value)}>{item.label}</button>
+            <button type="button" key={item.value} className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: filter === item.value ? 'var(--accent-blue)' : 'var(--border)', color: filter === item.value ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setFilter(item.value)}>{item.label}</button>
           ))}
         </div>
       </div>
@@ -96,7 +96,7 @@ export default function SpellWorkflowPanel({ profile, state, encounterId, onUpda
 
   const classEntries = useMemo(() => getClassEntries(profile), [profile]);
   const hasPreparedTab = useMemo(() => hasPreparationRequirement(profile), [profile]);
-  const knownRuntime = useMemo(() => getKnownRuntimeSpells(profile, rows), [profile, rows]);
+  const knownRuntime = useMemo(() => getKnownRuntimeSpells(profile, allSpells, rows), [profile, allSpells, rows]);
   const preparedRuntime = useMemo(() => getPreparedRuntimeSpells(profile, rows), [profile, rows]);
   const preparedPrep = useMemo(() => getPreparedPreparationSpells(profile, allSpells, rows), [profile, allSpells, rows]);
   const prepCapTotal = useMemo(() => getPreparedCapTotal(profile), [profile]);
@@ -157,7 +157,7 @@ export default function SpellWorkflowPanel({ profile, state, encounterId, onUpda
       render: openDetail => {
         const showPrepAction = mode === 'prep' && activeTab === 'prepared' && Number(spell.level) > 0;
         const action = showPrepAction ? (
-          <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => togglePrepared(spell)}>{spell.prepared ? 'Unprepare' : 'Prepare'}</button>
+          <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => togglePrepared(spell)}>{spell.prepared ? 'Unprepare' : 'Prepare'}</button>
         ) : null;
         return <SpellRow key={`${activeTab}-${spell.spellId}`} spell={spell} action={action} onOpenDetail={openDetail} />;
       },
@@ -175,7 +175,7 @@ export default function SpellWorkflowPanel({ profile, state, encounterId, onUpda
       <div style={{ fontSize: 11, color: prepReady ? 'var(--accent-green)' : 'var(--text-muted)' }}>
         {prepReady ? 'Ready for long rest.' : 'Not ready yet.'}
       </div>
-      <button className="btn btn-primary" onClick={onMarkReady}>{prepReady ? 'Ready ✓' : 'Mark Ready'}</button>
+      <button type="button" className="btn btn-primary" onClick={onMarkReady}>{prepReady ? 'Ready ✓' : 'Mark Ready'}</button>
     </div>
   ) : null;
 
@@ -192,7 +192,7 @@ export default function SpellWorkflowPanel({ profile, state, encounterId, onUpda
               <div className="panel-title" style={{ marginBottom: 4 }}>{panelTitle}</div>
               <div className="modal-subtitle">{panelSubtitle}</div>
             </div>
-            {onClose ? <button className="btn btn-ghost btn-icon" onClick={onClose}>✕</button> : null}
+            {onClose ? <button type="button" className="btn btn-ghost btn-icon" onClick={onClose}>✕</button> : null}
           </div>
           <div style={{ marginTop: 8 }}>{loading ? <div className="empty-state">Loading spells…</div> : <PanelBody title="" subtitle="" tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} filters={SPELL_FILTERS} filter={filter} setFilter={setFilter} displayed={displayed} selectedSpell={selectedSpell} setSelectedSpell={setSelectedSpell} footer={footer} />}</div>
         </div>
@@ -204,6 +204,7 @@ export default function SpellWorkflowPanel({ profile, state, encounterId, onUpda
 }
 
 export function ConcentrationSpellPickerModal({ open, profile, encounterId, state, actor = 'Player', onClose, onUpdate }) {
+  const [allSpells, setAllSpells] = useState([]);
   const [rows, setRows] = useState([]);
   const [selectedSpell, setSelectedSpell] = useState(null);
 
@@ -211,14 +212,19 @@ export function ConcentrationSpellPickerModal({ open, profile, encounterId, stat
     let cancelled = false;
     async function load() {
       if (!open || !profile?.id) return;
-      const { data } = await supabase.from('profile_player_spells').select('*, spells(*)').eq('player_profile_id', profile.id);
-      if (!cancelled) setRows((data || []).map(getSpellRecord));
+      const [spellsRes, rowsRes] = await Promise.all([
+        supabase.from('spells').select('*').order('level').order('name'),
+        supabase.from('profile_player_spells').select('*, spells(*)').eq('player_profile_id', profile.id),
+      ]);
+      if (cancelled) return;
+      setAllSpells((spellsRes.data || []).map(getSpellRecord));
+      setRows((rowsRes.data || []).map(getSpellRecord));
     }
     load();
     return () => { cancelled = true; };
   }, [open, profile?.id]);
 
-  const spells = useMemo(() => getAccessibleConcentrationSpells(profile, rows), [profile, rows]);
+  const spells = useMemo(() => getAccessibleConcentrationSpells(profile, allSpells, rows), [profile, allSpells, rows]);
 
   async function setConcentration(spell = null) {
     if (!state?.id) return;
@@ -240,7 +246,7 @@ export function ConcentrationSpellPickerModal({ open, profile, encounterId, stat
             <div className="panel-title" style={{ marginBottom: 4 }}>Choose Concentration Spell</div>
             <div className="modal-subtitle">Pick the concentration spell for this player, or set a generic concentration state.</div>
           </div>
-          <button className="btn btn-ghost btn-icon" onClick={onClose}>✕</button>
+          <button type="button" className="btn btn-ghost btn-icon" onClick={onClose}>✕</button>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div style={{ border: '1px solid var(--border)', borderRadius: 8, padding: '10px 12px', display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
@@ -248,10 +254,10 @@ export function ConcentrationSpellPickerModal({ open, profile, encounterId, stat
               <div style={{ fontSize: 13, fontWeight: 700 }}>Generic Concentration</div>
               <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Use this when you just want concentration active without linking a spell.</div>
             </div>
-            <button className="btn btn-primary" style={{ fontSize: 11, padding: '3px 10px' }} onClick={() => setConcentration(null)}>Choose</button>
+            <button type="button" className="btn btn-primary" style={{ fontSize: 11, padding: '3px 10px' }} onClick={() => setConcentration(null)}>Choose</button>
           </div>
           {spells.map(spell => (
-            <SpellRow key={spell.spellId} spell={spell} action={<button className="btn btn-primary" style={{ fontSize: 11, padding: '3px 10px' }} onClick={() => setConcentration(spell)}>Choose</button>} onOpenDetail={setSelectedSpell} compact />
+            <SpellRow key={spell.spellId} spell={spell} action={<button type="button" className="btn btn-primary" style={{ fontSize: 11, padding: '3px 10px' }} onClick={() => setConcentration(spell)}>Choose</button>} onOpenDetail={setSelectedSpell} compact />
           ))}
           {spells.length === 0 && <div className="empty-state">No concentration-capable spells available in the current spell lists.</div>}
         </div>
