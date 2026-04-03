@@ -227,8 +227,33 @@ export function getPreparedRuntimeSpells(profile = {}, rows = []) {
   return sortSpells(dedupeSpells(rows.filter(row => row.prepared || row.level === 0)));
 }
 
-export function getKnownRuntimeSpells(profile = {}, rows = []) {
-  return sortSpells(dedupeSpells(rows.filter(row => row.known || row.level === 0)));
+export function getKnownRuntimeSpells(profile = {}, allSpells = [], rows = []) {
+  const classEntries = getClassEntries(profile);
+  const rowMap = getSpellRowMap(rows);
+  const preparedEntries = classEntries.filter(entry => entry.mode === 'prepared');
+  const wizardEntries = classEntries.filter(entry => entry.mode === 'wizard');
+  const knownEntries = classEntries.filter(entry => entry.mode === 'known');
+  const spells = [];
+
+  allSpells.forEach(spell => {
+    if (Number(spell.level) === 0) return;
+    if (preparedEntries.some(entry => spellIsLegalForClass(spell, entry))) {
+      const row = rowMap[spell.spellId];
+      spells.push({ ...spell, prepared: !!row?.prepared, known: true, rowId: row?.rowId || null });
+    }
+  });
+
+  rows.forEach(row => {
+    const matchesPreparedCantrip = Number(row.level) === 0 && preparedEntries.some(entry => spellMatchesClass(row, entry.className));
+    const matchesWizard = wizardEntries.some(entry => spellMatchesClass(row, entry.className));
+    const matchesKnown = knownEntries.some(entry => spellMatchesClass(row, entry.className));
+
+    if (matchesPreparedCantrip || matchesWizard || matchesKnown) {
+      spells.push({ ...row, known: true });
+    }
+  });
+
+  return sortSpells(dedupeSpells(spells));
 }
 
 export function getPreparedPreparationSpells(profile = {}, allSpells = [], rows = []) {
@@ -267,8 +292,11 @@ export function matchesSpellFilter(spell, filter = 'all') {
   return true;
 }
 
-export function getAccessibleConcentrationSpells(profile = {}, rows = []) {
-  const candidates = dedupeSpells([...getPreparedRuntimeSpells(profile, rows), ...getKnownRuntimeSpells(profile, rows)]);
+export function getAccessibleConcentrationSpells(profile = {}, allSpells = [], rows = []) {
+  const candidates = dedupeSpells([
+    ...getPreparedRuntimeSpells(profile, rows),
+    ...getKnownRuntimeSpells(profile, allSpells, rows),
+  ]);
   return sortSpells(candidates.filter(spell => spell.concentration));
 }
 

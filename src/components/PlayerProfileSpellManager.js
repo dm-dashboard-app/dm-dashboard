@@ -140,7 +140,7 @@ function SpellDetailModal({ spell, onClose }) {
       <div className="panel" style={{ width: 'min(680px, 100%)', maxHeight: '85vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
         <div className="panel-title" style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
           <span>{spell.name}</span>
-          <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={onClose}>Close</button>
+          <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={onClose}>Close</button>
         </div>
         <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
           {Number(spell.level) === 0 ? 'Cantrip' : `Level ${spell.level}`} • {spell.school || 'Unknown school'}
@@ -168,22 +168,22 @@ function SpellRow({ spell, row, classEntry, cantripView, onToggleCantrip, onLear
 
   let actions = null;
   if (cantripView) {
-    actions = <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onToggleCantrip(spell, !isAssigned)}>{isAssigned ? 'Remove' : 'Add'}</button>;
+    actions = <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onToggleCantrip(spell, !isAssigned)}>{isAssigned ? 'Remove' : 'Add'}</button>;
   } else if (classEntry.mode === 'prepared') {
-    actions = <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => (isPrepared ? onUnprepare(spell, row) : onPrepare(spell, row))}>{isPrepared ? 'Unprepare' : 'Prepare'}</button>;
+    actions = <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => (isPrepared ? onUnprepare(spell, row) : onPrepare(spell, row))}>{isPrepared ? 'Unprepare' : 'Prepare'}</button>;
   } else if (classEntry.mode === 'wizard') {
-    actions = <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{isAssigned ? <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onForget(spell, row)}>Forget</button> : <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onLearn(spell)}>Learn</button>}{isAssigned && <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => (isPrepared ? onUnprepare(spell, row) : onPrepare(spell, row))}>{isPrepared ? 'Unprepare' : 'Prepare'}</button>}</div>;
+    actions = <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{isAssigned ? <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onForget(spell, row)}>Forget</button> : <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onLearn(spell)}>Learn</button>}{isAssigned && <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => (isPrepared ? onUnprepare(spell, row) : onPrepare(spell, row))}>{isPrepared ? 'Unprepare' : 'Prepare'}</button>}</div>;
   } else if (classEntry.mode === 'known') {
-    actions = isAssigned ? <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onForget(spell, row)}>Unlearn</button> : <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onLearn(spell)}>Learn</button>;
+    actions = isAssigned ? <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onForget(spell, row)}>Unlearn</button> : <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onLearn(spell)}>Learn</button>;
   } else {
-    actions = isAssigned ? <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onForget(spell, row)}>Remove</button> : <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onLearn(spell)}>Add</button>;
+    actions = isAssigned ? <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onForget(spell, row)}>Remove</button> : <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onLearn(spell)}>Add</button>;
   }
 
   return (
     <div style={{ border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start' }}>
         <div style={{ minWidth: 0 }}>
-          <button className="btn btn-ghost" style={{ padding: 0, fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', border: 'none', background: 'transparent' }} onClick={() => onOpenDetail(spell)}>{spell.name}</button>
+          <button type="button" className="btn btn-ghost" style={{ padding: 0, fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', border: 'none', background: 'transparent' }} onClick={() => onOpenDetail(spell)}>{spell.name}</button>
           <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{Number(spell.level) === 0 ? 'Cantrip' : `Level ${spell.level}`}{summary ? ` • ${summary}` : ''}</div>
           {isAssigned && <div style={{ fontSize: 10, color: 'var(--accent-blue)' }}>{classEntry.mode === 'prepared' ? (isPrepared ? 'Prepared' : 'Available') : (classEntry.mode === 'wizard' ? (isPrepared ? 'Learned • Prepared' : 'Learned') : 'Learned')}</div>}
         </div>
@@ -340,7 +340,7 @@ export default function PlayerProfileSpellManager({ profile }) {
     <div className="panel" style={{ marginTop: 12 }}>
       <div className="panel-title">Spells</div>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
-        {classEntries.map(entry => <button key={entry.key} className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: activeClass?.key === entry.key ? 'var(--accent-blue)' : 'var(--border)', color: activeClass?.key === entry.key ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setClassKey(entry.key)}>{entry.label} Lv {entry.level}</button>)}
+        {classEntries.map(entry => <button type="button" key={entry.key} className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: activeClass?.key === entry.key ? 'var(--accent-blue)' : 'var(--border)', color: activeClass?.key === entry.key ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setClassKey(entry.key)}>{entry.label} Lv {entry.level}</button>)}
       </div>
       {activeClass && (
         <>
@@ -356,9 +356,9 @@ export default function PlayerProfileSpellManager({ profile }) {
           </div>
           <div className="panel-title">Leveled Spells</div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
-            {activeClass.mode === 'prepared' && <><button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: view === 'all' ? 'var(--accent-blue)' : 'var(--border)', color: view === 'all' ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setView('all')}>All</button><button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: view === 'prepared' ? 'var(--accent-blue)' : 'var(--border)', color: view === 'prepared' ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setView('prepared')}>Prepared</button></>}
-            {activeClass.mode === 'wizard' && <><button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: view === 'learned' ? 'var(--accent-blue)' : 'var(--border)', color: view === 'learned' ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setView('learned')}>Learned</button><button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: view === 'unlearned' ? 'var(--accent-blue)' : 'var(--border)', color: view === 'unlearned' ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setView('unlearned')}>Unlearned</button><button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: view === 'prepared' ? 'var(--accent-blue)' : 'var(--border)', color: view === 'prepared' ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setView('prepared')}>Prepared</button></>}
-            {activeClass.mode === 'known' && <><button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: view === 'learned' ? 'var(--accent-blue)' : 'var(--border)', color: view === 'learned' ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setView('learned')}>Learned</button><button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: view === 'unlearned' ? 'var(--accent-blue)' : 'var(--border)', color: view === 'unlearned' ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setView('unlearned')}>Unlearned</button></>}
+            {activeClass.mode === 'prepared' && <><button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: view === 'all' ? 'var(--accent-blue)' : 'var(--border)', color: view === 'all' ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setView('all')}>All</button><button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: view === 'prepared' ? 'var(--accent-blue)' : 'var(--border)', color: view === 'prepared' ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setView('prepared')}>Prepared</button></>}
+            {activeClass.mode === 'wizard' && <><button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: view === 'learned' ? 'var(--accent-blue)' : 'var(--border)', color: view === 'learned' ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setView('learned')}>Learned</button><button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: view === 'unlearned' ? 'var(--accent-blue)' : 'var(--border)', color: view === 'unlearned' ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setView('unlearned')}>Unlearned</button><button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: view === 'prepared' ? 'var(--accent-blue)' : 'var(--border)', color: view === 'prepared' ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setView('prepared')}>Prepared</button></>}
+            {activeClass.mode === 'known' && <><button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: view === 'learned' ? 'var(--accent-blue)' : 'var(--border)', color: view === 'learned' ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setView('learned')}>Learned</button><button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: view === 'unlearned' ? 'var(--accent-blue)' : 'var(--border)', color: view === 'unlearned' ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setView('unlearned')}>Unlearned</button></>}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {visibleLeveled.map(spell => <SpellRow key={spell.id} spell={spell} row={rowMap[spell.id]} classEntry={activeClass} onToggleCantrip={toggleCantrip} onLearn={learnSpell} onForget={forgetSpell} onPrepare={prepareSpell} onUnprepare={unprepareSpell} onOpenDetail={setSelectedSpell} />)}
