@@ -18,6 +18,7 @@ const SURFACE_RULES = {
   'hit-dice': { playerCard: true, initiative: false, display: false, shortRest: true },
   'warlock-slots': { playerCard: false, initiative: false, display: false, shortRest: true, managedBySpellSlotGrid: true },
   'natural-recovery': { playerCard: false, initiative: false, display: false, shortRest: false },
+  'mage-armour': { playerCard: true, initiative: false, display: false, shortRest: false },
   lucky: { playerCard: true, initiative: true, display: false, shortRest: false },
   'relentless-endurance': { playerCard: true, initiative: true, display: false, shortRest: false },
   'fey-step': { playerCard: true, initiative: false, display: false, shortRest: false },
