@@ -2,7 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import SpellDetailsModal from './SpellDetailsModal';
 import {
-  SPELL_FILTERS,
+  SPELL_FILTER_LEVELS,
+  SPELL_FILTER_PRIMARY,
+  createSpellFilterState,
   getAccessibleConcentrationSpells,
   getClassEntries,
   getKnownRuntimeSpells,
@@ -13,13 +15,28 @@ import {
   getSpellRowMap,
   getSpellSummary,
   hasPreparationRequirement,
-  matchesSpellFilter,
   sortSpells,
+  spellMatchesFilterState,
+  toggleSpellFilter,
 } from '../utils/spellWorkflow';
 
-function matchesAnySelectedFilter(spell, selectedFilters = []) {
-  if (!selectedFilters || selectedFilters.length === 0 || selectedFilters.includes('all')) return true;
-  return selectedFilters.some(filter => matchesSpellFilter(spell, filter));
+function FilterChip({ label, selected, onClick }) {
+  return (
+    <button
+      type="button"
+      className="btn btn-ghost"
+      style={{
+        fontSize: 11,
+        padding: '3px 10px',
+        borderColor: selected ? 'var(--accent-blue)' : 'var(--border)',
+        color: selected ? 'var(--accent-blue)' : 'var(--text-secondary)',
+        background: selected ? 'rgba(74,158,255,0.12)' : 'transparent',
+      }}
+      onClick={onClick}
+    >
+      {label}
+    </button>
+  );
 }
 
 function SpellRow({ spell, action, onOpenDetail, compact = false }) {
@@ -52,7 +69,7 @@ function SpellRow({ spell, action, onOpenDetail, compact = false }) {
   );
 }
 
-function PanelBody({ title, subtitle, tabs, activeTab, setActiveTab, filters, selectedFilters, toggleFilter, displayed, selectedSpell, setSelectedSpell, footer }) {
+function PanelBody({ title, subtitle, tabs, activeTab, setActiveTab, filterState, setFilterState, displayed, selectedSpell, setSelectedSpell, footer }) {
   return (
     <>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 10 }}>
@@ -63,13 +80,13 @@ function PanelBody({ title, subtitle, tabs, activeTab, setActiveTab, filters, se
             <button type="button" key={tab.value} className="btn btn-ghost" style={{ minHeight: 40, fontSize: 13, padding: '8px 10px', borderColor: activeTab === tab.value ? 'var(--accent-blue)' : 'var(--border)', color: activeTab === tab.value ? 'var(--accent-blue)' : 'var(--text-secondary)', background: activeTab === tab.value ? 'rgba(74,158,255,0.12)' : 'transparent', fontWeight: 800 }} onClick={() => setActiveTab(tab.value)}>{tab.label}</button>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {filters.map(item => {
-            const selected = selectedFilters.includes(item.value);
-            return (
-              <button type="button" key={item.value} className="btn btn-ghost" style={{ fontSize: 11, padding: '3px 10px', borderColor: selected ? 'var(--accent-blue)' : 'var(--border)', color: selected ? 'var(--accent-blue)' : 'var(--text-secondary)', background: selected ? 'rgba(74,158,255,0.12)' : 'transparent' }} onClick={() => toggleFilter(item.value)}>{item.label}</button>
-            );
-          })}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {SPELL_FILTER_PRIMARY.map(item => <FilterChip key={item.value} label={item.label} selected={(filterState.primary || ['all']).includes(item.value)} onClick={() => setFilterState(current => toggleSpellFilter(current, item.value))} />)}
+          </div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {SPELL_FILTER_LEVELS.map(item => <FilterChip key={item.value} label={item.label} selected={filterState.level === item.value} onClick={() => setFilterState(current => toggleSpellFilter(current, item.value))} />)}
+          </div>
         </div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -87,8 +104,8 @@ export default function SpellWorkflowPanel({ profile, state, encounterId, onUpda
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedSpell, setSelectedSpell] = useState(null);
-  const [activeTab, setActiveTab] = useState('prepared');
-  const [selectedFilters, setSelectedFilters] = useState(['all']);
+  const [activeTab, setActiveTab] = useState('known');
+  const [filterState, setFilterState] = useState(createSpellFilterState());
 
   useEffect(() => {
     let cancelled = false;
@@ -117,20 +134,19 @@ export default function SpellWorkflowPanel({ profile, state, encounterId, onUpda
   const hasPreparedTab = useMemo(() => hasPreparationRequirement(profile), [profile]);
   const knownRuntime = useMemo(() => getKnownRuntimeSpells(profile, allSpells, rows), [profile, allSpells, rows]);
   const preparedRuntime = useMemo(() => getPreparedRuntimeSpells(profile, rows), [profile, rows]);
-  const preparedPrep = useMemo(() => getPreparedPreparationSpells(profile, allSpells, rows), [profile, allSpells, rows]);
+  const prepKnown = useMemo(() => getPreparedPreparationSpells(profile, allSpells, rows), [profile, allSpells, rows]);
+  const prepPrepared = useMemo(() => sortSpells(prepKnown.filter(spell => spell.prepared)), [prepKnown]);
   const prepCapTotal = useMemo(() => getPreparedCapTotal(profile), [profile]);
   const preparedCount = useMemo(() => rows.filter(row => row.prepared && row.level > 0).length, [rows]);
 
   useEffect(() => {
-    if (hasPreparedTab) setActiveTab('prepared');
-    else setActiveTab('known');
-  }, [hasPreparedTab, profile?.id]);
+    setActiveTab('known');
+    setFilterState(createSpellFilterState());
+  }, [profile?.id, mode]);
 
   const tabs = useMemo(() => {
-    const base = [];
-    if (hasPreparedTab) base.push({ value: 'prepared', label: 'Prepared' });
-    base.push({ value: 'known', label: 'Known' });
-    return base;
+    if (!hasPreparedTab) return [{ value: 'known', label: 'Known' }];
+    return [{ value: 'prepared', label: 'Prepared' }, { value: 'known', label: 'Known' }];
   }, [hasPreparedTab]);
 
   async function refreshRows() {
@@ -167,38 +183,28 @@ export default function SpellWorkflowPanel({ profile, state, encounterId, onUpda
     await setPrepDirty();
   }
 
-  function toggleFilter(filterValue) {
-    setSelectedFilters(current => {
-      if (filterValue === 'all') return ['all'];
-      const withoutAll = current.filter(value => value !== 'all');
-      if (withoutAll.includes(filterValue)) {
-        const next = withoutAll.filter(value => value !== filterValue);
-        return next.length > 0 ? next : ['all'];
-      }
-      return [...withoutAll, filterValue];
-    });
-  }
+  const displayedSource = activeTab === 'prepared'
+    ? (mode === 'prep' ? prepPrepared : preparedRuntime)
+    : (mode === 'prep' ? prepKnown : knownRuntime);
 
-  const preparedSource = mode === 'prep' ? preparedPrep : preparedRuntime;
-  const displayedSource = activeTab === 'prepared' ? preparedSource : knownRuntime;
   const displayed = useMemo(() => {
-    const list = sortSpells(displayedSource.filter(spell => matchesAnySelectedFilter(spell, selectedFilters)));
+    const list = sortSpells(displayedSource.filter(spell => spellMatchesFilterState(spell, filterState)));
     return list.map(spell => ({
       ...spell,
       render: openDetail => {
-        const showPrepAction = mode === 'prep' && activeTab === 'prepared' && Number(spell.level) > 0;
+        const showPrepAction = mode === 'prep' && Number(spell.level) > 0;
         const action = showPrepAction ? (
           <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => togglePrepared(spell)}>{spell.prepared ? 'Unprepare' : 'Prepare'}</button>
         ) : null;
         return <SpellRow key={`${activeTab}-${spell.spellId}`} spell={spell} action={action} onOpenDetail={openDetail} />;
       },
     }));
-  }, [displayedSource, selectedFilters, mode, activeTab, preparedCount, prepCapTotal]);
+  }, [displayedSource, filterState, mode, activeTab, preparedCount, prepCapTotal]);
 
   const actorLabel = role === 'dm' ? 'DM view' : 'Player view';
   const panelTitle = title || (mode === 'prep' ? 'Long Rest Preparation' : 'Spells');
   const panelSubtitle = subtitle || (mode === 'prep'
-    ? `Review spell details, adjust prepared spells, then mark ready. Prepared ${preparedCount}/${prepCapTotal || 0}.`
+    ? `Choose prepared spells from Known, review them in Prepared, then mark ready. Prepared ${preparedCount}/${prepCapTotal || 0}.`
     : `${actorLabel} • ${classEntries.map(entry => `${entry.label} ${entry.level}`).join(' / ')}`);
 
   const footer = mode === 'prep' && onMarkReady ? (
@@ -212,7 +218,7 @@ export default function SpellWorkflowPanel({ profile, state, encounterId, onUpda
 
   const body = loading
     ? <div className="empty-state">Loading spells…</div>
-    : <PanelBody title={panelTitle} subtitle={panelSubtitle} tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} filters={SPELL_FILTERS} selectedFilters={selectedFilters} toggleFilter={toggleFilter} displayed={displayed} selectedSpell={selectedSpell} setSelectedSpell={setSelectedSpell} footer={footer} />;
+    : <PanelBody title={panelTitle} subtitle={panelSubtitle} tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} filterState={filterState} setFilterState={setFilterState} displayed={displayed} selectedSpell={selectedSpell} setSelectedSpell={setSelectedSpell} footer={footer} />;
 
   if (variant === 'modal') {
     return (
@@ -225,7 +231,7 @@ export default function SpellWorkflowPanel({ profile, state, encounterId, onUpda
             </div>
             {onClose ? <button type="button" className="btn btn-ghost btn-icon" onClick={onClose}>✕</button> : null}
           </div>
-          <div style={{ marginTop: 8 }}>{loading ? <div className="empty-state">Loading spells…</div> : <PanelBody title="" subtitle="" tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} filters={SPELL_FILTERS} selectedFilters={selectedFilters} toggleFilter={toggleFilter} displayed={displayed} selectedSpell={selectedSpell} setSelectedSpell={setSelectedSpell} footer={footer} />}</div>
+          <div style={{ marginTop: 8 }}>{loading ? <div className="empty-state">Loading spells…</div> : <PanelBody title="" subtitle="" tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} filterState={filterState} setFilterState={setFilterState} displayed={displayed} selectedSpell={selectedSpell} setSelectedSpell={setSelectedSpell} footer={footer} />}</div>
         </div>
       </div>
     );
@@ -260,9 +266,7 @@ export function ConcentrationSpellPickerModal({ open, profile, encounterId, stat
   async function setConcentration(spell = null) {
     if (!state?.id) return;
     await supabase.from('player_encounter_state').update({ concentration: true, concentration_spell_id: spell?.spellId || null, concentration_check_dc: null }).eq('id', state.id);
-    if (encounterId) {
-      await supabase.from('combat_log').insert({ encounter_id: encounterId, actor, action: 'con', detail: spell ? `Concentration started: ${spell.name}` : 'Concentration started' });
-    }
+    if (encounterId) await supabase.from('combat_log').insert({ encounter_id: encounterId, actor, action: 'con', detail: spell ? `Concentration started: ${spell.name}` : 'Concentration started' });
     onUpdate?.();
     onClose?.();
   }

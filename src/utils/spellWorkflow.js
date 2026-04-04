@@ -1,16 +1,20 @@
-import { getClassLevel } from './classResources';
+import { getAbilityModifiers, getClassLevel } from './classResources';
 
 const FULL_CASTER_CLASSES = ['bard', 'cleric', 'druid', 'sorcerer', 'wizard'];
 const HALF_CASTER_CLASSES = ['paladin', 'ranger'];
 const PACT_CASTER_CLASSES = ['warlock'];
 const PREPARED_CLASSES = ['cleric', 'druid', 'paladin'];
 const KNOWN_CLASSES = ['bard', 'ranger', 'sorcerer', 'warlock'];
+const SPELLCASTING_ABILITY_BY_CLASS = { cleric: 'wis', druid: 'wis', paladin: 'cha', wizard: 'int' };
 
-export const SPELL_FILTERS = [
+export const SPELL_FILTER_PRIMARY = [
   { value: 'all', label: 'All' },
   { value: 'cantrip', label: 'Cantrips' },
   { value: 'concentration', label: 'Concentration' },
   { value: 'ritual', label: 'Ritual' },
+];
+
+export const SPELL_FILTER_LEVELS = [
   { value: 'level-1', label: 'L1' },
   { value: 'level-2', label: 'L2' },
   { value: 'level-3', label: 'L3' },
@@ -21,6 +25,8 @@ export const SPELL_FILTERS = [
   { value: 'level-8', label: 'L8' },
   { value: 'level-9', label: 'L9' },
 ];
+
+export const SPELL_FILTERS = [...SPELL_FILTER_PRIMARY, ...SPELL_FILTER_LEVELS];
 
 function normalizeClassName(name) {
   return String(name || '').trim().toLowerCase();
@@ -43,12 +49,10 @@ function getProficiencyBonus(level) {
   return 2;
 }
 
-function getSpellcastingModifier(profile = {}) {
-  const totalLevel = getTotalLevel(profile);
-  const proficiency = getProficiencyBonus(totalLevel);
-  const dc = Number(profile.spell_save_dc || 0);
-  if (!dc) return 0;
-  return Math.max(-5, dc - 8 - proficiency);
+function getPreparationAbilityModifier(profile = {}, className = '') {
+  const abilityKey = SPELLCASTING_ABILITY_BY_CLASS[className];
+  if (!abilityKey) return 0;
+  return getAbilityModifiers(profile)[abilityKey] ?? 0;
 }
 
 export function getCasterMode(className) {
@@ -92,7 +96,7 @@ export function getMaxSpellLevelForClass(className, classLevel) {
 
 export function getPreparedCap(profile = {}, className, classLevel) {
   const level = Number(classLevel || 0);
-  const spellMod = getSpellcastingModifier(profile);
+  const spellMod = getPreparationAbilityModifier(profile, className);
   if (className === 'paladin') return Math.max(1, Math.floor(level / 2) + spellMod);
   if (className === 'cleric' || className === 'druid' || className === 'wizard') return Math.max(1, level + spellMod);
   return 0;
@@ -283,12 +287,38 @@ export function getPreparedPreparationSpells(profile = {}, allSpells = [], rows 
   return sortSpells(dedupeSpells(spells));
 }
 
+export function createSpellFilterState() {
+  return { primary: ['all'], level: 'all' };
+}
+
+export function toggleSpellFilter(state = createSpellFilterState(), filterValue = 'all') {
+  if (filterValue === 'all') return createSpellFilterState();
+  const nextPrimary = [...(state.primary || ['all'])];
+  const isLevel = filterValue.startsWith('level-');
+  if (isLevel) {
+    return { primary: nextPrimary.includes('all') ? ['all'] : nextPrimary, level: state.level === filterValue ? 'all' : filterValue };
+  }
+  const withoutAll = nextPrimary.filter(value => value !== 'all');
+  if (withoutAll.includes(filterValue)) {
+    const reduced = withoutAll.filter(value => value !== filterValue);
+    return { primary: reduced.length > 0 ? reduced : ['all'], level: state.level || 'all' };
+  }
+  return { primary: [...withoutAll, filterValue], level: state.level || 'all' };
+}
+
 export function matchesSpellFilter(spell, filter = 'all') {
   if (filter === 'all') return true;
   if (filter === 'cantrip') return Number(spell.level) === 0;
   if (filter === 'concentration') return !!spell.concentration;
   if (filter === 'ritual') return !!spell.ritual;
   if (filter.startsWith('level-')) return Number(spell.level) === Number(filter.replace('level-', ''));
+  return true;
+}
+
+export function spellMatchesFilterState(spell, filterState = createSpellFilterState()) {
+  const primaryFilters = (filterState.primary || ['all']).filter(value => value !== 'all');
+  if (primaryFilters.some(filter => !matchesSpellFilter(spell, filter))) return false;
+  if (filterState.level && filterState.level !== 'all' && !matchesSpellFilter(spell, filterState.level)) return false;
   return true;
 }
 
