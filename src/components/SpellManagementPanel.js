@@ -89,6 +89,7 @@ async function importSrdSpells(onProgress) {
 
 function SpellRow({ spell, onOpenDetails }) {
   const classesText = (spell.class_tags || []).join(', ');
+  const previewText = String(spell.description || '').replace(/\s+/g, ' ').trim();
 
   return (
     <button
@@ -99,16 +100,18 @@ function SpellRow({ spell, onOpenDetails }) {
         width: '100%',
         border: '1px solid var(--border)',
         borderRadius: 8,
-        padding: '8px 10px',
+        padding: '10px 12px',
         display: 'flex',
         flexDirection: 'column',
         gap: 6,
         textAlign: 'left',
         background: 'var(--bg-panel-2)',
+        appearance: 'none',
+        WebkitAppearance: 'none',
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start' }}>
-        <div style={{ minWidth: 0 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
+        <div style={{ minWidth: 0, flex: '1 1 auto' }}>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
             <span style={{ fontSize: 13, fontWeight: 700 }}>{spell.name}</span>
             <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{Number(spell.level) === 0 ? 'Cantrip' : `Level ${spell.level}`}</span>
@@ -120,20 +123,31 @@ function SpellRow({ spell, onOpenDetails }) {
             {[spell.school, spell.casting_time, spell.range_text, spell.duration_text].filter(Boolean).join(' • ')}
           </div>
           {classesText && <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Classes: {classesText}</div>}
-          {spell.description && (
-            <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2, whiteSpace: 'pre-wrap' }}>
-              {String(spell.description).slice(0, 220)}
-              {String(spell.description).length > 220 ? '…' : ''}
+          {previewText && (
+            <div
+              style={{
+                fontSize: 11,
+                color: 'var(--text-secondary)',
+                marginTop: 4,
+                whiteSpace: 'normal',
+                overflow: 'hidden',
+                display: '-webkit-box',
+                WebkitLineClamp: 4,
+                WebkitBoxOrient: 'vertical',
+                lineHeight: 1.4,
+              }}
+            >
+              {previewText}
             </div>
           )}
         </div>
-        <div style={{ fontSize: 11, color: 'var(--accent-blue)', whiteSpace: 'nowrap' }}>View details</div>
+        <div style={{ fontSize: 11, color: 'var(--accent-blue)', whiteSpace: 'nowrap', flex: '0 0 auto', paddingTop: 1 }}>View details</div>
       </div>
     </button>
   );
 }
 
-function HomebrewEditor({ form, setForm, onSave, onCancel, saving }) {
+function HomebrewEditor({ form, setForm, onSave, onCancel, saving, errorMessage }) {
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -169,6 +183,12 @@ function HomebrewEditor({ form, setForm, onSave, onCancel, saving }) {
           </div>
           <button type="button" className="btn btn-ghost btn-icon" onClick={onCancel}>✕</button>
         </div>
+
+        {errorMessage && (
+          <div style={{ fontSize: 11, color: 'var(--accent-red)', marginBottom: 10 }}>
+            {errorMessage}
+          </div>
+        )}
 
         <div className="form-group"><label className="form-label">Name</label><input className="form-input" value={form.name} onChange={e => setForm(current => ({ ...current, name: e.target.value }))} /></div>
         <div className="form-row" style={{ gap: 8 }}>
@@ -211,6 +231,7 @@ export default function SpellManagementPanel() {
   const [detailSpell, setDetailSpell] = useState(null);
   const [homebrewOpen, setHomebrewOpen] = useState(false);
   const [homebrewForm, setHomebrewForm] = useState(emptyHomebrewForm());
+  const [homebrewError, setHomebrewError] = useState('');
   const [savingHomebrew, setSavingHomebrew] = useState(false);
   const [importing, setImporting] = useState(false);
 
@@ -254,24 +275,27 @@ export default function SpellManagementPanel() {
 
   async function saveHomebrew() {
     setSavingHomebrew(true);
+    setHomebrewError('');
+    setStatus('');
 
     try {
-      const normalizedName = homebrewForm.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      const { id, ...rest } = homebrewForm;
+      const normalizedName = rest.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
       const payload = {
-        ...homebrewForm,
-        external_key: homebrewForm.external_key || `homebrew:${normalizedName}`,
+        ...rest,
+        external_key: rest.external_key || `homebrew:${normalizedName}`,
         source_type: 'homebrew',
         is_homebrew: true,
-        is_cantrip: Number(homebrewForm.level) === 0,
-        class_tags: (homebrewForm.class_tags || []).map(normalizeClassName),
+        is_cantrip: Number(rest.level) === 0,
+        class_tags: (rest.class_tags || []).map(normalizeClassName),
       };
 
       let result;
-      if (homebrewForm.id) {
+      if (id) {
         result = await supabase
           .from('spells')
           .update(payload)
-          .eq('id', homebrewForm.id)
+          .eq('id', id)
           .select()
           .single();
       } else {
@@ -286,6 +310,7 @@ export default function SpellManagementPanel() {
 
       setHomebrewOpen(false);
       setHomebrewForm(emptyHomebrewForm());
+      setHomebrewError('');
       setStatus(result.data?.name ? `Homebrew spell saved: ${result.data.name}` : 'Homebrew spell saved.');
       await loadAll();
       if (result.data) {
@@ -301,13 +326,16 @@ export default function SpellManagementPanel() {
         });
       }
     } catch (error) {
-      setStatus(error?.message || error?.details || error?.hint || 'Failed to save homebrew spell.');
+      const message = error?.message || error?.details || error?.hint || 'Failed to save homebrew spell.';
+      setHomebrewError(message);
+      setStatus(message);
     } finally {
       setSavingHomebrew(false);
     }
   }
 
   function openEditHomebrew(spell) {
+    setHomebrewError('');
     setHomebrewForm({
       id: spell.id,
       external_key: spell.external_key || '',
@@ -354,7 +382,7 @@ export default function SpellManagementPanel() {
         </div>
         <div className="form-row" style={{ flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
           <button type="button" className="btn btn-primary" onClick={handleImportSrd} disabled={importing}>{importing ? 'Importing…' : 'Import SRD 5.1'}</button>
-          <button type="button" className="btn btn-ghost" onClick={() => { setDetailSpell(null); setHomebrewForm(emptyHomebrewForm()); setHomebrewOpen(true); }}>+ Homebrew Spell</button>
+          <button type="button" className="btn btn-ghost" onClick={() => { setDetailSpell(null); setHomebrewError(''); setHomebrewForm(emptyHomebrewForm()); setHomebrewOpen(true); }}>+ Homebrew Spell</button>
         </div>
         {status && <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 8 }}>{status}</div>}
         <div className="form-row" style={{ flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
@@ -369,7 +397,7 @@ export default function SpellManagementPanel() {
         </div>
       </div>
       {detailSpell && <SpellDetailsModal spell={detailSpell} onClose={() => setDetailSpell(null)} onEditHomebrew={detailSpell?.source_type === 'homebrew' ? () => openEditHomebrew(detailSpell) : null} />}
-      {homebrewOpen && <HomebrewEditor form={homebrewForm} setForm={setHomebrewForm} onSave={saveHomebrew} onCancel={() => { setHomebrewOpen(false); setHomebrewForm(emptyHomebrewForm()); }} saving={savingHomebrew} />}
+      {homebrewOpen && <HomebrewEditor form={homebrewForm} setForm={setHomebrewForm} onSave={saveHomebrew} onCancel={() => { setHomebrewOpen(false); setHomebrewError(''); setHomebrewForm(emptyHomebrewForm()); }} saving={savingHomebrew} errorMessage={homebrewError} />}
     </div>
   );
 }
