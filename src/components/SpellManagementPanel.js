@@ -1,10 +1,16 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import SpellDetailsModal from './SpellDetailsModal';
+import {
+  SPELL_FILTER_LEVELS,
+  SPELL_FILTER_PRIMARY,
+  createSpellFilterState,
+  spellMatchesFilterState,
+  toggleSpellFilter,
+} from '../utils/spellWorkflow';
 
 const CLASS_OPTIONS = ['Barbarian', 'Bard', 'Cleric', 'Druid', 'Fighter', 'Monk', 'Paladin', 'Ranger', 'Rogue', 'Sorcerer', 'Warlock', 'Wizard'];
 const SOURCE_OPTIONS = ['all', 'official_srd', 'homebrew'];
-const LEVEL_OPTIONS = ['all', 0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 const API_ROOT = 'https://www.dnd5eapi.co/api/2014';
 
 function normalizeClassName(name) {
@@ -85,6 +91,25 @@ async function importSrdSpells(onProgress) {
     if (error) throw error;
     onProgress(`Imported ${Math.min(i + batch.length, results.length)} / ${results.length} SRD spells…`);
   }
+}
+
+function FilterChip({ label, selected, onClick }) {
+  return (
+    <button
+      type="button"
+      className="btn btn-ghost"
+      style={{
+        fontSize: 11,
+        padding: '3px 10px',
+        borderColor: selected ? 'var(--accent-blue)' : 'var(--border)',
+        color: selected ? 'var(--accent-blue)' : 'var(--text-secondary)',
+        background: selected ? 'rgba(74,158,255,0.12)' : 'transparent',
+      }}
+      onClick={onClick}
+    >
+      {label}
+    </button>
+  );
 }
 
 function SpellRow({ spell, onOpenDetails }) {
@@ -186,36 +211,21 @@ function HomebrewEditor({ form, setForm, onSave, onCancel, saving, errorMessage 
           <button type="button" className="btn btn-ghost btn-icon" onClick={onCancel}>✕</button>
         </div>
 
-        {errorMessage && (
-          <div style={{ fontSize: 11, color: 'var(--accent-red)', marginBottom: 10 }}>
-            {errorMessage}
-          </div>
-        )}
+        {errorMessage && <div style={{ fontSize: 11, color: 'var(--accent-red)', marginBottom: 10 }}>{errorMessage}</div>}
 
         <div className="form-group"><label className="form-label">Name</label><input className="form-input" value={form.name} onChange={e => setForm(current => ({ ...current, name: e.target.value }))} /></div>
         <div className="form-row" style={{ gap: 8 }}>
           <div className="form-group" style={{ flex: 1 }}>
             <label className="form-label">Level</label>
-            <input
-              className="form-input"
-              type="number"
-              min={0}
-              max={9}
-              value={form.level === '' ? '' : String(form.level)}
-              onChange={e => {
-                const rawValue = e.target.value;
-                setForm(current => {
-                  if (rawValue === '') {
-                    return { ...current, level: '', is_cantrip: true };
-                  }
-                  const nextLevel = parseInt(rawValue, 10);
-                  if (Number.isNaN(nextLevel)) {
-                    return current;
-                  }
-                  return { ...current, level: nextLevel, is_cantrip: nextLevel === 0 };
-                });
-              }}
-            />
+            <input className="form-input" type="number" min={0} max={9} value={form.level === '' ? '' : String(form.level)} onChange={e => {
+              const rawValue = e.target.value;
+              setForm(current => {
+                if (rawValue === '') return { ...current, level: '', is_cantrip: true };
+                const nextLevel = parseInt(rawValue, 10);
+                if (Number.isNaN(nextLevel)) return current;
+                return { ...current, level: nextLevel, is_cantrip: nextLevel === 0 };
+              });
+            }} />
           </div>
           <div className="form-group" style={{ flex: 1 }}><label className="form-label">School</label><input className="form-input" value={form.school} onChange={e => setForm(current => ({ ...current, school: e.target.value }))} /></div>
         </div>
@@ -249,8 +259,8 @@ export default function SpellManagementPanel() {
   const [spells, setSpells] = useState([]);
   const [search, setSearch] = useState('');
   const [classFilter, setClassFilter] = useState('all');
-  const [levelFilter, setLevelFilter] = useState('all');
   const [sourceFilter, setSourceFilter] = useState('all');
+  const [spellFilters, setSpellFilters] = useState(createSpellFilterState());
   const [status, setStatus] = useState('');
   const [detailSpell, setDetailSpell] = useState(null);
   const [homebrewOpen, setHomebrewOpen] = useState(false);
@@ -273,15 +283,15 @@ export default function SpellManagementPanel() {
   const filteredSpells = useMemo(() => {
     return spells.filter(spell => {
       if (sourceFilter !== 'all' && spell.source_type !== sourceFilter) return false;
-      if (levelFilter !== 'all' && Number(spell.level) !== Number(levelFilter)) return false;
       if (classFilter !== 'all' && !(spell.class_tags || []).includes(classFilter)) return false;
+      if (!spellMatchesFilterState(spell, spellFilters)) return false;
       if (search.trim()) {
         const haystack = [spell.name, spell.school, spell.description].filter(Boolean).join(' ').toLowerCase();
         if (!haystack.includes(search.trim().toLowerCase())) return false;
       }
       return true;
     });
-  }, [spells, sourceFilter, levelFilter, classFilter, search]);
+  }, [spells, sourceFilter, classFilter, search, spellFilters]);
 
   async function handleImportSrd() {
     setImporting(true);
@@ -317,20 +327,8 @@ export default function SpellManagementPanel() {
       };
 
       let result;
-      if (id) {
-        result = await supabase
-          .from('spells')
-          .update(payload)
-          .eq('id', id)
-          .select()
-          .single();
-      } else {
-        result = await supabase
-          .from('spells')
-          .insert(payload)
-          .select()
-          .single();
-      }
+      if (id) result = await supabase.from('spells').update(payload).eq('id', id).select().single();
+      else result = await supabase.from('spells').insert(payload).select().single();
 
       if (result.error) throw result.error;
 
@@ -414,8 +412,15 @@ export default function SpellManagementPanel() {
         <div className="form-row" style={{ flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
           <input className="form-input" style={{ flex: '1 1 220px' }} placeholder="Search spells" value={search} onChange={e => setSearch(e.target.value)} />
           <select className="form-input" style={{ width: 130 }} value={sourceFilter} onChange={e => setSourceFilter(e.target.value)}>{SOURCE_OPTIONS.map(option => <option key={option} value={option}>{option === 'all' ? 'All Sources' : option}</option>)}</select>
-          <select className="form-input" style={{ width: 130 }} value={String(levelFilter)} onChange={e => setLevelFilter(e.target.value === 'all' ? 'all' : Number(e.target.value))}>{LEVEL_OPTIONS.map(option => <option key={String(option)} value={String(option)}>{option === 'all' ? 'All Levels' : option === 0 ? 'Cantrip' : `Level ${option}`}</option>)}</select>
           <select className="form-input" style={{ width: 140 }} value={classFilter} onChange={e => setClassFilter(e.target.value)}><option value="all">All Classes</option>{CLASS_OPTIONS.map(option => <option key={option} value={normalizeClassName(option)}>{option}</option>)}</select>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {SPELL_FILTER_PRIMARY.map(item => <FilterChip key={item.value} label={item.label} selected={(spellFilters.primary || ['all']).includes(item.value)} onClick={() => setSpellFilters(current => toggleSpellFilter(current, item.value))} />)}
+          </div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {SPELL_FILTER_LEVELS.map(item => <FilterChip key={item.value} label={item.label} selected={spellFilters.level === item.value} onClick={() => setSpellFilters(current => toggleSpellFilter(current, item.value))} />)}
+          </div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {filteredSpells.map(spell => <SpellRow key={spell.id} spell={spell} onOpenDetails={openDetails} />)}
