@@ -108,6 +108,7 @@ function SpellRow({ spell, onOpenDetails }) {
         background: 'var(--bg-panel-2)',
         appearance: 'none',
         WebkitAppearance: 'none',
+        WebkitTapHighlightColor: 'transparent',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
@@ -132,7 +133,7 @@ function SpellRow({ spell, onOpenDetails }) {
                 whiteSpace: 'normal',
                 overflow: 'hidden',
                 display: '-webkit-box',
-                WebkitLineClamp: 4,
+                WebkitLineClamp: 3,
                 WebkitBoxOrient: 'vertical',
                 lineHeight: 1.4,
               }}
@@ -192,7 +193,29 @@ function HomebrewEditor({ form, setForm, onSave, onCancel, saving, errorMessage 
 
         <div className="form-group"><label className="form-label">Name</label><input className="form-input" value={form.name} onChange={e => setForm(current => ({ ...current, name: e.target.value }))} /></div>
         <div className="form-row" style={{ gap: 8 }}>
-          <div className="form-group" style={{ flex: 1 }}><label className="form-label">Level</label><input className="form-input" type="number" min={0} max={9} value={form.level} onChange={e => { const level = parseInt(e.target.value || '0', 10); setForm(current => ({ ...current, level, is_cantrip: level === 0 })); }} /></div>
+          <div className="form-group" style={{ flex: 1 }}>
+            <label className="form-label">Level</label>
+            <input
+              className="form-input"
+              type="number"
+              min={0}
+              max={9}
+              value={form.level === '' ? '' : String(form.level)}
+              onChange={e => {
+                const rawValue = e.target.value;
+                setForm(current => {
+                  if (rawValue === '') {
+                    return { ...current, level: '', is_cantrip: true };
+                  }
+                  const nextLevel = parseInt(rawValue, 10);
+                  if (Number.isNaN(nextLevel)) {
+                    return current;
+                  }
+                  return { ...current, level: nextLevel, is_cantrip: nextLevel === 0 };
+                });
+              }}
+            />
+          </div>
           <div className="form-group" style={{ flex: 1 }}><label className="form-label">School</label><input className="form-input" value={form.school} onChange={e => setForm(current => ({ ...current, school: e.target.value }))} /></div>
         </div>
         <div className="form-row" style={{ gap: 8 }}>
@@ -281,12 +304,14 @@ export default function SpellManagementPanel() {
     try {
       const { id, ...rest } = homebrewForm;
       const normalizedName = rest.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      const normalizedLevel = rest.level === '' ? 0 : Number(rest.level || 0);
       const payload = {
         ...rest,
+        level: normalizedLevel,
         external_key: rest.external_key || `homebrew:${normalizedName}`,
         source_type: 'homebrew',
         is_homebrew: true,
-        is_cantrip: Number(rest.level) === 0,
+        is_cantrip: normalizedLevel === 0,
         class_tags: (rest.class_tags || []).map(normalizeClassName),
       };
 
