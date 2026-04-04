@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../supabaseClient';
+import SpellDetailsModal from './SpellDetailsModal';
 
 const CLASS_OPTIONS = ['Barbarian', 'Bard', 'Cleric', 'Druid', 'Fighter', 'Monk', 'Paladin', 'Ranger', 'Rogue', 'Sorcerer', 'Warlock', 'Wizard'];
 const SOURCE_OPTIONS = ['all', 'official_srd', 'homebrew'];
@@ -8,13 +9,6 @@ const API_ROOT = 'https://www.dnd5eapi.co/api/2014';
 
 function normalizeClassName(name) {
   return String(name || '').trim().toLowerCase();
-}
-
-function classSummary(entity = {}) {
-  const parts = [];
-  if (entity.class_name) parts.push([entity.class_name, entity.class_level ? `Lv ${entity.class_level}` : null, entity.subclass_name || null].filter(Boolean).join(' • '));
-  if (entity.class_name_2) parts.push([entity.class_name_2, entity.class_level_2 ? `Lv ${entity.class_level_2}` : null, entity.subclass_name_2 || null].filter(Boolean).join(' • '));
-  return parts.join(' / ');
 }
 
 function emptyHomebrewForm() {
@@ -38,25 +32,6 @@ function emptyHomebrewForm() {
     source_type: 'homebrew',
     is_homebrew: true,
   };
-}
-
-function getTargetClassTags(target = {}) {
-  return [target.class_name, target.class_name_2].map(normalizeClassName).filter(Boolean);
-}
-
-function getPlayerAssignmentMode(player = {}) {
-  const classTags = getTargetClassTags(player);
-  if (classTags.includes('wizard')) return 'wizard';
-  if (classTags.some(tag => ['cleric', 'druid', 'paladin'].includes(tag))) return 'prepared';
-  if (classTags.some(tag => ['bard', 'ranger', 'sorcerer', 'warlock'].includes(tag))) return 'known';
-  return 'manual';
-}
-
-function modeHelpText(mode) {
-  if (mode === 'wizard') return 'Wizard: learn spells into the spellbook, then prepare from learned spells. Cantrips are learned only.';
-  if (mode === 'prepared') return 'Prepared caster: prepare from the legal class list. Cantrips are added or removed separately.';
-  if (mode === 'known') return 'Known caster: maintain a learned spell pool. Cantrips are learned too.';
-  return 'Manual mode: assign and prepare spells directly as needed.';
 }
 
 function buildComponentsText(components = [], material = '') {
@@ -112,59 +87,26 @@ async function importSrdSpells(onProgress) {
   }
 }
 
-async function ensurePlayerSpell(playerId, spellId, patch = {}) {
-  const { data: existing } = await supabase.from('profile_player_spells').select('*').eq('player_profile_id', playerId).eq('spell_id', spellId).maybeSingle();
-  if (existing?.id) return supabase.from('profile_player_spells').update(patch).eq('id', existing.id);
-  return supabase.from('profile_player_spells').insert({ player_profile_id: playerId, spell_id: spellId, is_known: true, is_prepared: false, ...patch });
-}
-
-async function removePlayerSpell(playerId, spellId) {
-  return supabase.from('profile_player_spells').delete().eq('player_profile_id', playerId).eq('spell_id', spellId);
-}
-
-async function ensureMonsterSpell(monsterId, spellId, patch = {}) {
-  const { data: existing } = await supabase.from('profile_monster_spells').select('*').eq('monster_profile_id', monsterId).eq('spell_id', spellId).maybeSingle();
-  if (existing?.id) return supabase.from('profile_monster_spells').update(patch).eq('id', existing.id);
-  return supabase.from('profile_monster_spells').insert({ monster_profile_id: monsterId, spell_id: spellId, is_known: true, is_prepared: true, ...patch });
-}
-
-async function removeMonsterSpell(monsterId, spellId) {
-  return supabase.from('profile_monster_spells').delete().eq('monster_profile_id', monsterId).eq('spell_id', spellId);
-}
-
-function SpellRow({ spell, assigned, targetType, assignmentMode, targetId, onAssign, onPrepare, onEditHomebrew }) {
-  const isKnown = !!assigned?.is_known;
-  const isPrepared = !!assigned?.is_prepared;
-  const isCantrip = Number(spell.level) === 0;
+function SpellRow({ spell, onOpenDetails }) {
   const classesText = (spell.class_tags || []).join(', ');
 
-  let buttons = null;
-  if (targetType === 'player') {
-    if (assignmentMode === 'wizard') {
-      buttons = (
-        <>
-          <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onAssign(spell, !isKnown)}>{isKnown ? 'Forget' : 'Learn'}</button>
-          {!isCantrip && <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onPrepare(spell, !isPrepared)} disabled={!isKnown && !isPrepared}>{isPrepared ? 'Unprepare' : 'Prepare'}</button>}
-        </>
-      );
-    } else if (assignmentMode === 'prepared') {
-      buttons = isCantrip
-        ? <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onAssign(spell, !isKnown)}>{isKnown ? 'Remove Cantrip' : 'Add Cantrip'}</button>
-        : <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onPrepare(spell, !isPrepared)}>{isPrepared ? 'Unprepare' : 'Prepare'}</button>;
-    } else {
-      buttons = <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onAssign(spell, !isKnown)}>{isKnown ? 'Forget' : (isCantrip ? 'Add Cantrip' : 'Learn')}</button>;
-    }
-  } else {
-    buttons = (
-      <>
-        <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onAssign(spell, !isKnown)}>{isKnown ? 'Unassign' : 'Assign'}</button>
-        {!isCantrip && targetId && isKnown && <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onPrepare(spell, !isPrepared)}>{isPrepared ? 'Unprep' : 'Prepare'}</button>}
-      </>
-    );
-  }
-
   return (
-    <div style={{ border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <button
+      type="button"
+      className="btn btn-ghost"
+      onClick={() => onOpenDetails(spell)}
+      style={{
+        width: '100%',
+        border: '1px solid var(--border)',
+        borderRadius: 8,
+        padding: '8px 10px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 6,
+        textAlign: 'left',
+        background: 'var(--bg-panel-2)',
+      }}
+    >
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start' }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -178,15 +120,16 @@ function SpellRow({ spell, assigned, targetType, assignmentMode, targetId, onAss
             {[spell.school, spell.casting_time, spell.range_text, spell.duration_text].filter(Boolean).join(' • ')}
           </div>
           {classesText && <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Classes: {classesText}</div>}
-          {spell.description && <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2, whiteSpace: 'pre-wrap' }}>{String(spell.description).slice(0, 220)}{String(spell.description).length > 220 ? '…' : ''}</div>}
+          {spell.description && (
+            <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2, whiteSpace: 'pre-wrap' }}>
+              {String(spell.description).slice(0, 220)}
+              {String(spell.description).length > 220 ? '…' : ''}
+            </div>
+          )}
         </div>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          {spell.source_type === 'homebrew' && <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => onEditHomebrew(spell)}>Edit</button>}
-          {buttons}
-        </div>
+        <div style={{ fontSize: 11, color: 'var(--accent-blue)', whiteSpace: 'nowrap' }}>View details</div>
       </div>
-      {(isKnown || isPrepared) && <div style={{ fontSize: 10, color: 'var(--accent-blue)' }}>{isKnown ? 'Assigned' : ''}{isKnown && isPrepared ? ' • ' : ''}{isPrepared ? 'Prepared' : ''}</div>}
-    </div>
+    </button>
   );
 }
 
@@ -260,53 +203,27 @@ function HomebrewEditor({ form, setForm, onSave, onCancel, saving }) {
 
 export default function SpellManagementPanel() {
   const [spells, setSpells] = useState([]);
-  const [players, setPlayers] = useState([]);
-  const [monsters, setMonsters] = useState([]);
-  const [targetType, setTargetType] = useState('player');
-  const [selectedTargetId, setSelectedTargetId] = useState('');
-  const [assignments, setAssignments] = useState({});
   const [search, setSearch] = useState('');
   const [classFilter, setClassFilter] = useState('all');
   const [levelFilter, setLevelFilter] = useState('all');
   const [sourceFilter, setSourceFilter] = useState('all');
   const [status, setStatus] = useState('');
+  const [detailSpell, setDetailSpell] = useState(null);
   const [homebrewOpen, setHomebrewOpen] = useState(false);
   const [homebrewForm, setHomebrewForm] = useState(emptyHomebrewForm());
   const [savingHomebrew, setSavingHomebrew] = useState(false);
   const [importing, setImporting] = useState(false);
 
-  const selectedTarget = useMemo(() => {
-    if (targetType === 'player') return players.find(player => player.id === selectedTargetId) || null;
-    return monsters.find(monster => monster.id === selectedTargetId) || null;
-  }, [targetType, selectedTargetId, players, monsters]);
-
-  const assignmentMode = targetType === 'player' ? getPlayerAssignmentMode(selectedTarget || {}) : 'manual';
-
   async function loadAll() {
-    const [spellsRes, playersRes, monstersRes] = await Promise.all([
-      supabase.from('spells').select('*').order('level').order('name'),
-      supabase.from('profiles_players').select('*').order('name'),
-      supabase.from('profiles_monsters').select('*').order('name'),
-    ]);
-    setSpells(spellsRes.data || []);
-    setPlayers(playersRes.data || []);
-    setMonsters(monstersRes.data || []);
-    setSelectedTargetId(current => current || playersRes.data?.[0]?.id || '');
-  }
-
-  async function loadAssignments(nextTargetType = targetType, nextTargetId = selectedTargetId) {
-    if (!nextTargetId) { setAssignments({}); return; }
-    if (nextTargetType === 'player') {
-      const { data } = await supabase.from('profile_player_spells').select('*').eq('player_profile_id', nextTargetId);
-      setAssignments(Object.fromEntries((data || []).map(row => [row.spell_id, row])));
-    } else {
-      const { data } = await supabase.from('profile_monster_spells').select('*').eq('monster_profile_id', nextTargetId);
-      setAssignments(Object.fromEntries((data || []).map(row => [row.spell_id, row])));
+    const { data, error } = await supabase.from('spells').select('*').order('level').order('name');
+    if (error) {
+      setStatus(error.message || 'Failed to load spells.');
+      return;
     }
+    setSpells(data || []);
   }
 
   useEffect(() => { loadAll(); }, []);
-  useEffect(() => { loadAssignments(targetType, selectedTargetId); }, [targetType, selectedTargetId]);
 
   const filteredSpells = useMemo(() => {
     return spells.filter(spell => {
@@ -329,7 +246,7 @@ export default function SpellManagementPanel() {
       setStatus('SRD 5.1 spell import complete.');
       await loadAll();
     } catch (error) {
-      setStatus(error.message || 'Failed to import SRD spells.');
+      setStatus(error?.message || 'Failed to import SRD spells.');
     } finally {
       setImporting(false);
     }
@@ -337,61 +254,57 @@ export default function SpellManagementPanel() {
 
   async function saveHomebrew() {
     setSavingHomebrew(true);
-    const normalizedName = homebrewForm.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    const payload = {
-      ...homebrewForm,
-      external_key: homebrewForm.external_key || `homebrew:${normalizedName}`,
-      source_type: 'homebrew',
-      is_homebrew: true,
-      is_cantrip: Number(homebrewForm.level) === 0,
-      class_tags: (homebrewForm.class_tags || []).map(normalizeClassName),
-    };
-    const { error } = await supabase.from('spells').upsert(payload, { onConflict: 'external_key' });
-    setSavingHomebrew(false);
-    if (error) {
-      setStatus(error.message || 'Failed to save homebrew spell.');
-      return;
-    }
-    setHomebrewOpen(false);
-    setHomebrewForm(emptyHomebrewForm());
-    setStatus('Homebrew spell saved.');
-    loadAll();
-  }
 
-  async function handleAssign(spell, nextKnown) {
-    if (!selectedTargetId) return;
-    if (targetType === 'player') {
-      if (nextKnown) {
-        const patch = assignmentMode === 'prepared' && Number(spell.level) > 0 ? { is_known: true, is_prepared: true } : { is_known: true };
-        await ensurePlayerSpell(selectedTargetId, spell.id, patch);
-      } else {
-        await removePlayerSpell(selectedTargetId, spell.id);
-      }
-    } else {
-      if (nextKnown) await ensureMonsterSpell(selectedTargetId, spell.id, { is_known: true, is_prepared: Number(spell.level) > 0 });
-      else await removeMonsterSpell(selectedTargetId, spell.id);
-    }
-    loadAssignments(targetType, selectedTargetId);
-  }
+    try {
+      const normalizedName = homebrewForm.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      const payload = {
+        ...homebrewForm,
+        external_key: homebrewForm.external_key || `homebrew:${normalizedName}`,
+        source_type: 'homebrew',
+        is_homebrew: true,
+        is_cantrip: Number(homebrewForm.level) === 0,
+        class_tags: (homebrewForm.class_tags || []).map(normalizeClassName),
+      };
 
-  async function handlePrepare(spell, nextPrepared) {
-    if (!selectedTargetId) return;
-    if (targetType === 'player') {
-      if (assignmentMode === 'wizard' && !assignments[spell.id]?.is_known && nextPrepared) {
-        await ensurePlayerSpell(selectedTargetId, spell.id, { is_known: true, is_prepared: true });
-      } else if (assignmentMode === 'prepared' && nextPrepared) {
-        await ensurePlayerSpell(selectedTargetId, spell.id, { is_known: true, is_prepared: true });
-      } else if (assignmentMode === 'prepared' && !nextPrepared) {
-        const existing = assignments[spell.id];
-        if (existing?.id) await supabase.from('profile_player_spells').update({ is_prepared: false }).eq('id', existing.id);
+      let result;
+      if (homebrewForm.id) {
+        result = await supabase
+          .from('spells')
+          .update(payload)
+          .eq('id', homebrewForm.id)
+          .select()
+          .single();
       } else {
-        const existing = assignments[spell.id];
-        if (existing?.id) await supabase.from('profile_player_spells').update({ is_prepared: nextPrepared }).eq('id', existing.id);
+        result = await supabase
+          .from('spells')
+          .insert(payload)
+          .select()
+          .single();
       }
-    } else {
-      await ensureMonsterSpell(selectedTargetId, spell.id, { is_known: true, is_prepared: nextPrepared });
+
+      if (result.error) throw result.error;
+
+      setHomebrewOpen(false);
+      setHomebrewForm(emptyHomebrewForm());
+      setStatus(result.data?.name ? `Homebrew spell saved: ${result.data.name}` : 'Homebrew spell saved.');
+      await loadAll();
+      if (result.data) {
+        setDetailSpell({
+          ...result.data,
+          castingTime: result.data.casting_time,
+          rangeText: result.data.range_text,
+          durationText: result.data.duration_text,
+          componentsText: result.data.components_text,
+          materialText: result.data.material_text,
+          classTags: result.data.class_tags,
+          higherLevel: result.data.higher_level,
+        });
+      }
+    } catch (error) {
+      setStatus(error?.message || error?.details || error?.hint || 'Failed to save homebrew spell.');
+    } finally {
+      setSavingHomebrew(false);
     }
-    loadAssignments(targetType, selectedTargetId);
   }
 
   function openEditHomebrew(spell) {
@@ -415,16 +328,33 @@ export default function SpellManagementPanel() {
       source_type: 'homebrew',
       is_homebrew: true,
     });
+    setDetailSpell(null);
     setHomebrewOpen(true);
+  }
+
+  function openDetails(spell) {
+    setDetailSpell({
+      ...spell,
+      castingTime: spell.casting_time,
+      rangeText: spell.range_text,
+      durationText: spell.duration_text,
+      componentsText: spell.components_text,
+      materialText: spell.material_text,
+      classTags: spell.class_tags,
+      higherLevel: spell.higher_level,
+    });
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
       <div className="panel">
         <div className="panel-title">Spells</div>
+        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
+          Library/admin view. Browse spell details here. Homebrew spells remain editable through the detail modal.
+        </div>
         <div className="form-row" style={{ flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
           <button type="button" className="btn btn-primary" onClick={handleImportSrd} disabled={importing}>{importing ? 'Importing…' : 'Import SRD 5.1'}</button>
-          <button type="button" className="btn btn-ghost" onClick={() => { setHomebrewForm(emptyHomebrewForm()); setHomebrewOpen(true); }}>+ Homebrew Spell</button>
+          <button type="button" className="btn btn-ghost" onClick={() => { setDetailSpell(null); setHomebrewForm(emptyHomebrewForm()); setHomebrewOpen(true); }}>+ Homebrew Spell</button>
         </div>
         {status && <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 8 }}>{status}</div>}
         <div className="form-row" style={{ flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
@@ -433,19 +363,12 @@ export default function SpellManagementPanel() {
           <select className="form-input" style={{ width: 130 }} value={String(levelFilter)} onChange={e => setLevelFilter(e.target.value === 'all' ? 'all' : Number(e.target.value))}>{LEVEL_OPTIONS.map(option => <option key={String(option)} value={String(option)}>{option === 'all' ? 'All Levels' : option === 0 ? 'Cantrip' : `Level ${option}`}</option>)}</select>
           <select className="form-input" style={{ width: 140 }} value={classFilter} onChange={e => setClassFilter(e.target.value)}><option value="all">All Classes</option>{CLASS_OPTIONS.map(option => <option key={option} value={normalizeClassName(option)}>{option}</option>)}</select>
         </div>
-        <div className="form-row" style={{ flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
-          <select className="form-input" style={{ width: 160 }} value={targetType} onChange={e => { const nextType = e.target.value; setTargetType(nextType); setSelectedTargetId(nextType === 'player' ? (players[0]?.id || '') : (monsters[0]?.id || '')); }}><option value="player">Players</option><option value="monster">Monsters/NPCs</option></select>
-          <select className="form-input" style={{ flex: '1 1 260px' }} value={selectedTargetId} onChange={e => setSelectedTargetId(e.target.value)}>
-            <option value="">No target selected</option>
-            {(targetType === 'player' ? players : monsters).map(target => <option key={target.id} value={target.id}>{target.name}{classSummary(target) ? ` — ${classSummary(target)}` : ''}</option>)}
-          </select>
-        </div>
-        {selectedTarget && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>{targetType === 'player' ? modeHelpText(assignmentMode) : 'Monster/NPC mode: assign any spell, optionally mark as prepared.'}</div>}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {filteredSpells.map(spell => <SpellRow key={spell.id} spell={spell} assigned={assignments[spell.id]} targetType={targetType} assignmentMode={assignmentMode} targetId={selectedTargetId} onAssign={handleAssign} onPrepare={handlePrepare} onEditHomebrew={openEditHomebrew} />)}
+          {filteredSpells.map(spell => <SpellRow key={spell.id} spell={spell} onOpenDetails={openDetails} />)}
           {filteredSpells.length === 0 && <div className="empty-state">No spells match the current filters yet.</div>}
         </div>
       </div>
+      {detailSpell && <SpellDetailsModal spell={detailSpell} onClose={() => setDetailSpell(null)} onEditHomebrew={detailSpell?.source_type === 'homebrew' ? () => openEditHomebrew(detailSpell) : null} />}
       {homebrewOpen && <HomebrewEditor form={homebrewForm} setForm={setHomebrewForm} onSave={saveHomebrew} onCancel={() => { setHomebrewOpen(false); setHomebrewForm(emptyHomebrewForm()); }} saving={savingHomebrew} />}
     </div>
   );

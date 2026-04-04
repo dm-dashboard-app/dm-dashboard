@@ -1,6 +1,23 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
-export default function SpellDetailsModal({ spell, onClose }) {
+export default function SpellDetailsModal({ spell, onClose, onEditHomebrew = null }) {
+  useEffect(() => {
+    if (!spell) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') onClose();
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [spell, onClose]);
+
   if (!spell) return null;
 
   return (
@@ -13,9 +30,10 @@ export default function SpellDetailsModal({ spell, onClose }) {
               {Number(spell.level) === 0 ? 'Cantrip' : `Level ${spell.level}`} • {spell.school || 'Unknown school'}
               {spell.concentration ? ' • Concentration' : ''}
               {spell.ritual ? ' • Ritual' : ''}
+              {spell.source_type === 'homebrew' ? ' • Homebrew' : ''}
             </div>
           </div>
-          <button className="btn btn-ghost btn-icon" onClick={onClose}>✕</button>
+          <button type="button" className="btn btn-ghost btn-icon" onClick={onClose}>✕</button>
         </div>
 
         <div style={{ display: 'grid', gap: 6, fontSize: 12, color: 'var(--text-secondary)' }}>
@@ -35,6 +53,13 @@ export default function SpellDetailsModal({ spell, onClose }) {
             <strong>At Higher Levels:</strong> {spell.higherLevel}
           </div>
         )}
+
+        <div className="form-row" style={{ marginTop: 16 }}>
+          {typeof onEditHomebrew === 'function' && (
+            <button type="button" className="btn btn-primary" onClick={onEditHomebrew}>Edit Homebrew Spell</button>
+          )}
+          <button type="button" className="btn btn-ghost" onClick={onClose}>Close</button>
+        </div>
       </div>
     </div>
   );
