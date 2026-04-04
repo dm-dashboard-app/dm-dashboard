@@ -109,6 +109,7 @@ function SpellRow({ spell, onOpenDetails }) {
         appearance: 'none',
         WebkitAppearance: 'none',
         WebkitTapHighlightColor: 'transparent',
+        whiteSpace: 'normal',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
