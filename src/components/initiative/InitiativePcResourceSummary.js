@@ -27,8 +27,8 @@ function resolveDisplayedValues(resource, state) {
 
 function PcResourceChip({ resource, state, isDM, onUpdateFields }) {
   const isWarlockSlots = resource.id === 'warlock-slots';
-  const accentColor = isWarlockSlots ? 'var(--accent-gold)' : 'var(--accent-blue)';
-  const accentFill = isWarlockSlots ? 'rgba(240,180,41,0.22)' : 'var(--accent-blue)';
+  const accentColor = isWarlockSlots ? 'var(--accent-green)' : 'var(--accent-blue)';
+  const accentFill = isWarlockSlots ? 'rgba(62,207,106,0.22)' : 'var(--accent-blue)';
 
   if (resource.type === 'toggle') {
     const toggleState = resolveResourceToggleState(resource, state);
@@ -49,7 +49,7 @@ function PcResourceChip({ resource, state, isDM, onUpdateFields }) {
           display: 'inline-flex',
           alignItems: 'center',
           gap: 4,
-          padding: '2px 7px',
+          padding: '4px 8px',
           borderRadius: 999,
           border: `1px solid ${toggleState.ready ? 'var(--accent-green)' : 'var(--accent-red)'}`,
           background: toggleState.ready ? 'rgba(62,207,106,0.08)' : 'rgba(224,48,80,0.08)',
@@ -58,6 +58,7 @@ function PcResourceChip({ resource, state, isDM, onUpdateFields }) {
           fontWeight: 700,
           cursor: isDM ? 'pointer' : 'default',
           opacity: isDM ? 1 : 0.95,
+          whiteSpace: 'nowrap',
         }}
         title={resource.meta || undefined}
       >
@@ -85,13 +86,14 @@ function PcResourceChip({ resource, state, isDM, onUpdateFields }) {
           display: 'inline-flex',
           alignItems: 'center',
           gap: 4,
-          padding: '2px 7px',
+          padding: '4px 8px',
           borderRadius: 999,
           border: '1px solid var(--border)',
           background: 'var(--bg-panel-3)',
           color: isWarlockSlots ? accentColor : 'var(--text-primary)',
           fontSize: 10,
           fontWeight: 700,
+          whiteSpace: 'nowrap',
         }}
         title={resource.meta || undefined}
       >
@@ -129,13 +131,14 @@ function PcResourceChip({ resource, state, isDM, onUpdateFields }) {
         display: 'inline-flex',
         alignItems: 'center',
         gap: 4,
-        padding: '2px 7px',
+        padding: '4px 8px',
         borderRadius: 999,
         border: '1px solid var(--border)',
         background: 'var(--bg-panel-3)',
         color: 'var(--text-primary)',
         fontSize: 10,
         fontWeight: 700,
+        whiteSpace: 'nowrap',
       }}
       title={resource.meta || undefined}
     >
@@ -179,7 +182,7 @@ export default function InitiativePcResourceSummary({ profile, state, isDM, onUp
   }
 
   return (
-    <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+    <div style={{ marginTop: 4, display: 'flex', flexWrap: 'nowrap', gap: 6, overflowX: 'auto', paddingBottom: 2 }}>
       {resources.map(resource => (
         <PcResourceChip
           key={resource.id}
