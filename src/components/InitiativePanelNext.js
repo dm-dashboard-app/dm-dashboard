@@ -43,16 +43,16 @@ function InitiativeHeroHpBar({ current, max, tempHp = 0, bonusMaxHp = 0 }) {
 }
 
 function StatBox({ label, value, visible = true, accent = 'var(--accent-blue)', onClick = null }) {
-  if (!visible) return <div style={{ minHeight: 40 }} />;
+  if (!visible) return <div style={{ minHeight: 38 }} />;
   const clickable = typeof onClick === 'function';
   return (
     <button
       type="button"
       onClick={clickable ? onClick : undefined}
       disabled={!clickable}
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1, minHeight: 40, width: '100%', borderRadius: 12, border: `1px solid ${accent}55`, background: 'rgba(74,158,255,0.12)', color: 'var(--text-primary)', padding: '3px 2px', textAlign: 'center', cursor: clickable ? 'pointer' : 'default' }}>
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1, minHeight: 38, width: '100%', borderRadius: 12, border: `1px solid ${accent}55`, background: 'rgba(74,158,255,0.12)', color: 'var(--text-primary)', padding: '3px 2px', textAlign: 'center', cursor: clickable ? 'pointer' : 'default' }}>
       <span style={{ fontSize: 7, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.06em', fontWeight: 700 }}>{label}</span>
-      <span style={{ fontSize: 17, fontWeight: 800, lineHeight: 1 }}>{value}</span>
+      <span style={{ fontSize: 16, fontWeight: 800, lineHeight: 1 }}>{value}</span>
     </button>
   );
 }
@@ -60,11 +60,7 @@ function StatBox({ label, value, visible = true, accent = 'var(--accent-blue)', 
 function FullWidthStatusBar({ label, value, active = false, onClick = null, accent = 'var(--accent-blue)' }) {
   const clickable = typeof onClick === 'function';
   return (
-    <button
-      type="button"
-      onClick={clickable ? onClick : undefined}
-      disabled={!clickable}
-      style={{ minHeight: 36, width: '100%', padding: '8px 12px', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, fontWeight: 700, border: active ? `1px solid ${accent}` : '1px solid var(--border)', background: active ? `${accent}22` : 'var(--bg-panel-3)', color: active ? accent : 'var(--text-primary)', cursor: clickable ? 'pointer' : 'default' }}>
+    <button type="button" onClick={clickable ? onClick : undefined} disabled={!clickable} style={{ minHeight: 36, width: '100%', padding: '8px 12px', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, fontWeight: 700, border: active ? `1px solid ${accent}` : '1px solid var(--border)', background: active ? `${accent}22` : 'var(--bg-panel-3)', color: active ? accent : 'var(--text-primary)', cursor: clickable ? 'pointer' : 'default' }}>
       <span style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</span>
       <span style={{ fontSize: 13, fontWeight: 800, textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</span>
     </button>
@@ -74,6 +70,38 @@ function FullWidthStatusBar({ label, value, active = false, onClick = null, acce
 function MetaPill({ children }) {
   if (children === null || children === undefined || children === '') return null;
   return <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '100%', padding: '5px 8px', borderRadius: 999, border: '1px solid var(--border)', background: 'var(--bg-panel-3)', fontSize: 10, fontWeight: 700, color: 'var(--text-secondary)', textAlign: 'center', whiteSpace: 'nowrap' }}>{children}</span>;
+}
+
+function InitiativeNumberModal({ open, title, defaultValue, onClose, onSubmit }) {
+  const [value, setValue] = useState(defaultValue);
+  const inputRef = useRef(null);
+  useEffect(() => { if (open) setValue(defaultValue); }, [open, defaultValue]);
+  useEffect(() => {
+    if (!open) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => inputRef.current?.focus(), 0);
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [open]);
+  if (!open) return null;
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-panel" onClick={e => e.stopPropagation()} style={{ width: 'min(420px, calc(100vw - 24px))' }}>
+        <div className="modal-header">
+          <div>
+            <div className="panel-title" style={{ marginBottom: 4 }}>Edit Initiative</div>
+            <div className="modal-subtitle">{title}</div>
+          </div>
+          <button className="btn btn-ghost btn-icon" onClick={onClose}>✕</button>
+        </div>
+        <input ref={inputRef} className="form-input" type="number" inputMode="numeric" pattern="[0-9-]*" value={value} onChange={e => setValue(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') onSubmit(value); }} />
+        <div className="form-row" style={{ justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" onClick={() => onSubmit(value)}>Save</button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function InitiativePanelNext({ encounter, combatants, playerStates = [], role, onUpdate, myCombatantId = null }) {
@@ -123,6 +151,7 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
   const [conDc, setConDc] = useState(null);
   const [concentrationSpellName, setConcentrationSpellName] = useState('');
   const [showConPicker, setShowConPicker] = useState(false);
+  const [showInitiativeModal, setShowInitiativeModal] = useState(false);
   const conTimer = useRef(null);
 
   useEffect(() => () => clearTimeout(conTimer.current), []);
@@ -180,13 +209,11 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
   const conditionsLabel = displayConditions.length ? `Conditions (${displayConditions.length})` : '+ Conditions';
   const concentrationText = concentration ? (concentrationSpellName || 'Concentrating') : 'Not concentrating';
 
-  async function handleEditInitiative() {
-    if (!isDM) return;
-    const nextValue = window.prompt(`Set initiative for ${combatant.name}`, String(combatant.initiative_total ?? ''));
-    if (nextValue === null) return;
-    const parsed = parseInt(nextValue, 10);
+  async function submitInitiative(value) {
+    const parsed = parseInt(value, 10);
     if (Number.isNaN(parsed)) return;
     await supabase.rpc('set_initiative', { p_combatant_id: combatant.id, p_total: parsed });
+    setShowInitiativeModal(false);
     onUpdate();
   }
 
@@ -300,13 +327,13 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
   return (
     <>
       <div className={`initiative-row ${isActive ? 'active-turn' : ''} ${isNextUp ? 'initiative-row--next-up' : ''}`} style={{ display: 'block', padding: 10, borderColor: topBorder, background: cardBg, borderRadius: 16 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '52px minmax(0, 1fr) 52px', gap: 8, alignItems: 'start' }}>
-          <StatBox label="Init" value={combatant.initiative_total ?? '—'} accent={isActive ? 'var(--accent-blue)' : isNextUp ? 'var(--accent-gold)' : 'var(--accent-blue)'} onClick={isDM ? handleEditInitiative : null} />
-          <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 4, minHeight: 84 }}>
-            <div style={{ fontSize: 'clamp(.98rem,2.1vw,1.35rem)', lineHeight: 1.02, fontWeight: 800, color: 'var(--text-primary)', minHeight: 40, display: 'flex', alignItems: 'center' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '48px minmax(0, 1fr) 48px', gap: 8, alignItems: 'start' }}>
+          <StatBox label="Init" value={combatant.initiative_total ?? '—'} accent={isActive ? 'var(--accent-blue)' : isNextUp ? 'var(--accent-gold)' : 'var(--accent-blue)'} onClick={isDM ? () => setShowInitiativeModal(true) : null} />
+          <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div style={{ fontSize: 'clamp(.98rem,2.1vw,1.35rem)', lineHeight: 1.02, fontWeight: 800, color: 'var(--text-primary)', minHeight: 38, display: 'flex', alignItems: 'center' }}>
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{combatant.name}</span>
             </div>
-            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', alignItems: 'center', minHeight: 20 }}>
               <span className={`badge badge-${combatant.side.toLowerCase()}`}>{sideLabel}</span>
               {isActive && <span className="display-order-tag display-order-tag--active">Current</span>}
               {!isActive && isNextUp && <span className="display-order-tag display-order-tag--next">On Deck</span>}
@@ -317,37 +344,22 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
           <StatBox label="AC" value={armorClass ?? '—'} visible={showAc} accent="var(--accent-blue)" />
         </div>
 
-        <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div style={{ marginTop: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
           <FullWidthStatusBar label="Reaction" value={rxUsed ? 'Used' : 'Available'} active={!rxUsed} onClick={canToggleReaction ? handleToggleReaction : null} accent={rxUsed ? 'var(--accent-red)' : 'var(--accent-green)'} />
           <FullWidthStatusBar label="Concentration" value={concentrationText} active={!!concentration} onClick={isPC && isDM ? handleTogglePcConcentration : null} accent="var(--accent-gold)" />
-          {showHpBar ? (
-            <InitiativeHeroHpBar current={isPC ? pcHpCurrent : enemyHpCurrent} max={isPC ? pcHpMax : enemyHpMax} tempHp={isPC ? tempHp : 0} bonusMaxHp={isPC ? pcBonusMaxHp : 0} />
-          ) : (isEnemy && !isDM ? <div style={{ display: 'flex', justifyContent: 'flex-start' }}>{enemyBloodied ? <span className="badge badge-bloodied">Bloodied</span> : null}</div> : null)}
+          {showHpBar ? <InitiativeHeroHpBar current={isPC ? pcHpCurrent : enemyHpCurrent} max={isPC ? pcHpMax : enemyHpMax} tempHp={isPC ? tempHp : 0} bonusMaxHp={isPC ? pcBonusMaxHp : 0} /> : (isEnemy && !isDM ? <div style={{ display: 'flex', justifyContent: 'flex-start' }}>{enemyBloodied ? <span className="badge badge-bloodied">Bloodied</span> : null}</div> : null)}
           {conDc !== null && <div className="con-check-banner con-check-banner--dm" style={{ marginTop: 1 }}><span className="con-check-label">🔮 CON SAVE</span><span className="con-check-dc">DC {conDc}</span></div>}
           {isDM && showHpBar && <div style={{ marginTop: -1 }}>{isPC ? <InitiativeInlineDmgHeal onDamage={applyPcDamage} onHeal={applyPcHeal} /> : <InitiativeInlineDmgHeal onDamage={applyEnemyDamage} onHeal={applyEnemyHeal} />}</div>}
-          {isDM && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <button className="btn btn-ghost initiative-small-action" style={{ width: '100%', minHeight: 34, justifyContent: 'center' }} onClick={e => { e.stopPropagation(); setCondPickerOpen(p => !p); }}>{conditionsLabel}</button>
-              {isNonPC && <button className="btn btn-ghost initiative-small-action" style={{ width: '100%', minHeight: 30, justifyContent: 'center' }} onClick={e => { e.stopPropagation(); setResPicker(p => !p); }}>{resPicker ? 'Hide More' : 'More'}</button>}
-            </div>
-          )}
+          {isDM && <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}><button className="btn btn-ghost initiative-small-action" style={{ width: '100%', minHeight: 34, justifyContent: 'center' }} onClick={e => { e.stopPropagation(); setCondPickerOpen(p => !p); }}>{conditionsLabel}</button>{isNonPC && <button className="btn btn-ghost initiative-small-action" style={{ width: '100%', minHeight: 30, justifyContent: 'center' }} onClick={e => { e.stopPropagation(); setResPicker(p => !p); }}>{resPicker ? 'Hide More' : 'More'}</button>}</div>}
           {isDM && condPickerOpen && <div className="condition-picker">{CONDITIONS.map(({ code }) => <button key={code} className={`condition-picker-btn ${displayConditions.includes(code) ? 'active' : ''}`} style={{ background: displayConditions.includes(code) ? CONDITION_COLOURS[code] : undefined }} onClick={e => { e.stopPropagation(); isPC ? togglePcCondition(code) : toggleEnemyCondition(code); }}>{code}</button>)}</div>}
           {displayConditions.length > 0 && <div className="initiative-chip-row" style={{ marginTop: -1 }}>{displayConditions.map(code => <span key={code} className="condition-chip" style={{ background: CONDITION_COLOURS[code] || 'var(--cond-default)' }}>{code}</span>)}</div>}
           {isPC && playerState && <InitiativePcResourceSummary profile={pcProfile} state={playerState} isDM={isDM} onUpdate={onUpdate} />}
-          {isDM && isNonPC && resPicker && (
-            <div className="monster-dm-controls" style={{ marginTop: 2 }}>
-              <InitiativeEnemySlotGrid combatant={combatant} onUpdate={onUpdate} />
-              {(combatant.legendary_actions_max > 0 || combatant.legendary_resistances_max > 0) && <div className="initiative-secondary-block initiative-secondary-block--legendary">{combatant.legendary_actions_max > 0 && <InitiativeLegendaryPips label="LA" max={combatant.legendary_actions_max} used={combatant.legendary_actions_used ?? 0} isDM={isDM} onSpend={() => spendLegendary('legendary_actions_used', combatant.legendary_actions_max)} onRestore={() => restoreLegendary('legendary_actions_used')} onReset={() => resetLegendary('legendary_actions_used')} isActive={isActive} />}{combatant.legendary_resistances_max > 0 && <InitiativeLegendaryPips label="LR" max={combatant.legendary_resistances_max} used={combatant.legendary_resistances_used ?? 0} isDM={isDM} onSpend={() => spendLegendary('legendary_resistances_used', combatant.legendary_resistances_max)} onRestore={() => restoreLegendary('legendary_resistances_used')} onReset={() => resetLegendary('legendary_resistances_used')} isActive={false} />}</div>}
-              {MODS.some(m => (combatant[`mod_${m}`] ?? 0) !== 0) && <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>{MODS.map(mod => { const val = combatant[`mod_${mod}`] ?? 0; return <div key={mod} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'var(--bg-panel-3)', border: '1px solid var(--border)', borderRadius: 4, padding: '2px 5px', minWidth: 30 }}><span style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase' }}>{mod}</span><span style={{ fontSize: 11, fontWeight: 700 }}>{val >= 0 ? '+' : ''}{val}</span></div>; })}</div>}
-              <div style={{ marginBottom: 8 }}><div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Resistances</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 8 }}>{DAMAGE_TYPES.map(type => <button key={type} style={{ fontSize: 10, padding: '2px 6px', borderRadius: 3, cursor: 'pointer', border: `1px solid ${(combatant.resistances || []).includes(type) ? 'var(--accent-blue)' : 'var(--border)'}`, background: (combatant.resistances || []).includes(type) ? 'rgba(74,158,255,0.2)' : 'var(--bg-panel-3)', color: (combatant.resistances || []).includes(type) ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => toggleDamageType('resistances', type)}>{type}</button>)}</div><div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Immunities</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>{DAMAGE_TYPES.map(type => <button key={type} style={{ fontSize: 10, padding: '2px 6px', borderRadius: 3, cursor: 'pointer', border: `1px solid ${(combatant.immunities || []).includes(type) ? 'var(--accent-gold)' : 'var(--border)'}`, background: (combatant.immunities || []).includes(type) ? 'rgba(240,180,41,0.15)' : 'var(--bg-panel-3)', color: (combatant.immunities || []).includes(type) ? 'var(--accent-gold)' : 'var(--text-secondary)' }} onClick={() => toggleDamageType('immunities', type)}>{type}</button>)}</div></div>
-              {(combatant.notes || formatClassLine(combatant)) && <div className="monster-notes" style={{ marginBottom: 8 }}>{[formatClassLine(combatant), combatant.notes].filter(Boolean).join(' • ')}</div>}
-              <button className="btn btn-danger" onClick={removeCombatant}>Remove</button>
-            </div>
-          )}
+          {isDM && isNonPC && resPicker && <div className="monster-dm-controls" style={{ marginTop: 2 }}><InitiativeEnemySlotGrid combatant={combatant} onUpdate={onUpdate} />{(combatant.legendary_actions_max > 0 || combatant.legendary_resistances_max > 0) && <div className="initiative-secondary-block initiative-secondary-block--legendary">{combatant.legendary_actions_max > 0 && <InitiativeLegendaryPips label="LA" max={combatant.legendary_actions_max} used={combatant.legendary_actions_used ?? 0} isDM={isDM} onSpend={() => spendLegendary('legendary_actions_used', combatant.legendary_actions_max)} onRestore={() => restoreLegendary('legendary_actions_used')} onReset={() => resetLegendary('legendary_actions_used')} isActive={isActive} />}{combatant.legendary_resistances_max > 0 && <InitiativeLegendaryPips label="LR" max={combatant.legendary_resistances_max} used={combatant.legendary_resistances_used ?? 0} isDM={isDM} onSpend={() => spendLegendary('legendary_resistances_used', combatant.legendary_resistances_max)} onRestore={() => restoreLegendary('legendary_resistances_used')} onReset={() => resetLegendary('legendary_resistances_used')} isActive={false} />}</div>}{MODS.some(m => (combatant[`mod_${m}`] ?? 0) !== 0) && <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>{MODS.map(mod => { const val = combatant[`mod_${mod}`] ?? 0; return <div key={mod} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'var(--bg-panel-3)', border: '1px solid var(--border)', borderRadius: 4, padding: '2px 5px', minWidth: 30 }}><span style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase' }}>{mod}</span><span style={{ fontSize: 11, fontWeight: 700 }}>{val >= 0 ? '+' : ''}{val}</span></div>; })}</div>}<div style={{ marginBottom: 8 }}><div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Resistances</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 8 }}>{DAMAGE_TYPES.map(type => <button key={type} style={{ fontSize: 10, padding: '2px 6px', borderRadius: 3, cursor: 'pointer', border: `1px solid ${(combatant.resistances || []).includes(type) ? 'var(--accent-blue)' : 'var(--border)'}`, background: (combatant.resistances || []).includes(type) ? 'rgba(74,158,255,0.2)' : 'var(--bg-panel-3)', color: (combatant.resistances || []).includes(type) ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => toggleDamageType('resistances', type)}>{type}</button>)}</div><div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Immunities</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>{DAMAGE_TYPES.map(type => <button key={type} style={{ fontSize: 10, padding: '2px 6px', borderRadius: 3, cursor: 'pointer', border: `1px solid ${(combatant.immunities || []).includes(type) ? 'var(--accent-gold)' : 'var(--border)'}`, background: (combatant.immunities || []).includes(type) ? 'rgba(240,180,41,0.15)' : 'var(--bg-panel-3)', color: (combatant.immunities || []).includes(type) ? 'var(--accent-gold)' : 'var(--text-secondary)' }} onClick={() => toggleDamageType('immunities', type)}>{type}</button>)}</div></div>{(combatant.notes || formatClassLine(combatant)) && <div className="monster-notes" style={{ marginBottom: 8 }}>{[formatClassLine(combatant), combatant.notes].filter(Boolean).join(' • ')}</div>}<button className="btn btn-danger" onClick={removeCombatant}>Remove</button></div>}
           {showBottomMeta && <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 6, alignItems: 'center', marginTop: 1 }}><MetaPill>PP {passivePerception ?? '—'}</MetaPill><MetaPill>Spell DC {spellSave ?? '—'}</MetaPill><MetaPill>Spell ATK {spellAttack !== null && spellAttack !== undefined && spellAttack !== '' ? `${spellAttack > 0 ? '+' : ''}${spellAttack}` : '—'}</MetaPill></div>}
         </div>
       </div>
       {showConPicker && isPC && playerState && pcProfile && <ConcentrationSpellPickerModal open={showConPicker} profile={pcProfile} state={playerState} encounterId={encounterId} actor="DM" onClose={() => setShowConPicker(false)} onUpdate={onUpdate} />}
+      <InitiativeNumberModal open={showInitiativeModal} title={`Set initiative for ${combatant.name}`} defaultValue={String(combatant.initiative_total ?? '')} onClose={() => setShowInitiativeModal(false)} onSubmit={submitInitiative} />
     </>
   );
 }
