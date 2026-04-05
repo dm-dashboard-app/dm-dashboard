@@ -30,23 +30,23 @@ function InitiativeHeroHpBar({ current, max, tempHp = 0, bonusMaxHp = 0 }) {
   const barColor = resolveThresholdColor(hpPct);
 
   return (
-    <div style={{ position: 'relative', height: 44, background: 'var(--bg-panel-3)', borderRadius: 16, overflow: 'hidden', border: '1px solid var(--border)' }}>
+    <div style={{ position: 'relative', height: 34, background: 'var(--bg-panel-3)', borderRadius: 14, overflow: 'hidden', border: '1px solid var(--border)' }}>
       <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${basePct}%`, background: barColor }} />
       {bonusCurrent > 0 && <div style={{ position: 'absolute', left: `${bonusLeftPct}%`, top: 0, bottom: 0, width: `${bonusPct}%`, background: 'var(--accent-gold)', opacity: 0.72 }} />}
       {safeTemp > 0 && <div style={{ position: 'absolute', left: `${tempLeftPct}%`, top: 0, bottom: 0, width: `${tempPct}%`, background: 'var(--hp-temp)', opacity: 0.72 }} />}
-      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 12px', fontSize: 18, fontWeight: 800, color: '#fff', textShadow: '0 1px 2px rgba(0,0,0,.5)' }}>
-        {safeCurrent} / {safeMax}{safeTemp > 0 ? ` +${safeTemp} temp` : ''}
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 10px', fontSize: 16, fontWeight: 800, color: '#fff', textShadow: '0 1px 2px rgba(0,0,0,.5)' }}>
+        {safeCurrent} / {safeMax}{safeTemp > 0 ? ` +${safeTemp}` : ''}
       </div>
     </div>
   );
 }
 
 function StatBox({ label, value, visible = true, accent = 'var(--accent-blue)' }) {
-  if (!visible) return <div style={{ minHeight: 68 }} />;
+  if (!visible) return <div style={{ minHeight: 52 }} />;
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, minHeight: 68, borderRadius: 16, border: `1px solid ${accent}55`, background: 'rgba(74,158,255,0.12)', color: 'var(--text-primary)', padding: '6px 4px', textAlign: 'center' }}>
-      <span style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.06em', fontWeight: 700 }}>{label}</span>
-      <span style={{ fontSize: 22, fontWeight: 800, lineHeight: 1 }}>{value}</span>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, minHeight: 52, borderRadius: 14, border: `1px solid ${accent}55`, background: 'rgba(74,158,255,0.12)', color: 'var(--text-primary)', padding: '4px 3px', textAlign: 'center' }}>
+      <span style={{ fontSize: 8, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.06em', fontWeight: 700 }}>{label}</span>
+      <span style={{ fontSize: 20, fontWeight: 800, lineHeight: 1 }}>{value}</span>
     </div>
   );
 }
@@ -58,17 +58,17 @@ function FullWidthStatusBar({ label, value, active = false, onClick = null, acce
       type="button"
       onClick={clickable ? onClick : undefined}
       disabled={!clickable}
-      style={{ minHeight: 44, width: '100%', padding: '10px 14px', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, fontWeight: 700, border: active ? `1px solid ${accent}` : '1px solid var(--border)', background: active ? `${accent}22` : 'var(--bg-panel-3)', color: active ? accent : 'var(--text-primary)', cursor: clickable ? 'pointer' : 'default' }}
+      style={{ minHeight: 36, width: '100%', padding: '8px 12px', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, fontWeight: 700, border: active ? `1px solid ${accent}` : '1px solid var(--border)', background: active ? `${accent}22` : 'var(--bg-panel-3)', color: active ? accent : 'var(--text-primary)', cursor: clickable ? 'pointer' : 'default' }}
     >
-      <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</span>
-      <span style={{ fontSize: 15, fontWeight: 800, textAlign: 'right' }}>{value}</span>
+      <span style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</span>
+      <span style={{ fontSize: 13, fontWeight: 800, textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</span>
     </button>
   );
 }
 
 function MetaPill({ children }) {
   if (children === null || children === undefined || children === '') return null;
-  return <span style={{ display: 'inline-flex', alignItems: 'center', padding: '4px 9px', borderRadius: 999, border: '1px solid var(--border)', background: 'var(--bg-panel-3)', fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)' }}>{children}</span>;
+  return <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '100%', padding: '5px 8px', borderRadius: 999, border: '1px solid var(--border)', background: 'var(--bg-panel-3)', fontSize: 10, fontWeight: 700, color: 'var(--text-secondary)', textAlign: 'center', whiteSpace: 'nowrap' }}>{children}</span>;
 }
 
 export default function InitiativePanelNext({ encounter, combatants, playerStates = [], role, onUpdate, myCombatantId = null }) {
@@ -92,7 +92,7 @@ export default function InitiativePanelNext({ encounter, combatants, playerState
   return (
     <div className="panel">
       <div className="panel-title">{isDisplay ? 'Initiative Feed' : 'Initiative Order'}</div>
-      <div className="initiative-list" style={{ gap: 12 }}>
+      <div className="initiative-list" style={{ gap: 10 }}>
         {displayOrdered.length === 0 && <div className="empty-state">No combatants yet.</div>}
         {displayOrdered.map((combatant, displayIndex) => {
           const playerState = playerStates.find(s => s.combatant_id === combatant.id);
@@ -113,7 +113,7 @@ export default function InitiativePanelNext({ encounter, combatants, playerState
   );
 }
 
-function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDisplay, onUpdate, sorted, idx, encounterId, myCombatantId }) {
+function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDisplay, onUpdate, encounterId, myCombatantId }) {
   const [condPickerOpen, setCondPickerOpen] = useState(false);
   const [resPicker, setResPicker] = useState(false);
   const [conDc, setConDc] = useState(null);
@@ -280,18 +280,18 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
   }
 
   return (
-    <div className={`initiative-row ${isActive ? 'active-turn' : ''} ${isNextUp ? 'initiative-row--next-up' : ''}`} style={{ display: 'block', padding: 12, borderColor: topBorder, background: cardBg, borderRadius: 18 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '80px minmax(0, 1fr)', gap: 12, alignItems: 'stretch' }}>
-        <div style={{ display: 'grid', gridTemplateRows: '1fr 1fr', gap: 8 }}>
+    <div className={`initiative-row ${isActive ? 'active-turn' : ''} ${isNextUp ? 'initiative-row--next-up' : ''}`} style={{ display: 'block', padding: 10, borderColor: topBorder, background: cardBg, borderRadius: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '64px minmax(0, 1fr)', gap: 10, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateRows: '52px 52px', gap: 6 }}>
           <StatBox label="Init" value={combatant.initiative_total ?? '—'} accent={isActive ? 'var(--accent-blue)' : isNextUp ? 'var(--accent-gold)' : 'var(--accent-blue)'} />
           <StatBox label="AC" value={armorClass ?? '—'} visible={showAc} accent="var(--accent-blue)" />
         </div>
 
-        <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 8 }}>
-          <div style={{ fontSize: 'clamp(1.2rem,2.8vw,1.9rem)', lineHeight: 1.02, fontWeight: 800, color: 'var(--text-primary)', minHeight: 44, display: 'flex', alignItems: 'center' }}>
+        <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 6, minHeight: 110 }}>
+          <div style={{ fontSize: 'clamp(1rem,2.2vw,1.45rem)', lineHeight: 1.02, fontWeight: 800, color: 'var(--text-primary)', minHeight: 52, display: 'flex', alignItems: 'center' }}>
             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{combatant.name}</span>
           </div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', alignItems: 'center' }}>
             {isActive && <span className="display-order-tag display-order-tag--active">Current</span>}
             {!isActive && isNextUp && <span className="display-order-tag display-order-tag--next">On Deck</span>}
             <span className={`badge badge-${combatant.side.toLowerCase()}`}>{sideLabel}</span>
@@ -301,7 +301,7 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
         </div>
       </div>
 
-      <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
         <FullWidthStatusBar label="Reaction" value={rxUsed ? 'Used' : 'Available'} active={!rxUsed} onClick={canToggleReaction ? handleToggleReaction : null} accent={rxUsed ? 'var(--accent-red)' : 'var(--accent-green)'} />
         <FullWidthStatusBar label="Concentration" value={concentrationText} active={!!concentration} onClick={isPC && isDM ? handleTogglePcConcentration : null} accent="var(--accent-gold)" />
 
@@ -311,15 +311,20 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
           isEnemy && !isDM ? <div style={{ display: 'flex', justifyContent: 'flex-start' }}>{enemyBloodied ? <span className="badge badge-bloodied">Bloodied</span> : null}</div> : null
         )}
 
-        {conDc !== null && <div className="con-check-banner con-check-banner--dm" style={{ marginTop: 2 }}><span className="con-check-label">🔮 CON SAVE</span><span className="con-check-dc">DC {conDc}</span></div>}
+        {conDc !== null && <div className="con-check-banner con-check-banner--dm" style={{ marginTop: 1 }}><span className="con-check-label">🔮 CON SAVE</span><span className="con-check-dc">DC {conDc}</span></div>}
 
-        {isDM && showHpBar && <div style={{ marginTop: -2 }}>{isPC ? <InitiativeInlineDmgHeal onDamage={applyPcDamage} onHeal={applyPcHeal} /> : <InitiativeInlineDmgHeal onDamage={applyEnemyDamage} onHeal={applyEnemyHeal} />}</div>}
+        {isDM && showHpBar && <div style={{ marginTop: -1 }}>{isPC ? <InitiativeInlineDmgHeal onDamage={applyPcDamage} onHeal={applyPcHeal} /> : <InitiativeInlineDmgHeal onDamage={applyEnemyDamage} onHeal={applyEnemyHeal} />}</div>}
 
-        {isDM && <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}><button className="btn btn-ghost initiative-small-action" onClick={e => { e.stopPropagation(); setCondPickerOpen(p => !p); }}>{conditionsLabel}</button>{isNonPC && <button className="btn btn-ghost initiative-small-action" onClick={e => { e.stopPropagation(); setResPicker(p => !p); }}>{resPicker ? 'Hide More' : 'More'}</button>}</div>}
+        {isDM && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <button className="btn btn-ghost initiative-small-action" style={{ width: '100%', minHeight: 34, justifyContent: 'center' }} onClick={e => { e.stopPropagation(); setCondPickerOpen(p => !p); }}>{conditionsLabel}</button>
+            {isNonPC && <button className="btn btn-ghost initiative-small-action" style={{ width: '100%', minHeight: 30, justifyContent: 'center' }} onClick={e => { e.stopPropagation(); setResPicker(p => !p); }}>{resPicker ? 'Hide More' : 'More'}</button>}
+          </div>
+        )}
 
         {isDM && condPickerOpen && <div className="condition-picker">{CONDITIONS.map(({ code }) => <button key={code} className={`condition-picker-btn ${displayConditions.includes(code) ? 'active' : ''}`} style={{ background: displayConditions.includes(code) ? CONDITION_COLOURS[code] : undefined }} onClick={e => { e.stopPropagation(); isPC ? togglePcCondition(code) : toggleEnemyCondition(code); }}>{code}</button>)}</div>}
 
-        {displayConditions.length > 0 && <div className="initiative-chip-row" style={{ marginTop: -2 }}>{displayConditions.map(code => <span key={code} className="condition-chip" style={{ background: CONDITION_COLOURS[code] || 'var(--cond-default)' }}>{code}</span>)}</div>}
+        {displayConditions.length > 0 && <div className="initiative-chip-row" style={{ marginTop: -1 }}>{displayConditions.map(code => <span key={code} className="condition-chip" style={{ background: CONDITION_COLOURS[code] || 'var(--cond-default)' }}>{code}</span>)}</div>}
 
         {isPC && playerState && <InitiativePcResourceSummary profile={pcProfile} state={playerState} isDM={isDM} onUpdate={onUpdate} />}
 
@@ -334,7 +339,7 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
           </div>
         )}
 
-        {showBottomMeta && <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginTop: 2 }}><MetaPill>PP {passivePerception ?? '—'}</MetaPill><MetaPill>Spell DC {spellSave ?? '—'}</MetaPill><MetaPill>Spell ATK {spellAttack !== null && spellAttack !== undefined && spellAttack !== '' ? `${spellAttack > 0 ? '+' : ''}${spellAttack}` : '—'}</MetaPill></div>}
+        {showBottomMeta && <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 6, alignItems: 'center', marginTop: 1 }}><MetaPill>PP {passivePerception ?? '—'}</MetaPill><MetaPill>Spell DC {spellSave ?? '—'}</MetaPill><MetaPill>Spell ATK {spellAttack !== null && spellAttack !== undefined && spellAttack !== '' ? `${spellAttack > 0 ? '+' : ''}${spellAttack}` : '—'}</MetaPill></div>}
       </div>
     </div>
   );
