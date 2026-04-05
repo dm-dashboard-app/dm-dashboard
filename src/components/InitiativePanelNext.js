@@ -42,11 +42,11 @@ function InitiativeHeroHpBar({ current, max, tempHp = 0, bonusMaxHp = 0 }) {
 }
 
 function StatBox({ label, value, visible = true, accent = 'var(--accent-blue)' }) {
-  if (!visible) return <div style={{ minHeight: 52 }} />;
+  if (!visible) return <div style={{ minHeight: 40 }} />;
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, minHeight: 52, borderRadius: 14, border: `1px solid ${accent}55`, background: 'rgba(74,158,255,0.12)', color: 'var(--text-primary)', padding: '4px 3px', textAlign: 'center' }}>
-      <span style={{ fontSize: 8, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.06em', fontWeight: 700 }}>{label}</span>
-      <span style={{ fontSize: 20, fontWeight: 800, lineHeight: 1 }}>{value}</span>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1, minHeight: 40, borderRadius: 12, border: `1px solid ${accent}55`, background: 'rgba(74,158,255,0.12)', color: 'var(--text-primary)', padding: '3px 2px', textAlign: 'center' }}>
+      <span style={{ fontSize: 7, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.06em', fontWeight: 700 }}>{label}</span>
+      <span style={{ fontSize: 17, fontWeight: 800, lineHeight: 1 }}>{value}</span>
     </div>
   );
 }
@@ -281,14 +281,14 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
 
   return (
     <div className={`initiative-row ${isActive ? 'active-turn' : ''} ${isNextUp ? 'initiative-row--next-up' : ''}`} style={{ display: 'block', padding: 10, borderColor: topBorder, background: cardBg, borderRadius: 16 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '64px minmax(0, 1fr)', gap: 10, alignItems: 'start' }}>
-        <div style={{ display: 'grid', gridTemplateRows: '52px 52px', gap: 6 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '52px minmax(0, 1fr)', gap: 8, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateRows: '40px 40px', gap: 4 }}>
           <StatBox label="Init" value={combatant.initiative_total ?? '—'} accent={isActive ? 'var(--accent-blue)' : isNextUp ? 'var(--accent-gold)' : 'var(--accent-blue)'} />
           <StatBox label="AC" value={armorClass ?? '—'} visible={showAc} accent="var(--accent-blue)" />
         </div>
 
-        <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 6, minHeight: 110 }}>
-          <div style={{ fontSize: 'clamp(1rem,2.2vw,1.45rem)', lineHeight: 1.02, fontWeight: 800, color: 'var(--text-primary)', minHeight: 52, display: 'flex', alignItems: 'center' }}>
+        <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 4, minHeight: 84 }}>
+          <div style={{ fontSize: 'clamp(.98rem,2.1vw,1.35rem)', lineHeight: 1.02, fontWeight: 800, color: 'var(--text-primary)', minHeight: 40, display: 'flex', alignItems: 'center' }}>
             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{combatant.name}</span>
           </div>
           <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', alignItems: 'center' }}>
