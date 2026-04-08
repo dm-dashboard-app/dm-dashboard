@@ -68,6 +68,17 @@ That means checking:
 - whether production is on the expected version
 - whether an open PR is based on current main or on an older stale base
 
+### 1.1.1 GitHub-write preflight (mandatory)
+
+Before implementation starts, verify the session has an actual GitHub write path (connected remote/connector access) and can produce a real mergeable PR on GitHub.
+
+If GitHub write path is unavailable:
+
+- do not proceed with local-only implementation commits as if they are live
+- do not present local-only branch commits as merge-ready PR work
+- stop and report the environment limitation clearly
+- provide plan/patch guidance only until GitHub write path is restored
+
 ### 1.2 Direct-edit workflow
 
 This project now uses a direct GitHub editing workflow by default.

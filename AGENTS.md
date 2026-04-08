@@ -48,6 +48,19 @@ That includes checking:
 - whether production/build is on the expected version
 - whether any open PR is based on current `main` or a stale base
 
+### GitHub-only execution guardrail (critical)
+
+All implementation work for this repo must be executed against the live GitHub repository/branch and resulting PRs must be mergeable from GitHub UI.
+
+If a session environment is not actually connected to GitHub (for example: no configured git remote, no connector write path, or no ability to create/open a real GitHub PR), do **not** continue coding on a local-only branch as if it were live work.
+
+In that case:
+- stop implementation immediately
+- clearly report the missing GitHub connection state
+- provide only a proposed patch/plan until live GitHub write path is available
+
+Never present local-only commits as merge-ready GitHub work.
+
 ## Hard working rules
 
 - Edit GitHub directly when implementation is requested.
