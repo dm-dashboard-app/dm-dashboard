@@ -42,7 +42,7 @@ function InitiativeHeroHpBar({ current, max, tempHp = 0, bonusMaxHp = 0 }) {
   );
 }
 
-function StatBox({ label, value, visible = true, accent = 'var(--accent-blue)', onClick = null }) {
+function StatBox({ label, value, visible = true, accent = 'var(--accent-blue)', onClick = null, squareBand = false }) {
   if (!visible) return <div style={{ minHeight: 38 }} />;
   const clickable = typeof onClick === 'function';
   return (
@@ -50,7 +50,7 @@ function StatBox({ label, value, visible = true, accent = 'var(--accent-blue)', 
       type="button"
       onClick={clickable ? onClick : undefined}
       disabled={!clickable}
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1, minHeight: 38, width: '100%', borderRadius: 12, border: `1px solid ${accent}55`, background: 'rgba(74,158,255,0.12)', color: 'var(--text-primary)', padding: '3px 2px', textAlign: 'center', cursor: clickable ? 'pointer' : 'default' }}>
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: squareBand ? 'space-between' : 'center', gap: squareBand ? 4 : 1, minHeight: squareBand ? 58 : 38, height: squareBand ? '100%' : 'auto', width: '100%', borderRadius: 12, border: `1px solid ${accent}55`, background: 'rgba(74,158,255,0.12)', color: 'var(--text-primary)', padding: squareBand ? '6px 2px' : '3px 2px', textAlign: 'center', cursor: clickable ? 'pointer' : 'default' }}>
       <span style={{ fontSize: 7, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.06em', fontWeight: 700 }}>{label}</span>
       <span style={{ fontSize: 16, fontWeight: 800, lineHeight: 1 }}>{value}</span>
     </button>
@@ -327,8 +327,8 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
   return (
     <>
       <div className={`initiative-row ${isActive ? 'active-turn' : ''} ${isNextUp ? 'initiative-row--next-up' : ''}`} style={{ display: 'block', padding: 10, borderColor: topBorder, background: cardBg, borderRadius: 16 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '48px minmax(0, 1fr) 48px', gap: 8, alignItems: 'start' }}>
-          <StatBox label="Init" value={combatant.initiative_total ?? '—'} accent={isActive ? 'var(--accent-blue)' : isNextUp ? 'var(--accent-gold)' : 'var(--accent-blue)'} onClick={isDM ? () => setShowInitiativeModal(true) : null} />
+        <div style={{ display: 'grid', gridTemplateColumns: '48px minmax(0, 1fr) 48px', gap: 8, alignItems: 'stretch' }}>
+          <StatBox label="Init" value={combatant.initiative_total ?? '—'} squareBand accent={isActive ? 'var(--accent-blue)' : isNextUp ? 'var(--accent-gold)' : 'var(--accent-blue)'} onClick={isDM ? () => setShowInitiativeModal(true) : null} />
           <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
             <div style={{ fontSize: 'clamp(.98rem,2.1vw,1.35rem)', lineHeight: 1.02, fontWeight: 800, color: 'var(--text-primary)', minHeight: 38, display: 'flex', alignItems: 'center' }}>
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{combatant.name}</span>
@@ -341,10 +341,10 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
               {isPC && playerState?.mage_armour_active && <span className="initiative-inline-flag">Mage Armour</span>}
             </div>
           </div>
-          <StatBox label="AC" value={armorClass ?? '—'} visible={showAc} accent="var(--accent-blue)" />
+          <StatBox label="AC" value={armorClass ?? '—'} visible={showAc} squareBand accent="var(--accent-blue)" />
         </div>
 
-        <div style={{ marginTop: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div style={{ marginTop: 2, display: 'flex', flexDirection: 'column', gap: 6 }}>
           <FullWidthStatusBar label="Reaction" value={rxUsed ? 'Used' : 'Available'} active={!rxUsed} onClick={canToggleReaction ? handleToggleReaction : null} accent={rxUsed ? 'var(--accent-red)' : 'var(--accent-green)'} />
           <FullWidthStatusBar label="Concentration" value={concentrationText} active={!!concentration} onClick={isPC && isDM ? handleTogglePcConcentration : null} accent="var(--accent-gold)" />
           {showHpBar ? <InitiativeHeroHpBar current={isPC ? pcHpCurrent : enemyHpCurrent} max={isPC ? pcHpMax : enemyHpMax} tempHp={isPC ? tempHp : 0} bonusMaxHp={isPC ? pcBonusMaxHp : 0} /> : (isEnemy && !isDM ? <div style={{ display: 'flex', justifyContent: 'flex-start' }}>{enemyBloodied ? <span className="badge badge-bloodied">Bloodied</span> : null}</div> : null)}
