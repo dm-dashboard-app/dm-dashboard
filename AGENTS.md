@@ -48,16 +48,38 @@ That includes checking:
 - whether production/build is on the expected version
 - whether any open PR is based on current `main` or a stale base
 
+### GitHub-only execution guardrail (critical)
+
+All implementation work for this repo must be executed against the live GitHub repository/branch and resulting PRs must be mergeable from GitHub UI.
+
+If a session environment is not actually connected to GitHub (for example: no configured git remote, no connector write path, or no ability to create/open a real GitHub PR), do **not** continue coding on a local-only branch as if it were live work.
+
+In that case:
+- stop implementation immediately
+- clearly report the missing GitHub connection state
+- provide only a proposed patch/plan until live GitHub write path is available
+
+Never present local-only commits as merge-ready GitHub work.
+
 ## Hard working rules
 
 - Edit GitHub directly when implementation is requested.
 - Preserve full-file integrity even when editing directly.
 - Do not use `main` as an experiment surface.
 - Use one clean branch per contained batch.
+- Keep one active implementation PR per batch; close superseded Codex PRs before opening a replacement PR.
 - Verify branch integrity and PR mergeability before signoff.
 - Do not document attempted-but-unlanded work as complete.
 - For live bugs or rules-sensitive behavior, trace the real owning code path rather than fixing by surface inference.
 - Provide SQL separately when SQL is required.
+
+### PR/reporting integrity guardrail (critical)
+
+Never claim a check/test command was run unless it was actually run in-session and its result was observed.
+
+If a command was not run, say it was not run.
+If a command failed, say it failed.
+If warnings remain, state that warnings remain.
 
 ## DM Dashboard-specific preservation rules
 

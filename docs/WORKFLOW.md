@@ -68,6 +68,17 @@ That means checking:
 - whether production is on the expected version
 - whether an open PR is based on current main or on an older stale base
 
+### 1.1.1 GitHub-write preflight (mandatory)
+
+Before implementation starts, verify the session has an actual GitHub write path (connected remote/connector access) and can produce a real mergeable PR on GitHub.
+
+If GitHub write path is unavailable:
+
+- do not proceed with local-only implementation commits as if they are live
+- do not present local-only branch commits as merge-ready PR work
+- stop and report the environment limitation clearly
+- provide plan/patch guidance only until GitHub write path is restored
+
 ### 1.2 Direct-edit workflow
 
 This project now uses a direct GitHub editing workflow by default.
@@ -281,6 +292,16 @@ Avoid:
 - mixing unrelated work in the same branch
 - branching from stale feature branches unless that is deliberate and verified
 
+### 2.3.1 One-active-PR rule for Codex sessions
+
+For a single contained batch in a Codex/chat session:
+
+- keep one active implementation PR
+- if a replacement PR is needed, close superseded PR(s) first, then open one canonical replacement
+- do not leave multiple overlapping Codex PRs open for the same file set
+
+This avoids conflict churn and reduces merge ambiguity on mobile review workflows.
+
 ### 2.4 Close bad rescue branches quickly
 
 If a rescue or experimental branch is known to be broken, stale, or unsafe:
@@ -389,6 +410,16 @@ Before a PR is handed over as ready for review, testing, or merge, it must be ch
 
 A PR is not considered signed off if GitHub still shows conflict risk or unresolved mergeability issues.
 
+### 4.3.1 Assistant pre-handoff mergeability confirmation
+
+Before handoff, explicitly confirm and report:
+
+- PR number
+- base branch and head branch names
+- whether GitHub shows “Able to merge” or “Unable to merge”
+
+Do not hand off a PR as merge-ready if GitHub shows unresolved conflicts.
+
 ### 4.4 PR Readiness Rule
 
 A PR may only be signed off when all of the following are true:
@@ -490,6 +521,12 @@ Do not present a fix or recovery as complete unless:
 If the actual log is needed, say so.
 
 Do not repeatedly guess from partial symptoms.
+
+### 6.3.1 Command-result truthfulness rule
+
+Only report commands/checks as passed if they were actually run in-session and observed.
+
+Never state that `lint`, `test`, or other checks passed unless those exact commands were executed and confirmed.
 
 ### 6.4 Keep instructions operational
 
