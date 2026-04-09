@@ -99,6 +99,7 @@ Materially landed:
 
 - portrait retained as a core identity element
 - stronger reaction and concentration presentation
+- concentration now shows linked spell names when available, with clean unlinked fallback text
 - clearer AC / PP / spell DC / spell attack presentation
 - thicker and more readable HP presentation
 - DM support for temp HP and bonus max HP
@@ -113,10 +114,6 @@ Important design principles preserved here:
 - AC, concentration, passive perception, spell DC, and spell attack must remain easy to find
 - layout and hierarchy should solve density problems rather than removing useful information
 - mobile readability matters more than theoretical compactness
-
-Current live limitation:
-
-player cards still show a generic concentration state label rather than the actual linked spell name. That refinement has not landed yet and should not be treated as current baseline behavior.
 
 ### DM Mobile Shell / Bottom Dock / Alert Structure
 
@@ -149,16 +146,13 @@ Materially landed:
 - initiative numeric edit modal for DM entry
 - initiative concentration picker path restored for DM use
 - better hidden-info preservation outside DM view
+- squared-off initiative top band alignment (Init/name+badges/AC with reaction immediately below)
 
 Important principle:
 
 - initiative must remain dense but readable
 - the first read must be fast
 - the card should prioritise initiative, identity, reaction, concentration, and HP without destroying hidden-info rules
-
-Current live limitation:
-
-the exact “squared-off” top-band layout is not yet landed. The current live initiative layout is improved and compressed, but not yet at the final intended alignment target.
 
 ### Player Resource and HP Adjustment Systems
 
@@ -360,7 +354,7 @@ A future chat should assume:
 - Manage > Spells is already a library/admin and detail-oriented surface
 - the long-rest preparation procedure exists, even if further validation still remains
 - profile-first and encounter-state layering are core to the current implementation direction
-- the initiative redesign through PR #92 is real baseline work, but some finishing polish is still open
+- the initiative redesign through PR #92 is real baseline work, with ongoing density polish still open
 
 ## Success Condition for This Brief
 
@@ -369,6 +363,6 @@ This brief is working if a new chat can read it and quickly understand:
 - what kind of product DM Dashboard now is
 - what has materially landed
 - what system principles are already established
-- what remains a live limitation versus true baseline behavior
+- what remains active polish work versus durable baseline behavior
 - what should not be casually redesigned or reopened
 - how to interpret the live repo and Next Steps in context
