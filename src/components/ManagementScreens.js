@@ -46,13 +46,12 @@ function applyDerivedPlayerDefaults(profile = {}) {
 
 
 function resolveBuildMarker() {
-  const rawLabel = (process.env.REACT_APP_BUILD_LABEL || process.env.REACT_APP_BUILD_VERSION || '').trim();
-  const rawSha = (process.env.REACT_APP_BUILD_SHA || process.env.REACT_APP_VERCEL_GIT_COMMIT_SHA || process.env.REACT_APP_COMMIT_SHA || '').trim();
-  const shortSha = rawSha ? rawSha.slice(0, 7) : '';
-  if (rawLabel && shortSha && !rawLabel.includes(shortSha)) return `${rawLabel} / ${shortSha}`;
-  if (rawLabel) return rawLabel;
-  if (shortSha) return `Build ${shortSha}`;
-  return '';
+  const prNumber = (process.env.REACT_APP_PR_NUMBER || process.env.REACT_APP_PR || '').trim();
+  const prIteration = (process.env.REACT_APP_PR_ITERATION || process.env.REACT_APP_ITERATION || '').trim();
+  if (prNumber && prIteration) return `PR ${prNumber} · Iteration ${prIteration}`;
+  if (prNumber) return `PR ${prNumber}`;
+  const fallbackLabel = (process.env.REACT_APP_BUILD_LABEL || process.env.REACT_APP_BUILD_VERSION || '').trim();
+  return fallbackLabel || '';
 }
 
 function intFromForm(value, fallback = 0) {
@@ -69,7 +68,7 @@ export default function ManagementScreens({ onEncounterCreated, currentEncounter
     <div className="panel">
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
         <div className="panel-title" style={{ marginBottom: 0 }}>Manage</div>
-        {buildMarker ? <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '.03em', whiteSpace: 'nowrap' }}>Build {buildMarker}</div> : null}
+        {buildMarker ? <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '.03em', whiteSpace: 'nowrap' }}>{buildMarker}</div> : null}
       </div>
       <div className="tab-bar manage-tab-bar" style={{ position: 'static' }}>
         {currentEncounter && <button className={`tab-btn ${tab === 'session' ? 'active' : ''}`} onClick={() => setTab('session')}>Session</button>}
