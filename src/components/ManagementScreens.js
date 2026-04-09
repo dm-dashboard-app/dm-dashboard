@@ -24,6 +24,7 @@ import {
 } from '../utils/classResources';
 import SpellManagementPanel from './SpellManagementPanel';
 import PlayerProfileSpellManager from './PlayerProfileSpellManager';
+import pkg from '../../package.json';
 
 const CLASS_OPTIONS = ['', 'Barbarian', 'Bard', 'Cleric', 'Druid', 'Fighter', 'Monk', 'Paladin', 'Ranger', 'Rogue', 'Sorcerer', 'Warlock', 'Wizard'];
 const ABILITY_LABELS = { str: 'STR', dex: 'DEX', con: 'CON', int: 'INT', wis: 'WIS', cha: 'CHA' };
@@ -46,12 +47,12 @@ function applyDerivedPlayerDefaults(profile = {}) {
 
 
 function resolveBuildMarker() {
-  const prNumber = (process.env.REACT_APP_PR_NUMBER || process.env.REACT_APP_PR || '').trim();
-  const prIteration = (process.env.REACT_APP_PR_ITERATION || process.env.REACT_APP_ITERATION || '').trim();
-  if (prNumber && prIteration) return `PR ${prNumber} · Iteration ${prIteration}`;
-  if (prNumber) return `PR ${prNumber}`;
-  const fallbackLabel = (process.env.REACT_APP_BUILD_LABEL || process.env.REACT_APP_BUILD_VERSION || '').trim();
-  return fallbackLabel || '';
+  // PR/iteration env vars are compile-time in CRA builds and are often unset in deploys.
+  // Use package.json version as a reliable always-available marker, with env override optional.
+  const explicitLabel = (process.env.REACT_APP_BUILD_LABEL || process.env.REACT_APP_BUILD_VERSION || '').trim();
+  if (explicitLabel) return explicitLabel;
+  const version = String(pkg?.version || '').trim();
+  return version ? `Build v${version}` : '';
 }
 
 function intFromForm(value, fallback = 0) {

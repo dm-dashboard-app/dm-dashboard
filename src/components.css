@@ -12,21 +12,21 @@
 }
 
 .portrait-strip {
-  width: 52px;
-  min-width: 52px;
+  width: 44px;
+  min-width: 44px;
   background: var(--bg-panel-2);
   display: flex;
   align-items: stretch;
 }
 
 .portrait-img {
-  width: 52px;
+  width: 44px;
   object-fit: cover;
   display: block;
 }
 
 .portrait-placeholder {
-  width: 52px;
+  width: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -109,7 +109,7 @@
 .hp-dmg-row {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   margin-top: 2px;
 }
 
@@ -126,7 +126,7 @@
   align-items: center;
   justify-content: center;
   gap: 5px;
-  min-height: 32px;
+  min-height: 28px;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -153,8 +153,8 @@
 }
 
 .hp-amount-input {
-  width: 52px;
-  min-width: 48px;
+  width: 42px;
+  min-width: 40px;
   text-align: center;
   font-size: var(--font-size-lg);
   font-weight: 700;
@@ -163,7 +163,7 @@
   background: var(--bg-panel-3);
   border: 1.5px solid var(--border-strong);
   color: var(--text-primary);
-  min-height: 32px;
+  min-height: 28px;
   transition: border-color 0.15s;
 }
 .hp-amount-input:focus {
@@ -181,15 +181,15 @@
 
 /* Compact variant — for initiative panel rows */
 .hp-dmg-row--compact .hp-action-btn {
-  min-height: 28px;
-  padding: 3px 6px;
-  font-size: 10px;
+  min-height: 24px;
+  padding: 2px 5px;
+  font-size: 9px;
 }
 .hp-amount-input--compact {
-  width: 44px;
-  font-size: var(--font-size-sm);
-  min-height: 28px;
-  padding: 2px 1px;
+  width: 38px;
+  font-size: 11px;
+  min-height: 24px;
+  padding: 1px 1px;
 }
 
 /* ---- CON SAVE BANNER ---- */
