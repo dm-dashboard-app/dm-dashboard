@@ -271,6 +271,29 @@ After each merge and before each new implementation batch:
 
 Do not assume main is unchanged just because no one is intentionally editing it.
 
+
+### 2.2.3 Live-main recheck immediately before branch creation
+
+Right before creating any new implementation branch, re-check current live `main`.
+
+Do not rely on:
+- earlier startup output
+- stale PR metadata
+- task memory of what `main` used to be
+
+If `main` has moved, branch from the new live tip.
+
+### 2.2.4 Live-main recheck immediately before PR creation
+
+Right before opening a PR, re-check current live `main` again.
+
+If the implementation branch was created from an older `main` tip and the compare now shows the branch is behind current `main`, do not hand-wave that PR as acceptable.
+
+Instead:
+- recreate the branch from the new live `main` tip
+- replay the validated changes
+- open the PR from that clean base
+
 ### 2.3 One clean branch per batch
 
 Use one branch per contained batch of work.
@@ -280,6 +303,51 @@ Avoid:
 - stacking speculative fixes
 - mixing unrelated work in the same branch
 - branching from stale feature branches unless that is deliberate and verified
+
+
+### 2.3 Fresh coding batch rule
+
+A new coding batch on the same issue does not require a new chat.
+
+Same chat is acceptable.
+
+However, a new coding batch should default to:
+- a fresh branch from current live `main`
+- no automatic attachment to an older PR
+- no reuse of a closed PR
+- no reuse of a deleted branch
+- no assumption that an older Codex review branch remains canonical
+
+### 2.3.1 Canonical PR rule
+
+For one coding batch, there must be at most one active canonical PR.
+
+That means:
+- do not open overlapping replacement PRs for the same batch
+- do not create two live PRs touching the same intended batch unless the user explicitly requests that
+- if a PR is being replaced, close the superseded PR first
+- report clearly which PR is canonical and which PR should be ignored or closed
+
+### 2.3.2 Fresh-PR-by-default rule
+
+If the user wants to continue coding but does not explicitly say “update the current PR,” do not assume the old PR should be reused.
+
+Instead:
+- treat the request as a fresh batch
+- start from current live `main`
+- create a fresh branch
+- wait to open a PR until the batch is actually ready
+
+### 2.3.3 Closed-PR non-reuse rule
+
+A closed PR is not canonical work state.
+
+Do not:
+- keep attaching new work to a closed PR
+- treat a deleted PR branch as still active
+- continue speaking as though a closed PR remains the review target
+
+If the prior PR was closed, start fresh from live `main`.
 
 ### 2.4 Close bad rescue branches quickly
 
@@ -307,6 +375,22 @@ Before implementation, establish:
 - whether SQL is required
 - whether there is already an open deployment or PR blocker
 - whether the planned change depends on files not yet present on the target branch
+
+
+### 3.1.1 Execution-preflight report
+
+Before changing code, explicitly report:
+
+- MODE: GitHub-connected live repo path vs any local/worktree path
+- LIVE REPO: full repository name
+- BASE BRANCH
+- HEAD BRANCH
+- OPEN PRS FOR THIS EXACT BATCH
+- WHETHER THE TASK WILL UPDATE AN EXISTING PR OR START A FRESH BRANCH
+
+If the task is not on a real GitHub-connected path that can create or update the live repository branch/PR, stop before changing code.
+
+Do not present non-live commits as merge-ready.
 
 ### 3.2 Clarification-before-action rule
 
@@ -388,6 +472,19 @@ Before a PR is handed over as ready for review, testing, or merge, it must be ch
 - no incomplete-branch issues caused by stale history
 
 A PR is not considered signed off if GitHub still shows conflict risk or unresolved mergeability issues.
+
+
+### 4.3.1 Pre-handoff mergeability report
+
+Before handing over any PR, report all of the following explicitly:
+
+- PR number
+- base branch
+- head branch
+- whether GitHub reports it as mergeable / unable to merge / still calculating
+- whether the branch compare is ahead and behind by the expected amount
+
+If this cannot be verified, the PR is not ready for handoff.
 
 ### 4.4 PR Readiness Rule
 
@@ -498,6 +595,23 @@ When the user is working from mobile or under pressure:
 - give exact steps
 - keep them actionable
 - explain Git concepts plainly when needed
+
+
+### 6.5 Command-result truthfulness rule
+
+Do not claim that a command, build, lint run, or test run happened unless it actually happened in the current task environment.
+
+If a command was not run, say it was not run.
+
+If a command could not be run, say that clearly.
+
+Do not substitute intention, memory, or expected output for real command execution.
+
+### 6.6 Instruction refresh rule
+
+If `AGENTS.md` or the workflow docs are changed during a task/run, do not assume the current run has adopted those new instructions.
+
+Start a fresh task/run before relying on new repo instruction behavior.
 
 ## DM Dashboard-Specific Working Principles
 
@@ -702,6 +816,36 @@ Therefore:
 - never treat “I rebuilt the file” as proof of repo state
 - never document work as landed unless it is visible on main or on a verified PR branch
 - if a branch only exists but no write/commit is confirmed, treat it as empty for practical purposes
+
+
+### 11.10 PR-state anchoring lesson
+
+A coding agent can become anchored to an older PR or review branch even when the user intends a fresh coding batch.
+
+Therefore:
+- same chat is allowed
+- new batch does not mean new chat
+- but new batch should default to a fresh branch from current live `main`
+- old PR reuse must be explicit, not assumed
+
+### 11.11 Closed-PR reuse lesson
+
+Closed PRs and deleted branches must not be treated as still-active review targets.
+
+If a PR is closed:
+- stop referring to it as canonical
+- stop attaching new work to it
+- start fresh from live `main`
+
+### 11.12 Main-movement lesson
+
+In this project, `main` can change during a task.
+
+Therefore:
+- one startup check is not enough
+- `main` must be re-checked immediately before branch creation
+- `main` must be re-checked immediately before PR creation
+- stale-base PRs must be rebuilt, not rationalized away
 
 ## Success Condition
 

@@ -48,6 +48,49 @@ That includes checking:
 - whether production/build is on the expected version
 - whether any open PR is based on current `main` or a stale base
 
+## Execution preflight rule
+
+Before any implementation batch, report the following first:
+- MODE: GitHub-connected live repo path vs any local/worktree path
+- LIVE REPO: full repository name
+- BASE BRANCH
+- HEAD BRANCH
+- OPEN PRS FOR THIS EXACT BATCH
+- WHETHER THE TASK WILL UPDATE AN EXISTING PR OR START A FRESH BRANCH
+
+If the task is not operating on a real GitHub-connected path that can create or update the live repository branch/PR, stop before changing code and say so clearly.
+
+Do not present local-only, worktree-only, or otherwise non-live commits as merge-ready.
+
+## Fresh coding batch default
+
+For a new coding batch on the same issue, same chat is fine.
+
+Default behavior is:
+- start from current live `main`
+- create a fresh branch for the new batch
+- do not attach to an older open PR unless the user explicitly says to continue that PR
+- do not reuse any closed PR
+- do not reuse any deleted branch
+- do not assume a prior Codex review branch is canonical
+
+## PR lifecycle rules
+
+- One active PR maximum for one coding batch.
+- Do not create overlapping replacement PRs for the same batch.
+- If the user wants a fresh PR instead of updating an old one, create a fresh branch from current live `main`.
+- If a PR is superseded, close it before opening the replacement PR.
+- Before handoff, report the exact canonical PR number and whether the branch is mergeable.
+
+## Main-movement rule
+
+`main` can move while a task is running.
+
+Therefore:
+- re-check `main` immediately before branch creation
+- re-check `main` immediately before PR creation
+- if `main` moved in between, recreate the branch from the new live `main` tip instead of hand-waving a stale-base PR
+
 ## Hard working rules
 
 - Edit GitHub directly when implementation is requested.
@@ -87,6 +130,12 @@ When a documentation reconciliation/update pass is requested:
   - still open / parked
   - not verified / do not document as landed
 - use merged `main` and current repo files as the final decision maker
+
+## Instruction refresh rule
+
+If `AGENTS.md` or the workflow docs are changed during a task/run, do not assume the current task has picked them up.
+
+Start a fresh task/run before relying on newly added instruction behavior.
 
 ## Non-negotiable safety rules
 
