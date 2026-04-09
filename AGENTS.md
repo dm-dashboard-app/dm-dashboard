@@ -62,6 +62,25 @@ If the task is not operating on a real GitHub-connected path that can create or 
 
 Do not present local-only, worktree-only, or otherwise non-live commits as merge-ready.
 
+### Repo hydration evidence rule (important)
+
+For this repository, shell `git remote -v` output alone is **not** sufficient proof of non-live mode.
+
+Environment bootstrap may:
+
+- add `origin`
+- fetch live GitHub state
+- create the working branch from `FETCH_HEAD`
+- then remove `origin`
+
+If setup/bootstrap logs show:
+
+- remote add
+- successful fetch
+- branch creation from `FETCH_HEAD`
+
+then treat that as valid live-repo hydration evidence unless contradicted by stronger evidence.
+
 ## Mandatory completion-log merge-readiness gate
 
 Implementation PRs are **not merge-ready** until all of the following are true in that same PR:
@@ -139,6 +158,34 @@ When a documentation reconciliation/update pass is requested:
   - still open / parked
   - not verified / do not document as landed
 - use merged `main` and current repo files as the final decision maker
+
+## UI density/layout investigation rule
+
+For UI density/layout tasks, do not tune blindly.
+
+Before making broad visual changes, first identify the dominant rendered-space drivers in the affected surface:
+
+- biggest min-heights
+- biggest paddings/gaps
+- repeated stacked sections
+- layout constraints preventing compaction
+- low-value / high-height elements
+
+Then target the largest contributors first.
+Prefer a few deliberate reductions to many tiny scattered tweaks.
+
+## Durable record clarification
+
+Repo docs are the durable project record.
+
+PR bodies may include brief summaries, but durable state/process logging belongs in:
+
+- `docs/NEXT_STEPS.md`
+- `docs/PROJECT_BRIEF.md`
+- `docs/WORKFLOW.md`
+- `AGENTS.md`
+
+Use the appropriate file(s) based on roadmap, current-state, or process scope.
 
 ## Instruction refresh rule
 

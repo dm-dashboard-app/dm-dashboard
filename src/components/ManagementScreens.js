@@ -44,6 +44,14 @@ function applyDerivedPlayerDefaults(profile = {}) {
   return { ...profile, ...derivePlayerProfileDefaults(profile) };
 }
 
+
+function resolveBuildMarker() {
+  const prNumber = (process.env.REACT_APP_PR_NUMBER || process.env.REACT_APP_PR || '').trim();
+  const prIteration = (process.env.REACT_APP_PR_ITERATION || process.env.REACT_APP_ITERATION || '').trim();
+  if (!prNumber || !prIteration) return '';
+  return `PR ${prNumber} (Iteration ${prIteration})`;
+}
+
 function intFromForm(value, fallback = 0) {
   const n = parseInt(String(value ?? ''), 10);
   return Number.isFinite(n) ? n : fallback;
@@ -51,11 +59,15 @@ function intFromForm(value, fallback = 0) {
 
 export default function ManagementScreens({ onEncounterCreated, currentEncounter = null, displayToken = null, joinCodes = [], onGenerateDisplayToken = null, onRevokeDisplayToken = null, onFrontScreen = null, onSignOut = null }) {
   const [tab, setTab] = useState(currentEncounter ? 'session' : 'players');
+  const buildMarker = resolveBuildMarker();
   useEffect(() => { if (!currentEncounter && tab === 'session') setTab('players'); }, [currentEncounter, tab]);
 
   return (
     <div className="panel">
-      <div className="panel-title">Manage</div>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
+        <div className="panel-title" style={{ marginBottom: 0 }}>Manage</div>
+        {buildMarker ? <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '.03em', whiteSpace: 'nowrap' }}>{buildMarker}</div> : null}
+      </div>
       <div className="tab-bar manage-tab-bar" style={{ position: 'static' }}>
         {currentEncounter && <button className={`tab-btn ${tab === 'session' ? 'active' : ''}`} onClick={() => setTab('session')}>Session</button>}
         <button className={`tab-btn ${tab === 'players' ? 'active' : ''}`} onClick={() => setTab('players')}>Players</button>

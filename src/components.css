@@ -12,21 +12,21 @@
 }
 
 .portrait-strip {
-  width: 72px;
-  min-width: 72px;
+  width: 44px;
+  min-width: 44px;
   background: var(--bg-panel-2);
   display: flex;
   align-items: stretch;
 }
 
 .portrait-img {
-  width: 72px;
+  width: 44px;
   object-fit: cover;
   display: block;
 }
 
 .portrait-placeholder {
-  width: 72px;
+  width: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -40,7 +40,7 @@
   letter-spacing: 0.05em;
 }
 
-.card-body { flex: 1; padding: var(--space-3); display: flex; flex-direction: column; gap: var(--space-2); overflow: hidden; }
+.card-body { flex: 1; padding: var(--space-2); display: flex; flex-direction: column; gap: var(--space-1); overflow: hidden; }
 .card-header-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
 .card-name { font-size: var(--font-size-md); font-weight: 700; }
 .card-header-badges { display: flex; align-items: center; gap: var(--space-1); }
@@ -109,13 +109,13 @@
 .hp-dmg-row {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  margin-top: var(--space-1);
+  gap: 3px;
+  margin-top: 2px;
 }
 
 .hp-action-btn {
   flex: 1;
-  padding: 9px var(--space-2);
+  padding: 6px 6px;
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   font-weight: 700;
@@ -126,7 +126,7 @@
   align-items: center;
   justify-content: center;
   gap: 5px;
-  min-height: 42px;
+  min-height: 28px;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -153,17 +153,17 @@
 }
 
 .hp-amount-input {
-  width: 64px;
-  min-width: 56px;
+  width: 42px;
+  min-width: 40px;
   text-align: center;
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-lg);
   font-weight: 700;
-  padding: 6px 4px;
+  padding: 4px 2px;
   border-radius: var(--radius-md);
   background: var(--bg-panel-3);
   border: 1.5px solid var(--border-strong);
   color: var(--text-primary);
-  min-height: 42px;
+  min-height: 28px;
   transition: border-color 0.15s;
 }
 .hp-amount-input:focus {
@@ -181,15 +181,15 @@
 
 /* Compact variant — for initiative panel rows */
 .hp-dmg-row--compact .hp-action-btn {
-  min-height: 34px;
-  padding: 5px 8px;
-  font-size: var(--font-size-xs);
+  min-height: 24px;
+  padding: 2px 5px;
+  font-size: 9px;
 }
 .hp-amount-input--compact {
-  width: 52px;
-  font-size: var(--font-size-lg);
-  min-height: 34px;
-  padding: 4px 2px;
+  width: 38px;
+  font-size: 11px;
+  min-height: 24px;
+  padding: 1px 1px;
 }
 
 /* ---- CON SAVE BANNER ---- */
@@ -217,7 +217,7 @@
 }
 
 .con-check-dc {
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-lg);
   font-weight: 700;
   color: var(--accent-gold);
   font-variant-numeric: tabular-nums;
@@ -676,7 +676,7 @@
 .secret-roll-skill { color: var(--accent-gold); font-size: var(--font-size-xs); text-transform: capitalize; }
 .secret-roll-time { color: var(--text-muted); font-size: var(--font-size-xs); }
 .secret-roll-result { display: flex; gap: var(--space-2); align-items: baseline; }
-.secret-roll-total { font-size: var(--font-size-xl); font-weight: 700; color: var(--accent-blue); }
+.secret-roll-total { font-size: var(--font-size-lg); font-weight: 700; color: var(--accent-blue); }
 .secret-roll-breakdown { font-size: var(--font-size-xs); color: var(--text-muted); }
 
 /* ---- Encounter Setup ---- */
