@@ -9,9 +9,6 @@
 
 ## Completion Log Update (Required)
 
-- [ ] I confirm this PR is **not merge-ready** unless this Completion Log Update is filled out and any necessary support-doc updates are included in this same PR.
-- [ ] If support docs did not need content changes, I explicitly state that below (N/A with reason), instead of omitting it.
-
 ### Landed in this PR
 
 - [ ] Item(s) that moved from open work to landed.
