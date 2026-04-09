@@ -417,6 +417,21 @@ If the task is not on a real GitHub-connected path that can create or update the
 
 Do not present non-live commits as merge-ready.
 
+### 3.1.2 UI density/layout investigation rule
+
+For UI density/layout tasks, do not tune blindly.
+
+Before broad visual changes, identify the dominant rendered-space drivers in the affected surface:
+
+- biggest min-heights
+- biggest paddings/gaps
+- repeated stacked sections
+- layout constraints preventing compaction
+- low-value / high-height elements
+
+Then target the largest contributors first.
+Prefer a few deliberate reductions over many tiny scattered tweaks.
+
 ### 3.2 Clarification-before-action rule
 
 If important intent is unclear, destructive interpretation is possible, or the requested behavior could reasonably mean more than one thing, ask focused questions before changing code.
@@ -645,6 +660,22 @@ When the user is working from mobile or under pressure:
 - give exact steps
 - keep them actionable
 - explain Git concepts plainly when needed
+
+### 6.4.1 Durable project-record clarification
+
+Repository docs are the durable project record.
+
+PR bodies can contain brief summaries, but durable state/process logging belongs in the support docs:
+
+- `docs/NEXT_STEPS.md`
+- `docs/PROJECT_BRIEF.md`
+- `docs/WORKFLOW.md`
+- `AGENTS.md`
+
+Choose file(s) by role:
+- roadmap state -> Next Steps
+- current-state/background -> Project Brief
+- process/safety -> Workflow and AGENTS
 
 
 ### 6.5 Command-result truthfulness rule

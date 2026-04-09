@@ -159,6 +159,34 @@ When a documentation reconciliation/update pass is requested:
   - not verified / do not document as landed
 - use merged `main` and current repo files as the final decision maker
 
+## UI density/layout investigation rule
+
+For UI density/layout tasks, do not tune blindly.
+
+Before making broad visual changes, first identify the dominant rendered-space drivers in the affected surface:
+
+- biggest min-heights
+- biggest paddings/gaps
+- repeated stacked sections
+- layout constraints preventing compaction
+- low-value / high-height elements
+
+Then target the largest contributors first.
+Prefer a few deliberate reductions to many tiny scattered tweaks.
+
+## Durable record clarification
+
+Repo docs are the durable project record.
+
+PR bodies may include brief summaries, but durable state/process logging belongs in:
+
+- `docs/NEXT_STEPS.md`
+- `docs/PROJECT_BRIEF.md`
+- `docs/WORKFLOW.md`
+- `AGENTS.md`
+
+Use the appropriate file(s) based on roadmap, current-state, or process scope.
+
 ## Instruction refresh rule
 
 If `AGENTS.md` or the workflow docs are changed during a task/run, do not assume the current task has picked them up.
