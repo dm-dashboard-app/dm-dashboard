@@ -434,8 +434,6 @@ For each batch, identify:
 
 Every implementation PR must update project-memory docs as part of the same batch so done vs not-done state stays reliable across sessions.
 
-This is a hard merge-readiness gate, not optional housekeeping.
-
 Minimum required behavior for every PR:
 
 1. classify each scoped item as:
@@ -452,9 +450,7 @@ Minimum required behavior for every PR:
 
 If a PR has no product-impacting changes, include a one-line Completion Log Update saying no roadmap-state changes were required.
 
-If no support-doc content changes are needed, the PR must still include an explicit no-change Completion Log Update note. Omitting the section is not allowed.
-
-Any implementation PR that does not include the required Completion Log Update and any necessary support-doc changes is not merge-ready and must not be handed off as ready.
+This rule is mandatory for signoff.
 
 ### 3.5 SQL handling
 
@@ -730,8 +726,6 @@ That section must force the author to state:
 - which support docs were updated
 
 If the template is missing or stale, update it in the same batch before signoff.
-
-Do not mark an implementation PR ready until that required section is present and completed.
 
 ## Documentation-reconciliation rule
 
