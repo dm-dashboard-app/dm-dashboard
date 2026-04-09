@@ -51,40 +51,16 @@ Status:
 
 What still needs work:
 
-#### 1.1 Square off the initiative top band
+#### 1.1 Final initiative density polish
 
-This is the clearest unfinished initiative item.
-
-Target:
-
-- init and AC should act as left/right anchors of one compact top band
-- top of init/ac should align with the top of the name
-- bottom of init/ac should align with the bottom of the badge/tag row
-- reaction should begin immediately underneath that compact top band
-
-This was attempted in-chat but did not land. Do not document it as complete until it is visibly on main.
-
-#### 1.2 Final initiative density polish
-
-After the top-band square-off lands, re-check:
+With the top-band alignment and concentration-name behavior now landed on `main`, continue targeted density polish:
 
 - mobile density with many combatants
 - display-view density
 - badge wrapping behavior
 - whether the top cluster still wastes vertical space under long names
 
-This should be a follow-up polish pass only if the square-off work still leaves obvious dead space.
-
-#### 1.3 Player-card concentration spell-name display
-
-Live player cards still show a generic concentration state instead of the linked spell name.
-
-Target:
-
-- show the actual concentration spell name on the player card when one is linked
-- fallback cleanly when no linked spell exists
-
-This is a known unfinished item and should remain on the roadmap until it is on main.
+Do this as polish only; do not remove useful information or controls to create density.
 
 ### 2. Long Rest / Spell Prep Validation
 
@@ -188,9 +164,7 @@ These are not forgotten. They are intentionally parked:
 
 These should remain visible so a fresh chat does not accidentally document them as already done:
 
-- squared-off initiative top band
-- player-card concentration spell-name display
-- any post-PR-92 initiative refinement attempted during connector/network failures
+- any post-PR-92 initiative refinement attempted during connector/network failures that is not visible on current `main`
 
 If it is not on main, it is not done.
 
@@ -205,10 +179,9 @@ After reading this document and checking live GitHub:
 
 Pick up the highest-value remaining work in this order:
 
-1. square off the initiative top band
-2. land player-card concentration spell names
-3. continue long-rest multi-device validation / cleanup when real testing is available
-4. treat world-map/display control as the next larger feature track after current combat/runtime polish
+1. continue initiative density polish for display + phone while preserving readability and controls
+2. continue long-rest multi-device validation / cleanup when real testing is available
+3. treat world-map/display control as the next larger feature track after current combat/runtime polish
 
 ## What Should Not Be Reopened Casually
 

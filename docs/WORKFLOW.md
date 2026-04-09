@@ -430,6 +430,28 @@ For each batch, identify:
 - whether Vercel should be expected to rebuild
 - whether the PR is actually safe to review and merge
 
+### 3.4.1 Mandatory completion-log update on every PR
+
+Every implementation PR must update project-memory docs as part of the same batch so done vs not-done state stays reliable across sessions.
+
+Minimum required behavior for every PR:
+
+1. classify each scoped item as:
+   - landed now
+   - still open
+   - attempted but not landed
+2. update `docs/NEXT_STEPS.md` to keep only real open work
+3. move durable landed items into `docs/PROJECT_BRIEF.md`
+4. keep `docs/WORKFLOW.md` process-only (do not put roadmap items here)
+5. include a short PR section named **Completion Log Update** summarizing:
+   - what moved from open -> landed
+   - what remains open
+   - what is explicitly not verified as landed
+
+If a PR has no product-impacting changes, include a one-line Completion Log Update saying no roadmap-state changes were required.
+
+This rule is mandatory for signoff.
+
 ### 3.5 SQL handling
 
 If SQL is required:
@@ -691,6 +713,19 @@ When rewriting support files:
 - keep Workflow process-only
 - keep Next Steps roadmap-only
 - keep Project Brief as current-state/background context only
+
+## PR-template automation rule for completion logging
+
+To keep this process repeatable across sessions, the repository must maintain a PR template that includes a required **Completion Log Update** section.
+
+That section must force the author to state:
+
+- landed this PR
+- still open after this PR
+- not verified / not landed
+- which support docs were updated
+
+If the template is missing or stale, update it in the same batch before signoff.
 
 ## Documentation-reconciliation rule
 

@@ -50,8 +50,8 @@ function StatBox({ label, value, visible = true, accent = 'var(--accent-blue)', 
       type="button"
       onClick={clickable ? onClick : undefined}
       disabled={!clickable}
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: squareBand ? 'space-between' : 'center', gap: squareBand ? 4 : 1, minHeight: squareBand ? 58 : 38, height: squareBand ? '100%' : 'auto', width: '100%', borderRadius: 12, border: `1px solid ${accent}55`, background: 'rgba(74,158,255,0.12)', color: 'var(--text-primary)', padding: squareBand ? '6px 2px' : '3px 2px', textAlign: 'center', cursor: clickable ? 'pointer' : 'default' }}>
-      <span style={{ fontSize: 7, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.06em', fontWeight: 700 }}>{label}</span>
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: squareBand ? 'space-between' : 'center', gap: squareBand ? 3 : 1, minHeight: squareBand ? 52 : 38, height: squareBand ? '100%' : 'auto', width: '100%', borderRadius: 12, border: `1px solid ${accent}55`, background: 'rgba(74,158,255,0.12)', color: 'var(--text-primary)', padding: squareBand ? '5px 2px' : '3px 2px', textAlign: 'center', cursor: clickable ? 'pointer' : 'default' }}>
+      <span style={{ fontSize: 8, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.06em', fontWeight: 700 }}>{label}</span>
       <span style={{ fontSize: 16, fontWeight: 800, lineHeight: 1 }}>{value}</span>
     </button>
   );
@@ -60,7 +60,7 @@ function StatBox({ label, value, visible = true, accent = 'var(--accent-blue)', 
 function FullWidthStatusBar({ label, value, active = false, onClick = null, accent = 'var(--accent-blue)' }) {
   const clickable = typeof onClick === 'function';
   return (
-    <button type="button" onClick={clickable ? onClick : undefined} disabled={!clickable} style={{ minHeight: 36, width: '100%', padding: '8px 12px', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, fontWeight: 700, border: active ? `1px solid ${accent}` : '1px solid var(--border)', background: active ? `${accent}22` : 'var(--bg-panel-3)', color: active ? accent : 'var(--text-primary)', cursor: clickable ? 'pointer' : 'default' }}>
+    <button type="button" onClick={clickable ? onClick : undefined} disabled={!clickable} style={{ minHeight: 34, width: '100%', padding: '7px 11px', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, fontWeight: 700, border: active ? `1px solid ${accent}` : '1px solid var(--border)', background: active ? `${accent}22` : 'var(--bg-panel-3)', color: active ? accent : 'var(--text-primary)', cursor: clickable ? 'pointer' : 'default' }}>
       <span style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</span>
       <span style={{ fontSize: 13, fontWeight: 800, textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</span>
     </button>
@@ -207,7 +207,7 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
   const showAc = !(isEnemy && !isDM);
   const showBottomMeta = !(isEnemy && !isDM);
   const conditionsLabel = displayConditions.length ? `Conditions (${displayConditions.length})` : '+ Conditions';
-  const concentrationText = concentration ? (concentrationSpellName || 'Concentrating') : 'Not concentrating';
+  const concentrationText = concentration ? (concentrationSpellName || 'Concentrating (Unlinked)') : 'Not concentrating';
 
   async function submitInitiative(value) {
     const parsed = parseInt(value, 10);
@@ -327,13 +327,13 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
   return (
     <>
       <div className={`initiative-row ${isActive ? 'active-turn' : ''} ${isNextUp ? 'initiative-row--next-up' : ''}`} style={{ display: 'block', padding: 10, borderColor: topBorder, background: cardBg, borderRadius: 16 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '48px minmax(0, 1fr) 48px', gap: 8, alignItems: 'stretch' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '46px minmax(0, 1fr) 46px', gap: 7, alignItems: 'stretch' }}>
           <StatBox label="Init" value={combatant.initiative_total ?? '—'} squareBand accent={isActive ? 'var(--accent-blue)' : isNextUp ? 'var(--accent-gold)' : 'var(--accent-blue)'} onClick={isDM ? () => setShowInitiativeModal(true) : null} />
-          <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <div style={{ fontSize: 'clamp(.98rem,2.1vw,1.35rem)', lineHeight: 1.02, fontWeight: 800, color: 'var(--text-primary)', minHeight: 38, display: 'flex', alignItems: 'center' }}>
+          <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <div style={{ fontSize: 'clamp(.98rem,2.05vw,1.3rem)', lineHeight: 1.02, fontWeight: 800, color: 'var(--text-primary)', minHeight: 34, display: 'flex', alignItems: 'center' }}>
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{combatant.name}</span>
             </div>
-            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', alignItems: 'center', minHeight: 20 }}>
+            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', alignItems: 'center', minHeight: 18 }}>
               <span className={`badge badge-${combatant.side.toLowerCase()}`}>{sideLabel}</span>
               {isActive && <span className="display-order-tag display-order-tag--active">Current</span>}
               {!isActive && isNextUp && <span className="display-order-tag display-order-tag--next">On Deck</span>}
@@ -344,7 +344,7 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
           <StatBox label="AC" value={armorClass ?? '—'} visible={showAc} squareBand accent="var(--accent-blue)" />
         </div>
 
-        <div style={{ marginTop: 2, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div style={{ marginTop: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
           <FullWidthStatusBar label="Reaction" value={rxUsed ? 'Used' : 'Available'} active={!rxUsed} onClick={canToggleReaction ? handleToggleReaction : null} accent={rxUsed ? 'var(--accent-red)' : 'var(--accent-green)'} />
           <FullWidthStatusBar label="Concentration" value={concentrationText} active={!!concentration} onClick={isPC && isDM ? handleTogglePcConcentration : null} accent="var(--accent-gold)" />
           {showHpBar ? <InitiativeHeroHpBar current={isPC ? pcHpCurrent : enemyHpCurrent} max={isPC ? pcHpMax : enemyHpMax} tempHp={isPC ? tempHp : 0} bonusMaxHp={isPC ? pcBonusMaxHp : 0} /> : (isEnemy && !isDM ? <div style={{ display: 'flex', justifyContent: 'flex-start' }}>{enemyBloodied ? <span className="badge badge-bloodied">Bloodied</span> : null}</div> : null)}
