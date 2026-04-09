@@ -9,6 +9,8 @@
 
 ## Completion Log Update (Required)
 
+> **Merge-readiness gate:** This PR is **not merge-ready** until every section below is filled out and any required support-doc changes are included in this PR. If a doc is unchanged, mark it explicitly as N/A with a reason.
+
 ### Landed in this PR
 
 - [ ] Item(s) that moved from open work to landed.

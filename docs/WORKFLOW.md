@@ -452,6 +452,9 @@ If a PR has no product-impacting changes, include a one-line Completion Log Upda
 
 This rule is mandatory for signoff.
 
+Merge-readiness gate: an implementation PR is **not merge-ready** until the Completion Log Update is filled out and any required support-doc updates are included in the same PR.
+If a support doc does not need changes for that batch, it must be explicitly marked N/A with a reason in the PR body.
+
 ### 3.5 SQL handling
 
 If SQL is required:

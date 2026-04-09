@@ -62,6 +62,15 @@ If the task is not operating on a real GitHub-connected path that can create or 
 
 Do not present local-only, worktree-only, or otherwise non-live commits as merge-ready.
 
+## Mandatory completion-log merge-readiness gate
+
+Implementation PRs are **not merge-ready** until all of the following are true in that same PR:
+- the Completion Log Update section is fully filled out
+- any required support-doc updates are included (`docs/NEXT_STEPS.md`, `docs/PROJECT_BRIEF.md`, and `docs/WORKFLOW.md` when process changed)
+- any support doc intentionally left unchanged is explicitly marked N/A with a reason in the PR body
+
+Do not sign off or present a PR as ready before this gate is satisfied.
+
 ## Fresh coding batch default
 
 For a new coding batch on the same issue, same chat is fine.
