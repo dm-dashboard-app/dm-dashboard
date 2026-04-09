@@ -44,6 +44,17 @@ function applyDerivedPlayerDefaults(profile = {}) {
   return { ...profile, ...derivePlayerProfileDefaults(profile) };
 }
 
+
+function resolveBuildMarker() {
+  const rawLabel = (process.env.REACT_APP_BUILD_LABEL || process.env.REACT_APP_BUILD_VERSION || '').trim();
+  const rawSha = (process.env.REACT_APP_BUILD_SHA || process.env.REACT_APP_VERCEL_GIT_COMMIT_SHA || process.env.REACT_APP_COMMIT_SHA || '').trim();
+  const shortSha = rawSha ? rawSha.slice(0, 7) : '';
+  if (rawLabel && shortSha && !rawLabel.includes(shortSha)) return `${rawLabel} / ${shortSha}`;
+  if (rawLabel) return rawLabel;
+  if (shortSha) return `Build ${shortSha}`;
+  return '';
+}
+
 function intFromForm(value, fallback = 0) {
   const n = parseInt(String(value ?? ''), 10);
   return Number.isFinite(n) ? n : fallback;
@@ -51,11 +62,15 @@ function intFromForm(value, fallback = 0) {
 
 export default function ManagementScreens({ onEncounterCreated, currentEncounter = null, displayToken = null, joinCodes = [], onGenerateDisplayToken = null, onRevokeDisplayToken = null, onFrontScreen = null, onSignOut = null }) {
   const [tab, setTab] = useState(currentEncounter ? 'session' : 'players');
+  const buildMarker = resolveBuildMarker();
   useEffect(() => { if (!currentEncounter && tab === 'session') setTab('players'); }, [currentEncounter, tab]);
 
   return (
     <div className="panel">
-      <div className="panel-title">Manage</div>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
+        <div className="panel-title" style={{ marginBottom: 0 }}>Manage</div>
+        {buildMarker ? <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '.03em', whiteSpace: 'nowrap' }}>Build {buildMarker}</div> : null}
+      </div>
       <div className="tab-bar manage-tab-bar" style={{ position: 'static' }}>
         {currentEncounter && <button className={`tab-btn ${tab === 'session' ? 'active' : ''}`} onClick={() => setTab('session')}>Session</button>}
         <button className={`tab-btn ${tab === 'players' ? 'active' : ''}`} onClick={() => setTab('players')}>Players</button>
