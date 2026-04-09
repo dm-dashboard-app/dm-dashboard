@@ -68,6 +68,31 @@ That means checking:
 - whether production is on the expected version
 - whether an open PR is based on current main or on an older stale base
 
+### 1.1.1 Repo hydration verification rule (environment bootstrap nuance)
+
+In this project, do **not** treat an empty `git remote -v` result by itself as definitive proof that the task is local-only.
+
+Some task environments can bootstrap by:
+
+- temporarily adding `origin`
+- fetching live GitHub state
+- creating the working branch from `FETCH_HEAD`
+- removing `origin` afterward
+
+If setup/bootstrap logs clearly show all three events:
+
+1. remote added,
+2. fetch succeeded,
+3. work branch created from `FETCH_HEAD`,
+
+that sequence counts as valid live-repo hydration evidence unless contradicted by stronger evidence.
+
+Operationally:
+
+- use shell checks **plus** bootstrap evidence,
+- avoid false “non-live” conclusions based only on post-bootstrap remote state,
+- still stop if neither bootstrap evidence nor current live-connection evidence can be established.
+
 ### 1.2 Direct-edit workflow
 
 This project now uses a direct GitHub editing workflow by default.

@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 8, 2026
+Last updated: April 9, 2026
 
 Purpose: This file is the active implementation roadmap. It should describe what remains to be done, what is intentionally parked, and what a new chat should pick up next. It should be specific enough that a fresh chat can continue with minimal clarification after checking live GitHub first.
 
@@ -47,18 +47,19 @@ Status:
 
 - initiative has already had a substantial redesign and compression pass
 - DM/player/display hidden-info handling is already materially improved
-- the current live baseline is usable but still not at the final intended presentation target
+- density-tier spacing tokens are now wired into initiative and player-card surfaces with display-vs-phone tuning
+- player-card concentration presentation has a compact state/value treatment to avoid awkward mobile wrapping
 
 What still needs work:
 
-#### 1.1 Final initiative density polish
+#### 1.1 Final initiative density validation and micro-polish
 
-With the top-band alignment and concentration-name behavior now landed on `main`, continue targeted density polish:
+With density-tier wiring now landed, finish targeted validation/polish:
 
-- mobile density with many combatants
-- display-view density
-- badge wrapping behavior
-- whether the top cluster still wastes vertical space under long names
+- phone verification with long names and many combatants
+- display-table readability verification at distance
+- any residual badge wrapping or top-cluster vertical waste
+- any remaining edge-case concentration text balance in narrow widths
 
 Do this as polish only; do not remove useful information or controls to create density.
 
@@ -164,7 +165,7 @@ These are not forgotten. They are intentionally parked:
 
 These should remain visible so a fresh chat does not accidentally document them as already done:
 
-- any post-PR-92 initiative refinement attempted during connector/network failures that is not visible on current `main`
+- any initiative/player-card refinement attempted during connector/network failures that is not visible on current `main`
 
 If it is not on main, it is not done.
 
@@ -179,7 +180,7 @@ After reading this document and checking live GitHub:
 
 Pick up the highest-value remaining work in this order:
 
-1. continue initiative density polish for display + phone while preserving readability and controls
+1. verify and close remaining initiative/player-card density edge cases for display + phone while preserving readability and controls
 2. continue long-rest multi-device validation / cleanup when real testing is available
 3. treat world-map/display control as the next larger feature track after current combat/runtime polish
 

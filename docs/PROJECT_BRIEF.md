@@ -1,6 +1,6 @@
 # DM Dashboard — Project Brief
 
-Last updated: April 8, 2026
+Last updated: April 9, 2026
 
 Purpose: This document is the reference/background brief for the DM Dashboard project. It should describe what the app now is, how it is structured, what has materially landed, and the major design principles that future work should preserve.
 
@@ -100,6 +100,7 @@ Materially landed:
 - portrait retained as a core identity element
 - stronger reaction and concentration presentation
 - concentration now shows linked spell names when available, with clean unlinked fallback text
+- concentration row now uses a compact state/value layout tuned for mobile width readability
 - clearer AC / PP / spell DC / spell attack presentation
 - thicker and more readable HP presentation
 - DM support for temp HP and bonus max HP
@@ -141,6 +142,7 @@ Materially landed:
 - initiative/player/NPC/enemy card redesign
 - enemy AC and enemy HP hidden outside DM view where appropriate
 - reaction and concentration promoted into full-width bars
+- density-tier spacing controls wired for initiative/player-card display-vs-phone behavior
 - player resource summary kept on a single horizontal line in initiative
 - DM-only advanced non-player controls tucked behind a More toggle
 - initiative numeric edit modal for DM entry

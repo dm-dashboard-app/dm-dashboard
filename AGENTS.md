@@ -62,6 +62,25 @@ If the task is not operating on a real GitHub-connected path that can create or 
 
 Do not present local-only, worktree-only, or otherwise non-live commits as merge-ready.
 
+### Repo hydration evidence rule (important)
+
+For this repository, shell `git remote -v` output alone is **not** sufficient proof of non-live mode.
+
+Environment bootstrap may:
+
+- add `origin`
+- fetch live GitHub state
+- create the working branch from `FETCH_HEAD`
+- then remove `origin`
+
+If setup/bootstrap logs show:
+
+- remote add
+- successful fetch
+- branch creation from `FETCH_HEAD`
+
+then treat that as valid live-repo hydration evidence unless contradicted by stronger evidence.
+
 ## Mandatory completion-log merge-readiness gate
 
 Implementation PRs are **not merge-ready** until all of the following are true in that same PR:
