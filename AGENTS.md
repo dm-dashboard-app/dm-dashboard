@@ -131,6 +131,19 @@ When a documentation reconciliation/update pass is requested:
   - not verified / do not document as landed
 - use merged `main` and current repo files as the final decision maker
 
+### Completion-log gate for implementation PRs
+
+For any implementation PR, completion-log/doc updates are a hard merge-readiness gate, not optional housekeeping.
+
+Minimum required before a PR can be handed off as ready:
+- include a **Completion Log Update** section in the PR body
+- state what landed, what remains open, and what is not verified as landed
+- include any necessary support-doc changes in the same batch
+
+If no support-doc content changes are needed for that PR, the Completion Log Update must still include an explicit no-change note for docs (rather than skipping the section).
+
+Any implementation PR that does not include the required Completion Log Update and any necessary support-doc changes is **not merge-ready** and must **not** be handed off as ready.
+
 ## Instruction refresh rule
 
 If `AGENTS.md` or the workflow docs are changed during a task/run, do not assume the current task has picked them up.
