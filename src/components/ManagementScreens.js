@@ -46,10 +46,25 @@ function applyDerivedPlayerDefaults(profile = {}) {
 
 
 function resolveBuildMarker() {
-  const prNumber = (process.env.REACT_APP_PR_NUMBER || process.env.REACT_APP_PR || '').trim();
-  const prIteration = (process.env.REACT_APP_PR_ITERATION || process.env.REACT_APP_ITERATION || '').trim();
-  if (!prNumber || !prIteration) return '';
-  return `PR ${prNumber} (Iteration ${prIteration})`;
+  const read = (...keys) => {
+    for (const key of keys) {
+      const value = String(process.env[key] || '').trim();
+      if (value) return value;
+    }
+    return '';
+  };
+
+  const prNumber = read('REACT_APP_PR_NUMBER', 'REACT_APP_PR', 'REACT_APP_VERCEL_GIT_PULL_REQUEST_ID');
+  const prIteration = read('REACT_APP_PR_ITERATION', 'REACT_APP_ITERATION');
+  const branch = read('REACT_APP_VERCEL_GIT_COMMIT_REF', 'REACT_APP_GIT_BRANCH');
+  const shortSha = read('REACT_APP_VERCEL_GIT_COMMIT_SHA', 'REACT_APP_GIT_SHA').slice(0, 7);
+
+  if (prNumber && prIteration) return `PR ${prNumber} (Iteration ${prIteration})`;
+  if (prNumber) return shortSha ? `PR ${prNumber} • ${shortSha}` : `PR ${prNumber}`;
+  if (branch === 'main') return shortSha ? `main • ${shortSha}` : 'main';
+  if (branch) return shortSha ? `${branch} • ${shortSha}` : branch;
+  if (shortSha) return `build ${shortSha}`;
+  return 'build marker unavailable';
 }
 
 function intFromForm(value, fallback = 0) {
@@ -75,7 +90,7 @@ export default function ManagementScreens({ onEncounterCreated, currentEncounter
         <button className={`tab-btn ${tab === 'spells' ? 'active' : ''}`} onClick={() => setTab('spells')}>Spells</button>
         <button className={`tab-btn ${tab === 'wildshape' ? 'active' : ''}`} onClick={() => setTab('wildshape')}>Wild Shape</button>
       </div>
-      {tab === 'session' && currentEncounter && <SessionControls currentEncounter={currentEncounter} displayToken={displayToken} joinCodes={joinCodes} onGenerateDisplayToken={onGenerateDisplayToken} onRevokeDisplayToken={onRevokeDisplayToken} onFrontScreen={onFrontScreen} onSignOut={onSignOut} />}
+      {tab === 'session' && currentEncounter && <SessionControls currentEncounter={currentEncounter} displayToken={displayToken} joinCodes={joinCodes} onGenerateDisplayToken={onGenerateDisplayToken} onRevokeDisplayToken={onRevokeDisplayToken} onFrontScreen={onFrontScreen} onSignOut={onSignOut} onToggleDisplayWorldMap={async enabled => { if (!currentEncounter) return; await supabase.from('encounters').update({ display_world_map: !!enabled }).eq('id', currentEncounter.id); }} />}
       {tab === 'players' && <PlayerProfileManager />}
       {tab === 'monsters' && <MonsterTemplateManager />}
       {tab === 'spells' && <SpellManagementPanel />}
@@ -84,8 +99,69 @@ export default function ManagementScreens({ onEncounterCreated, currentEncounter
   );
 }
 
-function SessionControls({ currentEncounter, displayToken, joinCodes, onGenerateDisplayToken, onRevokeDisplayToken, onFrontScreen, onSignOut }) {
-  return <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 12 }}><div className="panel session-subpanel"><div className="panel-title">Current Session</div><div className="session-meta-grid"><div className="session-meta-item"><span className="session-meta-label">Encounter</span><span className="session-meta-value">{currentEncounter?.name || 'Active session'}</span></div><div className="session-meta-item"><span className="session-meta-label">Round</span><span className="session-meta-value">{currentEncounter?.round ?? 1}</span></div></div><div className="form-row" style={{ marginTop: 12, flexWrap: 'wrap' }}>{onFrontScreen && <button className="btn btn-ghost" onClick={onFrontScreen}>Front Screen</button>}{onSignOut && <button className="btn btn-danger" onClick={onSignOut}>Sign Out</button>}</div></div><div className="panel session-subpanel"><div className="panel-title">Display Screen</div>{displayToken ? <div className="display-token-row" style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}><span className="display-token-value">{displayToken}</span>{onRevokeDisplayToken && <button className="btn btn-danger" onClick={onRevokeDisplayToken}>Revoke</button>}</div> : <div className="form-row" style={{ flexWrap: 'wrap' }}>{onGenerateDisplayToken && <button className="btn btn-ghost" onClick={onGenerateDisplayToken}>Generate Display Token</button>}</div>}</div><div className="panel session-subpanel"><div className="panel-title">Player Join Codes {joinCodes.length > 0 ? `(${joinCodes.length})` : ''}</div>{joinCodes.length === 0 ? <div className="empty-state">No join codes for this encounter.</div> : joinCodes.map((s, i) => <div key={i} className="join-code-row"><span className="join-code-name">{s.profiles_players?.name || 'Player'}</span><span className="join-code-value">{s.join_code}</span></div>)}</div></div>;
+function SessionControls({ currentEncounter, displayToken, joinCodes, onGenerateDisplayToken, onRevokeDisplayToken, onFrontScreen, onSignOut, onToggleDisplayWorldMap = null }) {
+  const [mapUrlDraft, setMapUrlDraft] = useState(currentEncounter?.world_map_url || '');
+
+  useEffect(() => {
+    setMapUrlDraft(currentEncounter?.world_map_url || '');
+  }, [currentEncounter?.id, currentEncounter?.world_map_url]);
+
+  async function saveWorldMapUrl() {
+    if (!currentEncounter) return;
+    await supabase.from('encounters').update({ world_map_url: mapUrlDraft.trim() || null }).eq('id', currentEncounter.id);
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 12 }}>
+      <div className="panel session-subpanel">
+        <div className="panel-title">Current Session</div>
+        <div className="session-meta-grid">
+          <div className="session-meta-item"><span className="session-meta-label">Encounter</span><span className="session-meta-value">{currentEncounter?.name || 'Active session'}</span></div>
+          <div className="session-meta-item"><span className="session-meta-label">Round</span><span className="session-meta-value">{currentEncounter?.round ?? 1}</span></div>
+        </div>
+        <div className="form-row" style={{ marginTop: 12, flexWrap: 'wrap' }}>
+          {onFrontScreen && <button className="btn btn-ghost" onClick={onFrontScreen}>Front Screen</button>}
+          {onSignOut && <button className="btn btn-danger" onClick={onSignOut}>Sign Out</button>}
+        </div>
+      </div>
+
+      <div className="panel session-subpanel">
+        <div className="panel-title">Display Screen</div>
+        {displayToken ? (
+          <div className="display-token-row" style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}>
+            <span className="display-token-value">{displayToken}</span>
+            {onRevokeDisplayToken && <button className="btn btn-danger" onClick={onRevokeDisplayToken}>Revoke</button>}
+          </div>
+        ) : (
+          <div className="form-row" style={{ flexWrap: 'wrap' }}>
+            {onGenerateDisplayToken && <button className="btn btn-ghost" onClick={onGenerateDisplayToken}>Generate Display Token</button>}
+          </div>
+        )}
+        {currentEncounter && (
+          <>
+            <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr auto', gap: 8 }}>
+              <input className="form-input" placeholder="World map image URL" value={mapUrlDraft} onChange={e => setMapUrlDraft(e.target.value)} />
+              <button className="btn btn-ghost" onClick={saveWorldMapUrl}>Save URL</button>
+            </div>
+            {onToggleDisplayWorldMap && (
+              <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '.05em' }}>World Map Mode</span>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{currentEncounter.display_world_map ? 'Display is locked to world map' : 'Display follows normal initiative layout'}</span>
+                </div>
+                <button className="btn btn-ghost" style={{ minWidth: 130, borderColor: currentEncounter.display_world_map ? 'var(--accent-gold)' : 'var(--border)', color: currentEncounter.display_world_map ? 'var(--accent-gold)' : 'var(--text-primary)' }} onClick={() => onToggleDisplayWorldMap(!currentEncounter.display_world_map)}>{currentEncounter.display_world_map ? 'Disable Map' : 'Enable Map'}</button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      <div className="panel session-subpanel">
+        <div className="panel-title">Player Join Codes {joinCodes.length > 0 ? `(${joinCodes.length})` : ''}</div>
+        {joinCodes.length === 0 ? <div className="empty-state">No join codes for this encounter.</div> : joinCodes.map((s, i) => <div key={i} className="join-code-row"><span className="join-code-name">{s.profiles_players?.name || 'Player'}</span><span className="join-code-value">{s.join_code}</span></div>)}
+      </div>
+    </div>
+  );
 }
 
 function NumInput({ value, onChange, ...props }) {
@@ -181,7 +257,7 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
   );
 }
 
-function MonsterTemplateManager() { const [monsters, setMonsters] = useState([]); const [editing, setEditing] = useState(null); const [filter, setFilter] = useState('ALL'); useEffect(() => { load(); }, []); async function load() { const { data } = await supabase.from('profiles_monsters').select('*').order('name'); setMonsters(data || []); } async function save(m) { if (m.id) await supabase.from('profiles_monsters').update(m).eq('id', m.id); else await supabase.from('profiles_monsters').insert(m); setEditing(null); load(); } async function remove(id) { if (!window.confirm('Delete this template?')) return; await supabase.from('profiles_monsters').delete().eq('id', id); load(); } if (editing !== null) return <MonsterForm initial={editing} onSave={save} onCancel={() => setEditing(null)} />; const filtered = filter === 'ALL' ? monsters : monsters.filter(m => m.side === filter); return <div><div style={{ display: 'flex', gap: 8, marginBottom: 12, marginTop: 8 }}>{['ALL','ENEMY','NPC'].map(f => <button key={f} className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 10px', borderColor: filter === f ? 'var(--accent-blue)' : 'var(--border)', color: filter === f ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setFilter(f)}>{f}</button>)}</div>{filtered.map(m => <div key={m.id} className="manage-row"><span><span className={`badge badge-${(m.side || 'ENEMY').toLowerCase()}`} style={{ marginRight: 6 }}>{m.side || 'ENEMY'}</span>{m.name}{m.mini_marker ? <span style={{ marginLeft: 6, fontSize: 12, color: 'var(--accent-gold)' }}>• {m.mini_marker}</span> : null}<span style={{ color: 'var(--text-secondary)', marginLeft: 6 }}>AC {m.ac}, HP {m.hp_max}</span>{classSummary(m) ? <span style={{ color: 'var(--text-secondary)', marginLeft: 6, fontSize: 12 }}>{classSummary(m)}</span> : null}{(m.legendary_actions_max > 0 || m.legendary_resistances_max > 0) && <span style={{ fontSize: 10, color: 'var(--accent-gold)', marginLeft: 6 }}>★</span>}</span><div className="form-row"><button className="btn btn-ghost" onClick={() => setEditing(m)}>Edit</button><button className="btn btn-danger" onClick={() => remove(m.id)}>Delete</button></div></div>)}<div className="form-row" style={{ marginTop: 12 }}><button className="btn btn-primary" onClick={() => setEditing({ side: 'ENEMY' })}>+ New Enemy</button><button className="btn btn-ghost" onClick={() => setEditing({ side: 'NPC' })}>+ New NPC</button></div></div>; }
+function MonsterTemplateManager() { const [monsters, setMonsters] = useState([]); const [editing, setEditing] = useState(null); const [filter, setFilter] = useState('ALL'); useEffect(() => { load(); }, []); async function load() { const { data } = await supabase.from('profiles_monsters').select('*').order('name'); setMonsters(data || []); } async function save(m) { const payload = { archived: false, ...m }; if (payload.id) await supabase.from('profiles_monsters').update(payload).eq('id', payload.id); else await supabase.from('profiles_monsters').insert(payload); setEditing(null); load(); } async function setArchived(id, archived) { await supabase.from('profiles_monsters').update({ archived }).eq('id', id); load(); } async function remove(id) { if (!window.confirm('Delete this template?')) return; await supabase.from('profiles_monsters').delete().eq('id', id); load(); } if (editing !== null) return <MonsterForm initial={editing} onSave={save} onCancel={() => setEditing(null)} />; const active = monsters.filter(m => !m.archived); const archived = monsters.filter(m => m.archived); const filtered = filter === 'ARCHIVED' ? archived : filter === 'ALL' ? active : active.filter(m => m.side === filter); return <div><div style={{ display: 'flex', gap: 8, marginBottom: 12, marginTop: 8, flexWrap: 'wrap' }}>{['ALL','ENEMY','NPC','ARCHIVED'].map(f => <button key={f} className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 10px', borderColor: filter === f ? 'var(--accent-blue)' : 'var(--border)', color: filter === f ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setFilter(f)}>{f}</button>)}</div>{filtered.map(m => <div key={m.id} className="manage-row"><span><span className={`badge badge-${(m.side || 'ENEMY').toLowerCase()}`} style={{ marginRight: 6 }}>{m.side || 'ENEMY'}</span>{m.name}{m.mini_marker ? <span style={{ marginLeft: 6, fontSize: 12, color: 'var(--accent-gold)' }}>• {m.mini_marker}</span> : null}<span style={{ color: 'var(--text-secondary)', marginLeft: 6 }}>AC {m.ac}, HP {m.hp_max}</span>{classSummary(m) ? <span style={{ color: 'var(--text-secondary)', marginLeft: 6, fontSize: 12 }}>{classSummary(m)}</span> : null}{(m.legendary_actions_max > 0 || m.legendary_resistances_max > 0) && <span style={{ fontSize: 10, color: 'var(--accent-gold)', marginLeft: 6 }}>★</span>}</span><div className="form-row"><button className="btn btn-ghost" onClick={() => setEditing(m)}>Edit</button>{m.archived ? <button className="btn btn-ghost" onClick={() => setArchived(m.id, false)}>Restore</button> : <button className="btn btn-ghost" onClick={() => setArchived(m.id, true)}>Archive</button>}<button className="btn btn-danger" onClick={() => remove(m.id)}>Delete</button></div></div>)}{filtered.length === 0 && <div className="empty-state">{filter === 'ARCHIVED' ? 'No archived templates.' : 'No active templates in this filter.'}</div>}<div className="form-row" style={{ marginTop: 12 }}><button className="btn btn-primary" onClick={() => setEditing({ side: 'ENEMY', archived: false })}>+ New Enemy</button><button className="btn btn-ghost" onClick={() => setEditing({ side: 'NPC', archived: false })}>+ New NPC</button></div></div>; }
 function MonsterForm({ initial, onSave, onCancel }) { const [f, setF] = useState({ name: '', ac: 10, hp_max: 10, initiative_mod: 0, notes: '', side: 'ENEMY', class_name: '', subclass_name: '', class_level: 1, class_name_2: '', subclass_name_2: '', class_level_2: 0, mini_marker: '', mod_str: 0, mod_dex: 0, mod_con: 0, mod_int: 0, mod_wis: 0, mod_cha: 0, resistances: [], immunities: [], legendary_actions_max: 0, legendary_resistances_max: 0, slots_max_1: 0, slots_max_2: 0, slots_max_3: 0, slots_max_4: 0, slots_max_5: 0, slots_max_6: 0, slots_max_7: 0, slots_max_8: 0, slots_max_9: 0, ...initial }); const set = (k, v) => setF(p => ({ ...p, [k]: v })); const DAMAGE_TYPES = ['Acid','Bludgeoning','Cold','Fire','Force','Lightning','Necrotic','Piercing','Poison','Psychic','Radiant','Slashing','Thunder']; function toggleDamageType(field, type) { const arr = f[field] || []; set(field, arr.includes(type) ? arr.filter(t => t !== type) : [...arr, type]); } return <div className="profile-form"><Field label="Type"><div style={{ display: 'flex', gap: 8 }}>{['ENEMY','NPC'].map(s => <button key={s} className="btn btn-ghost" style={{ flex: 1, borderColor: f.side === s ? 'var(--accent-blue)' : 'var(--border)', color: f.side === s ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => set('side', s)}>{s}</button>)}</div></Field><Field label="Name"><input className="form-input" value={f.name} onChange={e => set('name', e.target.value)} /></Field><div className="panel-title" style={{ marginTop: 12 }}>Class & Marker</div><Field label="Primary Class"><SelectField value={f.class_name} onChange={v => set('class_name', v)} options={CLASS_OPTIONS} /></Field><Field label="Primary Subclass"><input className="form-input" value={f.subclass_name || ''} onChange={e => set('subclass_name', e.target.value)} /></Field><Field label="Primary Level"><NumInput value={f.class_level ?? 1} onChange={v => set('class_level', v || 1)} /></Field><Field label="Secondary Class"><SelectField value={f.class_name_2} onChange={v => { set('class_name_2', v); if (!v) { set('subclass_name_2', ''); set('class_level_2', 0); } }} options={CLASS_OPTIONS} /></Field><Field label="Secondary Subclass"><input className="form-input" value={f.subclass_name_2 || ''} onChange={e => set('subclass_name_2', e.target.value)} /></Field><Field label="Secondary Level"><NumInput value={f.class_level_2 ?? 0} onChange={v => set('class_level_2', v)} /></Field><Field label="Mini Marker"><input className="form-input" value={f.mini_marker || ''} onChange={e => set('mini_marker', e.target.value.slice(0, 12))} placeholder="A, B, 1, red dot, etc." /></Field><Field label="AC"><NumInput value={f.ac} onChange={v => set('ac', v)} /></Field><Field label="HP Max"><NumInput value={f.hp_max} onChange={v => set('hp_max', v)} /></Field><Field label="Initiative Mod"><NumInput value={f.initiative_mod} onChange={v => set('initiative_mod', v)} /></Field><div className="panel-title" style={{ marginTop: 12 }}>Ability Modifiers</div><div className="saves-grid">{['str','dex','con','int','wis','cha'].map(s => <div key={s} className="form-group"><label className="form-label">{s.toUpperCase()}</label><NumInput value={f[`mod_${s}`] ?? 0} onChange={v => set(`mod_${s}`, v)} /></div>)}</div><div className="panel-title" style={{ marginTop: 12 }}>Legendary</div><div className="form-row"><div className="form-group" style={{ flex: 1 }}><label className="form-label">Legendary Actions</label><NumInput value={f.legendary_actions_max ?? 0} onChange={v => set('legendary_actions_max', v)} /></div><div className="form-group" style={{ flex: 1 }}><label className="form-label">Legendary Resistances</label><NumInput value={f.legendary_resistances_max ?? 0} onChange={v => set('legendary_resistances_max', v)} /></div></div><div className="panel-title" style={{ marginTop: 12 }}>Spell Slots (max per level)</div><div className="saves-grid">{[1,2,3,4,5,6,7,8,9].map(l => <div key={l} className="form-group"><label className="form-label">L{l}</label><NumInput value={f[`slots_max_${l}`] ?? 0} onChange={v => set(`slots_max_${l}`, v)} /></div>)}</div><div className="panel-title" style={{ marginTop: 12 }}>Resistances</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>{DAMAGE_TYPES.map(t => <button key={t} style={{ fontSize: 11, padding: '3px 8px', borderRadius: 4, fontWeight: 600, cursor: 'pointer', border: `1px solid ${(f.resistances || []).includes(t) ? 'var(--accent-blue)' : 'var(--border)'}`, background: (f.resistances || []).includes(t) ? 'rgba(74,158,255,0.2)' : 'var(--bg-panel-3)', color: (f.resistances || []).includes(t) ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => toggleDamageType('resistances', t)}>{t}</button>)}</div><div className="panel-title">Immunities</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>{DAMAGE_TYPES.map(t => <button key={t} style={{ fontSize: 11, padding: '3px 8px', borderRadius: 4, fontWeight: 600, cursor: 'pointer', border: `1px solid ${(f.immunities || []).includes(t) ? 'var(--accent-gold)' : 'var(--border)'}`, background: (f.immunities || []).includes(t) ? 'rgba(240,180,41,0.15)' : 'var(--bg-panel-3)', color: (f.immunities || []).includes(t) ? 'var(--accent-gold)' : 'var(--text-secondary)' }} onClick={() => toggleDamageType('immunities', t)}>{t}</button>)}</div><Field label="Notes (DM only)"><textarea className="form-input" value={f.notes || ''} onChange={e => set('notes', e.target.value)} rows={2} /></Field><div className="form-row" style={{ marginTop: 12 }}><button className="btn btn-primary" onClick={() => onSave(f)} disabled={!f.name}>Save</button><button className="btn btn-ghost" onClick={onCancel}>Cancel</button></div></div>; }
 function WildShapeLibrary() { const [forms, setForms] = useState([]); const [editing, setEditing] = useState(null); useEffect(() => { load(); }, []); async function load() { const { data } = await supabase.from('profiles_wildshape').select('*').order('form_name'); setForms(data || []); } async function save(f) { if (f.id) await supabase.from('profiles_wildshape').update(f).eq('id', f.id); else await supabase.from('profiles_wildshape').insert(f); setEditing(null); load(); } async function remove(id) { if (!window.confirm('Delete this wild shape form?')) return; await supabase.from('profiles_wildshape').delete().eq('id', id); load(); } if (editing !== null) return <WildShapeForm initial={editing} onSave={save} onCancel={() => setEditing(null)} />; return <div>{forms.map(f => <div key={f.id} className="manage-row"><span>{f.form_name} — AC {f.ac}, HP {f.hp_max}</span><div className="form-row"><button className="btn btn-ghost" onClick={() => setEditing(f)}>Edit</button><button className="btn btn-danger" onClick={() => remove(f.id)}>Delete</button></div></div>)}<button className="btn btn-primary" style={{ marginTop: 12 }} onClick={() => setEditing({})}>+ New Form</button></div>; }
 function WildShapeForm({ initial, onSave, onCancel }) { const [f, setF] = useState({ form_name: '', ac: 10, hp_max: 10, save_str: 0, save_dex: 0, save_con: 0, save_int: 0, save_wis: 0, save_cha: 0, speed: '', notes: '', ...initial }); const set = (k, v) => setF(p => ({ ...p, [k]: v })); return <div className="profile-form"><Field label="Form Name"><input className="form-input" value={f.form_name} onChange={e => set('form_name', e.target.value)} /></Field><Field label="AC"><NumInput value={f.ac} onChange={v => set('ac', v)} /></Field><Field label="HP Max"><NumInput value={f.hp_max} onChange={v => set('hp_max', v)} /></Field><div className="panel-title" style={{ marginTop: 12 }}>Saving Throws</div><div className="saves-grid">{['str','dex','con','int','wis','cha'].map(s => <div key={s} className="form-group"><label className="form-label">{s.toUpperCase()}</label><NumInput value={f[`save_${s}`]} onChange={v => set(`save_${s}`, v)} /></div>)}</div><Field label="Speed (optional)"><input className="form-input" value={f.speed || ''} onChange={e => set('speed', e.target.value)} /></Field><Field label="Notes (optional)"><textarea className="form-input" value={f.notes || ''} onChange={e => set('notes', e.target.value)} rows={2} /></Field><div className="form-row" style={{ marginTop: 12 }}><button className="btn btn-primary" onClick={() => onSave(f)} disabled={!f.form_name}>Save</button><button className="btn btn-ghost" onClick={onCancel}>Cancel</button></div></div>; }

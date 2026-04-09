@@ -51,7 +51,7 @@ export default function EncounterSetup({ onEncounterCreated }) {
   async function loadSetupData() {
     const [{ data: playerData }, { data: monsterData }] = await Promise.all([
       supabase.from('profiles_players').select('*').order('name'),
-      supabase.from('profiles_monsters').select('*').order('name'),
+      supabase.from('profiles_monsters').select('*').or('archived.is.null,archived.eq.false').order('name'),
     ]);
     const profiles = playerData || [];
     setPlayers(profiles);
@@ -95,7 +95,7 @@ export default function EncounterSetup({ onEncounterCreated }) {
       const queuedMonsterIds = monsterQueue.map(item => item.template.id);
       const liveMonsterMap = {};
       if (queuedMonsterIds.length > 0) {
-        const { data: liveMonsters, error: liveMonstersError } = await supabase.from('profiles_monsters').select('*').in('id', queuedMonsterIds);
+        const { data: liveMonsters, error: liveMonstersError } = await supabase.from('profiles_monsters').select('*').in('id', queuedMonsterIds).or('archived.is.null,archived.eq.false');
         if (liveMonstersError) throw liveMonstersError;
         (liveMonsters || []).forEach(monster => { liveMonsterMap[monster.id] = monster; });
       }

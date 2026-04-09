@@ -50,7 +50,7 @@ function StatBox({ label, value, visible = true, accent = 'var(--accent-blue)', 
       type="button"
       onClick={clickable ? onClick : undefined}
       disabled={!clickable}
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: squareBand ? 'space-between' : 'center', gap: 1, minHeight: squareBand ? 30 : 24, height: squareBand ? '100%' : 'auto', width: '100%', borderRadius: 10, border: `1px solid ${accent}55`, background: 'rgba(74,158,255,0.12)', color: 'var(--text-primary)', padding: '1px 2px', textAlign: 'center', cursor: clickable ? 'pointer' : 'default' }}>
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1, minHeight: squareBand ? 30 : 24, height: squareBand ? '100%' : 'auto', width: '100%', borderRadius: 10, border: `1px solid ${accent}55`, background: 'rgba(74,158,255,0.12)', color: 'var(--text-primary)', padding: '1px 2px', textAlign: 'center', cursor: clickable ? 'pointer' : 'default' }}>
       <span style={{ fontSize: 6.5, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.06em', fontWeight: 700 }}>{label}</span>
       <span style={{ fontSize: 11, fontWeight: 800, lineHeight: 1 }}>{value}</span>
     </button>
@@ -151,6 +151,7 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
   const [conDc, setConDc] = useState(null);
   const [showConPicker, setShowConPicker] = useState(false);
   const [showInitiativeModal, setShowInitiativeModal] = useState(false);
+  const [concentrationSpellName, setConcentrationSpellName] = useState('');
   const conTimer = useRef(null);
 
   useEffect(() => () => clearTimeout(conTimer.current), []);
@@ -192,6 +193,25 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
   const showBottomMeta = !(isEnemy && !isDM);
   const conditionsLabel = displayConditions.length ? `Conditions (${displayConditions.length})` : '+ Conditions';
   const densityClass = isDisplay ? 'initiative-row-density--display' : 'initiative-row-density--phone';
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadConcentrationSpell() {
+      if (!isPC) {
+        setConcentrationSpellName('');
+        return;
+      }
+      const spellId = playerState?.concentration_spell_id ?? combatant?.concentration_spell_id ?? null;
+      if (!spellId) {
+        setConcentrationSpellName('');
+        return;
+      }
+      const { data } = await supabase.from('spells').select('name').eq('id', spellId).maybeSingle();
+      if (!cancelled) setConcentrationSpellName(data?.name || '');
+    }
+    loadConcentrationSpell();
+    return () => { cancelled = true; };
+  }, [isPC, playerState?.concentration_spell_id, combatant?.concentration_spell_id]);
 
   async function submitInitiative(value) {
     const parsed = parseInt(value, 10);
@@ -331,7 +351,7 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
         <div className="initiative-row-body" style={{ marginTop: 2, display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 4 }}>
             <FullWidthStatusBar label="Reaction" value={rxUsed ? 'Used' : 'Ready'} active={!rxUsed} onClick={canToggleReaction ? handleToggleReaction : null} accent={rxUsed ? 'var(--accent-red)' : 'var(--accent-green)'} />
-            <FullWidthStatusBar label="Concentration" value={concentration ? 'Active' : 'Off'} active={!!concentration} onClick={isPC && isDM ? handleTogglePcConcentration : null} accent="var(--accent-gold)" />
+            <FullWidthStatusBar label="Concentration" value={concentration ? (concentrationSpellName || 'Concentrating (Unlinked)') : 'Off'} active={!!concentration} onClick={isPC && isDM ? handleTogglePcConcentration : null} accent="var(--accent-gold)" />
           </div>
           {showHpBar ? <InitiativeHeroHpBar current={isPC ? pcHpCurrent : enemyHpCurrent} max={isPC ? pcHpMax : enemyHpMax} tempHp={isPC ? tempHp : 0} bonusMaxHp={isPC ? pcBonusMaxHp : 0} /> : (isEnemy && !isDM ? <div style={{ display: 'flex', justifyContent: 'flex-start' }}>{enemyBloodied ? <span className="badge badge-bloodied">Bloodied</span> : null}</div> : null)}
           {conDc !== null && <div className="con-check-banner con-check-banner--dm" style={{ marginTop: 1 }}><span className="con-check-label">🔮 CON SAVE</span><span className="con-check-dc">DC {conDc}</span></div>}

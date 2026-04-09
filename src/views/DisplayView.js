@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 import usePolling from '../hooks/usePolling';
 import PlayerCard from '../components/PlayerCard';
@@ -46,6 +46,110 @@ function DisplayTurnFeature({ label, combatant, accentClass, stateLabel }) {
       ) : (
         <div className="display-turn-feature-empty">No combatant ready.</div>
       )}
+    </div>
+  );
+}
+
+function WorldMapViewport({ src, alt }) {
+  const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
+  const pointersRef = useRef(new Map());
+  const gestureRef = useRef({ startX: 0, startY: 0, startScale: 1, startDistance: null, panStartX: 0, panStartY: 0 });
+
+  const clampScale = useCallback(scale => Math.max(1, Math.min(4, scale)), []);
+
+  const onPointerDown = useCallback((event) => {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+    if (pointersRef.current.size === 1) {
+      gestureRef.current.panStartX = transform.x;
+      gestureRef.current.panStartY = transform.y;
+      gestureRef.current.startX = event.clientX;
+      gestureRef.current.startY = event.clientY;
+    }
+
+    if (pointersRef.current.size >= 2) {
+      const pts = [...pointersRef.current.values()].slice(0, 2);
+      const dx = pts[1].x - pts[0].x;
+      const dy = pts[1].y - pts[0].y;
+      gestureRef.current.startDistance = Math.hypot(dx, dy);
+      gestureRef.current.startScale = transform.scale;
+    }
+  }, [transform]);
+
+  const onPointerMove = useCallback((event) => {
+    if (!pointersRef.current.has(event.pointerId)) return;
+    pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+    if (pointersRef.current.size === 1) {
+      const dx = event.clientX - gestureRef.current.startX;
+      const dy = event.clientY - gestureRef.current.startY;
+      setTransform(current => ({ ...current, x: gestureRef.current.panStartX + dx, y: gestureRef.current.panStartY + dy }));
+      return;
+    }
+
+    const pts = [...pointersRef.current.values()].slice(0, 2);
+    const dx = pts[1].x - pts[0].x;
+    const dy = pts[1].y - pts[0].y;
+    const distance = Math.hypot(dx, dy);
+    const startDistance = gestureRef.current.startDistance || distance;
+    const rawScale = gestureRef.current.startScale * (distance / Math.max(1, startDistance));
+    setTransform(current => ({ ...current, scale: clampScale(rawScale) }));
+  }, [clampScale]);
+
+  const onPointerUp = useCallback((event) => {
+    pointersRef.current.delete(event.pointerId);
+    if (pointersRef.current.size === 0) {
+      gestureRef.current.startDistance = null;
+    } else if (pointersRef.current.size === 1) {
+      const remaining = [...pointersRef.current.values()][0];
+      gestureRef.current.startX = remaining.x;
+      gestureRef.current.startY = remaining.y;
+      gestureRef.current.panStartX = transform.x;
+      gestureRef.current.panStartY = transform.y;
+      gestureRef.current.startDistance = null;
+      gestureRef.current.startScale = transform.scale;
+    }
+  }, [transform]);
+
+  const onWheel = useCallback((event) => {
+    event.preventDefault();
+    setTransform(current => ({ ...current, scale: clampScale(current.scale + (event.deltaY > 0 ? -0.1 : 0.1)) }));
+  }, [clampScale]);
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: '#06080d',
+        zIndex: 999,
+        overflow: 'hidden',
+        touchAction: 'none',
+      }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      onWheel={onWheel}
+    >
+      <img
+        src={src}
+        alt={alt}
+        draggable={false}
+        style={{
+          position: 'absolute',
+          left: '50%',
+          top: '50%',
+          transform: `translate(calc(-50% + ${transform.x}px), calc(-50% + ${transform.y}px)) scale(${transform.scale})`,
+          transformOrigin: 'center center',
+          width: '100%',
+          height: '100%',
+          objectFit: 'contain',
+          userSelect: 'none',
+          pointerEvents: 'none',
+        }}
+      />
     </div>
   );
 }
@@ -134,6 +238,18 @@ export default function DisplayView() {
       <button className="btn btn-ghost" onClick={handleLeave}>Back</button>
     </div>
   );
+
+  if (encounter?.display_world_map) {
+    if (!encounter?.world_map_url) {
+      return (
+        <div className="splash">
+          <div className="splash-logo">🗺️</div>
+          <div className="splash-text">World Map mode is enabled, but no map image URL is set for this encounter.</div>
+        </div>
+      );
+    }
+    return <WorldMapViewport src={encounter.world_map_url} alt="World map" />;
+  }
 
   return (
     <div className="app-shell display-screen-shell">

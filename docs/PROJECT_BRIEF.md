@@ -1,6 +1,6 @@
 # DM Dashboard — Project Brief
 
-Last updated: April 9, 2026
+Last updated: April 10, 2026
 
 Purpose: This document is the reference/background brief for the DM Dashboard project. It should describe what the app now is, how it is structured, what has materially landed, and the major design principles that future work should preserve.
 
@@ -135,6 +135,23 @@ Current intent:
 
 ### Initiative and Combat Presentation Baseline
 
+### Display World Map Mode
+
+A DM-controlled display world-map mode is now part of baseline behavior.
+
+Materially landed:
+
+- Manage > Session > Display Screen now includes world-map controls
+- DM can save a world-map image URL and toggle map mode on/off
+- display view is forced into map-only mode while enabled
+- map view supports drag/pan and pinch/zoom style scaling interactions
+- map interactions are isolated inside display mode, with no in-display toggle path
+
+Important principle:
+
+- DM owns control state, Display only renders current mode
+
+
 Initiative presentation went through a significant redesign sequence and is now materially different from the older baseline.
 
 Materially landed:
@@ -157,6 +174,21 @@ Important principle:
 - the card should prioritise initiative, identity, reaction, concentration, and HP without destroying hidden-info rules
 
 ### Player Resource and HP Adjustment Systems
+
+### Monster / NPC Template Archive Baseline
+
+Monster/NPC template management now supports archive state.
+
+Materially landed:
+
+- templates can be archived (hidden from active default browsing)
+- archived templates can be viewed and restored
+- default active list remains clean for in-session use
+
+Important principle:
+
+- archive is non-destructive and supports later restoration
+
 
 A stronger runtime player-state layer now exists around HP and class resources.
 

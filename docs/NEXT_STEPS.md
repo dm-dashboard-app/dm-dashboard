@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 9, 2026
+Last updated: April 10, 2026
 
 Purpose: This file is the active implementation roadmap. It should describe what remains to be done, what is intentionally parked, and what a new chat should pick up next. It should be specific enough that a fresh chat can continue with minimal clarification after checking live GitHub first.
 
@@ -116,7 +116,13 @@ Target direction:
 - controlled from DM view
 - aligned with the project’s existing role separation
 
-This is not active implementation in the current repo baseline, but it is one of the important remaining product tracks.
+Current baseline now includes a DM-controlled display world-map mode with pan/zoom interactions on Display.
+
+What still needs work:
+
+- real-table phone/tablet verification of pinch/drag feel and map fit defaults
+- optional map-source/library improvements beyond single URL flow
+- any role-safe persistence refinements if DB policy changes are needed
 
 ### 4. Resource / Runtime UI Standardisation
 
@@ -149,6 +155,18 @@ What still needs work:
 #### 5.3 remaining runtime spell UX polish only if real friction appears in use
 
 This is no longer a blank-slate feature section. It is a refinement tail.
+
+### 6. Monster / NPC Archive Flow
+
+Status:
+
+- Monsters & NPCs management now supports archive / restore controls
+- default active browsing excludes archived templates
+
+What still needs work:
+
+- confirm archive behavior across larger real-table libraries
+- optional dedicated archived-count/status polish in management UI
 
 ## What Is Intentionally Parked
 
