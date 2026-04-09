@@ -48,13 +48,13 @@ function PcResourceChip({ resource, state, isDM, onUpdateFields }) {
         style={{
           display: 'inline-flex',
           alignItems: 'center',
-          gap: 4,
-          padding: '4px 8px',
+          gap: 3,
+          padding: '3px 6px',
           borderRadius: 999,
           border: `1px solid ${toggleState.ready ? 'var(--accent-green)' : 'var(--accent-red)'}`,
           background: toggleState.ready ? 'rgba(62,207,106,0.08)' : 'rgba(224,48,80,0.08)',
           color: toggleState.ready ? 'var(--accent-green)' : 'var(--accent-red)',
-          fontSize: 10,
+          fontSize: 9,
           fontWeight: 700,
           cursor: isDM ? 'pointer' : 'default',
           opacity: isDM ? 1 : 0.95,
@@ -85,13 +85,13 @@ function PcResourceChip({ resource, state, isDM, onUpdateFields }) {
         style={{
           display: 'inline-flex',
           alignItems: 'center',
-          gap: 4,
-          padding: '4px 8px',
+          gap: 3,
+          padding: '3px 6px',
           borderRadius: 999,
           border: '1px solid var(--border)',
           background: 'var(--bg-panel-3)',
           color: isWarlockSlots ? accentColor : 'var(--text-primary)',
-          fontSize: 10,
+          fontSize: 9,
           fontWeight: 700,
           whiteSpace: 'nowrap',
         }}
@@ -130,13 +130,13 @@ function PcResourceChip({ resource, state, isDM, onUpdateFields }) {
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: 4,
-        padding: '4px 8px',
+        gap: 3,
+        padding: '3px 6px',
         borderRadius: 999,
         border: '1px solid var(--border)',
         background: 'var(--bg-panel-3)',
         color: 'var(--text-primary)',
-        fontSize: 10,
+        fontSize: 9,
         fontWeight: 700,
         whiteSpace: 'nowrap',
       }}
@@ -153,8 +153,8 @@ function PcResourceChip({ resource, state, isDM, onUpdateFields }) {
               onClick={() => setPips(active ? i : i + 1)}
               disabled={!isDM}
               style={{
-                width: 10,
-                height: 10,
+                width: 9,
+                height: 9,
                 borderRadius: '50%',
                 padding: 0,
                 border: `1.5px solid ${active ? accentColor : 'var(--border-strong)'}`,
@@ -182,7 +182,7 @@ export default function InitiativePcResourceSummary({ profile, state, isDM, onUp
   }
 
   return (
-    <div style={{ marginTop: 4, display: 'flex', flexWrap: 'nowrap', gap: 6, overflowX: 'auto', paddingBottom: 2 }}>
+    <div style={{ marginTop: 2, display: 'flex', flexWrap: 'nowrap', gap: 4, overflowX: 'auto', paddingBottom: 1 }}>
       {resources.map(resource => (
         <PcResourceChip
           key={resource.id}

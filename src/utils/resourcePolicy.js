@@ -62,6 +62,14 @@ function resolveRestMaxValue(state, resource) {
   return rawMax;
 }
 
+
+function shouldPromotePlayerCardResourceToInitiative(resource, familyRules, familyId) {
+  if (!familyRules || familyRules.initiative || !familyRules.playerCard) return false;
+  if (familyRules.managedBySpellSlotGrid) return false;
+  if (familyId === 'hit-dice' || familyId === 'mage-armour' || familyId === 'natural-recovery') return false;
+  return true;
+}
+
 function shouldRestoreOnShortRest(profile = {}, familyId) {
   if (familyId === 'bardic-inspiration') return getClassLevel(profile, 'bard') >= 5;
   if (familyId === 'arcane-recovery') return false;
@@ -89,6 +97,9 @@ export function getSurfaceResourceConfig(profile = {}, state = {}, surface = RES
     const familyId = resource.id.startsWith('hit-dice-d') ? 'hit-dice' : resource.id;
     const rules = SURFACE_RULES[familyId];
     if (!rules) return surface !== RESOURCE_SURFACES.DISPLAY;
+    if (surface === RESOURCE_SURFACES.INITIATIVE && shouldPromotePlayerCardResourceToInitiative(resource, rules, familyId)) {
+      return true;
+    }
     return !!rules[surface];
   });
 }
