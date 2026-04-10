@@ -72,6 +72,24 @@ function intFromForm(value, fallback = 0) {
   return Number.isFinite(n) ? n : fallback;
 }
 
+function compactObject(obj) {
+  return Object.fromEntries(Object.entries(obj).filter(([, value]) => value !== undefined));
+}
+
+async function insertCombatantWithFallback(payload, fallbackPayload) {
+  const attempt = await supabase.from('combatants').insert(payload).select().single();
+  if (!attempt.error) return attempt;
+  console.warn('ManagementScreens combatant enriched insert failed, retrying with fallback payload.', attempt.error);
+  return supabase.from('combatants').insert(fallbackPayload).select().single();
+}
+
+async function insertPlayerStateWithFallback(payload, fallbackPayload) {
+  const attempt = await supabase.from('player_encounter_state').insert(payload);
+  if (!attempt.error) return attempt;
+  console.warn('ManagementScreens player state enriched insert failed, retrying with fallback payload.', attempt.error);
+  return supabase.from('player_encounter_state').insert(fallbackPayload);
+}
+
 export default function ManagementScreens({ onEncounterCreated, currentEncounter = null, displayToken = null, joinCodes = [], onGenerateDisplayToken = null, onRevokeDisplayToken = null, onFrontScreen = null, onSignOut = null }) {
   const [tab, setTab] = useState(currentEncounter ? 'session' : 'players');
   const buildMarker = resolveBuildMarker();
@@ -103,6 +121,9 @@ function SessionControls({ currentEncounter, displayToken, joinCodes, onGenerate
   const [mapUrlDraft, setMapUrlDraft] = useState(currentEncounter?.world_map_url || '');
   const [uploadingMap, setUploadingMap] = useState(false);
   const [mapError, setMapError] = useState('');
+  const [players, setPlayers] = useState([]);
+  const [addingPlayerId, setAddingPlayerId] = useState(null);
+  const [playerAddError, setPlayerAddError] = useState('');
 
   useEffect(() => {
     setMapUrlDraft(currentEncounter?.world_map_url || '');
@@ -112,6 +133,25 @@ function SessionControls({ currentEncounter, displayToken, joinCodes, onGenerate
     if (!currentEncounter || displayToken || !onGenerateDisplayToken) return;
     onGenerateDisplayToken();
   }, [currentEncounter, displayToken, onGenerateDisplayToken]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadPlayers() {
+      if (!currentEncounter?.id) {
+        setPlayers([]);
+        return;
+      }
+      const [{ data: profiles }, { data: combatants }] = await Promise.all([
+        supabase.from('profiles_players').select('*').order('name'),
+        supabase.from('combatants').select('owner_player_id').eq('encounter_id', currentEncounter.id).eq('side', 'PC'),
+      ]);
+      if (cancelled) return;
+      const existingIds = new Set((combatants || []).map(row => row.owner_player_id).filter(Boolean));
+      setPlayers((profiles || []).filter(profile => !existingIds.has(profile.id)));
+    }
+    loadPlayers();
+    return () => { cancelled = true; };
+  }, [currentEncounter?.id, joinCodes.length]);
 
   async function saveWorldMapUrl() {
     if (!currentEncounter) return;
@@ -127,7 +167,7 @@ function SessionControls({ currentEncounter, displayToken, joinCodes, onGenerate
       const nextUrl = await uploadWorldMap(file, currentEncounter?.name || 'encounter');
       const prevUrl = currentEncounter.world_map_url || null;
       await supabase.from('encounters').update({ world_map_url: nextUrl }).eq('id', currentEncounter.id);
-      if (prevUrl) await removeStoragePublicUrl('world-maps', prevUrl);
+      if (prevUrl) await removeStoragePublicUrl(null, prevUrl);
       setMapUrlDraft(nextUrl);
     } catch (error) {
       setMapError(error?.message || 'World map upload failed.');
@@ -137,11 +177,61 @@ function SessionControls({ currentEncounter, displayToken, joinCodes, onGenerate
     }
   }
 
+  async function addPlayerToSession(profile) {
+    if (!profile || !currentEncounter?.id || addingPlayerId) return;
+    setAddingPlayerId(profile.id);
+    setPlayerAddError('');
+    try {
+      const baseCombatantPayload = {
+        encounter_id: currentEncounter.id,
+        name: profile.name,
+        side: 'PC',
+        owner_player_id: profile.id,
+        ac: intFromForm(profile.ac, 10),
+        hp_max: intFromForm(profile.max_hp, 1),
+        hp_current: intFromForm(profile.max_hp, 1),
+        initiative_mod: intFromForm(profile.initiative_mod, 0),
+      };
+      const enrichedCombatantPayload = compactObject({
+        ...baseCombatantPayload,
+        class_name: profile.class_name || null,
+        subclass_name: profile.subclass_name || null,
+        class_level: profile.class_level != null ? intFromForm(profile.class_level, 1) : null,
+        class_name_2: profile.class_name_2 || null,
+        subclass_name_2: profile.subclass_name_2 || null,
+        class_level_2: profile.class_level_2 != null ? intFromForm(profile.class_level_2, 0) : null,
+        ancestry_name: profile.ancestry_name || null,
+      });
+      const { data: combatant, error: combatantError } = await insertCombatantWithFallback(enrichedCombatantPayload, baseCombatantPayload);
+      if (combatantError) throw combatantError;
+
+      const baseStatePayload = {
+        combatant_id: combatant.id,
+        encounter_id: currentEncounter.id,
+        player_profile_id: profile.id,
+        current_hp: intFromForm(profile.max_hp, 1),
+      };
+      const { error: playerStateError } = await insertPlayerStateWithFallback(baseStatePayload, baseStatePayload);
+      if (playerStateError) throw playerStateError;
+
+      const { error: joinCodeError } = await supabase.rpc('generate_join_code', {
+        p_encounter_id: currentEncounter.id,
+        p_player_profile_id: profile.id,
+      });
+      if (joinCodeError) throw joinCodeError;
+      setPlayers(current => current.filter(item => item.id !== profile.id));
+    } catch (error) {
+      setPlayerAddError(error?.message || 'Failed to add player to session.');
+    } finally {
+      setAddingPlayerId(null);
+    }
+  }
+
   async function removeWorldMap() {
     if (!currentEncounter?.world_map_url) return;
     const previous = currentEncounter.world_map_url;
     await supabase.from('encounters').update({ world_map_url: null, display_world_map: false }).eq('id', currentEncounter.id);
-    await removeStoragePublicUrl('world-maps', previous);
+    await removeStoragePublicUrl(null, previous);
     setMapUrlDraft('');
   }
 
@@ -209,6 +299,25 @@ function SessionControls({ currentEncounter, displayToken, joinCodes, onGenerate
             )}
           </>
         )}
+      </div>
+
+      <div className="panel session-subpanel">
+        <div className="panel-title">Add Player Mid-Session</div>
+        {players.length === 0 ? (
+          <div className="empty-state">All player profiles are already in this encounter.</div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {players.map(profile => (
+              <div key={profile.id} className="manage-row">
+                <span>{profile.name}</span>
+                <button className="btn btn-ghost" disabled={addingPlayerId === profile.id} onClick={() => addPlayerToSession(profile)}>
+                  {addingPlayerId === profile.id ? 'Adding…' : 'Add'}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        {playerAddError ? <div className="empty-state" style={{ color: 'var(--accent-red)', paddingTop: 8, paddingBottom: 0 }}>{playerAddError}</div> : null}
       </div>
 
       <div className="panel session-subpanel">

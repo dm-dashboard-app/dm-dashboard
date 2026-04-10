@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
-import { applyPlayerDamage, applyPlayerHeal } from '../utils/playerStateMutations';
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
@@ -17,9 +16,6 @@ export default function WildShapeBlock({
   readOnly,
   canRestore,
   onUpdate,
-  encounterId = null,
-  combatant = null,
-  actor = 'DM',
 }) {
   const [forms, setForms] = useState([]);
   const [selectedFormId, setSelectedFormId] = useState(state.wildshape_form_id || '');
@@ -77,44 +73,6 @@ export default function WildShapeBlock({
     onUpdate();
   }
 
-  async function adjustFormHp(delta) {
-    if (!activeForm || !delta) return;
-
-    if (delta < 0) {
-      const result = await applyPlayerDamage({
-        state,
-        combatant,
-        encounterId,
-        amount: Math.abs(delta),
-        actor,
-      });
-      if (result?.updates?.wildshape_hp_current !== undefined) {
-        setLocalHp(result.updates.wildshape_hp_current ?? null);
-      } else {
-        setLocalHp(null);
-      }
-      onUpdate();
-      return;
-    }
-
-    if (delta > 0) {
-      const result = await applyPlayerHeal({
-        state: {
-          ...state,
-          wildshape_hp_max: formMax,
-        },
-        combatant,
-        encounterId,
-        amount: delta,
-        actor,
-      });
-      if (result?.updates?.wildshape_hp_current !== undefined) {
-        setLocalHp(result.updates.wildshape_hp_current);
-      }
-      onUpdate();
-    }
-  }
-
   async function adjustUses(delta) {
     const newUses = clamp(localUses + delta, 0, wildShapeMaxUses);
     setLocalUses(newUses);
@@ -169,23 +127,15 @@ export default function WildShapeBlock({
           <div className="wildshape-form-name">{activeForm.form_name}</div>
 
           <div className="hp-bar-wrap">
-            <div className="hp-bar-track">
+            <div className="player-hp-hero-track" style={{ height: 28 }}>
               <div
-                className="hp-bar-fill"
+                className="player-hp-hero-fill"
                 style={{
                   width: `${formPct}%`,
                   background: getWildShapeBarColor(formPct),
                 }}
               />
-            </div>
-            <div className="hp-controls">
-              {!readOnly && (
-                <button className="btn btn-icon btn-danger" onClick={() => adjustFormHp(-1)}>−</button>
-              )}
-              <span className="hp-value">{formHp} <span className="hp-max-label">/ {formMax}</span></span>
-              {!readOnly && (
-                <button className="btn btn-icon btn-success" onClick={() => adjustFormHp(1)}>+</button>
-              )}
+              <div className="player-hp-hero-text">{formHp} / {formMax}</div>
             </div>
           </div>
 

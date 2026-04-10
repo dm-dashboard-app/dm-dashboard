@@ -807,6 +807,7 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
   const wsHpCurrent = playerState?.wildshape_hp_current ?? 0;
   const wsFormName  = playerState?.wildshape_form_name ?? null;
   const wsHpMax     = playerState?.wildshape_hp_max ?? null;
+  const showWildShapeBar = isPC && wsActive && wsHpCurrent !== null && wsHpMax !== null;
 
   const enemyHpCurrent    = combatant.hp_current ?? null;
   const enemyHpMax        = combatant.hp_max ?? null;
@@ -1120,7 +1121,7 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
 
       {(showPcHp || showNonPcHp) && (
         <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {isPC && wsActive && wsHpMax != null && (
+          {showWildShapeBar && (
             <MiniHpBar current={wsHpCurrent} max={wsHpMax} color="var(--accent-green)" label={wsFormName ? `🐻 ${wsFormName}` : '🐻 Beast Form'} />
           )}
           {showPcHp && <MiniHpBar current={pcHpCurrent} max={pcHpMax} tempHp={tempHp} label={wsActive ? 'Player HP' : null} />}
