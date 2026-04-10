@@ -3,7 +3,6 @@ import { detectRole } from './supabaseClient';
 import DMView from './views/DMView';
 import PlayerView from './views/PlayerView';
 import DisplayView from './views/DisplayView';
-import LoginScreen from './views/LoginScreen';
 import JoinScreen from './views/JoinScreen';
 import './App.css';
 

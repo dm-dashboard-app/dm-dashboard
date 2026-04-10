@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 10, 2026
+Last updated: April 10, 2026 (code health follow-up)
 
 Purpose: This file is the active roadmap only. It should list genuinely open work, intentionally parked work, and clearly labeled future planning ideas that are not active implementation.
 
@@ -14,7 +14,7 @@ If this document conflicts with the live repo, the live repo wins.
 
 ## Current Position
 
-As of main at commit `672e3f0` (April 10, 2026), the following tracks are treated as landed baseline, not active roadmap tracks:
+As of main at commit `b9887d8` (April 10, 2026), the following tracks are treated as landed baseline, not active roadmap tracks:
 
 - initiative/player-card compacting and combat presentation stabilization
 - long-rest + spell-preparation runtime flow
@@ -25,6 +25,12 @@ As of main at commit `672e3f0` (April 10, 2026), the following tracks are treate
 - tab/focus artifact cleanup in the DM shell
 
 This roadmap stays intentionally lean and should not reopen those tracks without a verified current regression on `main`.
+
+Code-health note:
+
+- PR #109 was a conservative code-health audit pass.
+- It landed only low-risk hygiene cleanup (unused imports and dead local helpers).
+- It intentionally deferred risky structural cleanup into future isolated batches.
 
 ## Open Work
 
@@ -43,6 +49,28 @@ Run targeted regression sweeps against current baseline behavior:
 - non-critical shell polish that does not improve live-session reliability
 
 ## Future Planning (not active implementation)
+
+### Future planning track — Conservative code health follow-ups (preventive maintenance only)
+
+These are not urgent blockers. They are isolated future cleanup batches intended to reduce maintenance risk without broad behavior changes.
+
+1. **Legacy initiative path decision**
+   - inspect and decide the fate of `src/components/InitiativePanel.js`
+   - determine whether it should be deleted, archived, or rehabilitated
+   - treat it as a risky legacy hotspot and only touch it in an isolated batch
+
+2. **DMView monolith reduction**
+   - `src/views/DMView.js` is structurally dense and high-friction for safe maintenance
+   - future work should be a careful de-densify/extraction pass only
+   - lock behavior first; do not mix broad functional changes into that batch
+
+3. **Hook/dependency hygiene**
+   - clean up existing hook-rule / `exhaustive-deps` issues in isolated batches
+   - treat this as behavior-sensitive work, not automatic lint churn
+
+4. **Compatibility stub / stale path review**
+   - review placeholder/stub files such as `LoginScreen` and similar compatibility paths
+   - remove only with explicit confirmation after verifying true non-use
 
 ### Optional world-map enhancements (future)
 
