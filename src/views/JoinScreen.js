@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { supabase, signInDM, joinAsPlayer, joinAsDisplay } from '../supabaseClient';
+import { supabase, signInDM } from '../supabaseClient';
 
 export default function JoinScreen({ onRoleSet }) {
   const [mode, setMode] = useState('choose');

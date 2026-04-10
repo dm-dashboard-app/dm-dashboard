@@ -37,18 +37,6 @@ export function titleCase(name) {
   return value ? value.charAt(0).toUpperCase() + value.slice(1) : '';
 }
 
-function getTotalLevel(profile = {}) {
-  return Math.max(0, Number(profile.class_level || 0)) + Math.max(0, Number(profile.class_level_2 || 0));
-}
-
-function getProficiencyBonus(level) {
-  if (level >= 17) return 6;
-  if (level >= 13) return 5;
-  if (level >= 9) return 4;
-  if (level >= 5) return 3;
-  return 2;
-}
-
 function getPreparationAbilityModifier(profile = {}, className = '') {
   const abilityKey = SPELLCASTING_ABILITY_BY_CLASS[className];
   if (!abilityKey) return 0;
