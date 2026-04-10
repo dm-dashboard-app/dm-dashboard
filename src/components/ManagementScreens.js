@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { supabase, uploadPortrait } from '../supabaseClient';
+import { supabase, uploadPortrait, uploadWorldMap, removeStoragePublicUrl } from '../supabaseClient';
 import {
   ABILITY_KEYS,
   SKILL_DEFINITIONS,
@@ -101,14 +101,48 @@ export default function ManagementScreens({ onEncounterCreated, currentEncounter
 
 function SessionControls({ currentEncounter, displayToken, joinCodes, onGenerateDisplayToken, onRevokeDisplayToken, onFrontScreen, onSignOut, onToggleDisplayWorldMap = null }) {
   const [mapUrlDraft, setMapUrlDraft] = useState(currentEncounter?.world_map_url || '');
+  const [uploadingMap, setUploadingMap] = useState(false);
+  const [mapError, setMapError] = useState('');
 
   useEffect(() => {
     setMapUrlDraft(currentEncounter?.world_map_url || '');
   }, [currentEncounter?.id, currentEncounter?.world_map_url]);
 
+  useEffect(() => {
+    if (!currentEncounter || displayToken || !onGenerateDisplayToken) return;
+    onGenerateDisplayToken();
+  }, [currentEncounter, displayToken, onGenerateDisplayToken]);
+
   async function saveWorldMapUrl() {
     if (!currentEncounter) return;
     await supabase.from('encounters').update({ world_map_url: mapUrlDraft.trim() || null }).eq('id', currentEncounter.id);
+  }
+
+  async function handleWorldMapUpload(event) {
+    const file = event.target.files?.[0];
+    if (!file || !currentEncounter) return;
+    setUploadingMap(true);
+    setMapError('');
+    try {
+      const nextUrl = await uploadWorldMap(file, currentEncounter?.name || 'encounter');
+      const prevUrl = currentEncounter.world_map_url || null;
+      await supabase.from('encounters').update({ world_map_url: nextUrl }).eq('id', currentEncounter.id);
+      if (prevUrl) await removeStoragePublicUrl('world-maps', prevUrl);
+      setMapUrlDraft(nextUrl);
+    } catch (error) {
+      setMapError(error?.message || 'World map upload failed.');
+    } finally {
+      setUploadingMap(false);
+      event.target.value = '';
+    }
+  }
+
+  async function removeWorldMap() {
+    if (!currentEncounter?.world_map_url) return;
+    const previous = currentEncounter.world_map_url;
+    await supabase.from('encounters').update({ world_map_url: null, display_world_map: false }).eq('id', currentEncounter.id);
+    await removeStoragePublicUrl('world-maps', previous);
+    setMapUrlDraft('');
   }
 
   return (
@@ -127,24 +161,45 @@ function SessionControls({ currentEncounter, displayToken, joinCodes, onGenerate
 
       <div className="panel session-subpanel">
         <div className="panel-title">Display Screen</div>
-        {displayToken ? (
-          <div className="display-token-row" style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}>
-            <span className="display-token-value">{displayToken}</span>
+        <div className="display-screen-stack">
+          <div className="display-token-row display-token-row--tidy">
+            <span className="display-token-label">Display Code</span>
+            <span className="display-token-value">{displayToken || 'Generating…'}</span>
             {onRevokeDisplayToken && <button className="btn btn-danger" onClick={onRevokeDisplayToken}>Revoke</button>}
           </div>
-        ) : (
-          <div className="form-row" style={{ flexWrap: 'wrap' }}>
-            {onGenerateDisplayToken && <button className="btn btn-ghost" onClick={onGenerateDisplayToken}>Generate Display Token</button>}
-          </div>
-        )}
+        </div>
         {currentEncounter && (
           <>
-            <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr auto', gap: 8 }}>
-              <input className="form-input" placeholder="World map image URL" value={mapUrlDraft} onChange={e => setMapUrlDraft(e.target.value)} />
-              <button className="btn btn-ghost" onClick={saveWorldMapUrl}>Save URL</button>
+            <div className="world-map-controls">
+              <div className="world-map-header">
+                <span className="world-map-kicker">World Map Image</span>
+                <span className="world-map-help">Upload directly (portrait-style) for Display map mode.</span>
+              </div>
+              <div className="world-map-image-state">
+                {currentEncounter.world_map_url ? (
+                  <>
+                    <img src={currentEncounter.world_map_url} alt="World map preview" className="world-map-preview" />
+                    <div className="world-map-image-meta">Current map is uploaded and ready.</div>
+                  </>
+                ) : (
+                  <div className="world-map-empty">No world map uploaded yet.</div>
+                )}
+              </div>
+              <div className="world-map-upload-row">
+                <label className="btn btn-ghost" style={{ cursor: uploadingMap ? 'default' : 'pointer' }}>
+                  {uploadingMap ? 'Uploading…' : 'Upload Map'}
+                  <input type="file" accept="image/*" onChange={handleWorldMapUpload} disabled={uploadingMap} style={{ display: 'none' }} />
+                </label>
+                {currentEncounter.world_map_url ? <button className="btn btn-ghost" onClick={removeWorldMap}>Remove Map</button> : null}
+              </div>
+              {mapError ? <div className="empty-state" style={{ color: 'var(--accent-red)', paddingTop: 0, paddingBottom: 0 }}>{mapError}</div> : null}
+              <div className="world-map-url-fallback">
+                <input className="form-input" placeholder="Fallback map URL (optional)" value={mapUrlDraft} onChange={e => setMapUrlDraft(e.target.value)} />
+                <button className="btn btn-ghost" onClick={saveWorldMapUrl}>Save URL</button>
+              </div>
             </div>
             {onToggleDisplayWorldMap && (
-              <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+              <div className="world-map-toggle-row">
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '.05em' }}>World Map Mode</span>
                   <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{currentEncounter.display_world_map ? 'Display is locked to world map' : 'Display follows normal initiative layout'}</span>
@@ -257,7 +312,7 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
   );
 }
 
-function MonsterTemplateManager() { const [monsters, setMonsters] = useState([]); const [editing, setEditing] = useState(null); const [filter, setFilter] = useState('ALL'); useEffect(() => { load(); }, []); async function load() { const { data } = await supabase.from('profiles_monsters').select('*').order('name'); setMonsters(data || []); } async function save(m) { const payload = { archived: false, ...m }; if (payload.id) await supabase.from('profiles_monsters').update(payload).eq('id', payload.id); else await supabase.from('profiles_monsters').insert(payload); setEditing(null); load(); } async function setArchived(id, archived) { await supabase.from('profiles_monsters').update({ archived }).eq('id', id); load(); } async function remove(id) { if (!window.confirm('Delete this template?')) return; await supabase.from('profiles_monsters').delete().eq('id', id); load(); } if (editing !== null) return <MonsterForm initial={editing} onSave={save} onCancel={() => setEditing(null)} />; const active = monsters.filter(m => !m.archived); const archived = monsters.filter(m => m.archived); const filtered = filter === 'ARCHIVED' ? archived : filter === 'ALL' ? active : active.filter(m => m.side === filter); return <div><div style={{ display: 'flex', gap: 8, marginBottom: 12, marginTop: 8, flexWrap: 'wrap' }}>{['ALL','ENEMY','NPC','ARCHIVED'].map(f => <button key={f} className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 10px', borderColor: filter === f ? 'var(--accent-blue)' : 'var(--border)', color: filter === f ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setFilter(f)}>{f}</button>)}</div>{filtered.map(m => <div key={m.id} className="manage-row"><span><span className={`badge badge-${(m.side || 'ENEMY').toLowerCase()}`} style={{ marginRight: 6 }}>{m.side || 'ENEMY'}</span>{m.name}{m.mini_marker ? <span style={{ marginLeft: 6, fontSize: 12, color: 'var(--accent-gold)' }}>• {m.mini_marker}</span> : null}<span style={{ color: 'var(--text-secondary)', marginLeft: 6 }}>AC {m.ac}, HP {m.hp_max}</span>{classSummary(m) ? <span style={{ color: 'var(--text-secondary)', marginLeft: 6, fontSize: 12 }}>{classSummary(m)}</span> : null}{(m.legendary_actions_max > 0 || m.legendary_resistances_max > 0) && <span style={{ fontSize: 10, color: 'var(--accent-gold)', marginLeft: 6 }}>★</span>}</span><div className="form-row"><button className="btn btn-ghost" onClick={() => setEditing(m)}>Edit</button>{m.archived ? <button className="btn btn-ghost" onClick={() => setArchived(m.id, false)}>Restore</button> : <button className="btn btn-ghost" onClick={() => setArchived(m.id, true)}>Archive</button>}<button className="btn btn-danger" onClick={() => remove(m.id)}>Delete</button></div></div>)}{filtered.length === 0 && <div className="empty-state">{filter === 'ARCHIVED' ? 'No archived templates.' : 'No active templates in this filter.'}</div>}<div className="form-row" style={{ marginTop: 12 }}><button className="btn btn-primary" onClick={() => setEditing({ side: 'ENEMY', archived: false })}>+ New Enemy</button><button className="btn btn-ghost" onClick={() => setEditing({ side: 'NPC', archived: false })}>+ New NPC</button></div></div>; }
+function MonsterTemplateManager() { const [monsters, setMonsters] = useState([]); const [editing, setEditing] = useState(null); const [filter, setFilter] = useState('ALL'); useEffect(() => { load(); }, []); async function load() { const { data } = await supabase.from('profiles_monsters').select('*').order('name'); setMonsters(data || []); } async function save(m) { const payload = m.id ? { ...m } : { archived: false, ...m }; if (payload.id) await supabase.from('profiles_monsters').update(payload).eq('id', payload.id); else await supabase.from('profiles_monsters').insert(payload); setEditing(null); load(); } async function setArchived(id, archived) { await supabase.from('profiles_monsters').update({ archived }).eq('id', id); load(); } async function remove(id) { if (!window.confirm('Delete this template?')) return; await supabase.from('profiles_monsters').delete().eq('id', id); load(); } if (editing !== null) return <MonsterForm initial={editing} onSave={save} onCancel={() => setEditing(null)} />; const active = monsters.filter(m => !m.archived); const archived = monsters.filter(m => m.archived); const filtered = filter === 'ARCHIVED' ? archived : filter === 'ALL' ? active : active.filter(m => m.side === filter); return <div><div style={{ display: 'flex', gap: 8, marginBottom: 12, marginTop: 8, flexWrap: 'wrap' }}>{['ALL','ENEMY','NPC','ARCHIVED'].map(f => <button key={f} className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 10px', borderColor: filter === f ? 'var(--accent-blue)' : 'var(--border)', color: filter === f ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setFilter(f)}>{f}</button>)}</div>{filtered.map(m => <div key={m.id} className="manage-row"><span><span className={`badge badge-${(m.side || 'ENEMY').toLowerCase()}`} style={{ marginRight: 6 }}>{m.side || 'ENEMY'}</span>{m.name}{m.mini_marker ? <span style={{ marginLeft: 6, fontSize: 12, color: 'var(--accent-gold)' }}>• {m.mini_marker}</span> : null}<span style={{ color: 'var(--text-secondary)', marginLeft: 6 }}>AC {m.ac}, HP {m.hp_max}</span>{classSummary(m) ? <span style={{ color: 'var(--text-secondary)', marginLeft: 6, fontSize: 12 }}>{classSummary(m)}</span> : null}{(m.legendary_actions_max > 0 || m.legendary_resistances_max > 0) && <span style={{ fontSize: 10, color: 'var(--accent-gold)', marginLeft: 6 }}>★</span>}</span><div className="form-row"><button className="btn btn-ghost" onClick={() => setEditing(m)}>Edit</button>{m.archived ? <button className="btn btn-ghost" onClick={() => setArchived(m.id, false)}>Restore</button> : <button className="btn btn-ghost" onClick={() => setArchived(m.id, true)}>Archive</button>}<button className="btn btn-danger" onClick={() => remove(m.id)}>Delete</button></div></div>)}{filtered.length === 0 && <div className="empty-state">{filter === 'ARCHIVED' ? 'No archived templates.' : 'No active templates in this filter.'}</div>}<div className="form-row" style={{ marginTop: 12 }}><button className="btn btn-primary" onClick={() => setEditing({ side: 'ENEMY', archived: false })}>+ New Enemy</button><button className="btn btn-ghost" onClick={() => setEditing({ side: 'NPC', archived: false })}>+ New NPC</button></div></div>; }
 function MonsterForm({ initial, onSave, onCancel }) { const [f, setF] = useState({ name: '', ac: 10, hp_max: 10, initiative_mod: 0, notes: '', side: 'ENEMY', class_name: '', subclass_name: '', class_level: 1, class_name_2: '', subclass_name_2: '', class_level_2: 0, mini_marker: '', mod_str: 0, mod_dex: 0, mod_con: 0, mod_int: 0, mod_wis: 0, mod_cha: 0, resistances: [], immunities: [], legendary_actions_max: 0, legendary_resistances_max: 0, slots_max_1: 0, slots_max_2: 0, slots_max_3: 0, slots_max_4: 0, slots_max_5: 0, slots_max_6: 0, slots_max_7: 0, slots_max_8: 0, slots_max_9: 0, ...initial }); const set = (k, v) => setF(p => ({ ...p, [k]: v })); const DAMAGE_TYPES = ['Acid','Bludgeoning','Cold','Fire','Force','Lightning','Necrotic','Piercing','Poison','Psychic','Radiant','Slashing','Thunder']; function toggleDamageType(field, type) { const arr = f[field] || []; set(field, arr.includes(type) ? arr.filter(t => t !== type) : [...arr, type]); } return <div className="profile-form"><Field label="Type"><div style={{ display: 'flex', gap: 8 }}>{['ENEMY','NPC'].map(s => <button key={s} className="btn btn-ghost" style={{ flex: 1, borderColor: f.side === s ? 'var(--accent-blue)' : 'var(--border)', color: f.side === s ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => set('side', s)}>{s}</button>)}</div></Field><Field label="Name"><input className="form-input" value={f.name} onChange={e => set('name', e.target.value)} /></Field><div className="panel-title" style={{ marginTop: 12 }}>Class & Marker</div><Field label="Primary Class"><SelectField value={f.class_name} onChange={v => set('class_name', v)} options={CLASS_OPTIONS} /></Field><Field label="Primary Subclass"><input className="form-input" value={f.subclass_name || ''} onChange={e => set('subclass_name', e.target.value)} /></Field><Field label="Primary Level"><NumInput value={f.class_level ?? 1} onChange={v => set('class_level', v || 1)} /></Field><Field label="Secondary Class"><SelectField value={f.class_name_2} onChange={v => { set('class_name_2', v); if (!v) { set('subclass_name_2', ''); set('class_level_2', 0); } }} options={CLASS_OPTIONS} /></Field><Field label="Secondary Subclass"><input className="form-input" value={f.subclass_name_2 || ''} onChange={e => set('subclass_name_2', e.target.value)} /></Field><Field label="Secondary Level"><NumInput value={f.class_level_2 ?? 0} onChange={v => set('class_level_2', v)} /></Field><Field label="Mini Marker"><input className="form-input" value={f.mini_marker || ''} onChange={e => set('mini_marker', e.target.value.slice(0, 12))} placeholder="A, B, 1, red dot, etc." /></Field><Field label="AC"><NumInput value={f.ac} onChange={v => set('ac', v)} /></Field><Field label="HP Max"><NumInput value={f.hp_max} onChange={v => set('hp_max', v)} /></Field><Field label="Initiative Mod"><NumInput value={f.initiative_mod} onChange={v => set('initiative_mod', v)} /></Field><div className="panel-title" style={{ marginTop: 12 }}>Ability Modifiers</div><div className="saves-grid">{['str','dex','con','int','wis','cha'].map(s => <div key={s} className="form-group"><label className="form-label">{s.toUpperCase()}</label><NumInput value={f[`mod_${s}`] ?? 0} onChange={v => set(`mod_${s}`, v)} /></div>)}</div><div className="panel-title" style={{ marginTop: 12 }}>Legendary</div><div className="form-row"><div className="form-group" style={{ flex: 1 }}><label className="form-label">Legendary Actions</label><NumInput value={f.legendary_actions_max ?? 0} onChange={v => set('legendary_actions_max', v)} /></div><div className="form-group" style={{ flex: 1 }}><label className="form-label">Legendary Resistances</label><NumInput value={f.legendary_resistances_max ?? 0} onChange={v => set('legendary_resistances_max', v)} /></div></div><div className="panel-title" style={{ marginTop: 12 }}>Spell Slots (max per level)</div><div className="saves-grid">{[1,2,3,4,5,6,7,8,9].map(l => <div key={l} className="form-group"><label className="form-label">L{l}</label><NumInput value={f[`slots_max_${l}`] ?? 0} onChange={v => set(`slots_max_${l}`, v)} /></div>)}</div><div className="panel-title" style={{ marginTop: 12 }}>Resistances</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>{DAMAGE_TYPES.map(t => <button key={t} style={{ fontSize: 11, padding: '3px 8px', borderRadius: 4, fontWeight: 600, cursor: 'pointer', border: `1px solid ${(f.resistances || []).includes(t) ? 'var(--accent-blue)' : 'var(--border)'}`, background: (f.resistances || []).includes(t) ? 'rgba(74,158,255,0.2)' : 'var(--bg-panel-3)', color: (f.resistances || []).includes(t) ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => toggleDamageType('resistances', t)}>{t}</button>)}</div><div className="panel-title">Immunities</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>{DAMAGE_TYPES.map(t => <button key={t} style={{ fontSize: 11, padding: '3px 8px', borderRadius: 4, fontWeight: 600, cursor: 'pointer', border: `1px solid ${(f.immunities || []).includes(t) ? 'var(--accent-gold)' : 'var(--border)'}`, background: (f.immunities || []).includes(t) ? 'rgba(240,180,41,0.15)' : 'var(--bg-panel-3)', color: (f.immunities || []).includes(t) ? 'var(--accent-gold)' : 'var(--text-secondary)' }} onClick={() => toggleDamageType('immunities', t)}>{t}</button>)}</div><Field label="Notes (DM only)"><textarea className="form-input" value={f.notes || ''} onChange={e => set('notes', e.target.value)} rows={2} /></Field><div className="form-row" style={{ marginTop: 12 }}><button className="btn btn-primary" onClick={() => onSave(f)} disabled={!f.name}>Save</button><button className="btn btn-ghost" onClick={onCancel}>Cancel</button></div></div>; }
 function WildShapeLibrary() { const [forms, setForms] = useState([]); const [editing, setEditing] = useState(null); useEffect(() => { load(); }, []); async function load() { const { data } = await supabase.from('profiles_wildshape').select('*').order('form_name'); setForms(data || []); } async function save(f) { if (f.id) await supabase.from('profiles_wildshape').update(f).eq('id', f.id); else await supabase.from('profiles_wildshape').insert(f); setEditing(null); load(); } async function remove(id) { if (!window.confirm('Delete this wild shape form?')) return; await supabase.from('profiles_wildshape').delete().eq('id', id); load(); } if (editing !== null) return <WildShapeForm initial={editing} onSave={save} onCancel={() => setEditing(null)} />; return <div>{forms.map(f => <div key={f.id} className="manage-row"><span>{f.form_name} — AC {f.ac}, HP {f.hp_max}</span><div className="form-row"><button className="btn btn-ghost" onClick={() => setEditing(f)}>Edit</button><button className="btn btn-danger" onClick={() => remove(f.id)}>Delete</button></div></div>)}<button className="btn btn-primary" style={{ marginTop: 12 }} onClick={() => setEditing({})}>+ New Form</button></div>; }
 function WildShapeForm({ initial, onSave, onCancel }) { const [f, setF] = useState({ form_name: '', ac: 10, hp_max: 10, save_str: 0, save_dex: 0, save_con: 0, save_int: 0, save_wis: 0, save_cha: 0, speed: '', notes: '', ...initial }); const set = (k, v) => setF(p => ({ ...p, [k]: v })); return <div className="profile-form"><Field label="Form Name"><input className="form-input" value={f.form_name} onChange={e => set('form_name', e.target.value)} /></Field><Field label="AC"><NumInput value={f.ac} onChange={v => set('ac', v)} /></Field><Field label="HP Max"><NumInput value={f.hp_max} onChange={v => set('hp_max', v)} /></Field><div className="panel-title" style={{ marginTop: 12 }}>Saving Throws</div><div className="saves-grid">{['str','dex','con','int','wis','cha'].map(s => <div key={s} className="form-group"><label className="form-label">{s.toUpperCase()}</label><NumInput value={f[`save_${s}`]} onChange={v => set(`save_${s}`, v)} /></div>)}</div><Field label="Speed (optional)"><input className="form-input" value={f.speed || ''} onChange={e => set('speed', e.target.value)} /></Field><Field label="Notes (optional)"><textarea className="form-input" value={f.notes || ''} onChange={e => set('notes', e.target.value)} rows={2} /></Field><div className="form-row" style={{ marginTop: 12 }}><button className="btn btn-primary" onClick={() => onSave(f)} disabled={!f.form_name}>Save</button><button className="btn btn-ghost" onClick={onCancel}>Cancel</button></div></div>; }
