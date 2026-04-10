@@ -804,9 +804,9 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
     : null;
 
   const wsActive    = playerState?.wildshape_active ?? false;
-  const wsHpCurrent = playerState?.wildshape_hp_current ?? 0;
-  const wsFormName  = playerState?.wildshape_form_name ?? null;
-  const wsHpMax     = playerState?.wildshape_hp_max ?? null;
+  const wsHpCurrent = playerState?.wildshape_hp_current ?? null;
+  const wsFormName  = playerState?.wildshape_form_name ?? playerState?.profiles_wildshape?.form_name ?? null;
+  const wsHpMax     = playerState?.wildshape_hp_max ?? playerState?.profiles_wildshape?.hp_max ?? wsHpCurrent ?? null;
   const showWildShapeBar = isPC && wsActive && wsHpCurrent !== null && wsHpMax !== null;
 
   const enemyHpCurrent    = combatant.hp_current ?? null;

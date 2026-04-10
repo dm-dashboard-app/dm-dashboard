@@ -249,7 +249,10 @@ export default function PlayerProfileSpellManager({ profile }) {
     else if (activeClass.mode === 'known') setView('learned');
     else setView('all');
     setFilterState(createSpellFilterState());
-  }, [classKey, activeClass]);
+    // intentionally runs only when the user changes the class scope;
+    // avoid resetting level filters on background state refresh.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [classKey]);
 
   const legalSpells = useMemo(() => {
     if (!classEntries.length) return [];
