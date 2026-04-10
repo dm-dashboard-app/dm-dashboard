@@ -124,6 +124,7 @@ Materially landed:
 
 - bottom action row / dock orientation
 - tab order and control grouping adapted for easier mobile use
+- tab/focus artifact cleanup across the DM shell baseline
 - recent alerts and DM-side notification handling improved
 - shell structure stabilised after several iterations
 
@@ -166,6 +167,8 @@ Materially landed:
 - initiative concentration picker path restored for DM use
 - better hidden-info preservation outside DM view
 - squared-off initiative top band alignment (Init/name+badges/AC with reaction immediately below)
+- final compact initiative/player-card sizing baseline now treated as complete
+- build/version verification marker included in the runtime baseline
 
 Important principle:
 
@@ -303,7 +306,7 @@ Materially landed:
 
 Important note:
 
-this system is currently live, but broader multi-device validation and cleanup still remain as roadmap work.
+this long-rest + spell-prep flow is now treated as landed baseline behavior and should be preserved as-is unless a verified regression appears.
 
 ### Rest Workflow Extensions
 
@@ -386,9 +389,10 @@ A future chat should assume:
 - the spell system is real and not a blank-slate design task
 - the runtime spell workflow exists and should be refined carefully rather than rebuilt casually
 - Manage > Spells is already a library/admin and detail-oriented surface
-- the long-rest preparation procedure exists, even if further validation still remains
+- the long-rest preparation procedure is a landed baseline flow
 - profile-first and encounter-state layering are core to the current implementation direction
-- the initiative redesign through PR #92 is real baseline work, with ongoing density polish still open
+- the compact initiative/player-card presentation baseline is landed and no longer framed as an open tail
+- world-map display control and monster/NPC archive behavior are part of baseline product behavior
 
 ## Success Condition for This Brief
 
