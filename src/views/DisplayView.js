@@ -272,7 +272,6 @@ export default function DisplayView() {
 
         <div className="display-reference-layout">
           <div className="display-party-column">
-            <div className="display-section-header">Party{pcCombatants.length > 0 ? ` (${pcCombatants.length})` : ''}</div>
             <div className="display-party-card-stack">
               {pcCombatants.length === 0 && (
                 <div className="empty-state">No players in encounter.</div>
@@ -295,7 +294,6 @@ export default function DisplayView() {
           </div>
 
           <div className="display-initiative-column">
-            <div className="display-section-header">Initiative Feed</div>
             {encounter && (
               <InitiativePanel
                 encounter={encounter}
