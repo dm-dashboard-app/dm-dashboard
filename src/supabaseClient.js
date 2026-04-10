@@ -113,3 +113,25 @@ export async function uploadPortrait(file, playerName) {
   const { data } = supabase.storage.from('portraits').getPublicUrl(filename);
   return data.publicUrl;
 }
+
+export async function uploadWorldMap(file, encounterName = 'encounter') {
+  const ext = file.name.split('.').pop();
+  const slug = encounterName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const filename = `${slug || 'encounter'}-world-map-${Date.now()}.${ext}`;
+  const { error } = await supabase.storage
+    .from('world-maps')
+    .upload(filename, file, { upsert: true });
+  if (error) throw error;
+  const { data } = supabase.storage.from('world-maps').getPublicUrl(filename);
+  return data.publicUrl;
+}
+
+export async function removeStoragePublicUrl(bucket, publicUrl) {
+  if (!publicUrl) return;
+  const marker = `/storage/v1/object/public/${bucket}/`;
+  const idx = publicUrl.indexOf(marker);
+  if (idx === -1) return;
+  const path = decodeURIComponent(publicUrl.slice(idx + marker.length));
+  if (!path) return;
+  await supabase.storage.from(bucket).remove([path]);
+}
