@@ -3,7 +3,7 @@ import PlayerCard from '../../components/PlayerCard';
 
 export default function DMPlayerCardsSection({ combatants, playerStates, encounterId, playerEditMode, onUpdate, title = 'Party Status', subtitle = '' }) {
   return (
-    <div className="panel dm-section-panel">
+    <div className="dm-section-panel">
       <div className="dm-section-heading-row">
         <div>
           <div className="panel-title">{title}</div>

@@ -123,7 +123,7 @@ export default function InitiativePanelNext({ encounter, combatants, playerState
   }, [activeCombatantId]);
 
   return (
-    <div className="panel">
+    <div>
       <div className="panel-title">{isDisplay ? 'Initiative Feed' : 'Initiative Order'}</div>
       <div className="initiative-list" style={{ gap: 10 }}>
         {displayOrdered.length === 0 && <div className="empty-state">No combatants yet.</div>}
