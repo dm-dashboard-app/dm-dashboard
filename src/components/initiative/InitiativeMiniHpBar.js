@@ -17,7 +17,7 @@ export default function InitiativeMiniHpBar({ current, max, tempHp = 0, bonusMax
   const bonusPct = (bonusCurrent / totalBar) * 100;
   const tempLeftPct = (safeCurrent / totalBar) * 100;
   const tempPct = (safeTemp / totalBar) * 100;
-  const looksLikeWildShape = typeof label === 'string' && (label.includes('🐻') || label.toLowerCase().includes('beast'));
+  const looksLikeWildShape = typeof label === 'string' && (label.includes('') || label.toLowerCase().includes('beast'));
   const hpPct = safeMax > 0 ? Math.max(0, Math.min(100, (safeCurrent / safeMax) * 100)) : 0;
   const barColor = looksLikeWildShape ? resolveThresholdColor(hpPct) : (color || resolveThresholdColor(hpPct));
 

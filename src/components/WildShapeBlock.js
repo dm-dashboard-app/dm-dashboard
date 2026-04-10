@@ -88,7 +88,7 @@ export default function WildShapeBlock({
   return (
     <div className="wildshape-block">
       <div className="wildshape-header">
-        <span className="wildshape-title">🐻 Wild Shape</span>
+        <span className="wildshape-title">Wild Shape</span>
         <div className="wildshape-uses">
           {!readOnly && (
             <button className="exh-btn" onClick={() => adjustUses(-1)} disabled={localUses <= 0}>−</button>

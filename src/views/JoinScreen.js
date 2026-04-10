@@ -12,14 +12,12 @@ export default function JoinScreen({ onRoleSet }) {
 
 function ChooseMode({ setMode }) {
   return (
-    <div className="join-screen">
-      <div className="join-logo">⚔</div>
-      <h1 className="join-title">DM Dashboard</h1>
-      <p className="join-sub">Who are you?</p>
-      <div className="join-options">
-        <button className="btn btn-primary btn-lg" onClick={() => setMode('dm')}>🎲 Dungeon Master</button>
-        <button className="btn btn-ghost btn-lg" onClick={() => setMode('player')}>🧙 Player</button>
-        <button className="btn btn-ghost btn-lg" onClick={() => setMode('display')}>📺 Display Screen</button>
+    <div className="join-screen join-screen--front">
+      <h1 className="join-title join-title--hero">Aurelium</h1>
+      <div className="join-options join-options--hero">
+        <button className="btn btn-primary btn-lg join-front-btn" onClick={() => setMode('dm')}>Dungeon Master</button>
+        <button className="btn btn-ghost btn-lg join-front-btn" onClick={() => setMode('player')}>Player</button>
+        <button className="btn btn-ghost btn-lg join-front-btn" onClick={() => setMode('display')}>Display</button>
       </div>
     </div>
   );
@@ -47,7 +45,6 @@ function DMLogin({ setMode, onRoleSet }) {
   return (
     <div className="join-screen">
       <button className="join-back" onClick={() => setMode('choose')}>← Back</button>
-      <div className="join-logo">🎲</div>
       <h1 className="join-title">DM Login</h1>
       <div className="join-form">
         {error && <div className="join-error">{error}</div>}
@@ -104,7 +101,6 @@ function PlayerJoin({ setMode, onRoleSet }) {
   return (
     <div className="join-screen">
       <button className="join-back" onClick={() => setMode('choose')}>← Back</button>
-      <div className="join-logo">🧙</div>
       <h1 className="join-title">Player Join</h1>
       <p className="join-sub">Enter the 4-character code your DM sent you</p>
       <div className="join-form">
@@ -161,7 +157,6 @@ function DisplayJoin({ setMode, onRoleSet }) {
   return (
     <div className="join-screen">
       <button className="join-back" onClick={() => setMode('choose')}>← Back</button>
-      <div className="join-logo">📺</div>
       <h1 className="join-title">Display Screen</h1>
       <p className="join-sub">Enter the display token from your DM</p>
       <div className="join-form">

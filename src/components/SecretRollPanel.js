@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 
 const SKILLS = [
-  { key: 'perception',   label: 'Perception',   icon: '👁' },
+  { key: 'perception',   label: 'Perception',   icon: 'View' },
   { key: 'insight',      label: 'Insight',       icon: '🧠' },
   { key: 'investigation',label: 'Investigation', icon: '🔍' },
   { key: 'survival',     label: 'Survival',      icon: '🌿' },
@@ -56,7 +56,7 @@ export default function SecretRollPanel({ playerId, encounterId }) {
               disabled={!!sending}
               style={{ opacity: sending && !isActive ? 0.4 : 1 }}
             >
-              {isActive ? '⏳ Rolling…' : wasSent ? `${icon} Sent ✅` : `${icon} ${label}`}
+              {isActive ? 'Rolling…' : wasSent ? `${icon} Sent ` : `${icon} ${label}`}
             </button>
           );
         })}

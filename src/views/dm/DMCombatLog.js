@@ -52,27 +52,34 @@ export default function DMCombatLog({ encounterId }) {
   }
 
   function resultLabel(r) {
-    if (r === 'pending') return { text: '⏳ Pending', cls: 'con-log-result-badge--pending' };
-    if (r === 'passed') return { text: '✅ Passed', cls: 'con-log-result-badge--passed' };
-    if (r === 'failed') return { text: '❌ Failed', cls: 'con-log-result-badge--failed' };
-    if (r === 'cleared') return { text: '✕ Cleared', cls: '' };
+    if (r === 'pending') return { text: 'Pending', cls: 'con-log-result-badge--pending' };
+    if (r === 'passed') return { text: 'Passed', cls: 'con-log-result-badge--passed' };
+    if (r === 'failed') return { text: 'Failed', cls: 'con-log-result-badge--failed' };
+    if (r === 'cleared') return { text: 'Cleared', cls: '' };
     return { text: r, cls: '' };
   }
 
-  async function clearAlert(alert) {
+  async function resolveAlert(alert, result) {
     if (clearingId) return;
     setClearingId(alert.id);
-    await supabase.from('concentration_checks').update({ result: 'cleared' }).eq('id', alert.id);
+    await supabase.from('concentration_checks').update({ result }).eq('id', alert.id);
     const { data: states } = await supabase
       .from('player_encounter_state')
       .select('id, profiles_players(name)')
       .eq('encounter_id', encounterId);
     const targetState = (states || []).find(state => state.profiles_players?.name === alert.player_name);
     if (targetState?.id) {
-      await supabase.from('player_encounter_state').update({ concentration_check_dc: null }).eq('id', targetState.id);
+      const statePatch = result === 'failed'
+        ? { concentration_check_dc: null, concentration: false, concentration_spell_id: null }
+        : { concentration_check_dc: null };
+      await supabase.from('player_encounter_state').update(statePatch).eq('id', targetState.id);
     }
     setClearingId(null);
     loadAlerts();
+  }
+
+  async function clearAlert(alert) {
+    await resolveAlert(alert, 'cleared');
   }
 
   const pendingAlertCount = alerts.filter(c => c.result === 'pending').length;
@@ -87,8 +94,8 @@ export default function DMCombatLog({ encounterId }) {
       </div>
 
       <div className="dm-log-tab-row">
-        <button className={`btn btn-ghost dm-log-tab ${logSection === 'combat' ? 'active' : ''}`} onClick={() => { setLogSection('combat'); loadCombat(); }}>⚔ Events</button>
-        <button className={`btn btn-ghost dm-log-tab dm-log-tab--alerts ${logSection === 'alerts' ? 'active' : ''}`} onClick={() => { setLogSection('alerts'); loadAlerts(); }}>⚠ Alerts {pendingAlertCount > 0 && <span className="tab-badge">{pendingAlertCount}</span>}</button>
+        <button className={`btn btn-ghost dm-log-tab ${logSection === 'combat' ? 'active' : ''}`} onClick={() => { setLogSection('combat'); loadCombat(); }}>Events</button>
+        <button className={`btn btn-ghost dm-log-tab dm-log-tab--alerts ${logSection === 'alerts' ? 'active' : ''}`} onClick={() => { setLogSection('alerts'); loadAlerts(); }}>Alerts {pendingAlertCount > 0 && <span className="tab-badge">{pendingAlertCount}</span>}</button>
       </div>
 
       {logSection === 'combat' && (
@@ -121,12 +128,18 @@ export default function DMCombatLog({ encounterId }) {
                 <div key={c.id} className={`con-log-item con-log-item--${c.result}`}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0, flex: 1 }}>
                     <span style={{ fontWeight: 600, fontSize: 13 }}>{c.player_name}</span>
-                    <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>DC {c.dc}</span>
+                    <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Concentration check • DC {c.dc}</span>
                     <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{timeLabel(c.created_at)}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span className={`con-log-result-badge ${cls}`}>{text}</span>
-                    {canClear ? <button className="btn btn-ghost" style={{ fontSize: 11, padding: '4px 8px' }} onClick={() => clearAlert(c)} disabled={clearingId === c.id}>{clearingId === c.id ? 'Clearing…' : 'Clear'}</button> : null}
+                    {canClear ? (
+                      <>
+                        <button className="btn btn-ghost" style={{ fontSize: 11, padding: '4px 8px' }} onClick={() => resolveAlert(c, 'passed')} disabled={clearingId === c.id}>{clearingId === c.id ? 'Saving...' : 'Pass'}</button>
+                        <button className="btn btn-ghost" style={{ fontSize: 11, padding: '4px 8px' }} onClick={() => resolveAlert(c, 'failed')} disabled={clearingId === c.id}>{clearingId === c.id ? 'Saving...' : 'Fail'}</button>
+                        <button className="btn btn-ghost" style={{ fontSize: 11, padding: '4px 8px' }} onClick={() => clearAlert(c)} disabled={clearingId === c.id}>{clearingId === c.id ? 'Saving...' : 'Clear'}</button>
+                      </>
+                    ) : null}
                   </div>
                 </div>
               );

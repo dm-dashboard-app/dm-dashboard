@@ -24,7 +24,7 @@ export default function InitiativeNameplate({
         {!isActive && isNextUp && <span className="display-order-tag display-order-tag--next">On Deck</span>}
         <span className={`badge badge-${side.toLowerCase()}`}>{side}</span>
         {showBloodied && <span className="badge badge-bloodied">Bloodied</span>}
-        {wsActive && <span className="initiative-inline-flag initiative-inline-flag--beast">🐻 Beast</span>}
+        {wsActive && <span className="initiative-inline-flag initiative-inline-flag--beast">Beast</span>}
         {reactionPill}
       </div>
 
