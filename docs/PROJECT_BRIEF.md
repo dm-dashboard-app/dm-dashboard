@@ -1,6 +1,6 @@
 # DM Dashboard — Project Brief
 
-Last updated: April 10, 2026
+Last updated: April 11, 2026
 
 Purpose: This document is the current-state/background brief for DM Dashboard. It describes what the app now is, what is materially landed, and what principles future work must preserve.
 
@@ -119,6 +119,20 @@ Landed baseline includes:
 Preservation rule:
 
 - keep archive operations reversible and admin-friendly
+
+### 8) Display presentation mode baseline
+
+Landed baseline includes:
+
+- display-only presentation modes: **In Combat** and **Out of Combat**
+- DM-managed display mode control from Manage → Session without changing DM/player layouts
+- automatic display switch to In Combat when DM triggers Initiative roll workflow
+- in-combat display containment: one featured player card, capped 4-slot initiative window, and compact name+initiative order rail
+- out-of-combat display layout tuned for table screens with up to four side-by-side full player cards
+
+Preservation rule:
+
+- keep display-specific density/containment decisions isolated to display view while preserving role boundaries and hidden-info behavior
 
 ## Architectural / Product Principles for Future Work
 

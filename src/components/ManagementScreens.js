@@ -90,7 +90,7 @@ async function insertPlayerStateWithFallback(payload, fallbackPayload) {
   return supabase.from('player_encounter_state').insert(fallbackPayload);
 }
 
-export default function ManagementScreens({ onEncounterCreated, currentEncounter = null, displayToken = null, joinCodes = [], onGenerateDisplayToken = null, onRevokeDisplayToken = null, onFrontScreen = null, onSignOut = null }) {
+export default function ManagementScreens({ onEncounterCreated, currentEncounter = null, displayToken = null, joinCodes = [], onGenerateDisplayToken = null, onRevokeDisplayToken = null, onFrontScreen = null, onSignOut = null, displayCombatMode = 'out_of_combat', onSetDisplayCombatMode = null }) {
   const [tab, setTab] = useState(currentEncounter ? 'session' : 'players');
   const buildMarker = resolveBuildMarker();
   useEffect(() => { if (!currentEncounter && tab === 'session') setTab('players'); }, [currentEncounter, tab]);
@@ -108,7 +108,7 @@ export default function ManagementScreens({ onEncounterCreated, currentEncounter
         <button className={`tab-btn ${tab === 'spells' ? 'active' : ''}`} onClick={() => setTab('spells')}>Spells</button>
         <button className={`tab-btn ${tab === 'wildshape' ? 'active' : ''}`} onClick={() => setTab('wildshape')}>Wild Shape</button>
       </div>
-      {tab === 'session' && currentEncounter && <SessionControls currentEncounter={currentEncounter} displayToken={displayToken} joinCodes={joinCodes} onGenerateDisplayToken={onGenerateDisplayToken} onRevokeDisplayToken={onRevokeDisplayToken} onFrontScreen={onFrontScreen} onSignOut={onSignOut} onToggleDisplayWorldMap={async enabled => { if (!currentEncounter) return; await supabase.from('encounters').update({ display_world_map: !!enabled }).eq('id', currentEncounter.id); }} />}
+      {tab === 'session' && currentEncounter && <SessionControls currentEncounter={currentEncounter} displayToken={displayToken} joinCodes={joinCodes} onGenerateDisplayToken={onGenerateDisplayToken} onRevokeDisplayToken={onRevokeDisplayToken} onFrontScreen={onFrontScreen} onSignOut={onSignOut} displayCombatMode={displayCombatMode} onSetDisplayCombatMode={onSetDisplayCombatMode} onToggleDisplayWorldMap={async enabled => { if (!currentEncounter) return; await supabase.from('encounters').update({ display_world_map: !!enabled }).eq('id', currentEncounter.id); }} />}
       {tab === 'players' && <PlayerProfileManager />}
       {tab === 'monsters' && <MonsterTemplateManager />}
       {tab === 'spells' && <SpellManagementPanel />}
@@ -117,7 +117,7 @@ export default function ManagementScreens({ onEncounterCreated, currentEncounter
   );
 }
 
-function SessionControls({ currentEncounter, displayToken, joinCodes, onGenerateDisplayToken, onRevokeDisplayToken, onFrontScreen, onSignOut, onToggleDisplayWorldMap = null }) {
+function SessionControls({ currentEncounter, displayToken, joinCodes, onGenerateDisplayToken, onRevokeDisplayToken, onFrontScreen, onSignOut, displayCombatMode = 'out_of_combat', onSetDisplayCombatMode = null, onToggleDisplayWorldMap = null }) {
   const [mapUrlDraft, setMapUrlDraft] = useState(currentEncounter?.world_map_url || '');
   const [uploadingMap, setUploadingMap] = useState(false);
   const [mapError, setMapError] = useState('');
@@ -288,6 +288,18 @@ function SessionControls({ currentEncounter, displayToken, joinCodes, onGenerate
                 <button className="btn btn-ghost" onClick={saveWorldMapUrl}>Save URL</button>
               </div>
             </div>
+            {onSetDisplayCombatMode && (
+              <div className="world-map-toggle-row" style={{ marginTop: 10 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Display Layout Mode</span>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{displayCombatMode === 'in_combat' ? 'In Combat layout is active on Display View.' : 'Out of Combat four-card layout is active on Display View.'}</span>
+                </div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                  <button className="btn btn-ghost" style={{ minWidth: 120, borderColor: displayCombatMode === 'in_combat' ? 'var(--accent-red)' : 'var(--border)', color: displayCombatMode === 'in_combat' ? 'var(--accent-red)' : 'var(--text-primary)' }} onClick={() => onSetDisplayCombatMode('in_combat')}>In Combat</button>
+                  <button className="btn btn-ghost" style={{ minWidth: 140, borderColor: displayCombatMode === 'out_of_combat' ? 'var(--accent-blue)' : 'var(--border)', color: displayCombatMode === 'out_of_combat' ? 'var(--accent-blue)' : 'var(--text-primary)' }} onClick={() => onSetDisplayCombatMode('out_of_combat')}>Out of Combat</button>
+                </div>
+              </div>
+            )}
             {onToggleDisplayWorldMap && (
               <div className="world-map-toggle-row">
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

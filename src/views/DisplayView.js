@@ -4,6 +4,7 @@ import usePolling from '../hooks/usePolling';
 import PlayerCard from '../components/PlayerCard';
 import InitiativePanel from '../components/InitiativePanelNext';
 import { flattenEncounterStates } from '../utils/encounterState';
+import { DISPLAY_MODE_IN_COMBAT, DISPLAY_MODE_OUT_OF_COMBAT, readDisplayMode } from '../utils/displayMode';
 
 function sortCombatants(combatants) {
   return [...combatants].sort((a, b) => {
@@ -24,6 +25,7 @@ function rotateCombatants(combatants, turnIndex) {
 }
 
 function DisplayTurnFeature({ label, combatant, accentClass, stateLabel }) {
+  const sideCopy = combatant?.side === 'PC' ? 'Party turn' : combatant?.side === 'NPC' ? 'NPC turn' : 'Enemy turn';
   return (
     <div className={`display-turn-feature ${accentClass}`}>
       <div className="display-turn-feature-label-row">
@@ -40,7 +42,7 @@ function DisplayTurnFeature({ label, combatant, accentClass, stateLabel }) {
           </div>
           <div className="display-turn-feature-meta">
             <span>{stateLabel}</span>
-            <span>{combatant.side === 'PC' ? 'Party turn' : 'Enemy turn'}</span>
+            <span>{sideCopy}</span>
           </div>
         </>
       ) : (
@@ -119,14 +121,7 @@ function WorldMapViewport({ src, alt }) {
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: '#06080d',
-        zIndex: 999,
-        overflow: 'hidden',
-        touchAction: 'none',
-      }}
+      style={{ position: 'fixed', inset: 0, background: '#06080d', zIndex: 999, overflow: 'hidden', touchAction: 'none' }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -154,10 +149,27 @@ function WorldMapViewport({ src, alt }) {
   );
 }
 
+function QuickInitiativeList({ sortedCombatants, activeId }) {
+  return (
+    <div className="display-quick-order-panel">
+      <div className="display-quick-order-header">Initiative Order</div>
+      <div className="display-quick-order-list">
+        {sortedCombatants.map(c => (
+          <div key={c.id} className={`display-quick-order-row ${c.id === activeId ? 'display-quick-order-row--active' : ''}`}>
+            <span className="display-quick-order-name">{c.name}</span>
+            <span className="display-quick-order-init">{c.initiative_total ?? '—'}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function DisplayView() {
   const [encounter, setEncounter] = useState(null);
   const [combatants, setCombatants] = useState([]);
   const [playerStates, setPlayerStates] = useState([]);
+  const [displayCombatMode, setDisplayCombatMode] = useState(DISPLAY_MODE_OUT_OF_COMBAT);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -195,21 +207,22 @@ export default function DisplayView() {
     if (!session) return;
     const encounterId = session.encounter_id;
 
-    const [enc, comb, states] = await Promise.all([
+    const [enc, comb, states, mode] = await Promise.all([
       supabase.from('encounters').select('*').eq('id', encounterId).maybeSingle(),
       supabase.from('combatants').select('*').eq('encounter_id', encounterId)
         .order('initiative_total', { ascending: false, nullsFirst: false }),
       supabase.from('player_encounter_state')
         .select('*, profiles_players(*), profiles_wildshape(form_name, hp_max)')
         .eq('encounter_id', encounterId),
+      readDisplayMode(encounterId),
     ]);
     if (enc.data) setEncounter(enc.data);
     setCombatants(comb.data || []);
     setPlayerStates(flattenEncounterStates(states.data));
+    setDisplayCombatMode(mode || DISPLAY_MODE_OUT_OF_COMBAT);
   }, [displayToken]);
 
   usePolling(refresh, 2000, !!displayToken && !loading && !error);
-
   useEffect(() => {
     if (!loading && !error) refresh();
   }, [loading, error, refresh]);
@@ -228,16 +241,36 @@ export default function DisplayView() {
   );
   const activeCombatant = rotatedCombatants[0] || null;
   const onDeckCombatant = rotatedCombatants[1] || null;
+  const featuredPlayer = useMemo(() => {
+    if (!rotatedCombatants.length) return null;
+    if (activeCombatant?.side === 'PC') return activeCombatant;
+    return rotatedCombatants.find(c => c.side === 'PC') || null;
+  }, [activeCombatant, rotatedCombatants]);
+  const featuredPlayerState = useMemo(
+    () => playerStates.find(state => state.combatant_id === featuredPlayer?.id) || null,
+    [playerStates, featuredPlayer?.id]
+  );
+  const displayWindowCombatants = useMemo(() => rotatedCombatants.slice(0, 4), [rotatedCombatants]);
+  const displayWindowEncounter = useMemo(
+    () => ({ ...encounter, turn_index: 0 }),
+    [encounter]
+  );
+  const outOfCombatPlayers = useMemo(() => {
+    const ordered = [...pcCombatants].sort((a, b) => a.name.localeCompare(b.name));
+    return ordered.slice(0, 4);
+  }, [pcCombatants]);
 
   if (loading) return <div className="splash"><div className="splash-text">Connecting…</div></div>;
 
-  if (error) return (
-    <div className="splash">
-      <div className="splash-logo"></div>
-      <div className="splash-text">{error}</div>
-      <button className="btn btn-ghost" onClick={handleLeave}>Back</button>
-    </div>
-  );
+  if (error) {
+    return (
+      <div className="splash">
+        <div className="splash-logo"></div>
+        <div className="splash-text">{error}</div>
+        <button className="btn btn-ghost" onClick={handleLeave}>Back</button>
+      </div>
+    );
+  }
 
   if (encounter?.display_world_map) {
     if (!encounter?.world_map_url) {
@@ -263,24 +296,55 @@ export default function DisplayView() {
       <div className="display-screen-body">
         <div className="initiative-top-bar initiative-top-bar--display">
           <div className="initiative-top-bar-primary">Round {encounter?.round || 1}</div>
+          <div className="initiative-top-bar-secondary">{displayCombatMode === DISPLAY_MODE_IN_COMBAT ? 'In Combat' : 'Out of Combat'}</div>
         </div>
 
-        <div className="display-turn-state-grid">
-          <DisplayTurnFeature label="Current Turn" combatant={activeCombatant} accentClass="display-turn-feature--current" stateLabel="Acting now" />
-          <DisplayTurnFeature label="On Deck" combatant={onDeckCombatant} accentClass="display-turn-feature--next" stateLabel="Up next" />
-        </div>
+        {displayCombatMode === DISPLAY_MODE_IN_COMBAT ? (
+          <>
+            <div className="display-turn-state-grid">
+              <DisplayTurnFeature label="Current Turn" combatant={activeCombatant} accentClass="display-turn-feature--current" stateLabel="Acting now" />
+              <DisplayTurnFeature label="On Deck" combatant={onDeckCombatant} accentClass="display-turn-feature--next" stateLabel="Up next" />
+            </div>
 
-        <div className="display-reference-layout">
-          <div className="display-party-column">
-            <div className="display-party-card-stack">
-              {pcCombatants.length === 0 && (
-                <div className="empty-state">No players in encounter.</div>
-              )}
-              {pcCombatants.map(c => {
-                const state = playerStates.find(s => s.combatant_id === c.id);
-                return (
+            <div className="display-combat-layout-grid">
+              <div className="display-featured-player-window">
+                {featuredPlayer ? (
                   <PlayerCard
-                    key={c.id}
+                    combatant={featuredPlayer}
+                    state={featuredPlayerState}
+                    role="display"
+                    isEditMode={false}
+                    encounterId={encounter?.id}
+                    onUpdate={() => {}}
+                  />
+                ) : (
+                  <div className="empty-state">No player available to feature.</div>
+                )}
+              </div>
+
+              <div className="display-initiative-window">
+                {encounter && (
+                  <InitiativePanel
+                    encounter={displayWindowEncounter}
+                    combatants={displayWindowCombatants}
+                    playerStates={playerStates}
+                    role="display"
+                    onUpdate={() => {}}
+                  />
+                )}
+              </div>
+
+              <QuickInitiativeList sortedCombatants={sortedCombatants} activeId={activeCombatant?.id} />
+            </div>
+          </>
+        ) : (
+          <div className={`display-ooc-grid display-ooc-grid--count-${Math.max(1, outOfCombatPlayers.length)}`}>
+            {outOfCombatPlayers.length === 0 && <div className="empty-state">No players in encounter.</div>}
+            {outOfCombatPlayers.map(c => {
+              const state = playerStates.find(s => s.combatant_id === c.id);
+              return (
+                <div key={c.id} className="display-ooc-card-window">
+                  <PlayerCard
                     combatant={c}
                     state={state}
                     role="display"
@@ -288,23 +352,11 @@ export default function DisplayView() {
                     encounterId={encounter?.id}
                     onUpdate={() => {}}
                   />
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
-
-          <div className="display-initiative-column">
-            {encounter && (
-              <InitiativePanel
-                encounter={encounter}
-                combatants={combatants}
-                playerStates={playerStates}
-                role="display"
-                onUpdate={() => {}}
-              />
-            )}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
