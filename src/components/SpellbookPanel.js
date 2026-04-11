@@ -202,7 +202,7 @@ export default function SpellbookPanel({ profile, state, encounterId, onUpdate, 
 
       {state?.concentration && (
         <div style={{ fontSize: 11, color: 'var(--accent-gold)', marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <span>🔮 Concentrating{concentrationSpellName ? ` on ${concentrationSpellName}` : ''}</span>
+          <span>Concentrating{concentrationSpellName ? ` on ${concentrationSpellName}` : ''}</span>
           <button className="btn btn-ghost" style={{ fontSize: 11, padding: '1px 6px' }} onClick={() => clearConcentrationSpell(state.id, encounterId, concentrationSpellName, actorName).then(() => onUpdate?.())}>End</button>
         </div>
       )}

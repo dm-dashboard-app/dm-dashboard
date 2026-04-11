@@ -33,3 +33,73 @@
 @media (max-width:700px){.display-turn-state-grid,.display-reference-layout{grid-template-columns:1fr}.display-reference-layout{overflow:visible}.display-party-column,.display-initiative-column,.display-party-card-stack,.display-initiative-column .panel{min-height:auto}.dm-notification-stack{left:12px;right:12px;max-width:none}.dm-bottom-action-row .btn{font-size:12px;padding-left:8px;padding-right:8px}.initiative-meta-row--class{display:grid;grid-template-columns:1fr}.reaction-pill{padding:4px 7px}.player-card-priority-grid{grid-template-columns:1fr}.player-card-key-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.skills-panel-header-row{display:none}.skills-panel-row{grid-template-columns:minmax(0,1fr) 74px;grid-template-areas:'name total' 'rank ability';gap:6px}.skills-panel-name-group{grid-area:name}.skills-panel-total{grid-area:total}.skills-panel-rank{grid-area:rank}.skills-panel-cell:nth-child(2),.skills-panel-cell:nth-child(3){display:none}.skills-panel-cell:nth-child(4){grid-area:ability;text-align:right}.skills-panel-ability-inline{display:inline-flex}}
 @media (max-width:480px){.app-shell{--density-main-padding:calc(var(--space-3) - 2px);--density-initiative-row-pad:4px;--density-initiative-row-gap:3px;--density-initiative-body-gap:2px;--density-initiative-name-min-height:21px;--density-player-card-body-gap:3px;--density-player-con-padding:3px 6px;--density-player-con-min-height:26px;--density-player-stat-gap:1px;--density-player-stat-height:38px;--density-player-hp-height:26px;--density-player-action-gap:2px;--density-player-ability-gap:1px;--density-player-ability-padding:2px 1px}.display-screen-shell{--density-display-body-padding:9px 10px 10px;--density-display-turn-grid-gap:10px}.main-content{padding:var(--density-main-padding)}.main-content--with-bottom-dock{padding-bottom:156px}.top-bar{padding:var(--space-2) var(--space-3)}.tab-btn{padding-left:8px;padding-right:8px;font-size:12px}.initiative-top-bar{min-height:48px;padding:10px 12px}.initiative-top-bar-primary{font-size:1rem}.dm-log-tab-row{flex-direction:column}.dm-bottom-action-bar{padding-left:10px;padding-right:10px}.dm-bottom-action-row{width:calc(100vw - 20px);gap:6px}.dm-bottom-action-row .btn{min-height:46px;font-size:11px;padding-left:6px;padding-right:6px}.initiative-row-main{gap:8px}.initiative-name{font-size:13px}.initiative-meta-row{gap:5px}.initiative-number-input{width:50px;min-width:50px;padding:6px 6px}.display-turn-feature{padding:12px}.display-turn-feature-name{font-size:1.45rem;white-space:normal}.display-screen-body{padding:var(--density-display-body-padding)}.display-turn-state-grid{gap:var(--density-display-turn-grid-gap)}.player-card-key-stats{grid-template-columns:1fr}.player-ac-value{font-size:28px}}
 @media (min-width:1024px){.initiative-row-density--display .initiative-name-wrap{font-size:clamp(.88rem,1.02vw,1rem)}.initiative-row-density--display .initiative-name-text{-webkit-line-clamp:1}.initiative-row-density--display .initiative-bottom-meta{gap:3px}}
+
+.join-screen--front{
+  min-height:100vh;
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  gap:20px;
+  padding:24px 16px;
+}
+.join-screen{
+  min-height:100vh;
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  padding:24px 16px;
+}
+.join-title{
+  margin:0;
+  text-align:center;
+}
+.join-options{
+  width:min(960px,100%);
+}
+.join-title--hero{
+  margin:0;
+  font-size:clamp(2.6rem,11vw,5.3rem);
+  font-weight:900;
+  letter-spacing:.06em;
+  line-height:.92;
+  text-transform:uppercase;
+  text-align:center;
+}
+.join-options--hero{
+  width:min(960px,100%);
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+.join-form{
+  width:min(420px,100%);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.join-front-btn{
+  min-height:64px;
+  font-size:clamp(.95rem,2.2vw,1.2rem);
+  font-weight:800;
+  letter-spacing:.01em;
+  border-radius:14px;
+}
+@media (max-width: 640px){
+  .join-screen--front{
+    gap:16px;
+    padding:18px 14px;
+  }
+  .join-options--hero{
+    gap:8px;
+  }
+  .join-front-btn{
+    min-height:58px;
+    font-size:clamp(.84rem,3.1vw,1rem);
+    padding:10px 8px;
+  }
+}

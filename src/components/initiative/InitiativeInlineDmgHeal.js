@@ -23,7 +23,7 @@ export default function InitiativeInlineDmgHeal({ onDamage, onHeal }) {
   return (
     <div className="hp-dmg-row hp-dmg-row--compact">
       <button className="hp-action-btn hp-action-dmg" onClick={handleDamage} disabled={!valid}>
-        ⚔ DMG
+        DMG
       </button>
       <input
         ref={inputRef}
@@ -40,7 +40,7 @@ export default function InitiativeInlineDmgHeal({ onDamage, onHeal }) {
         min={1}
       />
       <button className="hp-action-btn hp-action-heal" onClick={handleHeal} disabled={!valid}>
-        HEAL ♥
+        HEAL 
       </button>
     </div>
   );

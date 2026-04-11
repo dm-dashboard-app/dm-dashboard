@@ -14,6 +14,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
+const WORLD_MAP_BUCKET_CANDIDATES = ['world_maps', 'world-maps'];
+
 // ============================================================
 // TIMEOUT HELPER
 // ============================================================
@@ -118,20 +120,45 @@ export async function uploadWorldMap(file, encounterName = 'encounter') {
   const ext = file.name.split('.').pop();
   const slug = encounterName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   const filename = `${slug || 'encounter'}-world-map-${Date.now()}.${ext}`;
-  const { error } = await supabase.storage
-    .from('world-maps')
-    .upload(filename, file, { upsert: true });
-  if (error) throw error;
-  const { data } = supabase.storage.from('world-maps').getPublicUrl(filename);
-  return data.publicUrl;
+  let lastError = null;
+
+  for (const bucket of WORLD_MAP_BUCKET_CANDIDATES) {
+    const { error } = await supabase.storage
+      .from(bucket)
+      .upload(filename, file, { upsert: true });
+    if (!error) {
+      const { data } = supabase.storage.from(bucket).getPublicUrl(filename);
+      return data.publicUrl;
+    }
+    lastError = error;
+  }
+
+  throw lastError || new Error('World map upload failed.');
 }
 
 export async function removeStoragePublicUrl(bucket, publicUrl) {
   if (!publicUrl) return;
-  const marker = `/storage/v1/object/public/${bucket}/`;
-  const idx = publicUrl.indexOf(marker);
-  if (idx === -1) return;
-  const path = decodeURIComponent(publicUrl.slice(idx + marker.length));
+  let bucketName = bucket;
+  let path = null;
+
+  try {
+    const parsed = new URL(publicUrl);
+    const marker = '/storage/v1/object/public/';
+    const markerIdx = parsed.pathname.indexOf(marker);
+    if (markerIdx !== -1) {
+      const bucketPath = parsed.pathname.slice(markerIdx + marker.length);
+      const firstSlash = bucketPath.indexOf('/');
+      if (firstSlash !== -1) {
+        bucketName = decodeURIComponent(bucketPath.slice(0, firstSlash)) || bucketName;
+        path = decodeURIComponent(bucketPath.slice(firstSlash + 1));
+      }
+    }
+  } catch (_) {
+    const marker = `/storage/v1/object/public/${bucket}/`;
+    const idx = publicUrl.indexOf(marker);
+    if (idx !== -1) path = decodeURIComponent(publicUrl.slice(idx + marker.length));
+  }
+
   if (!path) return;
-  await supabase.storage.from(bucket).remove([path]);
+  await supabase.storage.from(bucketName).remove([path]);
 }

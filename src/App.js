@@ -69,8 +69,7 @@ function SplashScreen({ onRetry }) {
 
   return (
     <div className="splash">
-      <div className="splash-logo">⚔</div>
-      <div className="splash-text">DM Dashboard</div>
+      <div className="splash-text">Aurelium</div>
       {showRetry && (
         <>
           <div className="splash-sub">Taking too long…</div>
@@ -84,7 +83,6 @@ function SplashScreen({ onRetry }) {
 function ErrorScreen({ message, onRetry }) {
   return (
     <div className="splash">
-      <div className="splash-logo">⚠</div>
       <div className="splash-text">Something went wrong</div>
       <div className="splash-sub">{message}</div>
       <button className="btn btn-ghost" onClick={onRetry}>Retry</button>

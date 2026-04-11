@@ -233,7 +233,7 @@ export default function DisplayView() {
 
   if (error) return (
     <div className="splash">
-      <div className="splash-logo">📺</div>
+      <div className="splash-logo"></div>
       <div className="splash-text">{error}</div>
       <button className="btn btn-ghost" onClick={handleLeave}>Back</button>
     </div>
@@ -243,7 +243,7 @@ export default function DisplayView() {
     if (!encounter?.world_map_url) {
       return (
         <div className="splash">
-          <div className="splash-logo">🗺️</div>
+          <div className="splash-logo">Map</div>
           <div className="splash-text">World Map mode is enabled, but no map image URL is set for this encounter.</div>
         </div>
       );

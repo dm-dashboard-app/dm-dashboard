@@ -437,7 +437,7 @@ function InlineDmgHeal({ onDamage, onHeal }) {
 
   return (
     <div className="hp-dmg-row hp-dmg-row--compact">
-      <button className="hp-action-btn hp-action-dmg" onClick={handleDamage} disabled={!valid}>⚔ DMG</button>
+      <button className="hp-action-btn hp-action-dmg" onClick={handleDamage} disabled={!valid}>DMG</button>
       <input
         ref={inputRef}
         className="hp-amount-input hp-amount-input--compact"
@@ -449,7 +449,7 @@ function InlineDmgHeal({ onDamage, onHeal }) {
         placeholder="—"
         min={1}
       />
-      <button className="hp-action-btn hp-action-heal" onClick={handleHeal} disabled={!valid}>HEAL ♥</button>
+      <button className="hp-action-btn hp-action-heal" onClick={handleHeal} disabled={!valid}>HEAL </button>
     </div>
   );
 }
@@ -789,8 +789,8 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
   const isNonPC = isNPC || isEnemy;
   const conditions = combatant.conditions || [];
 
-  const pcHpCurrent   = playerState?.current_hp ?? null;
-  const pcProfileMax  = playerState?.profiles_players?.max_hp ?? null;
+  const pcHpCurrent   = playerState?.current_hp ?? combatant?.hp_current ?? null;
+  const pcProfileMax  = playerState?.profiles_players?.max_hp ?? combatant?.hp_max ?? null;
   const pcMaxOverride = playerState?.max_hp_override ?? null;
   const pcHpMax       = pcMaxOverride !== null ? pcMaxOverride : pcProfileMax;
   const tempHp        = playerState?.temp_hp ?? 0;
@@ -804,9 +804,10 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
     : null;
 
   const wsActive    = playerState?.wildshape_active ?? false;
-  const wsHpCurrent = playerState?.wildshape_hp_current ?? 0;
-  const wsFormName  = playerState?.wildshape_form_name ?? null;
-  const wsHpMax     = playerState?.wildshape_hp_max ?? null;
+  const wsHpCurrent = playerState?.wildshape_hp_current ?? null;
+  const wsFormName  = playerState?.wildshape_form_name ?? playerState?.profiles_wildshape?.form_name ?? null;
+  const wsHpMax     = playerState?.wildshape_hp_max ?? playerState?.profiles_wildshape?.hp_max ?? wsHpCurrent ?? null;
+  const showWildShapeBar = isPC && wsActive && wsHpCurrent !== null && wsHpMax !== null;
 
   const enemyHpCurrent    = combatant.hp_current ?? null;
   const enemyHpMax        = combatant.hp_max ?? null;
@@ -815,6 +816,7 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
   const showPcHp    = isPC && pcHpCurrent !== null && pcHpMax !== null;
   const showNonPcHp = isNonPC && enemyHpCurrent !== null && enemyHpMax !== null
     && (isDM || (isDisplay && isNPC));
+  const showHpSection = showPcHp || showNonPcHp || showWildShapeBar;
 
   const pcBloodied    = isPC && pcHpCurrent !== null && pcHpMax !== null && pcHpCurrent > 0 && pcHpCurrent <= Math.floor(pcHpMax / 2);
   const enemyBloodied = isNonPC && combatant.public_status === 'BLOODIED';
@@ -1087,7 +1089,7 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
             {!isActive && isNextUp && <span className="display-order-tag display-order-tag--next">On Deck</span>}
             <span className={`badge badge-${combatant.side.toLowerCase()}`}>{combatant.side}</span>
             {(enemyBloodied || pcBloodied) && <span className="badge badge-bloodied">BLOODIED</span>}
-            {wsActive && <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3, background: '#1a3a1a', color: 'var(--accent-green)' }}>🐻 BEAST</span>}
+            {wsActive && <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3, background: '#1a3a1a', color: 'var(--accent-green)' }}>BEAST</span>}
           </div>
 
           {(classLine || ancestryLine) && (
@@ -1112,16 +1114,16 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
           style={{ cursor: canToggleReaction ? 'pointer' : 'default' }}
           title={canToggleReaction ? (rxUsed ? 'Restore reaction' : 'Mark reaction used') : undefined}
         >
-          ⚡ {rxUsed ? 'USED' : 'REACT'}
+          {rxUsed ? 'USED' : 'REACT'}
         </button>
 
         {isDM && isNonPC && <span className="expand-toggle" style={{ marginLeft: 4 }}>{expanded ? '▲' : '▼'}</span>}
       </div>
 
-      {(showPcHp || showNonPcHp) && (
+      {showHpSection && (
         <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {isPC && wsActive && wsHpMax != null && (
-            <MiniHpBar current={wsHpCurrent} max={wsHpMax} color="var(--accent-green)" label={wsFormName ? `🐻 ${wsFormName}` : '🐻 Beast Form'} />
+          {showWildShapeBar && (
+            <MiniHpBar current={wsHpCurrent} max={wsHpMax} color="var(--accent-green)" label={wsFormName ? `${wsFormName}` : 'Beast Form'} />
           )}
           {showPcHp && <MiniHpBar current={pcHpCurrent} max={pcHpMax} tempHp={tempHp} label={wsActive ? 'Player HP' : null} />}
           {showNonPcHp && (
@@ -1153,7 +1155,7 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
             }}
             title={concentration ? 'Remove concentration' : 'Set concentrating'}
           >
-            🔮 {concentration ? 'Concentrating' : 'Concentration'}
+            {concentration ? 'Concentrating' : 'Concentration'}
           </button>
         </div>
       )}
@@ -1161,7 +1163,7 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
       {isPC && !isDM && concentration && (
         <div style={{ marginTop: 4 }}>
           <span style={{ fontSize: 10, color: 'var(--accent-gold)', background: '#3a2e00', border: '1px solid var(--accent-gold)', borderRadius: 3, padding: '1px 5px' }}>
-            🔮 CON
+            CON
           </span>
         </div>
       )}
@@ -1246,7 +1248,7 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
 
       {conDc !== null && (
         <div className="con-check-banner con-check-banner--dm" style={{ marginTop: 6 }}>
-          <span className="con-check-label">🔮 CON SAVE</span>
+          <span className="con-check-label">CON SAVE</span>
           <span className="con-check-dc">DC {conDc}</span>
         </div>
       )}
@@ -1544,7 +1546,7 @@ function AddCombatantModal({ encounterId, onUpdate, onClose }) {
                       <span style={{ fontSize: 13, fontWeight: 600 }}>{t.name}</span>
                       <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>AC {t.ac} HP {t.hp_max}</span>
                       {(t.legendary_actions_max > 0 || t.legendary_resistances_max > 0) && (
-                        <span style={{ fontSize: 10, color: 'var(--accent-gold)', marginLeft: 6 }}>★ Legendary</span>
+                        <span style={{ fontSize: 10, color: 'var(--accent-gold)', marginLeft: 6 }}>Legendary</span>
                       )}
                     </div>
                     {formatClassLine(t) && (
@@ -1606,7 +1608,7 @@ function AddCombatantModal({ encounterId, onUpdate, onClose }) {
               </div>
               <div className="form-group">
                 <label className="form-label">Mini Marker</label>
-                <input className="form-input" value={miniMarker} onChange={e => setMiniMarker(e.target.value)} placeholder="A / 1 / 🔴" maxLength={8} />
+                <input className="form-input" value={miniMarker} onChange={e => setMiniMarker(e.target.value)} placeholder="A / 1 / Marker" maxLength={8} />
               </div>
             </div>
 

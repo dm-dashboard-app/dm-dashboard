@@ -5,7 +5,6 @@ import {
   SPELL_FILTER_LEVELS,
   SPELL_FILTER_PRIMARY,
   createSpellFilterState,
-  getAccessibleConcentrationSpells,
   getClassEntries,
   getKnownRuntimeSpells,
   getPreparedCapTotal,
@@ -140,9 +139,13 @@ export default function SpellWorkflowPanel({ profile, state, encounterId, onUpda
   const preparedCount = useMemo(() => rows.filter(row => row.prepared && row.level > 0).length, [rows]);
 
   useEffect(() => {
-    setActiveTab('known');
+    if (mode === 'prep') {
+      setActiveTab('known');
+    } else {
+      setActiveTab(hasPreparedTab ? 'prepared' : 'known');
+    }
     setFilterState(createSpellFilterState());
-  }, [profile?.id, mode]);
+  }, [profile?.id, mode, hasPreparedTab]);
 
   const tabs = useMemo(() => {
     if (!hasPreparedTab) return [{ value: 'known', label: 'Known' }];
@@ -199,7 +202,7 @@ export default function SpellWorkflowPanel({ profile, state, encounterId, onUpda
         return <SpellRow key={`${activeTab}-${spell.spellId}`} spell={spell} action={action} onOpenDetail={openDetail} />;
       },
     }));
-  }, [displayedSource, filterState, mode, activeTab, preparedCount, prepCapTotal]);
+  }, [displayedSource, filterState, mode, activeTab, preparedCount, prepCapTotal, togglePrepared]);
 
   const actorLabel = role === 'dm' ? 'DM view' : 'Player view';
   const panelTitle = title || (mode === 'prep' ? 'Long Rest Preparation' : 'Spells');
@@ -241,7 +244,6 @@ export default function SpellWorkflowPanel({ profile, state, encounterId, onUpda
 }
 
 export function ConcentrationSpellPickerModal({ open, profile, encounterId, state, actor = 'Player', onClose, onUpdate }) {
-  const [allSpells, setAllSpells] = useState([]);
   const [rows, setRows] = useState([]);
   const [selectedSpell, setSelectedSpell] = useState(null);
 
@@ -249,19 +251,21 @@ export function ConcentrationSpellPickerModal({ open, profile, encounterId, stat
     let cancelled = false;
     async function load() {
       if (!open || !profile?.id) return;
-      const [spellsRes, rowsRes] = await Promise.all([
-        supabase.from('spells').select('*').order('level').order('name'),
-        supabase.from('profile_player_spells').select('*, spells(*)').eq('player_profile_id', profile.id),
-      ]);
+      const { data: rowsData } = await supabase
+        .from('profile_player_spells')
+        .select('*, spells(*)')
+        .eq('player_profile_id', profile.id);
       if (cancelled) return;
-      setAllSpells((spellsRes.data || []).map(getSpellRecord));
-      setRows((rowsRes.data || []).map(getSpellRecord));
+      setRows((rowsData || []).map(getSpellRecord));
     }
     load();
     return () => { cancelled = true; };
   }, [open, profile?.id]);
 
-  const spells = useMemo(() => getAccessibleConcentrationSpells(profile, allSpells, rows), [profile, allSpells, rows]);
+  const spells = useMemo(() => {
+    const prepared = getPreparedRuntimeSpells(profile, rows);
+    return sortSpells(prepared.filter(spell => !!spell.concentration));
+  }, [profile, rows]);
 
   async function setConcentration(spell = null) {
     if (!state?.id) return;

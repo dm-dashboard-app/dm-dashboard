@@ -26,13 +26,29 @@ export default function RecentAlertsStrip({ encounterId, expanded = false, onTog
   usePolling(load, 2000, !!encounterId);
 
   function resultStyle(result) {
-    if (result === 'passed') return { color: 'var(--accent-green)', label: '✅ Passed' };
-    if (result === 'failed') return { color: 'var(--accent-red)', label: '❌ Failed' };
-    return { color: 'var(--accent-gold)', label: '⏳ Pending' };
+    if (result === 'passed') return { color: 'var(--accent-green)', label: 'Passed' };
+    if (result === 'failed') return { color: 'var(--accent-red)', label: 'Failed' };
+    return { color: 'var(--accent-gold)', label: 'Pending' };
   }
 
   function dismissPendingAlert(id) {
     setDismissedCheckIds(ids => appendDismissedId(encounterId, 'checks', ids, id));
+  }
+
+  async function resolvePendingCheck(check, result) {
+    await supabase.from('concentration_checks').update({ result }).eq('id', check.id);
+    const { data: states } = await supabase
+      .from('player_encounter_state')
+      .select('id, profiles_players(name)')
+      .eq('encounter_id', encounterId);
+    const targetState = (states || []).find(state => state.profiles_players?.name === check.player_name);
+    if (targetState?.id) {
+      const statePatch = result === 'failed'
+        ? { concentration_check_dc: null, concentration: false, concentration_spell_id: null }
+        : { concentration_check_dc: null };
+      await supabase.from('player_encounter_state').update(statePatch).eq('id', targetState.id);
+    }
+    load();
   }
 
   const latest = checks[0];
@@ -48,23 +64,27 @@ export default function RecentAlertsStrip({ encounterId, expanded = false, onTog
       <div key={c.id} className="dm-bottom-strip-row">
         <div className="dm-bottom-strip-row-left">
           <span className="dm-bottom-strip-row-name">{c.player_name}</span>
-          <span className="dm-bottom-strip-row-meta">DC {c.dc}</span>
+          <span className="dm-bottom-strip-row-meta">Concentration check • DC {c.dc}</span>
           <span className="dm-bottom-strip-row-meta">{formatTime(c.created_at)}</span>
         </div>
         <div className="dm-bottom-strip-row-right" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <span className="dm-bottom-strip-row-status" style={{ color }}>{label}</span>
           {isPending && (
-            <button
-              className="btn btn-ghost"
-              style={{ fontSize: 11, minHeight: 28, padding: '4px 10px', borderColor: isDismissed ? 'var(--border-strong)' : 'var(--accent-gold)', color: isDismissed ? 'var(--text-muted)' : 'var(--accent-gold)' }}
-              disabled={isDismissed}
-              onClick={e => {
-                e.stopPropagation();
-                dismissPendingAlert(c.id);
-              }}
-            >
-              {isDismissed ? 'Dismissed' : 'Dismiss Popup'}
-            </button>
+            <>
+              <button className="btn btn-ghost" style={{ fontSize: 11, minHeight: 28, padding: '4px 8px' }} onClick={e => { e.stopPropagation(); resolvePendingCheck(c, 'passed'); }}>Pass</button>
+              <button className="btn btn-ghost" style={{ fontSize: 11, minHeight: 28, padding: '4px 8px' }} onClick={e => { e.stopPropagation(); resolvePendingCheck(c, 'failed'); }}>Fail</button>
+              <button
+                className="btn btn-ghost"
+                style={{ fontSize: 11, minHeight: 28, padding: '4px 10px', borderColor: isDismissed ? 'var(--border-strong)' : 'var(--accent-gold)', color: isDismissed ? 'var(--text-muted)' : 'var(--accent-gold)' }}
+                disabled={isDismissed}
+                onClick={e => {
+                  e.stopPropagation();
+                  dismissPendingAlert(c.id);
+                }}
+              >
+                {isDismissed ? 'Dismissed' : 'Dismiss Popup'}
+              </button>
+            </>
           )}
         </div>
       </div>

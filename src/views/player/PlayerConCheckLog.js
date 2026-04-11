@@ -36,7 +36,7 @@ export default function PlayerConCheckLog({ encounterId, playerName, pendingDc, 
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {pendingDc !== null && (
         <div className="panel" style={{ border: '1.5px solid var(--accent-gold)' }}>
-          <div className="panel-title" style={{ color: 'var(--accent-gold)' }}>🔮 Concentration Check Required</div>
+          <div className="panel-title" style={{ color: 'var(--accent-gold)' }}>Concentration Check Required</div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <div>
               <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>You took damage while concentrating</div>
@@ -48,8 +48,8 @@ export default function PlayerConCheckLog({ encounterId, playerName, pendingDc, 
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button className="con-check-pass" onClick={onPass} style={{ flex: 1, padding: '10px 0', fontSize: 15 }}>✅ Passed — keep concentration</button>
-            <button className="con-check-fail" onClick={onFail} style={{ flex: 1, padding: '10px 0', fontSize: 15 }}>❌ Failed — lose concentration</button>
+            <button className="con-check-pass" onClick={onPass} style={{ flex: 1, padding: '10px 0', fontSize: 15 }}>Passed — keep concentration</button>
+            <button className="con-check-fail" onClick={onFail} style={{ flex: 1, padding: '10px 0', fontSize: 15 }}>Failed — lose concentration</button>
           </div>
         </div>
       )}

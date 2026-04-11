@@ -1,6 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { getClassLevel } from '../utils/classResources';
+import {
+  SPELL_FILTER_LEVELS,
+  SPELL_FILTER_PRIMARY,
+  createSpellFilterState,
+  spellMatchesFilterState,
+  toggleSpellFilter,
+} from '../utils/spellWorkflow';
 
 const FULL_CASTER_CLASSES = ['bard', 'cleric', 'druid', 'sorcerer', 'wizard'];
 const HALF_CASTER_CLASSES = ['paladin', 'ranger'];
@@ -197,17 +204,20 @@ export default function PlayerProfileSpellManager({ profile }) {
   const [spells, setSpells] = useState([]);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [classKey, setClassKey] = useState('');
+  const [classKey, setClassKey] = useState('all');
   const [view, setView] = useState('all');
+  const [filterState, setFilterState] = useState(createSpellFilterState());
   const [selectedSpell, setSelectedSpell] = useState(null);
   const classEntries = useMemo(() => getClassEntries(profile), [profile]);
   const activeClass = useMemo(() => classEntries.find(entry => entry.key === classKey) || classEntries[0] || null, [classEntries, classKey]);
   const rowMap = useMemo(() => getSpellRowMap(rows), [rows]);
 
   useEffect(() => {
-    if (!activeClass) return;
-    setClassKey(activeClass.key);
-  }, [activeClass?.key]);
+    if (!classEntries.length) return;
+    if (classKey !== 'all' && !classEntries.some(entry => entry.key === classKey)) {
+      setClassKey('all');
+    }
+  }, [classEntries, classKey]);
 
   useEffect(() => {
     let cancelled = false;
@@ -238,12 +248,20 @@ export default function PlayerProfileSpellManager({ profile }) {
     else if (activeClass.mode === 'wizard') setView('learned');
     else if (activeClass.mode === 'known') setView('learned');
     else setView('all');
-  }, [activeClass?.key]);
+    setFilterState(createSpellFilterState());
+    // intentionally runs only when the user changes the class scope;
+    // avoid resetting level filters on background state refresh.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [classKey]);
 
   const legalSpells = useMemo(() => {
+    if (!classEntries.length) return [];
+    if (classKey === 'all') {
+      return spells.filter(spell => classEntries.some(entry => spellIsLegalForClass(spell, entry)));
+    }
     if (!activeClass) return [];
     return spells.filter(spell => spellIsLegalForClass(spell, activeClass));
-  }, [spells, activeClass]);
+  }, [spells, activeClass, classEntries, classKey]);
 
   const cantrips = useMemo(() => legalSpells.filter(spell => Number(spell.level) === 0), [legalSpells]);
   const leveledSpells = useMemo(() => legalSpells.filter(spell => Number(spell.level) > 0), [legalSpells]);
@@ -273,6 +291,16 @@ export default function PlayerProfileSpellManager({ profile }) {
     }
     return leveledSpells;
   }, [activeClass, leveledSpells, rowMap, view]);
+
+  const filteredCantrips = useMemo(
+    () => cantrips.filter(spell => spellMatchesFilterState(spell, filterState)),
+    [cantrips, filterState],
+  );
+
+  const filteredVisibleLeveled = useMemo(
+    () => visibleLeveled.filter(spell => spellMatchesFilterState(spell, filterState)),
+    [visibleLeveled, filterState],
+  );
 
   async function refreshRows() {
     if (!profile?.id) return;
@@ -340,19 +368,46 @@ export default function PlayerProfileSpellManager({ profile }) {
     <div className="panel" style={{ marginTop: 12 }}>
       <div className="panel-title">Spells</div>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
-        {classEntries.map(entry => <button type="button" key={entry.key} className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: activeClass?.key === entry.key ? 'var(--accent-blue)' : 'var(--border)', color: activeClass?.key === entry.key ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setClassKey(entry.key)}>{entry.label} Lv {entry.level}</button>)}
+        <button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: classKey === 'all' ? 'var(--accent-blue)' : 'var(--border)', color: classKey === 'all' ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setClassKey('all')}>All Classes</button>
+        {classEntries.map(entry => <button type="button" key={entry.key} className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: classKey === entry.key ? 'var(--accent-blue)' : 'var(--border)', color: classKey === entry.key ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setClassKey(entry.key)}>{entry.label} Lv {entry.level}</button>)}
       </div>
       {activeClass && (
         <>
           <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
-            Legal spells shown for {activeClass.label}. Max spell level: {activeClass.maxSpellLevel || 'Cantrips only'}.
+            Legal spells shown for {classKey === 'all' ? 'all classes' : activeClass.label}. Max spell level: {classKey === 'all' ? 'per class limits applied' : (activeClass.maxSpellLevel || 'Cantrips only')}.
             {activeClass.mode === 'prepared' || activeClass.mode === 'wizard' ? ` Prepared ${preparedCount}/${activeClass.prepCap || 0}.` : ''}
             {' '}Cantrips are manual and uncapped.
           </div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+            {SPELL_FILTER_PRIMARY.map(item => (
+              <button
+                type="button"
+                key={item.value}
+                className="btn btn-ghost"
+                style={{ fontSize: 11, padding: '2px 8px', borderColor: (filterState.primary || ['all']).includes(item.value) ? 'var(--accent-blue)' : 'var(--border)', color: (filterState.primary || ['all']).includes(item.value) ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
+                onClick={() => setFilterState(current => toggleSpellFilter(current, item.value))}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+            {SPELL_FILTER_LEVELS.map(item => (
+              <button
+                type="button"
+                key={item.value}
+                className="btn btn-ghost"
+                style={{ fontSize: 11, padding: '2px 8px', borderColor: filterState.level === item.value ? 'var(--accent-blue)' : 'var(--border)', color: filterState.level === item.value ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
+                onClick={() => setFilterState(current => toggleSpellFilter(current, item.value))}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
           <div className="panel-title" style={{ marginTop: 0 }}>Cantrips</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
-            {cantrips.map(spell => <SpellRow key={spell.id} spell={spell} row={rowMap[spell.id]} classEntry={activeClass} cantripView onToggleCantrip={toggleCantrip} onLearn={learnSpell} onForget={forgetSpell} onPrepare={prepareSpell} onUnprepare={unprepareSpell} onOpenDetail={setSelectedSpell} />)}
-            {cantrips.length === 0 && <div className="empty-state">No legal cantrips for this class.</div>}
+            {filteredCantrips.map(spell => <SpellRow key={spell.id} spell={spell} row={rowMap[spell.id]} classEntry={activeClass} cantripView onToggleCantrip={toggleCantrip} onLearn={learnSpell} onForget={forgetSpell} onPrepare={prepareSpell} onUnprepare={unprepareSpell} onOpenDetail={setSelectedSpell} />)}
+            {filteredCantrips.length === 0 && <div className="empty-state">No cantrips match current filters.</div>}
           </div>
           <div className="panel-title">Leveled Spells</div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
@@ -361,8 +416,8 @@ export default function PlayerProfileSpellManager({ profile }) {
             {activeClass.mode === 'known' && <><button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: view === 'learned' ? 'var(--accent-blue)' : 'var(--border)', color: view === 'learned' ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setView('learned')}>Learned</button><button type="button" className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px', borderColor: view === 'unlearned' ? 'var(--accent-blue)' : 'var(--border)', color: view === 'unlearned' ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setView('unlearned')}>Unlearned</button></>}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {visibleLeveled.map(spell => <SpellRow key={spell.id} spell={spell} row={rowMap[spell.id]} classEntry={activeClass} onToggleCantrip={toggleCantrip} onLearn={learnSpell} onForget={forgetSpell} onPrepare={prepareSpell} onUnprepare={unprepareSpell} onOpenDetail={setSelectedSpell} />)}
-            {visibleLeveled.length === 0 && <div className="empty-state">No spells in this view.</div>}
+            {filteredVisibleLeveled.map(spell => <SpellRow key={spell.id} spell={spell} row={rowMap[spell.id]} classEntry={activeClass} onToggleCantrip={toggleCantrip} onLearn={learnSpell} onForget={forgetSpell} onPrepare={prepareSpell} onUnprepare={unprepareSpell} onOpenDetail={setSelectedSpell} />)}
+            {filteredVisibleLeveled.length === 0 && <div className="empty-state">No spells match current filters/view.</div>}
           </div>
         </>
       )}

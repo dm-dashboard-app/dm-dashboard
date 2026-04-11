@@ -146,6 +146,19 @@ This phase is explicitly risky and should not be implemented through scattered U
 - if implementation starts later, it must be phased
 - centralize shared rules/modifier logic; do not duplicate it across surfaces
 
+### Future planning track — Subclass-granted spell modeling (architecture)
+
+Current gap to address in a future focused batch:
+
+- some subclasses grant spells outside a class's normal spell list
+- some subclass spells are always prepared and should not consume normal preparation slots
+
+Required future architecture capabilities:
+
+- model subclass-granted off-list spells distinctly from ordinary learned/prepared rows
+- support always-prepared behavior without forcing fragile per-view exceptions
+- preserve current spell-access correctness across runtime/player/DM spell surfaces
+
 ## What A New Chat Should Do First
 
 After reading workflow/docs and checking live repo state:
