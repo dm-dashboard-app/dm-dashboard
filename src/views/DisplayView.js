@@ -207,20 +207,20 @@ export default function DisplayView() {
     if (!session) return;
     const encounterId = session.encounter_id;
 
-    const [enc, comb, states, mode] = await Promise.all([
+    const [enc, comb, states] = await Promise.all([
       supabase.from('encounters').select('*').eq('id', encounterId).maybeSingle(),
       supabase.from('combatants').select('*').eq('encounter_id', encounterId)
         .order('initiative_total', { ascending: false, nullsFirst: false }),
       supabase.from('player_encounter_state')
         .select('*, profiles_players(*), profiles_wildshape(form_name, hp_max)')
         .eq('encounter_id', encounterId),
-      readDisplayMode(encounterId),
     ]);
+    const mode = await readDisplayMode(encounterId, { encounter: enc.data, fallback: displayCombatMode });
     if (enc.data) setEncounter(enc.data);
     setCombatants(comb.data || []);
     setPlayerStates(flattenEncounterStates(states.data));
     setDisplayCombatMode(mode || DISPLAY_MODE_OUT_OF_COMBAT);
-  }, [displayToken]);
+  }, [displayToken, displayCombatMode]);
 
   usePolling(refresh, 2000, !!displayToken && !loading && !error);
   useEffect(() => {
