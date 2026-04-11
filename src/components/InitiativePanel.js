@@ -789,8 +789,8 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
   const isNonPC = isNPC || isEnemy;
   const conditions = combatant.conditions || [];
 
-  const pcHpCurrent   = playerState?.current_hp ?? null;
-  const pcProfileMax  = playerState?.profiles_players?.max_hp ?? null;
+  const pcHpCurrent   = playerState?.current_hp ?? combatant?.hp_current ?? null;
+  const pcProfileMax  = playerState?.profiles_players?.max_hp ?? combatant?.hp_max ?? null;
   const pcMaxOverride = playerState?.max_hp_override ?? null;
   const pcHpMax       = pcMaxOverride !== null ? pcMaxOverride : pcProfileMax;
   const tempHp        = playerState?.temp_hp ?? 0;
@@ -816,6 +816,7 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
   const showPcHp    = isPC && pcHpCurrent !== null && pcHpMax !== null;
   const showNonPcHp = isNonPC && enemyHpCurrent !== null && enemyHpMax !== null
     && (isDM || (isDisplay && isNPC));
+  const showHpSection = showPcHp || showNonPcHp || showWildShapeBar;
 
   const pcBloodied    = isPC && pcHpCurrent !== null && pcHpMax !== null && pcHpCurrent > 0 && pcHpCurrent <= Math.floor(pcHpMax / 2);
   const enemyBloodied = isNonPC && combatant.public_status === 'BLOODIED';
@@ -1119,7 +1120,7 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
         {isDM && isNonPC && <span className="expand-toggle" style={{ marginLeft: 4 }}>{expanded ? '▲' : '▼'}</span>}
       </div>
 
-      {(showPcHp || showNonPcHp) && (
+      {showHpSection && (
         <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
           {showWildShapeBar && (
             <MiniHpBar current={wsHpCurrent} max={wsHpMax} color="var(--accent-green)" label={wsFormName ? `${wsFormName}` : 'Beast Form'} />
