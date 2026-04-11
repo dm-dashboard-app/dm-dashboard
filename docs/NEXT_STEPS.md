@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 10, 2026 (code health follow-up)
+Last updated: April 11, 2026 (security-doc follow-up)
 
 Purpose: This file is the active roadmap only. It should list genuinely open work, intentionally parked work, and clearly labeled future planning ideas that are not active implementation.
 
@@ -41,6 +41,36 @@ Run targeted regression sweeps against current baseline behavior:
 - mixed DM/player/display handoff checks during active sessions
 - refresh/rejoin/reconnect stability checks in longer sessions
 - repeated rest/combat cycle checks for persistence and runtime-state integrity
+
+
+### 2) Supabase security/access-model hardening follow-up (future security debt; not outage)
+
+Already completed in Supabase (first hardening pass):
+
+- enabled RLS on previously flagged public tables
+- added first-pass policies for `app_settings`, `alerts`, `profile_monster_spells`, `profile_player_spells`, and `spells`
+- hardened flagged functions with explicit `search_path`
+- rebuilt `combatants_public` as `security_invoker = true` and read-only (`SELECT` grants only)
+- verified core app behavior still appeared to work after those changes
+
+Intentionally deferred for app-aware follow-up (moderate security/access-model debt):
+
+- table-by-table review/tightening priority order:
+  1. `combatants`
+  2. `player_encounter_state`
+  3. `concentration_checks`
+  4. `profile_player_spells`
+  5. `secret_rolls`
+  6. `combat_log`
+- review whether `alerts`, `app_settings`, `profile_monster_spells`, and `spells` should be narrowed further beyond current first-pass safe policies
+- leaked password protection remains unavailable on current Supabase plan and was therefore not enabled
+
+Deferral reason:
+
+- highest-risk exposure issues were reduced first
+- remaining advisor yellows mostly reflect broad client-write access used by current live gameplay/runtime flows
+- tightening blindly risks breakage; future hardening should be app-path inspected and validated, not a blind SQL sweep
+
 
 ## Intentionally Parked
 

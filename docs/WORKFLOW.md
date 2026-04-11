@@ -578,6 +578,16 @@ That means verifying:
 
 Do not “fix” a rules-sensitive bug by inference if the owning path is visible in the repo.
 
+
+### 4.6 Supabase security-warning triage rule
+
+When Supabase advisor/security warnings appear:
+
+- first separate immediate high-risk exposure fixes from broader access-model tightening
+- do not mass-tighten RLS blindly on live gameplay tables
+- perform app-aware, table-by-table policy hardening with repo code-path inspection and behavior validation
+
+
 ## Recovery and Git Safety Rules
 
 ### 5.1 Recovery mindset
