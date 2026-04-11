@@ -165,6 +165,10 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
   const pcHpMax = pcMaxOverride !== null ? pcMaxOverride : pcProfileMax;
   const pcBonusMaxHp = Math.max(0, (pcHpMax ?? 0) - (pcProfileMax ?? 0));
   const tempHp = playerState?.temp_hp ?? 0;
+  const wsActive = playerState?.wildshape_active ?? false;
+  const wsHpCurrent = playerState?.wildshape_hp_current ?? null;
+  const wsHpMax = playerState?.wildshape_hp_max ?? playerState?.profiles_wildshape?.hp_max ?? null;
+  const wsFormName = playerState?.wildshape_form_name ?? playerState?.profiles_wildshape?.form_name ?? null;
   const concentration = playerState?.concentration ?? combatant?.concentration ?? false;
   const reactionUsed = playerState?.reaction_used ?? false;
   const pcConditions = playerState?.conditions || [];
@@ -177,6 +181,8 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
   const showNpcHp = isNPC && enemyHpCurrent !== null && enemyHpMax !== null;
   const showEnemyHp = isEnemy && enemyHpCurrent !== null && enemyHpMax !== null && isDM;
   const showHpBar = isPC ? showPcHp : isNPC ? (isDM || isDisplay) && showNpcHp : isDM && showEnemyHp;
+  const showWildShapeBar = isPC && wsActive && wsHpCurrent !== null && wsHpMax !== null;
+  const showHpSection = showHpBar || showWildShapeBar;
   const pcBloodied = isPC && pcHpCurrent !== null && pcHpMax !== null && pcHpCurrent > 0 && pcHpCurrent <= Math.floor(pcHpMax / 2);
   const enemyBloodied = isNonPC && combatant.public_status === 'BLOODIED';
   const rxUsed = isPC ? reactionUsed : enemyReactionUsed;
@@ -367,7 +373,19 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
             <FullWidthStatusBar label="Reaction" value={rxUsed ? 'Used' : 'Ready'} active={!rxUsed} onClick={canToggleReaction ? handleToggleReaction : null} accent={rxUsed ? 'var(--accent-red)' : 'var(--accent-green)'} />
             <FullWidthStatusBar label="Concentration" value={concentration ? (concentrationSpellName || 'Concentrating (Unlinked)') : 'Off'} active={!!concentration} onClick={isPC && isDM ? handleTogglePcConcentration : null} accent="var(--accent-gold)" />
           </div>
-          {showHpBar ? <InitiativeHeroHpBar current={isPC ? pcHpCurrent : enemyHpCurrent} max={isPC ? pcHpMax : enemyHpMax} tempHp={isPC ? tempHp : 0} bonusMaxHp={isPC ? pcBonusMaxHp : 0} /> : (isEnemy && !isDM ? <div style={{ display: 'flex', justifyContent: 'flex-start' }}>{enemyBloodied ? <span className="badge badge-bloodied">Bloodied</span> : null}</div> : null)}
+          {showHpSection ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {showHpBar && <InitiativeHeroHpBar current={isPC ? pcHpCurrent : enemyHpCurrent} max={isPC ? pcHpMax : enemyHpMax} tempHp={isPC ? tempHp : 0} bonusMaxHp={isPC ? pcBonusMaxHp : 0} />}
+              {showWildShapeBar && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--accent-green)', textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                    Wild Shape{wsFormName ? ` · ${wsFormName}` : ''}
+                  </div>
+                  <InitiativeHeroHpBar current={wsHpCurrent} max={wsHpMax} />
+                </div>
+              )}
+            </div>
+          ) : (isEnemy && !isDM ? <div style={{ display: 'flex', justifyContent: 'flex-start' }}>{enemyBloodied ? <span className="badge badge-bloodied">Bloodied</span> : null}</div> : null)}
           {conDc !== null && <div className="con-check-banner con-check-banner--dm" style={{ marginTop: 1 }}><span className="con-check-label">CON SAVE</span><span className="con-check-dc">DC {conDc}</span></div>}
           {isDM && showHpBar && <div style={{ marginTop: -1 }}>{isPC ? <InitiativeInlineDmgHeal onDamage={applyPcDamage} onHeal={applyPcHeal} /> : <InitiativeInlineDmgHeal onDamage={applyEnemyDamage} onHeal={applyEnemyHeal} />}</div>}
           {isDM && <div style={{ display: 'grid', gridTemplateColumns: isNonPC ? 'repeat(2, minmax(0, 1fr))' : '1fr', gap: 4 }}><button className="btn btn-ghost initiative-small-action" style={{ width: '100%', minHeight: 20, justifyContent: 'center' }} onClick={e => { e.stopPropagation(); setCondPickerOpen(p => !p); }}>{conditionsLabel}</button>{isNonPC && <button className="btn btn-ghost initiative-small-action" style={{ width: '100%', minHeight: 20, justifyContent: 'center' }} onClick={e => { e.stopPropagation(); setResPicker(p => !p); }}>{resPicker ? 'Hide More' : 'More'}</button>}</div>}
