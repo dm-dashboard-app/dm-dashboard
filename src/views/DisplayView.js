@@ -4,7 +4,7 @@ import usePolling from '../hooks/usePolling';
 import PlayerCard from '../components/PlayerCard';
 import InitiativePanel from '../components/InitiativePanelNext';
 import { flattenEncounterStates } from '../utils/encounterState';
-import { DISPLAY_MODE_IN_COMBAT, DISPLAY_MODE_OUT_OF_COMBAT, readDisplayMode } from '../utils/displayMode';
+import { DISPLAY_MODE_IN_COMBAT, DISPLAY_MODE_OUT_OF_COMBAT, readDisplayModeFromEncounter } from '../utils/displayMode';
 
 function sortCombatants(combatants) {
   return [...combatants].sort((a, b) => {
@@ -215,12 +215,12 @@ export default function DisplayView() {
         .select('*, profiles_players(*), profiles_wildshape(form_name, hp_max)')
         .eq('encounter_id', encounterId),
     ]);
-    const mode = await readDisplayMode(encounterId, { encounter: enc.data, fallback: displayCombatMode });
+    const mode = readDisplayModeFromEncounter(enc.data, { logMissing: true });
     if (enc.data) setEncounter(enc.data);
     setCombatants(comb.data || []);
     setPlayerStates(flattenEncounterStates(states.data));
     setDisplayCombatMode(mode || DISPLAY_MODE_OUT_OF_COMBAT);
-  }, [displayToken, displayCombatMode]);
+  }, [displayToken]);
 
   usePolling(refresh, 2000, !!displayToken && !loading && !error);
   useEffect(() => {
