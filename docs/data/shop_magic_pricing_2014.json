@@ -156,7 +156,7 @@
       "rarity": "Unspecified",
       "shop_bucket": "unpriced",
       "exclude_from_shop": true,
-      "exclusion_reason": "Excluded in source as highly random/economy-breaking.",
+      "exclusion_reason": "Excluded in source as highly random and economy-warping.",
       "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
     },
     {
@@ -176,7 +176,7 @@
       "rarity": "Unspecified",
       "shop_bucket": "unpriced",
       "exclude_from_shop": true,
-      "exclusion_reason": "Excluded in source due economy-breaking permanent-creature implications.",
+      "exclusion_reason": "Excluded in source due to economy-warping permanent-creature implications.",
       "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
     },
     {
@@ -576,7 +576,7 @@
       "rarity": "Unspecified",
       "shop_bucket": "unpriced",
       "exclude_from_shop": true,
-      "exclusion_reason": "Excluded in source as high-chaos/lolrandom item.",
+      "exclusion_reason": "Excluded in source as a high-chaos random-effect item.",
       "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
     },
     {
@@ -1410,7 +1410,7 @@
       "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
     },
     {
-      "name": "Manuals and tomes +2",
+      "name": "Manuals and Tomes +2",
       "normalized_name": "manuals-and-tomes-plus-2",
       "suggested_price_gp": null,
       "rarity": "Unspecified",
@@ -2176,7 +2176,7 @@
       "rarity": "Unspecified",
       "shop_bucket": "unpriced",
       "exclude_from_shop": true,
-      "exclusion_reason": "Excluded in source as too gamechanging for normal sale.",
+      "exclusion_reason": "Excluded in source as too game-changing for normal sale.",
       "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
     },
     {
@@ -2486,7 +2486,7 @@
       "rarity": "Unspecified",
       "shop_bucket": "unpriced",
       "exclude_from_shop": true,
-      "exclusion_reason": "Excluded in source as plot-device level item.",
+      "exclusion_reason": "Excluded in source as a plot-device-level item.",
       "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
     },
     {
@@ -3036,7 +3036,7 @@
       "rarity": "Unspecified",
       "shop_bucket": "unpriced",
       "exclude_from_shop": true,
-      "exclusion_reason": "Excluded in source as unrealistic for normal wizard sale.",
+      "exclusion_reason": "Excluded in source as unlikely to be sold by a wizard.",
       "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
     },
     {
