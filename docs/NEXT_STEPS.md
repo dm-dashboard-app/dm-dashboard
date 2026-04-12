@@ -206,3 +206,348 @@ This roadmap is healthy when a new chat can quickly see:
 - what is intentionally parked
 - what is future planning only (including phased inventory/abilities planning)
 - what should not be reopened without verified regressions on current `main`
+
+### Future planning track — DM World tab shop inventory generator + durable magic pricing overlay (2014-only, planning/data-prep only)
+
+Status: planning/data-prep only in this batch. This is **not active implementation** and is intended as a strong post-session feature candidate after current live-play commitments.
+
+#### 1) Product framing
+
+- DM-only utility for worldbuilding and session operations; not player-facing commerce in v1.
+- Separate from player inventory/equipment implementation for now.
+- Intended to generate usable shop stock quickly during prep or live play.
+- Architected as a reusable foundation for future inventory/equipment/world systems.
+- Current batch scope here is documentation + durable data artifact creation only.
+- This plan should be treated as a candidate post-session implementation batch once live table timing allows.
+
+#### 2) Placement / navigation plan
+
+- Current live repo baseline does **not** yet include a World tab in the DM shell.
+- This feature would add a genuinely new DM-side tab/surface.
+- Recommended placement: future main DM tabs → **World**.
+- Inside World, initial sub-surface can be **Shops**.
+- Preserve strict DM/player/display role separation.
+- Any future World tab remains DM-only unless explicitly expanded later.
+
+#### 3) V1 feature scope
+
+V1 should include:
+
+- Generate a shop from `shop_type + affluence_tier` input.
+- Auto-generate stock rows with explicit quantity.
+- Show: item name, quantity, listed price, minimum barter price, barter DC.
+- Item rows are tap/clickable to open details/descriptions.
+- Save generated shops for reuse.
+- Allow regenerate/re-roll behavior for stock generation.
+- Support lower stock counts for magic-focused shops.
+- Support shop records without requiring shopkeeper identity or flavor fields.
+
+V1 intentionally out of scope:
+
+- Player-facing buying UI.
+- Purchase transaction resolution.
+- Automatic gold deduction.
+- Inventory assignment/equipment effects.
+- City-level business simulation.
+- Shop owner/NPC generation.
+- Non-DM access.
+- 2024 rules support.
+
+#### 4) Data model plan (planning targets; separation requirement is non-negotiable)
+
+Planning note: field names may refine during implementation, but item-master separation from shops is mandatory.
+
+**A. Reusable item master entity** (durable shared catalog)
+
+Recommended planning fields:
+
+- `id`
+- `name`
+- `slug`
+- `item_type`
+- `category`
+- `subcategory`
+- `rarity`
+- `requires_attunement`
+- `description`
+- `rules_text_json` (or equivalent structured details)
+- `base_price_gp`
+- `suggested_price_gp`
+- `price_source`
+- `source_type`
+- `source_book`
+- `source_slug`
+- `rules_era`
+- `is_shop_eligible`
+- `shop_bucket`
+- `metadata_json` (or equivalent extensible structured fields)
+
+**B. Shop entity** (saved shop record independent of stock rows)
+
+Recommended planning fields:
+
+- `id`
+- `shop_type`
+- `affluence_tier`
+- `district_label` or `district_type` (future)
+- `saved_name` (nullable/optional)
+- `generation_seed`
+- `locked` (boolean)
+- `generated_at`
+- `updated_at`
+- `notes` (optional)
+- nullable future city-linkage field for expansion
+
+**C. Shop inventory join entity** (generated stock rows)
+
+Recommended planning fields:
+
+- `id`
+- `shop_id`
+- `item_id`
+- `quantity`
+- `listed_price_gp`
+- `minimum_price_gp`
+- `barter_dc`
+- `is_featured` (optional)
+- `stock_notes` (optional)
+- `sort_order` (optional)
+
+**D. Import/source metadata expectations**
+
+Every imported item should carry:
+
+- explicit 2014-era marker for strict filtering
+- source-family marker (e.g., SRD / custom seed / homebrew / licensed)
+- stable slug or equivalent dedupe key
+- rerunnable-import compatibility
+
+Critical architecture decision (must be preserved):
+
+- Items are a standalone reusable entity.
+- Shops reference items through generated join rows.
+- Do **not** embed item definitions directly inside shop records.
+- This is the required future-proofing path for later inventory/equipment/world reuse.
+
+#### 5) Import strategy plan (detailed)
+
+Target import architecture: controlled, rerunnable admin/import flow (similar in spirit to spell import), not live scraping at generation time.
+
+Future one-action paths can include:
+
+- Codex-run controlled import for setup/curation, then
+- single in-app admin button for repeatable import/refresh.
+
+Underlying behavior requirements:
+
+- normalize external/source data into app-owned item tables
+- safe upsert by stable identity keys
+- rerunnable with no duplicate catalog spam
+- preserve manual/custom curated items
+
+**Lane A — 2014 SRD / Basic Rules compatible baseline import**
+
+- baseline for mundane items and SRD-safe content
+- intended to provide item names, descriptions/details, categories, and prices where available
+- must be filtered strictly to 2014-compatible sources
+- must not mix in 2024/alternate rulesets
+
+**Lane B — magical item pricing overlay**
+
+- Source PDF (`docs/Sane_Magical_Prices.pdf`) is planning/input source only.
+- Durable overlay artifact is now `docs/data/shop_magic_pricing_2014.json`.
+- Future system must use JSON overlay artifact, **not** direct PDF dependency.
+- PDF should be treated as one-time curation source/archive reference.
+- Overlay should populate/override suggested magic pricing by normalized-name match.
+- Overlay can also provide practical shop-bucket grouping support.
+- Source explicitly frames prices as a relative-economy tool, not absolute law.
+- Items marked excluded/unpriced should default to non-shop stock or manual curation.
+- Overlay remains implementation-time curated/tunable.
+
+**Lane C — custom/homebrew/private seed import**
+
+- controlled import lane for non-SRD/homebrew/private item content
+- automated through same controlled import flow (not forced one-by-one runtime entry)
+- explicit source markers required
+- inclusion in generation pools only when marked shop-eligible
+- do not assume blanket bulk import rights for all non-SRD official text
+- private/custom seed is the safe default beyond SRD baseline absent explicit licensing
+
+Recommended combined design:
+
+- SRD/base content for item definitions
+- `docs/data/shop_magic_pricing_2014.json` for magic-price overlay
+- custom/private seed for non-SRD/homebrew additions
+
+Legal/practical guardrail:
+
+- do not assume all non-SRD 2014 official text can be mass imported as reusable app content
+- keep implementation grounded in SRD-compatible sources plus custom/private seed lanes
+- avoid dependence on questionable mass scraping
+
+#### 6) 2014-only rules policy
+
+- Feature policy is 2014 rules only.
+- Imported items must carry `rules_era` (or equivalent marker).
+- Generation must filter strictly to 2014-compatible records.
+- Do not mix 2024 items, alternate systems, or A5E-like sources.
+- Import pipelines must explicitly allowlist source sets; never assume public APIs are safe by default.
+
+#### 7) Pricing strategy plan
+
+Core pricing behavior:
+
+- mundane items generally use imported base prices where available
+- magical items use curated suggested-price layer
+- current planning basis for magic layer: `docs/data/shop_magic_pricing_2014.json`
+- listed price, minimum barter price, and barter DC are distinct generated outputs
+- affluence + shop type influence listed price and bargaining difficulty
+- magic shops should have smaller curated stock and stricter pricing behavior than mundane shops
+- do not assume official 2014 material provides one universal magic-shop price table
+
+Planned stored price fields:
+
+- `base_price_gp` = source/default value
+- `suggested_price_gp` = catalog recommendation (especially magic)
+- `listed_price_gp` = generated offered shop price
+- `minimum_price_gp` = negotiation floor
+- `barter_dc` = negotiation difficulty target
+
+#### 8) Generation logic plan
+
+Generation should use weighted pools, not flat random draws.
+
+Weighting inputs:
+
+- shop type
+- affluence tier
+- magic eligibility
+- rarity/category
+- shop bucket
+- optional district flavor (future)
+
+Recommended behavior by type:
+
+- blacksmith → weapons/armor/shields/metal tools/ammo/repair-adjacent goods
+- general store → mundane adventuring gear/travel utility/common consumables
+- apothecary/alchemy → consumables + specialty utility
+- magic shop → eligible magic pool, fewer rows, higher/stricter pricing
+- poor/modest → cheaper/common stock bias
+- wealthy → higher-value/broader high-rarity availability
+
+Planning stock-count guidelines:
+
+- general store: ~18–24
+- blacksmith: ~12–18
+- apothecary/specialty: ~10–16
+- magic shop: ~6–10
+- user-facing normal target remains “about 20” for non-magic shops
+
+Additional generation controls:
+
+- duplicate handling should be deliberate
+- quantity is explicitly generated per row
+- rare/gamechanging entries should be controlled/excluded by default
+- certain items should be marked non-shop/manual-approval only
+
+#### 9) UI/UX planning section (DM-only)
+
+Recommended future World → Shops structure:
+
+- top control row: shop type, affluence tier, generate
+- save/regenerate controls
+- generated stock list below
+
+Per stock row display:
+
+- item name
+- quantity
+- listed price
+- minimum barter price
+- barter DC
+- tap/click opens details
+
+Item detail panel/modal:
+
+- description/details
+- type/category
+- rarity (if relevant)
+- source marker (helpful for curation)
+- optional base/suggested price visibility for DM decision support
+
+V1 UX priorities:
+
+- fast scan and in-session speed
+- compact mobile-first presentation
+- no low-value fluff fields
+- no overbuilt merchant simulation
+
+Design constraint:
+
+- respect dense-information principle from current repo UX
+- do not hide critical stock/pricing data behind avoidable extra clicks
+- preserve mobile-first practicality
+
+#### 10) Phased implementation plan
+
+**Phase 1 — Foundation**
+
+- add reusable item master schema/entity
+- add controlled 2014 SRD/basic-rules-compatible import lane
+- add source/rules metadata fields
+- ensure rerunnable + deduped import behavior
+- no shop UI required in this phase if split is safer
+
+**Phase 2 — DM-only shop generator**
+
+- add World tab DM-only surface
+- add shop type + affluence controls
+- implement weighted stock generation
+- save generated shops
+- show quantity/listed/minimum/barter DC
+- include item detail view
+- keep strictly DM-only
+
+**Phase 3 — Magic overlay + curation**
+
+- consume `docs/data/shop_magic_pricing_2014.json`
+- classify excluded/special items for safe generation behavior
+- tune magic shop generation weights/eligibility
+- curate rarity and availability behavior
+
+**Phase 4 — Custom/homebrew/private import lane**
+
+- add controlled custom seed/homebrew import
+- include eligible custom items in generation pools
+- preserve source markers + dedupe semantics
+
+**Phase 5 — Expansion hooks (later)**
+
+- city-shop linkage
+- persistent world/city shop records
+- inventory/equipment reuse of shared item catalog
+- optional restock/regeneration policy layer
+- optional transaction integration much later
+
+#### 11) Explicit future linkage section
+
+- City shop lists should later point to saved shop records.
+- City entries can store type + affluence and generate inventory from those attributes.
+- Saved generated stock should remain reusable independent records.
+- Future inventory/equipment systems should read the same shared item master catalog.
+- Do not build a one-off shop-only item model that must be replaced later.
+
+#### 12) Constraints / risk notes
+
+- Do not implement before current live session commitments complete.
+- This batch is docs/planning/data-prep only.
+- Do not risk runtime stability before the session window.
+- Imports should be controlled + rerunnable; do not live-scrape during gameplay.
+- Avoid legal/data-quality assumptions around non-SRD bulk text ingestion.
+- Do not widen first implementation into full inventory/equipment automation.
+- Preserve DM/player/display role separation.
+- Keep 2014-only filtering explicit across import and generation.
+
+#### 13) Planning recommendation / priority statement
+
+This is a strong next-feature candidate **after** live-play timing allows: it is high-utility for DM operations, creates reusable architecture value, should be implemented items-first then shops-second, and remains planning-only until explicitly scheduled as active implementation.
