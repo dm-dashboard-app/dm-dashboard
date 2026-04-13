@@ -60,6 +60,18 @@ export default function WorldShopsPanel() {
 
   const selectedShop = useMemo(() => savedShops.find(shop => shop.id === selectedShopId) || null, [savedShops, selectedShopId]);
 
+
+  function buildRpcRows(rows = []) {
+    return rows.map((row, index) => ({
+      item_id: row.item_id,
+      quantity: Number(row.quantity || 1),
+      listed_price_gp: Number(row.listed_price_gp || 0),
+      minimum_price_gp: Number(row.minimum_price_gp || 0),
+      barter_dc: Number(row.barter_dc || 0),
+      sort_order: index,
+    }));
+  }
+
   const loadCatalog = useCallback(async () => {
     const { data, error: loadError } = await supabase
       .from('item_master')
@@ -72,32 +84,25 @@ export default function WorldShopsPanel() {
   }, []);
 
   const loadSavedShops = useCallback(async () => {
-    const { data, error: loadError } = await supabase
-      .from('dm_shops')
-      .select('id, shop_type, affluence_tier, generation_seed, created_at, updated_at')
-      .order('updated_at', { ascending: false });
+    const { data, error: loadError } = await supabase.rpc('dm_list_shops');
     if (loadError) throw loadError;
     setSavedShops(data || []);
   }, []);
 
   const loadShopInventory = useCallback(async shopId => {
-    const { data, error: loadError } = await supabase
-      .from('dm_shop_inventory')
-      .select('id, item_id, quantity, listed_price_gp, minimum_price_gp, barter_dc, sort_order, item_master(name, item_type, category, rarity, description, source_type, source_book)')
-      .eq('shop_id', shopId)
-      .order('sort_order', { ascending: true });
+    const { data, error: loadError } = await supabase.rpc('dm_get_shop_inventory', { p_shop_id: shopId });
     if (loadError) throw loadError;
 
     const normalized = (data || []).map(row => ({
       id: row.id,
       item_id: row.item_id,
-      item_name: row.item_master?.name,
-      item_type: row.item_master?.item_type,
-      category: row.item_master?.category,
-      rarity: row.item_master?.rarity,
-      description: row.item_master?.description,
-      source_type: row.item_master?.source_type,
-      source_book: row.item_master?.source_book,
+      item_name: row.item_name,
+      item_type: row.item_type,
+      category: row.category,
+      rarity: row.rarity,
+      description: row.description,
+      source_type: row.source_type,
+      source_book: row.source_book,
       quantity: row.quantity,
       listed_price_gp: row.listed_price_gp,
       minimum_price_gp: row.minimum_price_gp,
@@ -143,33 +148,18 @@ export default function WorldShopsPanel() {
 
     try {
       const generationSeed = crypto.randomUUID();
-      const { data: shop, error: shopError } = await supabase
-        .from('dm_shops')
-        .insert({
-          shop_type: shopType,
-          affluence_tier: affluenceTier,
-          generation_seed: generationSeed,
-        })
-        .select('id')
-        .single();
+      const payload = buildRpcRows(generatedRows);
+      const { data: shopId, error: saveError } = await supabase.rpc('dm_save_shop', {
+        p_shop_type: shopType,
+        p_affluence_tier: affluenceTier,
+        p_generation_seed: generationSeed,
+        p_rows: payload,
+      });
 
-      if (shopError) throw shopError;
-
-      const payload = generatedRows.map((row, index) => ({
-        shop_id: shop.id,
-        item_id: row.item_id,
-        quantity: row.quantity,
-        listed_price_gp: row.listed_price_gp,
-        minimum_price_gp: row.minimum_price_gp,
-        barter_dc: row.barter_dc,
-        sort_order: index,
-      }));
-
-      const { error: rowsError } = await supabase.from('dm_shop_inventory').insert(payload);
-      if (rowsError) throw rowsError;
+      if (saveError) throw saveError;
 
       await loadSavedShops();
-      setSelectedShopId(shop.id);
+      setSelectedShopId(shopId);
     } catch (saveError) {
       setError(saveError.message || 'Failed to save shop.');
     } finally {
@@ -201,30 +191,16 @@ export default function WorldShopsPanel() {
     try {
       setSaving(true);
       const generationSeed = crypto.randomUUID();
-      await supabase.from('dm_shop_inventory').delete().eq('shop_id', selectedShopId);
-      const payload = rows.map((row, index) => ({
-        shop_id: selectedShopId,
-        item_id: row.item_id,
-        quantity: row.quantity,
-        listed_price_gp: row.listed_price_gp,
-        minimum_price_gp: row.minimum_price_gp,
-        barter_dc: row.barter_dc,
-        sort_order: index,
-      }));
-      const { error: insertError } = await supabase.from('dm_shop_inventory').insert(payload);
-      if (insertError) throw insertError;
+      const payload = buildRpcRows(rows);
+      const { error: replaceError } = await supabase.rpc('dm_replace_shop_inventory', {
+        p_shop_id: selectedShopId,
+        p_shop_type: shopType,
+        p_affluence_tier: affluenceTier,
+        p_generation_seed: generationSeed,
+        p_rows: payload,
+      });
+      if (replaceError) throw replaceError;
 
-      const { error: updateError } = await supabase
-        .from('dm_shops')
-        .update({
-          shop_type: shopType,
-          affluence_tier: affluenceTier,
-          generation_seed: generationSeed,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', selectedShopId);
-
-      if (updateError) throw updateError;
       await loadSavedShops();
     } catch (saveError) {
       setError(saveError.message || 'Failed to regenerate shop.');

@@ -173,6 +173,7 @@ Landed baseline includes:
 - shop type + affluence controls for fast generation
 - weighted stock generation using Stage 1 `item_master` catalog records
 - saved shop entity + generated inventory rows that reference `item_master` (no item embedding)
+- server-mediated RPC persistence for saved shops/inventory rows (no broad client table RW)
 - generated row pricing outputs (quantity, listed price, minimum barter price, barter DC)
 - compact item detail modal for in-session adjudication
 

@@ -506,6 +506,7 @@ Design constraint:
 - ✅ added shop type + affluence controls
 - ✅ implemented weighted stock generation from `item_master`
 - ✅ added save and regenerate flows for durable shops
+- ✅ tightened DM-only persistence posture to server-mediated writes (RPC) for DM-only persistence tables
 - ✅ added quantity/listed/minimum/barter DC rows
 - ✅ added compact item detail modal
 - ✅ kept implementation DM-only (no player/display shop surface)
