@@ -1,6 +1,6 @@
 # DM Dashboard — Project Brief
 
-Last updated: April 11, 2026 (security-doc follow-up)
+Last updated: April 13, 2026 (Stage 1 item foundation baseline)
 
 Purpose: This document is the current-state/background brief for DM Dashboard. It describes what the app now is, what is materially landed, and what principles future work must preserve.
 
@@ -148,6 +148,21 @@ Preservation rule:
 
 - treat remaining advisor yellows as intentionally deferred access-model hardening work and tighten table-by-table with app-path validation (not blind policy sweeps)
 
+
+
+### 10) Item-master foundation baseline (Stage 1)
+
+Landed baseline includes:
+
+- standalone reusable `item_master` entity design (not embedded in shops)
+- controlled 2014-only import lane for SRD equipment + magic-item catalog seeding
+- rerunnable deduped upsert semantics keyed by stable external identity
+- durable magic-price overlay wiring from `docs/data/shop_magic_pricing_2014.json`
+- source/rules metadata markers to preserve future 2014-safe filtering
+
+Preservation rule:
+
+- keep item catalog reusable across future shops and inventory/equipment work; do not collapse item definitions into shop rows
 
 ## Architectural / Product Principles for Future Work
 
