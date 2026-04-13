@@ -262,6 +262,36 @@ function hasRepairShape(overlay = {}) {
   return !!itemType && !!category && !!subcategory && price !== null;
 }
 
+function isExplicitExclusion(overlay = {}) {
+  return String(overlay.resolution_state || '').trim() === 'excluded_on_purpose';
+}
+
+function applyDegradedExclusionOverlay(row = {}, overlay = {}) {
+  const metadata = row.metadata_json || {};
+  return {
+    ...row,
+    item_type: String(overlay.item_type || row.item_type || 'magic_item').trim(),
+    category: String(overlay.category || row.category || 'magic').trim(),
+    subcategory: String(overlay.subcategory || row.subcategory || 'standard').trim(),
+    base_price_gp: toNumericOrNull(overlay.base_price_gp),
+    suggested_price_gp: toNumericOrNull(overlay.suggested_price_gp),
+    price_source: REPAIR_SOURCE,
+    shop_bucket: String(overlay.shop_bucket || 'excluded').trim(),
+    is_shop_eligible: false,
+    metadata_json: {
+      ...metadata,
+      degraded_import: false,
+      import_quality: 'excluded_on_purpose',
+      repaired_from_overlay: true,
+      repaired_overlay_source: REPAIR_SOURCE,
+      repaired_at: new Date().toISOString(),
+      repaired_reason: String(overlay.repair_reason || 'overlay_curated_exclusion').trim(),
+      degraded_reason: null,
+      exclusion_reason: String(overlay.excluded_reason || 'no_curated_supported_shop_policy').trim(),
+    },
+  };
+}
+
 function applyDegradedRepairOverlay(row = {}, overlay = {}) {
   const repairedBasePrice = toNumericOrNull(overlay.base_price_gp);
   const repairedSuggestedPrice = toNumericOrNull(overlay.suggested_price_gp);
@@ -356,6 +386,11 @@ export async function buildSrdRepairRows(existingRows = []) {
         source_slug: sourceSlug,
         reason: 'overlay_not_found',
       });
+      return;
+    }
+
+    if (isExplicitExclusion(overlay)) {
+      repairedRows.push(applyDegradedExclusionOverlay(row, overlay));
       return;
     }
 

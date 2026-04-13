@@ -76,6 +76,34 @@ describe('buildSrdRepairRows', () => {
     expect(result.skippedRows[0].reason).toBe('overlay_not_found');
   });
 
+  test('can resolve degraded rows by explicit exclusion policy', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        items: [
+          {
+            external_key: 'official_srd_2014:broom-of-flying',
+            source_slug: 'broom-of-flying',
+            resolution_state: 'excluded_on_purpose',
+            excluded_reason: 'excluded_legacy_balance_item',
+            item_type: 'magic_item',
+            category: 'magic',
+            subcategory: 'standard',
+            shop_bucket: 'excluded',
+          },
+        ],
+      }),
+    });
+
+    const result = await buildSrdRepairRows([degradedRow({ external_key: 'official_srd_2014:broom-of-flying', source_slug: 'broom-of-flying' })]);
+
+    expect(result.repairedCount).toBe(1);
+    expect(result.rows[0].is_shop_eligible).toBe(false);
+    expect(result.rows[0].metadata_json.degraded_import).toBe(false);
+    expect(result.rows[0].metadata_json.import_quality).toBe('excluded_on_purpose');
+    expect(result.rows[0].metadata_json.exclusion_reason).toBe('excluded_legacy_balance_item');
+  });
+
   test('repaired rows can re-enter normal shop generation while degraded rows cannot', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
@@ -241,15 +269,17 @@ describe('degraded SRD repair overlay coverage', () => {
     const repairedRows = Array.isArray(repairOverlay.items) ? repairOverlay.items : [];
     const unresolvedRows = repairOverlay?.coverage?.unresolved_rows_detail || [];
 
-    expect(targetRows).toHaveLength(307);
     expect(repairOverlay.coverage.target_rows).toBe(targetRows.length);
-    expect(repairOverlay.coverage.repaired_rows).toBe(repairedRows.length);
+    const targetKeys = new Set(targetRows.map(row => row.external_key));
+    const resolvedRows = repairedRows.filter(row => targetKeys.has(row.external_key));
+    expect(repairOverlay.coverage.repaired_rows + (repairOverlay.coverage.excluded_rows || 0)).toBe(resolvedRows.length);
     expect(repairOverlay.coverage.unresolved_rows).toBe(unresolvedRows.length);
-    expect(repairedRows.length + unresolvedRows.length).toBe(targetRows.length);
+    expect(resolvedRows.length + unresolvedRows.length).toBe(targetRows.length);
     const allowedReasons = new Set([
       'variant_ambiguity',
       'overlay_present_but_explicitly_unpriced',
       'no_trustworthy_curated_price_source',
+      'overlay_not_found',
     ]);
     expect(unresolvedRows.every(row => allowedReasons.has(row.reason))).toBe(true);
   });

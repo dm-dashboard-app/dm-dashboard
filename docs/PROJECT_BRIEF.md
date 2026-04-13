@@ -220,7 +220,7 @@ Landed baseline includes:
 - degraded rows remain quarantined and excluded from shop generation by default
 - SRD refresh now auto-reports the live degraded/quarantined SRD row set from current `item_master` rows immediately after import (no separate report-generation button)
 - Manage → Imports now exposes that same live degraded/quarantined SRD row set directly as a readable row list with copy/export JSON actions for repair workflows
-- degraded repair coverage is now audited against `docs/degraded-srd-item-master-rows.json` in one batch (307 target rows): 287 rows have trustworthy repair overlay coverage and 20 remain explicitly quarantined with precise unresolved reasons (`variant_ambiguity`, `overlay_present_but_explicitly_unpriced`, `no_trustworthy_curated_price_source`)
+- degraded repair coverage now includes explicit per-item outcomes for the remaining target set in `docs/degraded-srd-item-master-rows.json` (78 rows): 51 rows repaired to trustworthy catalog shape and 27 rows marked `excluded_on_purpose` with explicit reasons (0 unresolved rows in that remaining target set)
 
 Preservation rule:
 
