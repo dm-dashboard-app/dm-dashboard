@@ -129,6 +129,35 @@ Therefore:
 - For live bugs or rules-sensitive behavior, trace the real owning code path rather than fixing by surface inference.
 - Provide SQL separately when SQL is required.
 
+### SQL rollout surfacing rule (hard operational gate)
+
+If a batch introduces or changes any required database-side object or behavior, including:
+
+- SQL migration
+- table
+- column
+- policy
+- grant
+- function
+- RPC
+- trigger
+- view
+- any server-side database object
+
+then the operator-facing handoff/review response must include all of the following:
+
+1. an explicit statement that SQL rollout is required
+2. the exact SQL file path(s)
+3. and, when the operator is working through browser/Supabase instead of local dev, either:
+   - the direct SQL block, or
+   - a clearly labeled direct Supabase apply step
+
+Operational clarifications:
+
+- “SQL exists in the repo” is not enough.
+- DB-dependent batches are not operationally complete until this SQL requirement is surfaced plainly to the operator.
+- This repo is browser/mobile/iPhone oriented; do not leave the operator hunting for required SQL after merge.
+
 ## DM Dashboard-specific preservation rules
 
 Always preserve:
