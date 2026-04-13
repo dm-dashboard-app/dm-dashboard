@@ -1,0 +1,85 @@
+{
+  "version": "2026-04-13",
+  "source": "Curated SRD degraded-row repair overlay",
+  "notes": "Only include rows that have trustworthy classification and pricing so quarantine can be lifted safely.",
+  "items": [
+    {
+      "external_key": "official_srd_2014:galley",
+      "source_slug": "galley",
+      "name": "Galley",
+      "item_type": "vehicle",
+      "category": "Mounts and Vehicles",
+      "subcategory": "Waterborne Vehicles",
+      "description": "A large sailing vessel with oars and a crew requirement for effective travel and naval movement.",
+      "base_price_gp": 30000,
+      "suggested_price_gp": 30000,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_vehicle_price_and_category"
+    },
+    {
+      "external_key": "official_srd_2014:keelboat",
+      "source_slug": "keelboat",
+      "name": "Keelboat",
+      "item_type": "vehicle",
+      "category": "Mounts and Vehicles",
+      "subcategory": "Waterborne Vehicles",
+      "description": "A medium sailing vessel suitable for rivers and coastal waters.",
+      "base_price_gp": 3000,
+      "suggested_price_gp": 3000,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_vehicle_price_and_category"
+    },
+    {
+      "external_key": "official_srd_2014:longship",
+      "source_slug": "longship",
+      "name": "Longship",
+      "item_type": "vehicle",
+      "category": "Mounts and Vehicles",
+      "subcategory": "Waterborne Vehicles",
+      "description": "A long, narrow seafaring vessel propelled by sail and oars.",
+      "base_price_gp": 10000,
+      "suggested_price_gp": 10000,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_vehicle_price_and_category"
+    },
+    {
+      "external_key": "official_srd_2014:rowboat",
+      "source_slug": "rowboat",
+      "name": "Rowboat",
+      "item_type": "vehicle",
+      "category": "Mounts and Vehicles",
+      "subcategory": "Waterborne Vehicles",
+      "description": "A small, open boat propelled with oars for short-distance travel.",
+      "base_price_gp": 50,
+      "suggested_price_gp": 50,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_vehicle_price_and_category"
+    },
+    {
+      "external_key": "official_srd_2014:sailing-ship",
+      "source_slug": "sailing-ship",
+      "name": "Sailing Ship",
+      "item_type": "vehicle",
+      "category": "Mounts and Vehicles",
+      "subcategory": "Waterborne Vehicles",
+      "description": "A large seagoing vessel powered primarily by sail.",
+      "base_price_gp": 10000,
+      "suggested_price_gp": 10000,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_vehicle_price_and_category"
+    },
+    {
+      "external_key": "official_srd_2014:warship",
+      "source_slug": "warship",
+      "name": "Warship",
+      "item_type": "vehicle",
+      "category": "Mounts and Vehicles",
+      "subcategory": "Waterborne Vehicles",
+      "description": "A heavily built sailing war vessel with significant crew requirements.",
+      "base_price_gp": 25000,
+      "suggested_price_gp": 25000,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_vehicle_price_and_category"
+    }
+  ]
+}

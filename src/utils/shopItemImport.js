@@ -3,6 +3,7 @@ const IMPORT_SOURCE_TYPE = 'official_srd_2014';
 const IMPORT_SOURCE_BOOK = 'SRD 5.1 (2014)';
 const RULES_ERA = '2014';
 const PRICING_SOURCE = 'shop_magic_pricing_2014_overlay';
+const REPAIR_SOURCE = 'shop_srd_degraded_repairs_2014_overlay';
 
 function slugify(value = '') {
   return String(value || '')
@@ -226,6 +227,75 @@ async function loadPricingOverlay() {
   return map;
 }
 
+async function loadSrdRepairOverlay() {
+  const response = await fetch('/data/shop_srd_degraded_repairs_2014.json');
+  if (!response.ok) throw new Error('Failed to load degraded SRD repair overlay JSON.');
+  const parsed = await response.json();
+  const items = Array.isArray(parsed?.items) ? parsed.items : [];
+  const map = new Map();
+  for (const item of items) {
+    const externalKey = String(item.external_key || '').trim();
+    const sourceSlug = String(item.source_slug || '').trim();
+    if (externalKey) map.set(externalKey, item);
+    if (sourceSlug) map.set(`${IMPORT_SOURCE_TYPE}:${sourceSlug}`, item);
+  }
+  return map;
+}
+
+function repairDescription(currentDescription = '', overlayDescription = '') {
+  const overlay = String(overlayDescription || '').trim();
+  if (overlay) return overlay;
+  return String(currentDescription || '').trim();
+}
+
+function toNumericOrNull(value) {
+  if (value === null || value === undefined || value === '') return null;
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
+function hasRepairShape(overlay = {}) {
+  const itemType = String(overlay.item_type || '').trim();
+  const category = String(overlay.category || '').trim();
+  const subcategory = String(overlay.subcategory || '').trim();
+  const price = toNumericOrNull(overlay.base_price_gp ?? overlay.suggested_price_gp);
+  return !!itemType && !!category && !!subcategory && price !== null;
+}
+
+function applyDegradedRepairOverlay(row = {}, overlay = {}) {
+  const repairedBasePrice = toNumericOrNull(overlay.base_price_gp);
+  const repairedSuggestedPrice = toNumericOrNull(overlay.suggested_price_gp);
+  const resolvedBasePrice = repairedBasePrice ?? toNumericOrNull(row.base_price_gp);
+  const resolvedSuggestedPrice = repairedSuggestedPrice ?? repairedBasePrice ?? toNumericOrNull(row.suggested_price_gp) ?? resolvedBasePrice;
+  const repairedDescription = repairDescription(row.description, overlay.description);
+  const metadata = row.metadata_json || {};
+
+  const repaired = {
+    ...row,
+    item_type: String(overlay.item_type || row.item_type || '').trim(),
+    category: String(overlay.category || row.category || '').trim(),
+    subcategory: String(overlay.subcategory || row.subcategory || '').trim(),
+    description: repairedDescription,
+    base_price_gp: resolvedBasePrice,
+    suggested_price_gp: resolvedSuggestedPrice,
+    price_source: REPAIR_SOURCE,
+    shop_bucket: String(overlay.shop_bucket || 'mundane').trim(),
+    is_shop_eligible: true,
+    metadata_json: {
+      ...metadata,
+      degraded_import: false,
+      import_quality: 'repaired_overlay_verified',
+      repaired_from_overlay: true,
+      repaired_overlay_source: REPAIR_SOURCE,
+      repaired_at: new Date().toISOString(),
+      repaired_reason: String(overlay.repair_reason || 'overlay_curated_repair').trim(),
+      degraded_reason: null,
+    },
+  };
+
+  return repaired;
+}
+
 export async function buildSrdImportRows(onProgress = null) {
   const overlayByName = await loadPricingOverlay();
   const [equipmentResult, magicResult] = await Promise.all([
@@ -257,4 +327,55 @@ export async function loadCustomSeedRows() {
   const parsed = await response.json();
   const items = Array.isArray(parsed?.items) ? parsed.items : [];
   return items;
+}
+
+export async function loadSrdDegradedReportRows() {
+  const response = await fetch('/data/shop_srd_degraded_report_2014.json');
+  if (!response.ok) throw new Error('Failed to load degraded SRD report JSON.');
+  const parsed = await response.json();
+  const rows = Array.isArray(parsed?.items) ? parsed.items : [];
+  return {
+    rows,
+    generatedAt: parsed?.generated_at || null,
+  };
+}
+
+export async function buildSrdRepairRows(existingRows = []) {
+  const overlayMap = await loadSrdRepairOverlay();
+  const degradedRows = (existingRows || []).filter(row => row?.metadata_json?.degraded_import === true);
+  const repairedRows = [];
+  const skippedRows = [];
+
+  degradedRows.forEach(row => {
+    const externalKey = String(row.external_key || '').trim();
+    const sourceSlug = String(row.source_slug || '').trim();
+    const overlay = overlayMap.get(externalKey) || overlayMap.get(`${IMPORT_SOURCE_TYPE}:${sourceSlug}`) || null;
+    if (!overlay) {
+      skippedRows.push({
+        external_key: externalKey,
+        source_slug: sourceSlug,
+        reason: 'overlay_not_found',
+      });
+      return;
+    }
+
+    if (!hasRepairShape(overlay)) {
+      skippedRows.push({
+        external_key: externalKey,
+        source_slug: sourceSlug,
+        reason: 'overlay_missing_required_fields',
+      });
+      return;
+    }
+
+    repairedRows.push(applyDegradedRepairOverlay(row, overlay));
+  });
+
+  return {
+    rows: repairedRows,
+    degradedCount: degradedRows.length,
+    repairedCount: repairedRows.length,
+    skippedCount: skippedRows.length,
+    skippedRows,
+  };
 }
