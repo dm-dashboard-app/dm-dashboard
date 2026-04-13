@@ -149,9 +149,10 @@ export default function WorldShopsPanel() {
     setImportStatus(isSrdMode ? 'Preparing SRD 2014 import…' : 'Preparing custom seed import…');
 
     try {
-      const rows = isSrdMode
+      const srdResult = isSrdMode
         ? await buildSrdImportRows(message => setImportStatus(message))
-        : await loadCustomSeedRows();
+        : null;
+      const rows = isSrdMode ? (srdResult?.rows || []) : await loadCustomSeedRows();
 
       const { data, error: importError } = await supabase.rpc('dm_import_item_master_rows', {
         p_import_mode: isSrdMode ? 'srd_2014' : 'custom_seed_2014',
@@ -162,11 +163,17 @@ export default function WorldShopsPanel() {
       const rpcResult = Array.isArray(data) ? (data[0] || {}) : (data || {});
       const importedCount = Number(rpcResult.imported_rows || 0);
       const eligibleCount = Number(rpcResult.shop_eligible_rows || 0);
-      setImportStatus(importedCount === 0
-        ? (isSrdMode
-            ? 'SRD import ran, but no rows were loaded. Check RPC logs and source connectivity.'
-            : 'Custom seed import ran with 0 rows. Seed file is intentionally empty by default; add your own curated items when ready.')
-        : `${isSrdMode ? 'SRD 2014 import' : 'Custom seed import'} complete: ${importedCount} rows loaded (${eligibleCount} shop-eligible).`);
+      if (importedCount === 0) {
+        setImportStatus(isSrdMode
+          ? 'SRD import ran, but no rows were loaded. Check RPC logs and source connectivity.'
+          : 'Custom seed import ran with 0 rows. Seed file is intentionally empty by default; add your own curated items when ready.');
+      } else if (isSrdMode && Number(srdResult?.skippedCount || 0) > 0) {
+        const skippedCount = Number(srdResult.skippedCount || 0);
+        const attemptedCount = Number(srdResult.attemptedCount || 0);
+        setImportStatus(`SRD 2014 import partial success: ${importedCount} rows loaded (${eligibleCount} shop-eligible). Skipped ${skippedCount} broken upstream detail endpoint row${skippedCount === 1 ? '' : 's'} out of ${attemptedCount}.`);
+      } else {
+        setImportStatus(`${isSrdMode ? 'SRD 2014 import' : 'Custom seed import'} complete: ${importedCount} rows loaded (${eligibleCount} shop-eligible).`);
+      }
 
       await loadCatalog();
       if (selectedShopId) await loadShopInventory(selectedShopId);

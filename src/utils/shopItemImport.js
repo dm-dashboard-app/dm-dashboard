@@ -56,18 +56,35 @@ async function fetchAllDetails(indexPath, onProgress = null) {
   const list = await fetchJson(indexPath);
   const rows = list?.results || [];
   const details = [];
+  const skipped = [];
   const batchSize = 20;
 
   for (let i = 0; i < rows.length; i += batchSize) {
     const batch = rows.slice(i, i + batchSize);
-    const loaded = await Promise.all(batch.map(row => fetchJson(row.url)));
-    details.push(...loaded);
+    const loaded = await Promise.allSettled(batch.map(row => fetchJson(row.url)));
+    loaded.forEach((result, index) => {
+      const sourceRow = batch[index] || {};
+      if (result.status === 'fulfilled') {
+        details.push(result.value);
+        return;
+      }
+      skipped.push({
+        index: sourceRow.index || null,
+        name: sourceRow.name || null,
+        url: sourceRow.url || null,
+        reason: result.reason?.message || 'Unknown detail fetch failure.',
+      });
+    });
     if (onProgress) {
-      onProgress(`Fetched ${Math.min(i + batch.length, rows.length)} / ${rows.length} ${indexPath.replace('/', '')} rows…`);
+      onProgress(`Fetched ${Math.min(i + batch.length, rows.length)} / ${rows.length} ${indexPath.replace('/', '')} rows…${skipped.length ? ` (${skipped.length} skipped)` : ''}`);
     }
   }
 
-  return details;
+  return {
+    details,
+    skipped,
+    total: rows.length,
+  };
 }
 
 function deriveItemType(detail = {}, kind = 'equipment') {
@@ -175,17 +192,27 @@ async function loadPricingOverlay() {
 
 export async function buildSrdImportRows(onProgress = null) {
   const overlayByName = await loadPricingOverlay();
-  const [equipmentDetails, magicDetails] = await Promise.all([
+  const [equipmentResult, magicResult] = await Promise.all([
     fetchAllDetails('/equipment', onProgress),
     fetchAllDetails('/magic-items', onProgress),
   ]);
+  const equipmentDetails = equipmentResult.details || [];
+  const magicDetails = magicResult.details || [];
 
   const imported = [
     ...equipmentDetails.map(detail => mapApiItem(detail, 'equipment')),
     ...magicDetails.map(detail => mapApiItem(detail, 'magic')),
   ].map(item => applyPricingOverlay(item, overlayByName));
 
-  return Array.from(new Map(imported.map(item => [item.external_key, item])).values());
+  const rows = Array.from(new Map(imported.map(item => [item.external_key, item])).values());
+  const skippedDetails = [...(equipmentResult.skipped || []), ...(magicResult.skipped || [])];
+  return {
+    rows,
+    skippedDetails,
+    skippedCount: skippedDetails.length,
+    attemptedCount: Number(equipmentResult.total || 0) + Number(magicResult.total || 0),
+    succeededCount: rows.length,
+  };
 }
 
 export async function loadCustomSeedRows() {
