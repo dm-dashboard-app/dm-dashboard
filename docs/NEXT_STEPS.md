@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 11, 2026 (security-doc follow-up)
+Last updated: April 13, 2026 (Stage 1 item foundation landed)
 
 Purpose: This file is the active roadmap only. It should list genuinely open work, intentionally parked work, and clearly labeled future planning ideas that are not active implementation.
 
@@ -23,6 +23,7 @@ As of main at commit `b9887d8` (April 10, 2026), the following tracks are treate
 - monster/NPC archive management
 - build/version marker and display verification baseline behavior
 - tab/focus artifact cleanup in the DM shell
+- Stage 1 item-master foundation + controlled 2014 import lane (including durable magic pricing overlay wiring)
 
 This roadmap stays intentionally lean and should not reopen those tracks without a verified current regression on `main`.
 
@@ -207,9 +208,9 @@ This roadmap is healthy when a new chat can quickly see:
 - what is future planning only (including phased inventory/abilities planning)
 - what should not be reopened without verified regressions on current `main`
 
-### Future planning track — DM World tab shop inventory generator + durable magic pricing overlay (2014-only, planning/data-prep only)
+### DM World tab shop inventory generator + durable magic pricing overlay (2014-only, phased track)
 
-Status: planning/data-prep only in this batch. This is **not active implementation** and is intended as a strong post-session feature candidate after current live-play commitments.
+Status: **active track with Stage 1 foundation now landed**. Later phases remain open and intentionally scoped.
 
 #### 1) Product framing
 
@@ -217,7 +218,7 @@ Status: planning/data-prep only in this batch. This is **not active implementati
 - Separate from player inventory/equipment implementation for now.
 - Intended to generate usable shop stock quickly during prep or live play.
 - Architected as a reusable foundation for future inventory/equipment/world systems.
-- Current batch scope here is documentation + durable data artifact creation only.
+- Stage 1 foundation scope is now implemented; remaining scope is phased follow-up (generator UI, save flows, and later systems).
 - This plan should be treated as a candidate post-session implementation batch once live table timing allows.
 
 #### 2) Placement / navigation plan
@@ -490,13 +491,14 @@ Design constraint:
 
 #### 10) Phased implementation plan
 
-**Phase 1 — Foundation**
+**Phase 1 — Foundation (landed on implementation branch; pending merge)**
 
-- add reusable item master schema/entity
-- add controlled 2014 SRD/basic-rules-compatible import lane
-- add source/rules metadata fields
-- ensure rerunnable + deduped import behavior
-- no shop UI required in this phase if split is safer
+- ✅ reusable `item_master` schema SQL prepared with standalone reusable item entity
+- ✅ controlled 2014-only SRD import lane implemented (`npm run import:items:2014`)
+- ✅ source/rules metadata fields wired (`source_type`, `source_book`, `source_slug`, `rules_era`)
+- ✅ rerunnable deduped upsert behavior via stable `external_key` conflict target
+- ✅ durable magic-pricing overlay (`docs/data/shop_magic_pricing_2014.json`) consumed directly by import lane
+- ✅ no World/shop UI added in this phase (intentionally deferred for scope control)
 
 **Phase 2 — DM-only shop generator**
 
@@ -540,7 +542,7 @@ Design constraint:
 #### 12) Constraints / risk notes
 
 - Do not implement before current live session commitments complete.
-- This batch is docs/planning/data-prep only.
+- Stage 1 foundation is now implemented as contained schema + controlled import work; generator UI remains deferred.
 - Do not risk runtime stability before the session window.
 - Imports should be controlled + rerunnable; do not live-scrape during gameplay.
 - Avoid legal/data-quality assumptions around non-SRD bulk text ingestion.
