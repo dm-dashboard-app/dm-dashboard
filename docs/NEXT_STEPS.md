@@ -522,13 +522,13 @@ Design constraint:
 
 **Phase 4 — Custom/homebrew/private import lane (landed on main)**
 
-- ✅ added in-app DM/admin import controls in World → Shops for one-action baseline (`Refresh 2014 SRD Catalog`) and custom-seed (`Import Custom Seed`) workflows
+- ✅ moved in-app DM/admin import controls to Manage → Imports for one-action baseline (`Refresh 2014 SRD Catalog`) and custom-seed (`Import Custom Seed`) workflows
 - ✅ added server-mediated RPC path (`dm_import_item_master_rows`) so client no longer depends on service-role secrets or terminal scripts for normal shop import use
 - ✅ kept explicit source markers (`source_type`, `source_book`, `source_slug`) plus `rules_era=2014` validation in the server import path
 - ✅ corrected custom seed defaults: `docs/data/shop_custom_items_seed_2014.json` is now default-safe/empty and prior sample rows are moved to `docs/data/shop_custom_items_seed_2014.example.json` as example-only content
 - ✅ hardened in-app SRD refresh against upstream detail-endpoint breakage by falling back to index-derived item rows instead of dropping large portions of the catalog
 - ✅ added explicit degraded-row rehydration flow (`Repair Degraded SRD Rows`) backed by durable curated overlay artifact (`docs/data/shop_srd_degraded_repairs_2014.json`), so degraded SRD fallback rows can be upgraded and unquarantined only when trustworthy repair data exists
-- ✅ added durable degraded-row reporting artifacts (`docs/data/shop_srd_degraded_report_2014.json` + public mirror) and generator command (`npm run report:items:degraded:2014`) so unresolved degraded SRD rows are trackable/reviewable in Git and not runtime-only
+- ✅ SRD refresh now auto-regenerates the degraded-row report view from live quarantined `item_master` rows so unresolved degraded SRD rows are always current in-app
 
 **Phase 5 — Expansion hooks (later)**
 
