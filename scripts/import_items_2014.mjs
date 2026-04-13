@@ -2,30 +2,13 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
+import { chunk, normalizeName, parseAttunementFromName, slugify } from './item_import_utils.mjs';
 
 const API_ROOT = 'https://www.dnd5eapi.co/api/2014';
 const IMPORT_SOURCE_TYPE = 'official_srd_2014';
 const IMPORT_SOURCE_BOOK = 'SRD 5.1 (2014)';
 const RULES_ERA = '2014';
 const PRICING_SOURCE = 'shop_magic_pricing_2014_overlay';
-
-function slugify(value = '') {
-  return String(value)
-    .toLowerCase()
-    .replace(/\([^)]*\)/g, ' ')
-    .replace(/\+/g, ' plus ')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '')
-    .replace(/-{2,}/g, '-');
-}
-
-function normalizeName(value = '') {
-  return slugify(value);
-}
-
-function parseAttunementFromName(name = '') {
-  return /requires\s+attunement/i.test(String(name));
-}
 
 function parseCostGp(cost) {
   if (!cost || !Number.isFinite(cost.quantity)) return null;
@@ -146,12 +129,6 @@ function applyPricingOverlay(row, overlayByName) {
       },
     },
   };
-}
-
-function chunk(items, size = 200) {
-  const groups = [];
-  for (let index = 0; index < items.length; index += size) groups.push(items.slice(index, index + size));
-  return groups;
 }
 
 async function loadPricingOverlay() {

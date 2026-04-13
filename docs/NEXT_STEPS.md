@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 13, 2026 (Stage 3 magic overlay curation landed)
+Last updated: April 13, 2026 (Stage 4 custom seed import lane landed)
 
 Purpose: This file is the active roadmap only. It should list genuinely open work, intentionally parked work, and clearly labeled future planning ideas that are not active implementation.
 
@@ -26,6 +26,7 @@ As of main at commit `e6eb6aa` (April 13, 2026), the following tracks are treate
 - Stage 1 item-master foundation + controlled 2014 import lane (including durable magic pricing overlay wiring)
 - Stage 2 DM-only World tab shop generator + saved shop stock
 - Stage 3 magic overlay-driven curation tuning for DM world shops
+- Stage 4 controlled custom/homebrew/private import lane for item_master
 
 This roadmap stays intentionally lean and should not reopen those tracks without a verified current regression on `main`.
 
@@ -522,11 +523,12 @@ Design constraint:
 - ✅ rarity weighting tuned specifically for magic contexts with stronger poor/modest suppression on high-rarity stock
 - ✅ affluence-sensitive magic availability made more deliberate while preserving Stage 2 save/regenerate flows
 
-**Phase 4 — Custom/homebrew/private import lane**
+**Phase 4 — Custom/homebrew/private import lane (landed on main)**
 
-- add controlled custom seed/homebrew import
-- include eligible custom items in generation pools
-- preserve source markers + dedupe semantics
+- ✅ added repo-native custom seed artifact (`docs/data/shop_custom_items_seed_2014.json`) for durable curated custom/homebrew/private rows
+- ✅ added dedicated controlled import script (`npm run import:items:custom:2014`) with rerunnable `external_key` upsert semantics into `item_master`
+- ✅ preserved explicit source markers (`source_type`, `source_book`, `source_slug`) and explicit `rules_era` policy for generator eligibility
+- ✅ kept generation eligibility controlled via existing Stage 2/3 filters (`rules_era=2014` and `is_shop_eligible`)
 
 **Phase 5 — Expansion hooks (later)**
 
@@ -557,4 +559,4 @@ Design constraint:
 
 #### 13) Planning recommendation / priority statement
 
-This track now has a curated DM baseline through Stage 3. Remaining work should stay phased (starting with Stage 4 custom/homebrew import) and avoid widening into player transactions/inventory automation until explicitly scheduled.
+This track now has a curated DM baseline through Stage 4. Remaining work should stay phased (starting with Stage 5 expansion hooks) and avoid widening into player transactions/inventory automation until explicitly scheduled.

@@ -81,14 +81,13 @@ If setup/bootstrap logs show:
 
 then treat that as valid live-repo hydration evidence unless contradicted by stronger evidence.
 
-## Mandatory completion-log merge-readiness gate
+## Documentation update merge-readiness gate
 
-Implementation PRs are **not merge-ready** until all of the following are true in that same PR:
-- the Completion Log Update section is fully filled out
-- any required support-doc updates are included (`docs/NEXT_STEPS.md`, `docs/PROJECT_BRIEF.md`, and `docs/WORKFLOW.md` when process changed)
-- any support doc intentionally left unchanged is explicitly marked N/A with a reason in the PR body
+Implementation PRs are merge-ready only when required support-doc updates are included in the same PR (`docs/NEXT_STEPS.md`, `docs/PROJECT_BRIEF.md`, and `docs/WORKFLOW.md` when process changed).
 
-Do not sign off or present a PR as ready before this gate is satisfied.
+PR-body completion-log prose is optional. Repo docs remain the durable project record.
+
+Do not sign off or present a PR as ready if required support-doc updates are missing.
 
 ## Fresh coding batch default
 
