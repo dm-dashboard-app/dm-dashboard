@@ -1,6 +1,6 @@
 # DM Dashboard — Project Brief
 
-Last updated: April 13, 2026 (Stage 3 magic-shop curation baseline)
+Last updated: April 13, 2026 (Stage 4 custom import baseline)
 
 Purpose: This document is the current-state/background brief for DM Dashboard. It describes what the app now is, what is materially landed, and what principles future work must preserve.
 
@@ -195,6 +195,20 @@ Landed baseline includes:
 Preservation rule:
 
 - keep default generation safe-by-default for special/problematic magic items while leaving manual curation to future explicit phases
+
+
+### 13) Custom/homebrew/private import lane baseline (Stage 4)
+
+Landed baseline includes:
+
+- repo-native custom seed artifact for controlled private/homebrew item curation (`docs/data/shop_custom_items_seed_2014.json`)
+- dedicated rerunnable import script (`npm run import:items:custom:2014`) that upserts into shared `item_master` using stable `external_key`
+- explicit custom source markers (`source_type`, `source_book`, `source_slug`) for non-SRD content provenance
+- preserved generation safety: only `is_shop_eligible=true` and `rules_era=2014` records can enter existing Stage 2/3 generation flows
+
+Preservation rule:
+
+- keep custom-content import controlled/reviewable in Git and avoid parallel shop-only item stores
 
 ## Architectural / Product Principles for Future Work
 
