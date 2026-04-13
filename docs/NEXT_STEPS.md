@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 13, 2026 (Stage 2 DM-only shop generator landed)
+Last updated: April 13, 2026 (Stage 3 magic overlay curation landed)
 
 Purpose: This file is the active roadmap only. It should list genuinely open work, intentionally parked work, and clearly labeled future planning ideas that are not active implementation.
 
@@ -14,7 +14,7 @@ If this document conflicts with the live repo, the live repo wins.
 
 ## Current Position
 
-As of main at commit `b9887d8` (April 10, 2026), the following tracks are treated as landed baseline, not active roadmap tracks:
+As of main at commit `e6eb6aa` (April 13, 2026), the following tracks are treated as landed baseline, not active roadmap tracks:
 
 - initiative/player-card compacting and combat presentation stabilization
 - long-rest + spell-preparation runtime flow
@@ -24,6 +24,8 @@ As of main at commit `b9887d8` (April 10, 2026), the following tracks are treate
 - build/version marker and display verification baseline behavior
 - tab/focus artifact cleanup in the DM shell
 - Stage 1 item-master foundation + controlled 2014 import lane (including durable magic pricing overlay wiring)
+- Stage 2 DM-only World tab shop generator + saved shop stock
+- Stage 3 magic overlay-driven curation tuning for DM world shops
 
 This roadmap stays intentionally lean and should not reopen those tracks without a verified current regression on `main`.
 
@@ -512,12 +514,13 @@ Design constraint:
 - ✅ added compact item detail modal
 - ✅ kept implementation DM-only (no player/display shop surface)
 
-**Phase 3 — Magic overlay + curation**
+**Phase 3 — Magic overlay + curation (landed on main)**
 
-- consume `docs/data/shop_magic_pricing_2014.json`
-- classify excluded/special items for safe generation behavior
-- tune magic shop generation weights/eligibility
-- curate rarity and availability behavior
+- ✅ overlay-driven curation integrated into shop generation logic from `docs/data/shop_magic_pricing_2014.json` fields imported into `item_master`
+- ✅ explicit excluded/manual/unpriced/gamechanging/special suppression tightened for default generation paths
+- ✅ magic-shop pool narrowed with lower per-shop row counts, curated bucket weighting, and reduced duplicate churn
+- ✅ rarity weighting tuned specifically for magic contexts with stronger poor/modest suppression on high-rarity stock
+- ✅ affluence-sensitive magic availability made more deliberate while preserving Stage 2 save/regenerate flows
 
 **Phase 4 — Custom/homebrew/private import lane**
 
@@ -544,7 +547,7 @@ Design constraint:
 #### 12) Constraints / risk notes
 
 - Do not implement before current live session commitments complete.
-- Stage 1 and Stage 2 are now implemented; later phases remain intentionally deferred.
+- Stage 1 through Stage 3 are now implemented; later phases remain intentionally deferred.
 - Do not risk runtime stability before the session window.
 - Imports should be controlled + rerunnable; do not live-scrape during gameplay.
 - Avoid legal/data-quality assumptions around non-SRD bulk text ingestion.
@@ -554,4 +557,4 @@ Design constraint:
 
 #### 13) Planning recommendation / priority statement
 
-This track now has a usable DM baseline (Stage 2). Remaining work should stay phased and avoid widening into player transactions/inventory automation until explicitly scheduled.
+This track now has a curated DM baseline through Stage 3. Remaining work should stay phased (starting with Stage 4 custom/homebrew import) and avoid widening into player transactions/inventory automation until explicitly scheduled.
