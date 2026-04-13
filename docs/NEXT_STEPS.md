@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 13, 2026 (shop fallback quarantine + World Shops containment correction landed)
+Last updated: April 13, 2026 (degraded SRD repair overlay flow landed)
 
 Purpose: This file is the active roadmap only. It should list genuinely open work, intentionally parked work, and clearly labeled future planning ideas that are not active implementation.
 
@@ -527,6 +527,7 @@ Design constraint:
 - ✅ kept explicit source markers (`source_type`, `source_book`, `source_slug`) plus `rules_era=2014` validation in the server import path
 - ✅ corrected custom seed defaults: `docs/data/shop_custom_items_seed_2014.json` is now default-safe/empty and prior sample rows are moved to `docs/data/shop_custom_items_seed_2014.example.json` as example-only content
 - ✅ hardened in-app SRD refresh against upstream detail-endpoint breakage by falling back to index-derived item rows instead of dropping large portions of the catalog
+- ✅ added explicit degraded-row rehydration flow (`Repair Degraded SRD Rows`) backed by durable curated overlay artifact (`docs/data/shop_srd_degraded_repairs_2014.json`), so degraded SRD fallback rows can be upgraded and unquarantined only when trustworthy repair data exists
 
 **Phase 5 — Expansion hooks (later)**
 

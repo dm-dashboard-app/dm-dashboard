@@ -211,6 +211,21 @@ Preservation rule:
 
 - keep custom-content import controlled/reviewable in Git and avoid parallel shop-only item stores
 
+### 14) Degraded SRD repair overlay + rehydration path baseline
+
+Landed baseline includes:
+
+- DM World → Shops now includes an explicit **Repair Degraded SRD Rows** action
+- repair pass targets only rows currently flagged degraded/quarantined from SRD fallback import
+- repair data comes from durable repo artifact `docs/data/shop_srd_degraded_repairs_2014.json` (served in-app from `public/data/shop_srd_degraded_repairs_2014.json`)
+- only rows with trustworthy repair shape (type/category/subcategory plus price anchor) are upgraded
+- upgraded rows clear degraded quarantine flags and re-enter normal Stage 2/3 generation as shop-eligible
+- degraded rows without trustworthy repair overlay remain quarantined and excluded
+
+Preservation rule:
+
+- keep quarantine default-on for degraded SRD fallbacks and only clear it through explicit trustworthy repair data
+
 ## Architectural / Product Principles for Future Work
 
 - mobile-first practicality for real table use

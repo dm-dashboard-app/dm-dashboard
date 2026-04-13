@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import { generateShopRows } from '../../utils/shopGenerator';
-import { buildSrdImportRows, loadCustomSeedRows } from '../../utils/shopItemImport';
+import { buildSrdImportRows, buildSrdRepairRows, loadCustomSeedRows } from '../../utils/shopItemImport';
 
 const SHOP_TYPES = [
   { value: 'blacksmith', label: 'Blacksmith' },
@@ -79,7 +79,7 @@ export default function WorldShopsPanel() {
   const loadCatalog = useCallback(async () => {
     const { data, error: loadError } = await supabase
       .from('item_master')
-      .select('id, name, item_type, category, subcategory, rarity, description, base_price_gp, suggested_price_gp, price_source, source_type, source_book, rules_era, is_shop_eligible, shop_bucket, metadata_json')
+      .select('id, external_key, source_slug, name, item_type, category, subcategory, rarity, description, base_price_gp, suggested_price_gp, price_source, source_type, source_book, rules_era, is_shop_eligible, shop_bucket, metadata_json')
       .eq('rules_era', '2014')
       .eq('is_shop_eligible', true)
       .order('name');
@@ -186,6 +186,52 @@ export default function WorldShopsPanel() {
     }
   }
 
+  async function runRepairDegradedRows() {
+    const confirmMessage = 'Repair currently quarantined degraded SRD rows using the curated repo overlay now? Only rows with trustworthy repair data will be upgraded.';
+    if (!window.confirm(confirmMessage)) return;
+
+    setImportingMode('repair');
+    setError('');
+    setImportStatus('Preparing degraded-row repair pass…');
+
+    try {
+      const { data: degradedRows, error: degradedLoadError } = await supabase
+        .from('item_master')
+        .select('id, external_key, source_slug, name, slug, item_type, category, subcategory, rarity, requires_attunement, description, base_price_gp, suggested_price_gp, price_source, source_type, source_book, rules_era, is_shop_eligible, shop_bucket, metadata_json')
+        .eq('rules_era', '2014')
+        .eq('source_type', 'official_srd_2014')
+        .eq('metadata_json->>degraded_import', 'true')
+        .order('name');
+      if (degradedLoadError) throw degradedLoadError;
+
+      const repairResult = await buildSrdRepairRows(degradedRows || []);
+      const repairRows = repairResult.rows || [];
+      if (repairRows.length === 0) {
+        setImportStatus(`Degraded repair pass complete: no rows upgraded (${repairResult.degradedCount} degraded scanned, ${repairResult.skippedCount} skipped).`);
+        return;
+      }
+
+      const { data, error: importError } = await supabase.rpc('dm_import_item_master_rows', {
+        p_import_mode: 'srd_2014',
+        p_rows: repairRows,
+      });
+      if (importError) throw importError;
+
+      const rpcResult = Array.isArray(data) ? (data[0] || {}) : (data || {});
+      const importedCount = Number(rpcResult.imported_rows || 0);
+      const eligibleCount = Number(rpcResult.shop_eligible_rows || 0);
+
+      setImportStatus(`Degraded repair complete: ${importedCount} row${importedCount === 1 ? '' : 's'} upgraded (${eligibleCount} shop-eligible), ${repairResult.skippedCount} still quarantined due to missing/insufficient repair overlay data.`);
+      await loadCatalog();
+      if (selectedShopId) await loadShopInventory(selectedShopId);
+    } catch (repairError) {
+      setError(repairError.message || 'Degraded row repair failed.');
+      setImportStatus('');
+    } finally {
+      setImportingMode('');
+    }
+  }
+
   async function handleGenerate() {
     setError('');
     const rows = generateShopRows(catalogItems, { shopType, affluence: affluenceTier });
@@ -285,9 +331,16 @@ export default function WorldShopsPanel() {
           >
             {importingMode === 'custom' ? 'Importing Seed…' : 'Import Custom Seed'}
           </button>
+          <button
+            className="btn btn-ghost"
+            onClick={runRepairDegradedRows}
+            disabled={importingMode !== ''}
+          >
+            {importingMode === 'repair' ? 'Repairing…' : 'Repair Degraded SRD Rows'}
+          </button>
         </div>
         <div className="world-shops-import-help">
-          SRD refresh imports the baseline 2014 catalog. Custom seed import loads only curated rows from the repo seed file.
+          SRD refresh imports the baseline 2014 catalog. Custom seed import loads only curated rows from the repo seed file. Repair pass upgrades quarantined degraded SRD rows only when curated repair data is trustworthy.
         </div>
         {importStatus ? <div className="world-shops-import-status">{importStatus}</div> : null}
       </div>
