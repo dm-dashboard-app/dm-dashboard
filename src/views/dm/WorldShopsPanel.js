@@ -167,10 +167,10 @@ export default function WorldShopsPanel() {
         setImportStatus(isSrdMode
           ? 'SRD import ran, but no rows were loaded. Check RPC logs and source connectivity.'
           : 'Custom seed import ran with 0 rows. Seed file is intentionally empty by default; add your own curated items when ready.');
-      } else if (isSrdMode && Number(srdResult?.skippedCount || 0) > 0) {
-        const skippedCount = Number(srdResult.skippedCount || 0);
+      } else if (isSrdMode && Number(srdResult?.degradedCount || 0) > 0) {
+        const degradedCount = Number(srdResult.degradedCount || 0);
         const attemptedCount = Number(srdResult.attemptedCount || 0);
-        setImportStatus(`SRD 2014 import partial success: ${importedCount} rows loaded (${eligibleCount} shop-eligible). Skipped ${skippedCount} broken upstream detail endpoint row${skippedCount === 1 ? '' : 's'} out of ${attemptedCount}.`);
+        setImportStatus(`SRD 2014 import complete with upstream detail fallback: ${importedCount} rows loaded (${eligibleCount} shop-eligible). ${degradedCount} row${degradedCount === 1 ? '' : 's'} used index fallback detail out of ${attemptedCount}.`);
       } else {
         setImportStatus(`${isSrdMode ? 'SRD 2014 import' : 'Custom seed import'} complete: ${importedCount} rows loaded (${eligibleCount} shop-eligible).`);
       }

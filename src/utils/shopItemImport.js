@@ -41,22 +41,49 @@ function parseCostGp(cost) {
 function resolveApiUrl(pathname = '') {
   const value = String(pathname || '').trim();
   if (/^https?:\/\//i.test(value)) return value;
+  if (value.startsWith('/api/')) return `https://www.dnd5eapi.co${value}`;
   if (value.startsWith('/api/2014/')) return `https://www.dnd5eapi.co${value}`;
   const normalized = value.startsWith('/') ? value : `/${value}`;
   return `${API_ROOT}${normalized}`;
 }
 
-async function fetchJson(pathname) {
-  const response = await fetch(resolveApiUrl(pathname));
-  if (!response.ok) throw new Error(`API request failed: ${pathname} (${response.status})`);
-  return response.json();
+function alternatePathCandidates(pathname = '') {
+  const value = String(pathname || '').trim();
+  if (!value || /^https?:\/\//i.test(value)) return [value];
+  if (value.startsWith('/api/2014/')) return [value, value.replace('/api/2014/', '/api/')];
+  if (value.startsWith('/api/')) return [value, `/api/2014${value.replace('/api', '')}`];
+  return [value, value.startsWith('/') ? `/api/2014${value}` : `/api/2014/${value}`];
 }
 
-async function fetchAllDetails(indexPath, onProgress = null) {
+async function fetchJson(pathname) {
+  const candidates = Array.from(new Set(alternatePathCandidates(pathname)));
+  let lastError = null;
+  for (const candidate of candidates) {
+    const response = await fetch(resolveApiUrl(candidate));
+    if (response.ok) return response.json();
+    lastError = new Error(`API request failed: ${candidate} (${response.status})`);
+  }
+  throw lastError || new Error(`API request failed: ${pathname}`);
+}
+
+function buildFallbackDetail(indexRow = {}, kind = 'equipment') {
+  const index = String(indexRow.index || '').trim();
+  const name = String(indexRow.name || index || 'Unknown item').trim();
+  return {
+    index: index || slugify(name),
+    name,
+    url: indexRow.url || null,
+    desc: ['Imported from upstream index because the detail endpoint is unavailable.'],
+    metadata_fallback: true,
+    equipment_category: kind === 'equipment' ? { name: 'Equipment' } : undefined,
+  };
+}
+
+async function fetchAllDetails(indexPath, kind = 'equipment', onProgress = null) {
   const list = await fetchJson(indexPath);
   const rows = list?.results || [];
   const details = [];
-  const skipped = [];
+  const degraded = [];
   const batchSize = 20;
 
   for (let i = 0; i < rows.length; i += batchSize) {
@@ -68,7 +95,9 @@ async function fetchAllDetails(indexPath, onProgress = null) {
         details.push(result.value);
         return;
       }
-      skipped.push({
+      const fallback = buildFallbackDetail(sourceRow, kind);
+      details.push(fallback);
+      degraded.push({
         index: sourceRow.index || null,
         name: sourceRow.name || null,
         url: sourceRow.url || null,
@@ -76,13 +105,13 @@ async function fetchAllDetails(indexPath, onProgress = null) {
       });
     });
     if (onProgress) {
-      onProgress(`Fetched ${Math.min(i + batch.length, rows.length)} / ${rows.length} ${indexPath.replace('/', '')} rows…${skipped.length ? ` (${skipped.length} skipped)` : ''}`);
+      onProgress(`Fetched ${Math.min(i + batch.length, rows.length)} / ${rows.length} ${indexPath.replace('/', '')} rows…${degraded.length ? ` (${degraded.length} fallback)` : ''}`);
     }
   }
 
   return {
     details,
-    skipped,
+    degraded,
     total: rows.length,
   };
 }
@@ -193,8 +222,8 @@ async function loadPricingOverlay() {
 export async function buildSrdImportRows(onProgress = null) {
   const overlayByName = await loadPricingOverlay();
   const [equipmentResult, magicResult] = await Promise.all([
-    fetchAllDetails('/equipment', onProgress),
-    fetchAllDetails('/magic-items', onProgress),
+    fetchAllDetails('/equipment', 'equipment', onProgress),
+    fetchAllDetails('/magic-items', 'magic', onProgress),
   ]);
   const equipmentDetails = equipmentResult.details || [];
   const magicDetails = magicResult.details || [];
@@ -205,11 +234,11 @@ export async function buildSrdImportRows(onProgress = null) {
   ].map(item => applyPricingOverlay(item, overlayByName));
 
   const rows = Array.from(new Map(imported.map(item => [item.external_key, item])).values());
-  const skippedDetails = [...(equipmentResult.skipped || []), ...(magicResult.skipped || [])];
+  const degradedDetails = [...(equipmentResult.degraded || []), ...(magicResult.degraded || [])];
   return {
     rows,
-    skippedDetails,
-    skippedCount: skippedDetails.length,
+    degradedDetails,
+    degradedCount: degradedDetails.length,
     attemptedCount: Number(equipmentResult.total || 0) + Number(magicResult.total || 0),
     succeededCount: rows.length,
   };

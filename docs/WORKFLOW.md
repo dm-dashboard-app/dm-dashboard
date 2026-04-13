@@ -496,6 +496,22 @@ If SQL is required:
 - say clearly whether it is additive, corrective, or cleanup SQL
 - do not mix schema assumptions with guesses
 
+### 3.5.1 Mandatory SQL rollout surfacing in operator handoff/review
+
+If a batch introduces or changes any required database-side object or behavior (migration, table, column, policy, grant, function/RPC, trigger, view, or any server-side DB object), the handoff/review response must explicitly include:
+
+1. a clear statement that SQL rollout is required
+2. exact SQL file path(s)
+3. and for browser/Supabase operators, either:
+   - the direct SQL block, or
+   - a clearly labeled direct Supabase apply step
+
+Hard gate:
+
+- “SQL exists in repo” is not sufficient.
+- A DB-dependent batch is not operationally complete until required SQL rollout is surfaced directly to the operator.
+- Because this project is browser/mobile/iPhone-first, never leave SQL discovery as implicit or post-merge guesswork.
+
 ## Verification Discipline
 
 ### 4.1 Branch Integrity Rule
