@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import { generateShopRows } from '../../utils/shopGenerator';
+import { buildSrdImportRows, loadCustomSeedRows } from '../../utils/shopItemImport';
 
 const SHOP_TYPES = [
   { value: 'blacksmith', label: 'Blacksmith' },
@@ -59,9 +60,10 @@ export default function WorldShopsPanel() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
+  const [importingMode, setImportingMode] = useState('');
+  const [importStatus, setImportStatus] = useState('');
 
   const selectedShop = useMemo(() => savedShops.find(shop => shop.id === selectedShopId) || null, [savedShops, selectedShopId]);
-
 
   function buildRpcRows(rows = []) {
     return rows.map((row, index) => ({
@@ -134,6 +136,47 @@ export default function WorldShopsPanel() {
       active = false;
     };
   }, [loadCatalog, loadSavedShops]);
+
+  async function runImport(mode) {
+    const isSrdMode = mode === 'srd';
+    const confirmMessage = isSrdMode
+      ? 'Refresh the 2014 SRD catalog into item_master now? This may take a minute.'
+      : 'Import curated custom seed rows from docs/data/shop_custom_items_seed_2014.json now?';
+    if (!window.confirm(confirmMessage)) return;
+
+    setImportingMode(mode);
+    setError('');
+    setImportStatus(isSrdMode ? 'Preparing SRD 2014 import…' : 'Preparing custom seed import…');
+
+    try {
+      const rows = isSrdMode
+        ? await buildSrdImportRows(message => setImportStatus(message))
+        : await loadCustomSeedRows();
+
+      const { data, error: importError } = await supabase.rpc('dm_import_item_master_rows', {
+        p_import_mode: isSrdMode ? 'srd_2014' : 'custom_seed_2014',
+        p_rows: rows,
+      });
+      if (importError) throw importError;
+
+      const rpcResult = Array.isArray(data) ? (data[0] || {}) : (data || {});
+      const importedCount = Number(rpcResult.imported_rows || 0);
+      const eligibleCount = Number(rpcResult.shop_eligible_rows || 0);
+      setImportStatus(importedCount === 0
+        ? (isSrdMode
+            ? 'SRD import ran, but no rows were loaded. Check RPC logs and source connectivity.'
+            : 'Custom seed import ran with 0 rows. Seed file is intentionally empty by default; add your own curated items when ready.')
+        : `${isSrdMode ? 'SRD 2014 import' : 'Custom seed import'} complete: ${importedCount} rows loaded (${eligibleCount} shop-eligible).`);
+
+      await loadCatalog();
+      if (selectedShopId) await loadShopInventory(selectedShopId);
+    } catch (importError) {
+      setError(importError.message || 'Item import failed.');
+      setImportStatus('');
+    } finally {
+      setImportingMode('');
+    }
+  }
 
   async function handleGenerate() {
     setError('');
@@ -217,6 +260,30 @@ export default function WorldShopsPanel() {
 
   return (
     <div className="world-shops-shell">
+      <div className="world-shops-import-panel">
+        <div className="world-shops-panel-title">Catalog Import / Refresh</div>
+        <div className="world-shops-import-row">
+          <button
+            className="btn btn-primary"
+            onClick={() => runImport('srd')}
+            disabled={importingMode !== ''}
+          >
+            {importingMode === 'srd' ? 'Refreshing SRD…' : 'Refresh 2014 SRD Catalog'}
+          </button>
+          <button
+            className="btn btn-ghost"
+            onClick={() => runImport('custom')}
+            disabled={importingMode !== ''}
+          >
+            {importingMode === 'custom' ? 'Importing Seed…' : 'Import Custom Seed'}
+          </button>
+        </div>
+        <div className="world-shops-import-help">
+          SRD refresh imports the baseline 2014 catalog. Custom seed import loads only curated rows from the repo seed file.
+        </div>
+        {importStatus ? <div className="world-shops-import-status">{importStatus}</div> : null}
+      </div>
+
       <div className="world-shops-controls">
         <div className="world-shops-control-group">
           <label>Shop Type</label>

@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 13, 2026 (Stage 4 custom seed import lane landed)
+Last updated: April 13, 2026 (shop import operator correction landed)
 
 Purpose: This file is the active roadmap only. It should list genuinely open work, intentionally parked work, and clearly labeled future planning ideas that are not active implementation.
 
@@ -26,7 +26,7 @@ As of main at commit `e6eb6aa` (April 13, 2026), the following tracks are treate
 - Stage 1 item-master foundation + controlled 2014 import lane (including durable magic pricing overlay wiring)
 - Stage 2 DM-only World tab shop generator + saved shop stock
 - Stage 3 magic overlay-driven curation tuning for DM world shops
-- Stage 4 controlled custom/homebrew/private import lane for item_master
+- Stage 4 custom/homebrew/private lane + in-app DM import/refresh controls for item_master
 
 This roadmap stays intentionally lean and should not reopen those tracks without a verified current regression on `main`.
 
@@ -337,10 +337,7 @@ Critical architecture decision (must be preserved):
 
 Target import architecture: controlled, rerunnable admin/import flow (similar in spirit to spell import), not live scraping at generation time.
 
-Future one-action paths can include:
-
-- Codex-run controlled import for setup/curation, then
-- single in-app admin button for repeatable import/refresh.
+One-action path is now landed in-app on the DM World → Shops surface via explicit import controls (SRD baseline refresh and custom-seed import).
 
 Underlying behavior requirements:
 
@@ -525,10 +522,10 @@ Design constraint:
 
 **Phase 4 — Custom/homebrew/private import lane (landed on main)**
 
-- ✅ added repo-native custom seed artifact (`docs/data/shop_custom_items_seed_2014.json`) for durable curated custom/homebrew/private rows
-- ✅ added dedicated controlled import script (`npm run import:items:custom:2014`) with rerunnable `external_key` upsert semantics into `item_master`
-- ✅ preserved explicit source markers (`source_type`, `source_book`, `source_slug`) and explicit `rules_era` policy for generator eligibility
-- ✅ kept generation eligibility controlled via existing Stage 2/3 filters (`rules_era=2014` and `is_shop_eligible`)
+- ✅ added in-app DM/admin import controls in World → Shops for one-action baseline (`Refresh 2014 SRD Catalog`) and custom-seed (`Import Custom Seed`) workflows
+- ✅ added server-mediated RPC path (`dm_import_item_master_rows`) so client no longer depends on service-role secrets or terminal scripts for normal shop import use
+- ✅ kept explicit source markers (`source_type`, `source_book`, `source_slug`) plus `rules_era=2014` validation in the server import path
+- ✅ corrected custom seed defaults: `docs/data/shop_custom_items_seed_2014.json` is now default-safe/empty and prior sample rows are moved to `docs/data/shop_custom_items_seed_2014.example.json` as example-only content
 
 **Phase 5 — Expansion hooks (later)**
 

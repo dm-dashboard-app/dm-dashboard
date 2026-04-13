@@ -1,6 +1,6 @@
 # DM Dashboard — Project Brief
 
-Last updated: April 13, 2026 (Stage 4 custom import baseline)
+Last updated: April 13, 2026 (shop import operator correction baseline)
 
 Purpose: This document is the current-state/background brief for DM Dashboard. It describes what the app now is, what is materially landed, and what principles future work must preserve.
 
@@ -201,10 +201,10 @@ Preservation rule:
 
 Landed baseline includes:
 
-- repo-native custom seed artifact for controlled private/homebrew item curation (`docs/data/shop_custom_items_seed_2014.json`)
-- dedicated rerunnable import script (`npm run import:items:custom:2014`) that upserts into shared `item_master` using stable `external_key`
-- explicit custom source markers (`source_type`, `source_book`, `source_slug`) for non-SRD content provenance
-- preserved generation safety: only `is_shop_eligible=true` and `rules_era=2014` records can enter existing Stage 2/3 generation flows
+- DM World → Shops now includes explicit one-action import controls for baseline SRD refresh and custom-seed import
+- import writes now run through a server-mediated RPC (`dm_import_item_master_rows`) instead of requiring terminal-only scripts for normal operator workflow
+- custom seed defaults are now explicit and safe: `docs/data/shop_custom_items_seed_2014.json` is intentionally empty-by-default, while prior sample rows live in `docs/data/shop_custom_items_seed_2014.example.json` as example/demo content
+- preserved generation safety: only `is_shop_eligible=true` and `rules_era=2014` rows can enter Stage 2/3 generation
 
 Preservation rule:
 

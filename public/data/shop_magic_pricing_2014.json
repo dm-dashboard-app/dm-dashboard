@@ -1,0 +1,3283 @@
+{
+  "metadata": {
+    "title": "Sane Magical Prices (2014) curated shop pricing overlay",
+    "source_document": "docs/Sane_Magical_Prices.pdf",
+    "rules_era": "2014",
+    "usage": "Durable pricing/classification overlay input for future DM world-shop generator import flow; not runtime wiring.",
+    "notes": "Source prices are a relative-economy tool, not absolute law. Preserve excluded/unpriced entries as non-default shop stock unless manually curated.",
+    "created_from": "Repo-stored PDF converted into structured JSON so future one-button import does not depend on chat-uploaded files.",
+    "last_curated": "2026-04-12"
+  },
+  "items": [
+    {
+      "name": "Adamantine Armor",
+      "normalized_name": "adamantine-armor",
+      "suggested_price_gp": 500,
+      "rarity": "Uncommon",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Alchemy Jug",
+      "normalized_name": "alchemy-jug",
+      "suggested_price_gp": 6000,
+      "rarity": "Uncommon",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ammunition +1 (each)",
+      "normalized_name": "ammunition-plus-1-each",
+      "suggested_price_gp": 25,
+      "rarity": "Uncommon",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ammunition +2 (each)",
+      "normalized_name": "ammunition-plus-2-each",
+      "suggested_price_gp": 100,
+      "rarity": "Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ammunition +3 (each)",
+      "normalized_name": "ammunition-plus-3-each",
+      "suggested_price_gp": 400,
+      "rarity": "Very Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Amulet of Health",
+      "normalized_name": "amulet-of-health",
+      "suggested_price_gp": 8000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Amulet of Proof Against Detection and Location",
+      "normalized_name": "amulet-of-proof-against-detection-and-location",
+      "suggested_price_gp": 20000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Amulet of the Planes",
+      "normalized_name": "amulet-of-the-planes",
+      "suggested_price_gp": 160000,
+      "rarity": "Very Rare",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Animated Shield",
+      "normalized_name": "animated-shield",
+      "suggested_price_gp": 6000,
+      "rarity": "Very Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Apparatus of Kwalish",
+      "normalized_name": "apparatus-of-kwalish",
+      "suggested_price_gp": 10000,
+      "rarity": "Legendary",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Armor of Invulnerability",
+      "normalized_name": "armor-of-invulnerability",
+      "suggested_price_gp": 18000,
+      "rarity": "Legendary",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Armor of Resistance",
+      "normalized_name": "armor-of-resistance",
+      "suggested_price_gp": 6000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Arrow-Catching Shield",
+      "normalized_name": "arrow-catching-shield",
+      "suggested_price_gp": 6000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Arrow of Slaying (each)",
+      "normalized_name": "arrow-of-slaying-each",
+      "suggested_price_gp": 600,
+      "rarity": "Very Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Bag of Beans",
+      "normalized_name": "bag-of-beans",
+      "suggested_price_gp": null,
+      "rarity": "Unspecified",
+      "shop_bucket": "unpriced",
+      "exclude_from_shop": true,
+      "exclusion_reason": "Excluded in source as highly random and economy-warping.",
+      "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
+    },
+    {
+      "name": "Bag of Holding",
+      "normalized_name": "bag-of-holding",
+      "suggested_price_gp": 4000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Bag of Tricks",
+      "normalized_name": "bag-of-tricks",
+      "suggested_price_gp": null,
+      "rarity": "Unspecified",
+      "shop_bucket": "unpriced",
+      "exclude_from_shop": true,
+      "exclusion_reason": "Excluded in source due to economy-warping permanent-creature implications.",
+      "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
+    },
+    {
+      "name": "Bead of Force",
+      "normalized_name": "bead-of-force",
+      "suggested_price_gp": 960,
+      "rarity": "Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Belt of Dwarvenkind",
+      "normalized_name": "belt-of-dwarvenkind",
+      "suggested_price_gp": 6000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Belt of Giant Strength",
+      "normalized_name": "belt-of-giant-strength",
+      "suggested_price_gp": null,
+      "rarity": "Unspecified",
+      "shop_bucket": "unpriced",
+      "exclude_from_shop": true,
+      "exclusion_reason": "Excluded in source for bounded-accuracy concerns.",
+      "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
+    },
+    {
+      "name": "Boots of Elvenkind",
+      "normalized_name": "boots-of-elvenkind",
+      "suggested_price_gp": 2500,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Boots of Levitation",
+      "normalized_name": "boots-of-levitation",
+      "suggested_price_gp": 4000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Boots of Speed",
+      "normalized_name": "boots-of-speed",
+      "suggested_price_gp": 4000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Boots of Striding and Springing",
+      "normalized_name": "boots-of-striding-and-springing",
+      "suggested_price_gp": 5000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Boots of the Winterlands",
+      "normalized_name": "boots-of-the-winterlands",
+      "suggested_price_gp": 10000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Bowl of Commanding Water Elementals",
+      "normalized_name": "bowl-of-commanding-water-elementals",
+      "suggested_price_gp": 8000,
+      "rarity": "Rare",
+      "shop_bucket": "summoning",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Bracers of Archery",
+      "normalized_name": "bracers-of-archery",
+      "suggested_price_gp": 1500,
+      "rarity": "Uncommon",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Bracers of Defense",
+      "normalized_name": "bracers-of-defense",
+      "suggested_price_gp": 6000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Brass Horn of Valhalla",
+      "normalized_name": "brass-horn-of-valhalla",
+      "suggested_price_gp": 8400,
+      "rarity": "Rare",
+      "shop_bucket": "summoning",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Brazier of Commanding Fire Elementals",
+      "normalized_name": "brazier-of-commanding-fire-elementals",
+      "suggested_price_gp": 8000,
+      "rarity": "Rare",
+      "shop_bucket": "summoning",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Bronze Griffon",
+      "normalized_name": "bronze-griffon",
+      "suggested_price_gp": 8000,
+      "rarity": "Rare",
+      "shop_bucket": "summoning",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Bronze Horn of Valhalla",
+      "normalized_name": "bronze-horn-of-valhalla",
+      "suggested_price_gp": 11200,
+      "rarity": "Very Rare",
+      "shop_bucket": "summoning",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Brooch of Shielding",
+      "normalized_name": "brooch-of-shielding",
+      "suggested_price_gp": 7500,
+      "rarity": "Uncommon",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Broom of Flying",
+      "normalized_name": "broom-of-flying",
+      "suggested_price_gp": 8000,
+      "rarity": "Uncommon",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Candle of Invocation",
+      "normalized_name": "candle-of-invocation",
+      "suggested_price_gp": null,
+      "rarity": "Unspecified",
+      "shop_bucket": "unpriced",
+      "exclude_from_shop": true,
+      "exclusion_reason": "Excluded in source (legacy balance concern).",
+      "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
+    },
+    {
+      "name": "Cap of Water Breathing",
+      "normalized_name": "cap-of-water-breathing",
+      "suggested_price_gp": 1000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Cape of the Mountebank",
+      "normalized_name": "cape-of-the-mountebank",
+      "suggested_price_gp": 8000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Carpet of Flying",
+      "normalized_name": "carpet-of-flying",
+      "suggested_price_gp": 12000,
+      "rarity": "Very Rare",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Censer of Controlling Air Elementals",
+      "normalized_name": "censer-of-controlling-air-elementals",
+      "suggested_price_gp": 8000,
+      "rarity": "Rare",
+      "shop_bucket": "summoning",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Chime of Opening",
+      "normalized_name": "chime-of-opening",
+      "suggested_price_gp": 1500,
+      "rarity": "Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Circlet of Blasting",
+      "normalized_name": "circlet-of-blasting",
+      "suggested_price_gp": 1500,
+      "rarity": "Uncommon",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Cloak of Arachnida",
+      "normalized_name": "cloak-of-arachnida",
+      "suggested_price_gp": 5000,
+      "rarity": "Very Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Cloak of Displacement",
+      "normalized_name": "cloak-of-displacement",
+      "suggested_price_gp": 60000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Cloak of Elvenkind",
+      "normalized_name": "cloak-of-elvenkind",
+      "suggested_price_gp": 5000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Cloak of Invisibility",
+      "normalized_name": "cloak-of-invisibility",
+      "suggested_price_gp": 80000,
+      "rarity": "Legendary",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Cloak of Protection",
+      "normalized_name": "cloak-of-protection",
+      "suggested_price_gp": 3500,
+      "rarity": "Uncommon",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Cloak of the Bat",
+      "normalized_name": "cloak-of-the-bat",
+      "suggested_price_gp": 6000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Cloak of the Manta Ray",
+      "normalized_name": "cloak-of-the-manta-ray",
+      "suggested_price_gp": 6000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Crystal Ball",
+      "normalized_name": "crystal-ball",
+      "suggested_price_gp": 50000,
+      "rarity": "Very Rare",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Cube of Force",
+      "normalized_name": "cube-of-force",
+      "suggested_price_gp": 16000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Cubic Gate",
+      "normalized_name": "cubic-gate",
+      "suggested_price_gp": 40000,
+      "rarity": "Legendary",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Daern's Instant Fortress",
+      "normalized_name": "daerns-instant-fortress",
+      "suggested_price_gp": 75000,
+      "rarity": "Rare",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Dagger of Venom",
+      "normalized_name": "dagger-of-venom",
+      "suggested_price_gp": 2500,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Dancing Sword",
+      "normalized_name": "dancing-sword",
+      "suggested_price_gp": 2000,
+      "rarity": "Very Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Decanter of Endless Water",
+      "normalized_name": "decanter-of-endless-water",
+      "suggested_price_gp": 135000,
+      "rarity": "Uncommon",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Deck of Illusions",
+      "normalized_name": "deck-of-illusions",
+      "suggested_price_gp": 6120,
+      "rarity": "Uncommon",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Deck of Many Things",
+      "normalized_name": "deck-of-many-things",
+      "suggested_price_gp": null,
+      "rarity": "Unspecified",
+      "shop_bucket": "unpriced",
+      "exclude_from_shop": true,
+      "exclusion_reason": "Excluded in source as a high-chaos random-effect item.",
+      "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
+    },
+    {
+      "name": "Defender",
+      "normalized_name": "defender",
+      "suggested_price_gp": 24000,
+      "rarity": "Legendary",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Dimensional Shackles",
+      "normalized_name": "dimensional-shackles",
+      "suggested_price_gp": 3000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Dragon Scale Mail",
+      "normalized_name": "dragon-scale-mail",
+      "suggested_price_gp": 4000,
+      "rarity": "Very Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Dragon Slayer",
+      "normalized_name": "dragon-slayer",
+      "suggested_price_gp": 8000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Driftglobe",
+      "normalized_name": "driftglobe",
+      "suggested_price_gp": 750,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Dust of Disappearance",
+      "normalized_name": "dust-of-disappearance",
+      "suggested_price_gp": 300,
+      "rarity": "Uncommon",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Dust of Dryness (1 pellet)",
+      "normalized_name": "dust-of-dryness-1-pellet",
+      "suggested_price_gp": 120,
+      "rarity": "Uncommon",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Dust of Sneezing and Choking",
+      "normalized_name": "dust-of-sneezing-and-choking",
+      "suggested_price_gp": 480,
+      "rarity": "Uncommon",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Dwarven Plate",
+      "normalized_name": "dwarven-plate",
+      "suggested_price_gp": 9000,
+      "rarity": "Very Rare",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Dwarven Thrower",
+      "normalized_name": "dwarven-thrower",
+      "suggested_price_gp": 18000,
+      "rarity": "Very Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ebony Fly",
+      "normalized_name": "ebony-fly",
+      "suggested_price_gp": 6000,
+      "rarity": "Rare",
+      "shop_bucket": "summoning",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Efreeti Bottle",
+      "normalized_name": "efreeti-bottle",
+      "suggested_price_gp": null,
+      "rarity": "Unspecified",
+      "shop_bucket": "unpriced",
+      "exclude_from_shop": true,
+      "exclusion_reason": "Excluded in source due wish-access concerns.",
+      "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
+    },
+    {
+      "name": "Efreeti Chain",
+      "normalized_name": "efreeti-chain",
+      "suggested_price_gp": 20000,
+      "rarity": "Legendary",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Elemental Gem",
+      "normalized_name": "elemental-gem",
+      "suggested_price_gp": 960,
+      "rarity": "Uncommon",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Elixir of Health",
+      "normalized_name": "elixir-of-health",
+      "suggested_price_gp": 120,
+      "rarity": "Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Elven Chain",
+      "normalized_name": "elven-chain",
+      "suggested_price_gp": 4000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Eversmoking Bottle",
+      "normalized_name": "eversmoking-bottle",
+      "suggested_price_gp": 1000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Eyes of Charming",
+      "normalized_name": "eyes-of-charming",
+      "suggested_price_gp": 3000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Eyes of Minute Seeing",
+      "normalized_name": "eyes-of-minute-seeing",
+      "suggested_price_gp": 2500,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Eyes of the Eagle",
+      "normalized_name": "eyes-of-the-eagle",
+      "suggested_price_gp": 2500,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Flame Tongue",
+      "normalized_name": "flame-tongue",
+      "suggested_price_gp": 5000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Folding Boat",
+      "normalized_name": "folding-boat",
+      "suggested_price_gp": 10000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Frost Brand",
+      "normalized_name": "frost-brand",
+      "suggested_price_gp": 2200,
+      "rarity": "Very Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Gauntlets of Ogre Power",
+      "normalized_name": "gauntlets-of-ogre-power",
+      "suggested_price_gp": 8000,
+      "rarity": "Uncommon",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Gem of Brightness",
+      "normalized_name": "gem-of-brightness",
+      "suggested_price_gp": 5000,
+      "rarity": "Uncommon",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Gem of Seeing",
+      "normalized_name": "gem-of-seeing",
+      "suggested_price_gp": 32000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Giant Slayer",
+      "normalized_name": "giant-slayer",
+      "suggested_price_gp": 7000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Glamoured Studded Leather",
+      "normalized_name": "glamoured-studded-leather",
+      "suggested_price_gp": 2000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Gloves of Missile Snaring",
+      "normalized_name": "gloves-of-missile-snaring",
+      "suggested_price_gp": 3000,
+      "rarity": "Uncommon",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Gloves of Swimming and Climbing",
+      "normalized_name": "gloves-of-swimming-and-climbing",
+      "suggested_price_gp": 2000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Gloves of Thievery",
+      "normalized_name": "gloves-of-thievery",
+      "suggested_price_gp": 5000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Goggles of Night",
+      "normalized_name": "goggles-of-night",
+      "suggested_price_gp": 1500,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Golden Lion (each)",
+      "normalized_name": "golden-lion-each",
+      "suggested_price_gp": 600,
+      "rarity": "Rare",
+      "shop_bucket": "summoning",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Hammer of Thunderbolts",
+      "normalized_name": "hammer-of-thunderbolts",
+      "suggested_price_gp": 16000,
+      "rarity": "Legendary",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Hat of Disguise",
+      "normalized_name": "hat-of-disguise",
+      "suggested_price_gp": 5000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Headband of Intellect",
+      "normalized_name": "headband-of-intellect",
+      "suggested_price_gp": 8000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Helm of Brilliance",
+      "normalized_name": "helm-of-brilliance",
+      "suggested_price_gp": null,
+      "rarity": "Unspecified",
+      "shop_bucket": "unpriced",
+      "exclude_from_shop": true,
+      "exclusion_reason": "Excluded in source as overly random/swingy.",
+      "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
+    },
+    {
+      "name": "Helm of Comprehend Languages",
+      "normalized_name": "helm-of-comprehend-languages",
+      "suggested_price_gp": 500,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Helm of Telepathy",
+      "normalized_name": "helm-of-telepathy",
+      "suggested_price_gp": 12000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Helm of Teleportation",
+      "normalized_name": "helm-of-teleportation",
+      "suggested_price_gp": 64000,
+      "rarity": "Rare",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Heward's Handy Haversack",
+      "normalized_name": "hewards-handy-haversack",
+      "suggested_price_gp": 2000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Holy Avenger",
+      "normalized_name": "holy-avenger",
+      "suggested_price_gp": 165000,
+      "rarity": "Legendary",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Horn of Blasting",
+      "normalized_name": "horn-of-blasting",
+      "suggested_price_gp": 450,
+      "rarity": "Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Horseshoes of Speed",
+      "normalized_name": "horseshoes-of-speed",
+      "suggested_price_gp": 5000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Horseshoes of the Zephyr",
+      "normalized_name": "horseshoes-of-the-zephyr",
+      "suggested_price_gp": 1500,
+      "rarity": "Very Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Immovable Rod",
+      "normalized_name": "immovable-rod",
+      "suggested_price_gp": 5000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Instrument of the Bards - Anstruth Harp",
+      "normalized_name": "instrument-of-the-bards-anstruth-harp",
+      "suggested_price_gp": 109000,
+      "rarity": "Very Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Instrument of the Bards - Canaith Mandolin",
+      "normalized_name": "instrument-of-the-bards-canaith-mandolin",
+      "suggested_price_gp": 30000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Instrument of the Bards - Cli Lyre",
+      "normalized_name": "instrument-of-the-bards-cli-lyre",
+      "suggested_price_gp": 35000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Instrument of the Bards - Doss Lute",
+      "normalized_name": "instrument-of-the-bards-doss-lute",
+      "suggested_price_gp": 28500,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Instrument of the Bards - Fochulan Bandlore",
+      "normalized_name": "instrument-of-the-bards-fochulan-bandlore",
+      "suggested_price_gp": 26500,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Instrument of the Bards - Mac-Fuirmidh Cittern",
+      "normalized_name": "instrument-of-the-bards-mac-fuirmidh-cittern",
+      "suggested_price_gp": 27000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Instrument of the Bards - Ollamh Harp",
+      "normalized_name": "instrument-of-the-bards-ollamh-harp",
+      "suggested_price_gp": 125000,
+      "rarity": "Legendary",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ioun Stone Absorption",
+      "normalized_name": "ioun-stone-absorption",
+      "suggested_price_gp": 2400,
+      "rarity": "Very Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ioun Stone Agility",
+      "normalized_name": "ioun-stone-agility",
+      "suggested_price_gp": 3000,
+      "rarity": "Very Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ioun Stone Awareness",
+      "normalized_name": "ioun-stone-awareness",
+      "suggested_price_gp": 12000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ioun Stone Fortitude",
+      "normalized_name": "ioun-stone-fortitude",
+      "suggested_price_gp": 3000,
+      "rarity": "Very Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ioun Stone Greater Absorption",
+      "normalized_name": "ioun-stone-greater-absorption",
+      "suggested_price_gp": 31000,
+      "rarity": "Legendary",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ioun Stone Insight",
+      "normalized_name": "ioun-stone-insight",
+      "suggested_price_gp": 3000,
+      "rarity": "Very Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ioun Stone Intellect",
+      "normalized_name": "ioun-stone-intellect",
+      "suggested_price_gp": 3000,
+      "rarity": "Very Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ioun Stone Leadership",
+      "normalized_name": "ioun-stone-leadership",
+      "suggested_price_gp": 3000,
+      "rarity": "Very Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ioun Stone Mastery",
+      "normalized_name": "ioun-stone-mastery",
+      "suggested_price_gp": 15000,
+      "rarity": "Legendary",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ioun Stone Protection",
+      "normalized_name": "ioun-stone-protection",
+      "suggested_price_gp": 1200,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ioun Stone Regeneration",
+      "normalized_name": "ioun-stone-regeneration",
+      "suggested_price_gp": 4000,
+      "rarity": "Legendary",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ioun Stone Reserve",
+      "normalized_name": "ioun-stone-reserve",
+      "suggested_price_gp": 6000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ioun Stone Strength",
+      "normalized_name": "ioun-stone-strength",
+      "suggested_price_gp": 3000,
+      "rarity": "Very Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ioun Stone Sustenance",
+      "normalized_name": "ioun-stone-sustenance",
+      "suggested_price_gp": 1000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Iron Bands of Bilarro",
+      "normalized_name": "iron-bands-of-bilarro",
+      "suggested_price_gp": 4000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Iron Flask",
+      "normalized_name": "iron-flask",
+      "suggested_price_gp": null,
+      "rarity": "Unspecified",
+      "shop_bucket": "unpriced",
+      "exclude_from_shop": true,
+      "exclusion_reason": "Excluded in source due wish/major-effect concerns.",
+      "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
+    },
+    {
+      "name": "Iron Horn of Valhalla",
+      "normalized_name": "iron-horn-of-valhalla",
+      "suggested_price_gp": 14000,
+      "rarity": "Legendary",
+      "shop_bucket": "summoning",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ivory Goat (Terror)",
+      "normalized_name": "ivory-goat-terror",
+      "suggested_price_gp": 20000,
+      "rarity": "Rare",
+      "shop_bucket": "summoning",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ivory Goat (Travail)",
+      "normalized_name": "ivory-goat-travail",
+      "suggested_price_gp": 400,
+      "rarity": "Rare",
+      "shop_bucket": "summoning",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ivory Goat (Traveling)",
+      "normalized_name": "ivory-goat-traveling",
+      "suggested_price_gp": 1000,
+      "rarity": "Rare",
+      "shop_bucket": "summoning",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Javelin of Lightning",
+      "normalized_name": "javelin-of-lightning",
+      "suggested_price_gp": 1500,
+      "rarity": "Uncommon",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Keoghtom's Ointment (per dose)",
+      "normalized_name": "keoghtoms-ointment-per-dose",
+      "suggested_price_gp": 120,
+      "rarity": "Uncommon",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Lantern of Revealing",
+      "normalized_name": "lantern-of-revealing",
+      "suggested_price_gp": 5000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Luck Blade",
+      "normalized_name": "luck-blade",
+      "suggested_price_gp": null,
+      "rarity": "Unspecified",
+      "shop_bucket": "unpriced",
+      "exclude_from_shop": true,
+      "exclusion_reason": "Excluded in source due wish-access concerns.",
+      "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
+    },
+    {
+      "name": "Luckstone",
+      "normalized_name": "luckstone",
+      "suggested_price_gp": 4200,
+      "rarity": "Uncommon",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Mace of Disruption",
+      "normalized_name": "mace-of-disruption",
+      "suggested_price_gp": 8000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Mace of Smiting",
+      "normalized_name": "mace-of-smiting",
+      "suggested_price_gp": 7000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Mace of Terror",
+      "normalized_name": "mace-of-terror",
+      "suggested_price_gp": 8000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Mantle of Spell Resistance",
+      "normalized_name": "mantle-of-spell-resistance",
+      "suggested_price_gp": 30000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Manual of Golems",
+      "normalized_name": "manual-of-golems",
+      "suggested_price_gp": null,
+      "rarity": "Unspecified",
+      "shop_bucket": "unpriced",
+      "exclude_from_shop": true,
+      "exclusion_reason": "Excluded in source because it is treated as a blueprint, not a normal sale item.",
+      "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
+    },
+    {
+      "name": "Manuals and Tomes +2",
+      "normalized_name": "manuals-and-tomes-plus-2",
+      "suggested_price_gp": null,
+      "rarity": "Unspecified",
+      "shop_bucket": "unpriced",
+      "exclude_from_shop": true,
+      "exclusion_reason": "Excluded in source; treated as special level-up style rewards, not normal sale stock.",
+      "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
+    },
+    {
+      "name": "Marble Elephant",
+      "normalized_name": "marble-elephant",
+      "suggested_price_gp": 6000,
+      "rarity": "Rare",
+      "shop_bucket": "summoning",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Mariner's Armor",
+      "normalized_name": "mariners-armor",
+      "suggested_price_gp": 1500,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Medallion of Thoughts",
+      "normalized_name": "medallion-of-thoughts",
+      "suggested_price_gp": 3000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Mirror of Life Trapping",
+      "normalized_name": "mirror-of-life-trapping",
+      "suggested_price_gp": 18000,
+      "rarity": "Very Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Mithral Armor",
+      "normalized_name": "mithral-armor",
+      "suggested_price_gp": 800,
+      "rarity": "Uncommon",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Necklace of Adaptation",
+      "normalized_name": "necklace-of-adaptation",
+      "suggested_price_gp": 1500,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Necklace of Fireballs (Five beads)",
+      "normalized_name": "necklace-of-fireballs-five-beads",
+      "suggested_price_gp": 3840,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Necklace of Fireballs (Four beads)",
+      "normalized_name": "necklace-of-fireballs-four-beads",
+      "suggested_price_gp": 1600,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Necklace of Fireballs (One bead)",
+      "normalized_name": "necklace-of-fireballs-one-bead",
+      "suggested_price_gp": 300,
+      "rarity": "Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Necklace of Fireballs (Six beads)",
+      "normalized_name": "necklace-of-fireballs-six-beads",
+      "suggested_price_gp": 7680,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Necklace of Fireballs (Three beads)",
+      "normalized_name": "necklace-of-fireballs-three-beads",
+      "suggested_price_gp": 960,
+      "rarity": "Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Necklace of Fireballs (Two beads)",
+      "normalized_name": "necklace-of-fireballs-two-beads",
+      "suggested_price_gp": 480,
+      "rarity": "Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Nine Lives Stealer (Fully Charged)",
+      "normalized_name": "nine-lives-stealer-fully-charged",
+      "suggested_price_gp": 8000,
+      "rarity": "Very Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Nolzur's Marvelous Pigments",
+      "normalized_name": "nolzurs-marvelous-pigments",
+      "suggested_price_gp": 200,
+      "rarity": "Very Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Oathbow",
+      "normalized_name": "oathbow",
+      "suggested_price_gp": 3500,
+      "rarity": "Very Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Obsidian Steed",
+      "normalized_name": "obsidian-steed",
+      "suggested_price_gp": 128000,
+      "rarity": "Very Rare",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Oil of Etherealness",
+      "normalized_name": "oil-of-etherealness",
+      "suggested_price_gp": 1920,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Oil of Sharpness",
+      "normalized_name": "oil-of-sharpness",
+      "suggested_price_gp": 3200,
+      "rarity": "Very Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Oil of Slipperiness",
+      "normalized_name": "oil-of-slipperiness",
+      "suggested_price_gp": 480,
+      "rarity": "Uncommon",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Onyx Dog",
+      "normalized_name": "onyx-dog",
+      "suggested_price_gp": 3000,
+      "rarity": "Rare",
+      "shop_bucket": "summoning",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Pearl of Power",
+      "normalized_name": "pearl-of-power",
+      "suggested_price_gp": 6000,
+      "rarity": "Uncommon",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Periapt of Health",
+      "normalized_name": "periapt-of-health",
+      "suggested_price_gp": 5000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Periapt of Proof Against Poison",
+      "normalized_name": "periapt-of-proof-against-poison",
+      "suggested_price_gp": 5000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Periapt of Wound Closure",
+      "normalized_name": "periapt-of-wound-closure",
+      "suggested_price_gp": 5000,
+      "rarity": "Uncommon",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Philter of Love",
+      "normalized_name": "philter-of-love",
+      "suggested_price_gp": 90,
+      "rarity": "Uncommon",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Pipes of Haunting",
+      "normalized_name": "pipes-of-haunting",
+      "suggested_price_gp": 6000,
+      "rarity": "Uncommon",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Pipes of the Sewers",
+      "normalized_name": "pipes-of-the-sewers",
+      "suggested_price_gp": 2000,
+      "rarity": "Uncommon",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Plate Armor of Etherealness",
+      "normalized_name": "plate-armor-of-etherealness",
+      "suggested_price_gp": 48000,
+      "rarity": "Legendary",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "+1 Armor",
+      "normalized_name": "plus-1-armor",
+      "suggested_price_gp": 1500,
+      "rarity": "Rare",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "+1 Shield",
+      "normalized_name": "plus-1-shield",
+      "suggested_price_gp": 1500,
+      "rarity": "Uncommon",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "+1 Weapon",
+      "normalized_name": "plus-1-weapon",
+      "suggested_price_gp": 1000,
+      "rarity": "Uncommon",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "+2 Armor",
+      "normalized_name": "plus-2-armor",
+      "suggested_price_gp": 6000,
+      "rarity": "Very Rare",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "+2 Shield",
+      "normalized_name": "plus-2-shield",
+      "suggested_price_gp": 6000,
+      "rarity": "Rare",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "+2 Weapon",
+      "normalized_name": "plus-2-weapon",
+      "suggested_price_gp": 4000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "+3 Armor",
+      "normalized_name": "plus-3-armor",
+      "suggested_price_gp": 24000,
+      "rarity": "Legendary",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "+3 Shield",
+      "normalized_name": "plus-3-shield",
+      "suggested_price_gp": 24000,
+      "rarity": "Very Rare",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "+3 Weapon",
+      "normalized_name": "plus-3-weapon",
+      "suggested_price_gp": 16000,
+      "rarity": "Very Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Portable Hole",
+      "normalized_name": "portable-hole",
+      "suggested_price_gp": 8000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Potion of Animal Friendship",
+      "normalized_name": "potion-of-animal-friendship",
+      "suggested_price_gp": 200,
+      "rarity": "Uncommon",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Potion of Clairvoyance",
+      "normalized_name": "potion-of-clairvoyance",
+      "suggested_price_gp": 960,
+      "rarity": "Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Potion of Climbing",
+      "normalized_name": "potion-of-climbing",
+      "suggested_price_gp": 180,
+      "rarity": "Common",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Potion of Diminution",
+      "normalized_name": "potion-of-diminution",
+      "suggested_price_gp": 270,
+      "rarity": "Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Potion of Fire Breath",
+      "normalized_name": "potion-of-fire-breath",
+      "suggested_price_gp": 150,
+      "rarity": "Uncommon",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Potion of Flying",
+      "normalized_name": "potion-of-flying",
+      "suggested_price_gp": 500,
+      "rarity": "Very Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Potion of Gaseous Form",
+      "normalized_name": "potion-of-gaseous-form",
+      "suggested_price_gp": 300,
+      "rarity": "Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Potion of Giant Strength",
+      "normalized_name": "potion-of-giant-strength",
+      "suggested_price_gp": null,
+      "rarity": "Unspecified",
+      "shop_bucket": "unpriced",
+      "exclude_from_shop": true,
+      "exclusion_reason": "Excluded in source for bounded-accuracy concerns.",
+      "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
+    },
+    {
+      "name": "Potion of Greater Healing",
+      "normalized_name": "potion-of-greater-healing",
+      "suggested_price_gp": 150,
+      "rarity": "Uncommon",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Potion of Growth",
+      "normalized_name": "potion-of-growth",
+      "suggested_price_gp": 270,
+      "rarity": "Uncommon",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Potion of Healing",
+      "normalized_name": "potion-of-healing",
+      "suggested_price_gp": 50,
+      "rarity": "Common",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Potion of Heroism",
+      "normalized_name": "potion-of-heroism",
+      "suggested_price_gp": 180,
+      "rarity": "Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Potion of Invisibility",
+      "normalized_name": "potion-of-invisibility",
+      "suggested_price_gp": 180,
+      "rarity": "Very Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Potion of Invulnerability",
+      "normalized_name": "potion-of-invulnerability",
+      "suggested_price_gp": 3840,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Potion of Longevity",
+      "normalized_name": "potion-of-longevity",
+      "suggested_price_gp": 9000,
+      "rarity": "Very Rare",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Potion of Mind Reading",
+      "normalized_name": "potion-of-mind-reading",
+      "suggested_price_gp": 180,
+      "rarity": "Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Potion of Poison",
+      "normalized_name": "potion-of-poison",
+      "suggested_price_gp": 100,
+      "rarity": "Uncommon",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Potion of Resistance",
+      "normalized_name": "potion-of-resistance",
+      "suggested_price_gp": 300,
+      "rarity": "Uncommon",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Potion of Speed",
+      "normalized_name": "potion-of-speed",
+      "suggested_price_gp": 400,
+      "rarity": "Very Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Potion of Superior Healing",
+      "normalized_name": "potion-of-superior-healing",
+      "suggested_price_gp": 450,
+      "rarity": "Very Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Potion of Supreme Healing",
+      "normalized_name": "potion-of-supreme-healing",
+      "suggested_price_gp": 1350,
+      "rarity": "Very Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Potion of Vitality",
+      "normalized_name": "potion-of-vitality",
+      "suggested_price_gp": 960,
+      "rarity": "Very Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Potion of Water Breathing",
+      "normalized_name": "potion-of-water-breathing",
+      "suggested_price_gp": 180,
+      "rarity": "Uncommon",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Prayer Bead - Bless",
+      "normalized_name": "prayer-bead-bless",
+      "suggested_price_gp": 2000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Prayer Bead - Curing",
+      "normalized_name": "prayer-bead-curing",
+      "suggested_price_gp": 4000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Prayer Bead - Favor",
+      "normalized_name": "prayer-bead-favor",
+      "suggested_price_gp": 32000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Prayer Bead - Smiting",
+      "normalized_name": "prayer-bead-smiting",
+      "suggested_price_gp": 1500,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Prayer Bead - Summons",
+      "normalized_name": "prayer-bead-summons",
+      "suggested_price_gp": 128000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Prayer Bead - Wind Walking",
+      "normalized_name": "prayer-bead-wind-walking",
+      "suggested_price_gp": 96000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Quaal's Feather Token Anchor",
+      "normalized_name": "quaals-feather-token-anchor",
+      "suggested_price_gp": 50,
+      "rarity": "Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Quaal's Feather Token Bird",
+      "normalized_name": "quaals-feather-token-bird",
+      "suggested_price_gp": 3000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Quaal's Feather Token Fan",
+      "normalized_name": "quaals-feather-token-fan",
+      "suggested_price_gp": 250,
+      "rarity": "Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Quaal's Feather Token Swan Boat",
+      "normalized_name": "quaals-feather-token-swan-boat",
+      "suggested_price_gp": 3000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Quaal's Feather Token Whip",
+      "normalized_name": "quaals-feather-token-whip",
+      "suggested_price_gp": 250,
+      "rarity": "Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Quiver of Ehlonna",
+      "normalized_name": "quiver-of-ehlonna",
+      "suggested_price_gp": 1000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ring of Air Elemental Command",
+      "normalized_name": "ring-of-air-elemental-command",
+      "suggested_price_gp": 35000,
+      "rarity": "Legendary",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ring of Animal Influence",
+      "normalized_name": "ring-of-animal-influence",
+      "suggested_price_gp": 4000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ring of Djinni Summoning",
+      "normalized_name": "ring-of-djinni-summoning",
+      "suggested_price_gp": null,
+      "rarity": "Unspecified",
+      "shop_bucket": "unpriced",
+      "exclude_from_shop": true,
+      "exclusion_reason": "Excluded in source as too game-changing for normal sale.",
+      "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
+    },
+    {
+      "name": "Ring of Earth Elemental Command",
+      "normalized_name": "ring-of-earth-elemental-command",
+      "suggested_price_gp": 31000,
+      "rarity": "Legendary",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ring of Evasion",
+      "normalized_name": "ring-of-evasion",
+      "suggested_price_gp": 5000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ring of Feather Falling",
+      "normalized_name": "ring-of-feather-falling",
+      "suggested_price_gp": 2000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ring of Fire Elemental Command",
+      "normalized_name": "ring-of-fire-elemental-command",
+      "suggested_price_gp": 17000,
+      "rarity": "Legendary",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ring of Free Action",
+      "normalized_name": "ring-of-free-action",
+      "suggested_price_gp": 20000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ring of Invisibility",
+      "normalized_name": "ring-of-invisibility",
+      "suggested_price_gp": 10000,
+      "rarity": "Legendary",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ring of Jumping",
+      "normalized_name": "ring-of-jumping",
+      "suggested_price_gp": 2500,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ring of Mind Shielding",
+      "normalized_name": "ring-of-mind-shielding",
+      "suggested_price_gp": 16000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ring of Protection",
+      "normalized_name": "ring-of-protection",
+      "suggested_price_gp": 3500,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ring of Regeneration",
+      "normalized_name": "ring-of-regeneration",
+      "suggested_price_gp": 12000,
+      "rarity": "Very Rare",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ring of Resistance",
+      "normalized_name": "ring-of-resistance",
+      "suggested_price_gp": 6000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ring of Shooting Stars",
+      "normalized_name": "ring-of-shooting-stars",
+      "suggested_price_gp": 14000,
+      "rarity": "Very Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ring of Spell Storing",
+      "normalized_name": "ring-of-spell-storing",
+      "suggested_price_gp": 24000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ring of Spell Turning",
+      "normalized_name": "ring-of-spell-turning",
+      "suggested_price_gp": 30000,
+      "rarity": "Legendary",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ring of Swimming",
+      "normalized_name": "ring-of-swimming",
+      "suggested_price_gp": 3000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ring of Telekinesis",
+      "normalized_name": "ring-of-telekinesis",
+      "suggested_price_gp": 80000,
+      "rarity": "Very Rare",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ring of the Ram",
+      "normalized_name": "ring-of-the-ram",
+      "suggested_price_gp": 5000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ring of Three Wishes",
+      "normalized_name": "ring-of-three-wishes",
+      "suggested_price_gp": null,
+      "rarity": "Unspecified",
+      "shop_bucket": "unpriced",
+      "exclude_from_shop": true,
+      "exclusion_reason": "Excluded in source due wish-access concerns.",
+      "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
+    },
+    {
+      "name": "Ring of Warmth",
+      "normalized_name": "ring-of-warmth",
+      "suggested_price_gp": 1000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ring of Water Elemental Command",
+      "normalized_name": "ring-of-water-elemental-command",
+      "suggested_price_gp": 25000,
+      "rarity": "Legendary",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ring of Water Walking",
+      "normalized_name": "ring-of-water-walking",
+      "suggested_price_gp": 1500,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Ring of X-Ray Vision",
+      "normalized_name": "ring-of-x-ray-vision",
+      "suggested_price_gp": 6000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Robe of Eyes",
+      "normalized_name": "robe-of-eyes",
+      "suggested_price_gp": 30000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Robe of Scintillating Colors",
+      "normalized_name": "robe-of-scintillating-colors",
+      "suggested_price_gp": 6000,
+      "rarity": "Very Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Robe of Stars",
+      "normalized_name": "robe-of-stars",
+      "suggested_price_gp": 60000,
+      "rarity": "Very Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Robe of the Archmagi",
+      "normalized_name": "robe-of-the-archmagi",
+      "suggested_price_gp": 34000,
+      "rarity": "Legendary",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Robe of Useful Items",
+      "normalized_name": "robe-of-useful-items",
+      "suggested_price_gp": null,
+      "rarity": "Uncommon",
+      "shop_bucket": "unpriced",
+      "exclude_from_shop": true,
+      "exclusion_reason": "Variable formula pricing in source (items × 5); manual curation required.",
+      "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
+    },
+    {
+      "name": "Rod of Absorption",
+      "normalized_name": "rod-of-absorption",
+      "suggested_price_gp": 50000,
+      "rarity": "Very Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Rod of Alertness",
+      "normalized_name": "rod-of-alertness",
+      "suggested_price_gp": 25000,
+      "rarity": "Very Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Rod of Lordly Might",
+      "normalized_name": "rod-of-lordly-might",
+      "suggested_price_gp": 28000,
+      "rarity": "Legendary",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Rod of Resurrection",
+      "normalized_name": "rod-of-resurrection",
+      "suggested_price_gp": null,
+      "rarity": "Unspecified",
+      "shop_bucket": "unpriced",
+      "exclude_from_shop": true,
+      "exclusion_reason": "Excluded in source as a plot-device-level item.",
+      "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
+    },
+    {
+      "name": "Rod of Rulership",
+      "normalized_name": "rod-of-rulership",
+      "suggested_price_gp": 16000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Rod of Security",
+      "normalized_name": "rod-of-security",
+      "suggested_price_gp": 90000,
+      "rarity": "Very Rare",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Rod of the Pact Keeper +1",
+      "normalized_name": "rod-of-the-pact-keeper-plus-1",
+      "suggested_price_gp": 12000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Rod of the Pact Keeper +2",
+      "normalized_name": "rod-of-the-pact-keeper-plus-2",
+      "suggested_price_gp": 16000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Rod of the Pact Keeper +3",
+      "normalized_name": "rod-of-the-pact-keeper-plus-3",
+      "suggested_price_gp": 28000,
+      "rarity": "Very Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Rope of Climbing",
+      "normalized_name": "rope-of-climbing",
+      "suggested_price_gp": 2000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Rope of Entanglement",
+      "normalized_name": "rope-of-entanglement",
+      "suggested_price_gp": 4000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Saddle of the Cavalier",
+      "normalized_name": "saddle-of-the-cavalier",
+      "suggested_price_gp": 2000,
+      "rarity": "Uncommon",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Scarab of Protection",
+      "normalized_name": "scarab-of-protection",
+      "suggested_price_gp": 36000,
+      "rarity": "Legendary",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Scimitar of Speed",
+      "normalized_name": "scimitar-of-speed",
+      "suggested_price_gp": 6000,
+      "rarity": "Very Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Scroll of Protection",
+      "normalized_name": "scroll-of-protection",
+      "suggested_price_gp": 180,
+      "rarity": "Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Sending Stones",
+      "normalized_name": "sending-stones",
+      "suggested_price_gp": 2000,
+      "rarity": "Uncommon",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Sentinel Shield",
+      "normalized_name": "sentinel-shield",
+      "suggested_price_gp": 20000,
+      "rarity": "Uncommon",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Serpentine Owl",
+      "normalized_name": "serpentine-owl",
+      "suggested_price_gp": 8000,
+      "rarity": "Rare",
+      "shop_bucket": "summoning",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Shield of Missile Attraction",
+      "normalized_name": "shield-of-missile-attraction",
+      "suggested_price_gp": 6000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Silver Horn of Valhalla",
+      "normalized_name": "silver-horn-of-valhalla",
+      "suggested_price_gp": 5600,
+      "rarity": "Rare",
+      "shop_bucket": "summoning",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Silver Raven",
+      "normalized_name": "silver-raven",
+      "suggested_price_gp": 5000,
+      "rarity": "Uncommon",
+      "shop_bucket": "summoning",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Slippers of Spider Climbing",
+      "normalized_name": "slippers-of-spider-climbing",
+      "suggested_price_gp": 5000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Sovereign Glue",
+      "normalized_name": "sovereign-glue",
+      "suggested_price_gp": 400,
+      "rarity": "Legendary",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Spell Scroll Level 0",
+      "normalized_name": "spell-scroll-level-0",
+      "suggested_price_gp": 10,
+      "rarity": "Common",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Spell Scroll Level 1",
+      "normalized_name": "spell-scroll-level-1",
+      "suggested_price_gp": 60,
+      "rarity": "Common",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Spell Scroll Level 2",
+      "normalized_name": "spell-scroll-level-2",
+      "suggested_price_gp": 120,
+      "rarity": "Uncommon",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Spell Scroll Level 3",
+      "normalized_name": "spell-scroll-level-3",
+      "suggested_price_gp": 200,
+      "rarity": "Uncommon",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Spell Scroll Level 4",
+      "normalized_name": "spell-scroll-level-4",
+      "suggested_price_gp": 320,
+      "rarity": "Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Spell Scroll Level 5",
+      "normalized_name": "spell-scroll-level-5",
+      "suggested_price_gp": 640,
+      "rarity": "Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Spell Scroll Level 6",
+      "normalized_name": "spell-scroll-level-6",
+      "suggested_price_gp": 1280,
+      "rarity": "Very Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Spell Scroll Level 7",
+      "normalized_name": "spell-scroll-level-7",
+      "suggested_price_gp": 2560,
+      "rarity": "Very Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Spell Scroll Level 8",
+      "normalized_name": "spell-scroll-level-8",
+      "suggested_price_gp": 5120,
+      "rarity": "Very Rare",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Spell Scroll Level 9",
+      "normalized_name": "spell-scroll-level-9",
+      "suggested_price_gp": 10240,
+      "rarity": "Legendary",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Spellguard Shield",
+      "normalized_name": "spellguard-shield",
+      "suggested_price_gp": 50000,
+      "rarity": "Very Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Sphere of Annihilation",
+      "normalized_name": "sphere-of-annihilation",
+      "suggested_price_gp": 15000,
+      "rarity": "Legendary",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Staff of Charming",
+      "normalized_name": "staff-of-charming",
+      "suggested_price_gp": 12000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Staff of Fire",
+      "normalized_name": "staff-of-fire",
+      "suggested_price_gp": 16000,
+      "rarity": "Very Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Staff of Frost",
+      "normalized_name": "staff-of-frost",
+      "suggested_price_gp": 26000,
+      "rarity": "Very Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Staff of Healing",
+      "normalized_name": "staff-of-healing",
+      "suggested_price_gp": 13000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Staff of Power",
+      "normalized_name": "staff-of-power",
+      "suggested_price_gp": 95500,
+      "rarity": "Very Rare",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Staff of Striking",
+      "normalized_name": "staff-of-striking",
+      "suggested_price_gp": 21000,
+      "rarity": "Very Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Staff of Swarming Insects",
+      "normalized_name": "staff-of-swarming-insects",
+      "suggested_price_gp": 16000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Staff of the Adder",
+      "normalized_name": "staff-of-the-adder",
+      "suggested_price_gp": 1800,
+      "rarity": "Uncommon",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Staff of the Magi",
+      "normalized_name": "staff-of-the-magi",
+      "suggested_price_gp": null,
+      "rarity": "Unspecified",
+      "shop_bucket": "unpriced",
+      "exclude_from_shop": true,
+      "exclusion_reason": "Excluded in source as too high-power for normal sale.",
+      "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
+    },
+    {
+      "name": "Staff of the Python",
+      "normalized_name": "staff-of-the-python",
+      "suggested_price_gp": 2000,
+      "rarity": "Uncommon",
+      "shop_bucket": "summoning",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Staff of the Woodlands",
+      "normalized_name": "staff-of-the-woodlands",
+      "suggested_price_gp": 44000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Staff of Thunder and Lightning",
+      "normalized_name": "staff-of-thunder-and-lightning",
+      "suggested_price_gp": 10000,
+      "rarity": "Very Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Staff of Withering",
+      "normalized_name": "staff-of-withering",
+      "suggested_price_gp": 3000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Stone of Controlling Earth Elementals",
+      "normalized_name": "stone-of-controlling-earth-elementals",
+      "suggested_price_gp": 8000,
+      "rarity": "Rare",
+      "shop_bucket": "summoning",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Sunblade",
+      "normalized_name": "sunblade",
+      "suggested_price_gp": 12000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Sword of Answering",
+      "normalized_name": "sword-of-answering",
+      "suggested_price_gp": 36000,
+      "rarity": "Legendary",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Sword of Life-Stealing",
+      "normalized_name": "sword-of-life-stealing",
+      "suggested_price_gp": 1000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Sword of Sharpness",
+      "normalized_name": "sword-of-sharpness",
+      "suggested_price_gp": 1700,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Sword of Wounding",
+      "normalized_name": "sword-of-wounding",
+      "suggested_price_gp": 2000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Talisman of Pure Good",
+      "normalized_name": "talisman-of-pure-good",
+      "suggested_price_gp": 71680,
+      "rarity": "Legendary",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Talisman of the Sphere",
+      "normalized_name": "talisman-of-the-sphere",
+      "suggested_price_gp": 20000,
+      "rarity": "Legendary",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Talisman of Ultimate Evil",
+      "normalized_name": "talisman-of-ultimate-evil",
+      "suggested_price_gp": 61440,
+      "rarity": "Legendary",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Tentacle Rod",
+      "normalized_name": "tentacle-rod",
+      "suggested_price_gp": 5000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Tome of the Stilled Tongue",
+      "normalized_name": "tome-of-the-stilled-tongue",
+      "suggested_price_gp": null,
+      "rarity": "Unspecified",
+      "shop_bucket": "unpriced",
+      "exclude_from_shop": true,
+      "exclusion_reason": "Excluded in source as unlikely to be sold by a wizard.",
+      "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
+    },
+    {
+      "name": "Trident of Fish Command",
+      "normalized_name": "trident-of-fish-command",
+      "suggested_price_gp": 800,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Universal Solvent",
+      "normalized_name": "universal-solvent",
+      "suggested_price_gp": 300,
+      "rarity": "Legendary",
+      "shop_bucket": "consumable",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Vicious Weapon",
+      "normalized_name": "vicious-weapon",
+      "suggested_price_gp": 350,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Vorpal Sword",
+      "normalized_name": "vorpal-sword",
+      "suggested_price_gp": 24000,
+      "rarity": "Legendary",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Wand of Binding",
+      "normalized_name": "wand-of-binding",
+      "suggested_price_gp": 10000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Wand of Enemy Detection",
+      "normalized_name": "wand-of-enemy-detection",
+      "suggested_price_gp": 4000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Wand of Fear",
+      "normalized_name": "wand-of-fear",
+      "suggested_price_gp": 10000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Wand of Fireballs",
+      "normalized_name": "wand-of-fireballs",
+      "suggested_price_gp": 32000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Wand of Lightning Bolts",
+      "normalized_name": "wand-of-lightning-bolts",
+      "suggested_price_gp": 32000,
+      "rarity": "Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Wand of Magic Detection",
+      "normalized_name": "wand-of-magic-detection",
+      "suggested_price_gp": 1500,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Wand of Magic Missiles",
+      "normalized_name": "wand-of-magic-missiles",
+      "suggested_price_gp": 8000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Wand of Paralysis",
+      "normalized_name": "wand-of-paralysis",
+      "suggested_price_gp": 16000,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Wand of Polymorph",
+      "normalized_name": "wand-of-polymorph",
+      "suggested_price_gp": 32000,
+      "rarity": "Very Rare",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Wand of Secrets",
+      "normalized_name": "wand-of-secrets",
+      "suggested_price_gp": 1500,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Wand of the War Mage +1",
+      "normalized_name": "wand-of-the-war-mage-plus-1",
+      "suggested_price_gp": 1200,
+      "rarity": "Uncommon",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Wand of the War Mage +2",
+      "normalized_name": "wand-of-the-war-mage-plus-2",
+      "suggested_price_gp": 4800,
+      "rarity": "Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Wand of the War Mage +3",
+      "normalized_name": "wand-of-the-war-mage-plus-3",
+      "suggested_price_gp": 19200,
+      "rarity": "Very Rare",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Wand of Web",
+      "normalized_name": "wand-of-web",
+      "suggested_price_gp": 8000,
+      "rarity": "Uncommon",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Wand of Wonder",
+      "normalized_name": "wand-of-wonder",
+      "suggested_price_gp": null,
+      "rarity": "Unspecified",
+      "shop_bucket": "unpriced",
+      "exclude_from_shop": true,
+      "exclusion_reason": "Excluded in source as high-randomness item.",
+      "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
+    },
+    {
+      "name": "Weapon of Warning",
+      "normalized_name": "weapon-of-warning",
+      "suggested_price_gp": 60000,
+      "rarity": "Uncommon",
+      "shop_bucket": "noncombat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Well of Many Worlds",
+      "normalized_name": "well-of-many-worlds",
+      "suggested_price_gp": null,
+      "rarity": "Unspecified",
+      "shop_bucket": "unpriced",
+      "exclude_from_shop": true,
+      "exclusion_reason": "Excluded in source as campaign-warping/setting-dependent.",
+      "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated."
+    },
+    {
+      "name": "Wind Fan",
+      "normalized_name": "wind-fan",
+      "suggested_price_gp": 1500,
+      "rarity": "Uncommon",
+      "shop_bucket": "combat",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Winged Boots",
+      "normalized_name": "winged-boots",
+      "suggested_price_gp": 8000,
+      "rarity": "Uncommon",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    },
+    {
+      "name": "Wings of Flying",
+      "normalized_name": "wings-of-flying",
+      "suggested_price_gp": 5000,
+      "rarity": "Rare",
+      "shop_bucket": "gamechanging",
+      "exclude_from_shop": false,
+      "exclusion_reason": "",
+      "notes": "Curated from Sane Magical Prices (2014-era planning overlay)."
+    }
+  ]
+}

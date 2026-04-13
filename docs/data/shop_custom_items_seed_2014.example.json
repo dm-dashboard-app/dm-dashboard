@@ -1,0 +1,64 @@
+{
+  "seed_version": 1,
+  "source_type": "custom_homebrew_private_seed",
+  "source_book": "DM Dashboard Custom Seed",
+  "rules_era": "2014",
+  "items": [
+    {
+      "name": "Lantern of Emberwatch",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "wondrous item",
+      "rarity": "uncommon",
+      "requires_attunement": false,
+      "description": "A hooded lantern that never runs out of oil while lit. Its flame turns blue when undead are within 60 feet.",
+      "suggested_price_gp": 350,
+      "price_source": "custom_seed_curated",
+      "source_book": "DM Homebrew Vol. 1",
+      "source_slug": "lantern-of-emberwatch",
+      "is_shop_eligible": true,
+      "shop_bucket": "utility",
+      "metadata_json": {
+        "seed_notes": "table-safe utility magic item",
+        "curation_tags": ["homebrew", "utility"]
+      }
+    },
+    {
+      "name": "Oakbound Trail Pack",
+      "item_type": "adventuring_gear",
+      "category": "Equipment",
+      "subcategory": "Adventuring Gear",
+      "rarity": "common",
+      "requires_attunement": false,
+      "description": "A reinforced expedition pack with weatherproof wraps, chalk pouches, and waxed field maps.",
+      "base_price_gp": 14,
+      "suggested_price_gp": 14,
+      "price_source": "custom_seed_curated",
+      "source_slug": "oakbound-trail-pack",
+      "is_shop_eligible": true,
+      "shop_bucket": "mundane",
+      "metadata_json": {
+        "seed_notes": "private mundane gear",
+        "curation_tags": ["private", "gear"]
+      }
+    },
+    {
+      "name": "Pearl of Returning Whisper",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "wondrous item",
+      "rarity": "rare",
+      "requires_attunement": true,
+      "description": "Once per dawn, whisper a sentence into the pearl. Before the next dawn, it repeats that sentence aloud when held and commanded.",
+      "suggested_price_gp": 2600,
+      "price_source": "custom_seed_curated",
+      "source_slug": "pearl-of-returning-whisper",
+      "is_shop_eligible": false,
+      "shop_bucket": "manual",
+      "metadata_json": {
+        "seed_notes": "kept out of default generation by policy",
+        "curation_tags": ["homebrew", "manual-review"]
+      }
+    }
+  ]
+}
