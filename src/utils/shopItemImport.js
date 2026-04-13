@@ -149,7 +149,8 @@ function buildDescription(detail = {}) {
 
 function mapApiItem(detail = {}, kind = 'equipment') {
   const name = String(detail.name || '').trim();
-  const slug = slugify(name);
+  const sourceSlug = String(detail.index || '').trim() || slugify(name);
+  const slug = slugify(`${IMPORT_SOURCE_TYPE}-${sourceSlug}`);
   const requiresAttunement = parseAttunementFromName(name);
   const basePrice = kind === 'equipment' ? parseCostGp(detail.cost) : null;
 
@@ -167,8 +168,8 @@ function mapApiItem(detail = {}, kind = 'equipment') {
     price_source: basePrice !== null ? 'srd_2014_base_cost' : null,
     source_type: IMPORT_SOURCE_TYPE,
     source_book: IMPORT_SOURCE_BOOK,
-    source_slug: detail.index || slug,
-    external_key: `${IMPORT_SOURCE_TYPE}:${detail.index || slug}`,
+    source_slug: sourceSlug,
+    external_key: `${IMPORT_SOURCE_TYPE}:${sourceSlug}`,
     rules_era: RULES_ERA,
     is_shop_eligible: true,
     shop_bucket: kind === 'magic' ? 'magic' : 'mundane',
