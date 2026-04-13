@@ -215,13 +215,9 @@ Preservation rule:
 
 Landed baseline includes:
 
-- DM Manage → Imports includes an explicit **Repair Degraded SRD Rows** action
-- repair pass targets only rows currently flagged degraded/quarantined from SRD fallback import
 - repair data comes from durable repo artifact `docs/data/shop_srd_degraded_repairs_2014.json` (served in-app from `public/data/shop_srd_degraded_repairs_2014.json`)
-- only rows with trustworthy repair shape (type/category/subcategory plus price anchor) are upgraded
-- upgraded rows clear degraded quarantine flags and re-enter normal Stage 2/3 generation as shop-eligible
-- degraded rows without trustworthy repair overlay remain quarantined and excluded
-- SRD refresh now auto-updates the degraded report view by deriving directly from current quarantined `item_master` SRD rows (no separate report-generation button in UI)
+- degraded rows remain quarantined and excluded from shop generation by default
+- SRD refresh now auto-regenerates a durable degraded report snapshot in `app_settings` from current quarantined `item_master` SRD rows (no separate report-generation button)
 
 Preservation rule:
 

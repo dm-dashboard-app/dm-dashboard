@@ -527,8 +527,7 @@ Design constraint:
 - ✅ kept explicit source markers (`source_type`, `source_book`, `source_slug`) plus `rules_era=2014` validation in the server import path
 - ✅ corrected custom seed defaults: `docs/data/shop_custom_items_seed_2014.json` is now default-safe/empty and prior sample rows are moved to `docs/data/shop_custom_items_seed_2014.example.json` as example-only content
 - ✅ hardened in-app SRD refresh against upstream detail-endpoint breakage by falling back to index-derived item rows instead of dropping large portions of the catalog
-- ✅ added explicit degraded-row rehydration flow (`Repair Degraded SRD Rows`) backed by durable curated overlay artifact (`docs/data/shop_srd_degraded_repairs_2014.json`), so degraded SRD fallback rows can be upgraded and unquarantined only when trustworthy repair data exists
-- ✅ SRD refresh now auto-regenerates the degraded-row report view from live quarantined `item_master` rows so unresolved degraded SRD rows are always current in-app
+- ✅ SRD refresh now auto-regenerates a durable degraded-row report snapshot in `app_settings` from live quarantined `item_master` rows so unresolved degraded SRD rows are always current
 
 **Phase 5 — Expansion hooks (later)**
 
