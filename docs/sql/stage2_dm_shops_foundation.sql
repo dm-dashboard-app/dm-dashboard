@@ -85,6 +85,8 @@ returns table (
   category text,
   rarity text,
   description text,
+  price_source text,
+  shop_bucket text,
   source_type text,
   source_book text
 )
@@ -105,6 +107,8 @@ as $$
     im.category,
     im.rarity,
     im.description,
+    im.price_source,
+    im.shop_bucket,
     im.source_type,
     im.source_book
   from public.dm_shop_inventory inv

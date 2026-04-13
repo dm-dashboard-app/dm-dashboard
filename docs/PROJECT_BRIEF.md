@@ -1,6 +1,6 @@
 # DM Dashboard — Project Brief
 
-Last updated: April 13, 2026 (Stage 2 DM shop generator baseline)
+Last updated: April 13, 2026 (Stage 3 magic-shop curation baseline)
 
 Purpose: This document is the current-state/background brief for DM Dashboard. It describes what the app now is, what is materially landed, and what principles future work must preserve.
 
@@ -181,6 +181,20 @@ Landed baseline includes:
 Preservation rule:
 
 - keep shop data separated from reusable item catalog records and keep world-shop UI DM-only
+
+### 12) Magic overlay curation baseline (Stage 3)
+
+Landed baseline includes:
+
+- magic stock generation now uses overlay-informed metadata (`shop_bucket`, pricing-overlay exclusion metadata, suggested pricing presence) to affect eligibility and weighted selection
+- explicit suppression of excluded/manual/unpriced/gamechanging/special buckets from default generated stock
+- stronger magic-shop curation defaults: lower row counts, reduced duplicate churn, and utility/consumable/noncombat bias over chaotic high-end swings
+- affluence-aware magic rarity behavior where poor/modest shops strongly suppress high-rarity entries and wealthy shops can surface broader rarity bands
+- preserved Stage 2 save/regenerate and DM-only world-shop UX while adding lightweight item-detail curation context (bucket and pricing basis)
+
+Preservation rule:
+
+- keep default generation safe-by-default for special/problematic magic items while leaving manual curation to future explicit phases
 
 ## Architectural / Product Principles for Future Work
 

@@ -33,6 +33,7 @@ function ItemDetailModal({ item, onClose }) {
           <span>{item.item_type || 'Unknown Type'}</span>
           {item.category ? <span>• {item.category}</span> : null}
           {item.rarity ? <span>• {item.rarity}</span> : null}
+          {item.shop_bucket ? <span>• {item.shop_bucket}</span> : null}
           {item.source_book ? <span>• {item.source_book}</span> : null}
         </div>
         <div className="world-shop-pricing-meta">
@@ -40,6 +41,7 @@ function ItemDetailModal({ item, onClose }) {
           <span>Minimum: {gpLabel(item.minimum_price_gp)}</span>
           <span>Barter DC: {item.barter_dc}</span>
         </div>
+        {item.price_source ? <div className="world-shop-pricing-meta"><span>Pricing Basis: {item.price_source}</span></div> : null}
         <p className="world-shop-item-description">{item.description || 'No description available in the imported catalog.'}</p>
       </div>
     </div>
@@ -75,7 +77,7 @@ export default function WorldShopsPanel() {
   const loadCatalog = useCallback(async () => {
     const { data, error: loadError } = await supabase
       .from('item_master')
-      .select('id, name, item_type, category, subcategory, rarity, description, base_price_gp, suggested_price_gp, source_type, source_book, rules_era, is_shop_eligible, shop_bucket')
+      .select('id, name, item_type, category, subcategory, rarity, description, base_price_gp, suggested_price_gp, price_source, source_type, source_book, rules_era, is_shop_eligible, shop_bucket, metadata_json')
       .eq('rules_era', '2014')
       .eq('is_shop_eligible', true)
       .order('name');
@@ -103,6 +105,8 @@ export default function WorldShopsPanel() {
       description: row.description,
       source_type: row.source_type,
       source_book: row.source_book,
+      price_source: row.price_source,
+      shop_bucket: row.shop_bucket,
       quantity: row.quantity,
       listed_price_gp: row.listed_price_gp,
       minimum_price_gp: row.minimum_price_gp,
