@@ -379,3 +379,30 @@ export async function buildSrdRepairRows(existingRows = []) {
     skippedRows,
   };
 }
+
+export async function applySrdRepairsToImportRows(existingRows = []) {
+  const repairResult = await buildSrdRepairRows(existingRows);
+  if (!repairResult.repairedCount) {
+    return {
+      rows: existingRows,
+      degradedCount: repairResult.degradedCount,
+      repairedCount: 0,
+      skippedCount: repairResult.skippedCount,
+      skippedRows: repairResult.skippedRows,
+    };
+  }
+
+  const repairedByKey = new Map(repairResult.rows.map(row => [String(row.external_key || '').trim(), row]));
+  const mergedRows = (existingRows || []).map(row => {
+    const externalKey = String(row?.external_key || '').trim();
+    return repairedByKey.get(externalKey) || row;
+  });
+
+  return {
+    rows: mergedRows,
+    degradedCount: repairResult.degradedCount,
+    repairedCount: repairResult.repairedCount,
+    skippedCount: repairResult.skippedCount,
+    skippedRows: repairResult.skippedRows,
+  };
+}
