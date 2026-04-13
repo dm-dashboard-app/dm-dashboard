@@ -46,3 +46,15 @@ create trigger trg_item_master_updated_at
 before update on public.item_master
 for each row
 execute function public.set_item_master_updated_at();
+
+alter table public.item_master enable row level security;
+
+revoke all on public.item_master from anon, authenticated;
+
+drop policy if exists item_master_no_client_access on public.item_master;
+create policy item_master_no_client_access
+on public.item_master
+for all
+to anon, authenticated
+using (false)
+with check (false);
