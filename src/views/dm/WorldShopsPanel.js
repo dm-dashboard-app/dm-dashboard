@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import { generateShopRows } from '../../utils/shopGenerator';
-import { buildSrdImportRows, buildSrdRepairRows, loadCustomSeedRows, loadSrdDegradedReportRows } from '../../utils/shopItemImport';
+import ItemImportPanel from '../../components/ItemImportPanel';
 
 const SHOP_TYPES = [
   { value: 'blacksmith', label: 'Blacksmith' },
@@ -49,7 +49,7 @@ function ItemDetailModal({ item, onClose }) {
   );
 }
 
-export default function WorldShopsPanel() {
+export default function WorldShopsPanel({ showImportControls = false }) {
   const [shopType, setShopType] = useState('general_store');
   const [affluenceTier, setAffluenceTier] = useState('modest');
   const [catalogItems, setCatalogItems] = useState([]);
@@ -60,8 +60,6 @@ export default function WorldShopsPanel() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
-  const [importingMode, setImportingMode] = useState('');
-  const [importStatus, setImportStatus] = useState('');
 
   const selectedShop = useMemo(() => savedShops.find(shop => shop.id === selectedShopId) || null, [savedShops, selectedShopId]);
 
@@ -119,13 +117,18 @@ export default function WorldShopsPanel() {
     setGeneratedRows(normalized);
   }, []);
 
+  const refreshWorldShopData = useCallback(async () => {
+    await Promise.all([loadCatalog(), loadSavedShops()]);
+    if (selectedShopId) await loadShopInventory(selectedShopId);
+  }, [loadCatalog, loadSavedShops, loadShopInventory, selectedShopId]);
+
   useEffect(() => {
     let active = true;
     async function load() {
       try {
         setLoading(true);
         setError('');
-        await Promise.all([loadCatalog(), loadSavedShops()]);
+        await refreshWorldShopData();
       } catch (loadError) {
         if (active) setError(loadError.message || 'Failed to load shop data.');
       } finally {
@@ -136,121 +139,7 @@ export default function WorldShopsPanel() {
     return () => {
       active = false;
     };
-  }, [loadCatalog, loadSavedShops]);
-
-  async function runImport(mode) {
-    const isSrdMode = mode === 'srd';
-    const confirmMessage = isSrdMode
-      ? 'Refresh the 2014 SRD catalog into item_master now? This may take a minute.'
-      : 'Import curated custom seed rows from docs/data/shop_custom_items_seed_2014.json now?';
-    if (!window.confirm(confirmMessage)) return;
-
-    setImportingMode(mode);
-    setError('');
-    setImportStatus(isSrdMode ? 'Preparing SRD 2014 import…' : 'Preparing custom seed import…');
-
-    try {
-      const srdResult = isSrdMode
-        ? await buildSrdImportRows(message => setImportStatus(message))
-        : null;
-      const rows = isSrdMode ? (srdResult?.rows || []) : await loadCustomSeedRows();
-
-      const { data, error: importError } = await supabase.rpc('dm_import_item_master_rows', {
-        p_import_mode: isSrdMode ? 'srd_2014' : 'custom_seed_2014',
-        p_rows: rows,
-      });
-      if (importError) throw importError;
-
-      const rpcResult = Array.isArray(data) ? (data[0] || {}) : (data || {});
-      const importedCount = Number(rpcResult.imported_rows || 0);
-      const eligibleCount = Number(rpcResult.shop_eligible_rows || 0);
-      if (importedCount === 0) {
-        setImportStatus(isSrdMode
-          ? 'SRD import ran, but no rows were loaded. Check RPC logs and source connectivity.'
-          : 'Custom seed import ran with 0 rows. Seed file is intentionally empty by default; add your own curated items when ready.');
-      } else if (isSrdMode && Number(srdResult?.degradedCount || 0) > 0) {
-        const degradedCount = Number(srdResult.degradedCount || 0);
-        const attemptedCount = Number(srdResult.attemptedCount || 0);
-        setImportStatus(`SRD 2014 import complete with upstream detail fallback: ${importedCount} rows loaded (${eligibleCount} shop-eligible). ${degradedCount} row${degradedCount === 1 ? '' : 's'} used index fallback detail out of ${attemptedCount}.`);
-      } else {
-        setImportStatus(`${isSrdMode ? 'SRD 2014 import' : 'Custom seed import'} complete: ${importedCount} rows loaded (${eligibleCount} shop-eligible).`);
-      }
-
-      await loadCatalog();
-      if (selectedShopId) await loadShopInventory(selectedShopId);
-    } catch (importError) {
-      setError(importError.message || 'Item import failed.');
-      setImportStatus('');
-    } finally {
-      setImportingMode('');
-    }
-  }
-
-  async function runRepairDegradedRows() {
-    const confirmMessage = 'Repair currently quarantined degraded SRD rows using the curated repo overlay now? Only rows with trustworthy repair data will be upgraded.';
-    if (!window.confirm(confirmMessage)) return;
-
-    setImportingMode('repair');
-    setError('');
-    setImportStatus('Preparing degraded-row repair pass…');
-
-    try {
-      let reportRows = [];
-      let reportGeneratedAt = null;
-      try {
-        const report = await loadSrdDegradedReportRows();
-        reportRows = report.rows || [];
-        reportGeneratedAt = report.generatedAt || null;
-      } catch (reportError) {
-        // Keep repair flow functional even if report artifact is missing or stale in local build context.
-      }
-
-      const { data: degradedRows, error: degradedLoadError } = await supabase
-        .from('item_master')
-        .select('id, external_key, source_slug, name, slug, item_type, category, subcategory, rarity, requires_attunement, description, base_price_gp, suggested_price_gp, price_source, source_type, source_book, rules_era, is_shop_eligible, shop_bucket, metadata_json')
-        .eq('rules_era', '2014')
-        .eq('source_type', 'official_srd_2014')
-        .eq('metadata_json->>degraded_import', 'true')
-        .order('name');
-      if (degradedLoadError) throw degradedLoadError;
-
-      const repairResult = await buildSrdRepairRows(degradedRows || []);
-      const repairRows = repairResult.rows || [];
-      const reportUnresolvedCount = reportRows.filter(row => row?.has_repair_overlay !== true).length;
-      const reportCoveredCount = reportRows.length - reportUnresolvedCount;
-      if (repairRows.length === 0) {
-        setImportStatus(
-          `Degraded repair pass complete: no rows upgraded (${repairResult.degradedCount} degraded scanned, ${repairResult.skippedCount} skipped). ` +
-          `${reportRows.length ? `Durable report baseline: ${reportRows.length} needs-repair rows (${reportCoveredCount} overlay-covered / ${reportUnresolvedCount} unresolved)${reportGeneratedAt ? ` as of ${new Date(reportGeneratedAt).toLocaleString()}` : ''}.` : 'Durable degraded report unavailable in this build; run report generator script to refresh.'}`,
-        );
-        return;
-      }
-
-      const { data, error: importError } = await supabase.rpc('dm_import_item_master_rows', {
-        p_import_mode: 'srd_2014',
-        p_rows: repairRows,
-      });
-      if (importError) throw importError;
-
-      const rpcResult = Array.isArray(data) ? (data[0] || {}) : (data || {});
-      const importedCount = Number(rpcResult.imported_rows || 0);
-      const eligibleCount = Number(rpcResult.shop_eligible_rows || 0);
-
-      const remainingCount = Math.max(0, repairResult.degradedCount - repairRows.length);
-      setImportStatus(
-        `Degraded repair complete: ${importedCount} row${importedCount === 1 ? '' : 's'} upgraded (${eligibleCount} shop-eligible). ` +
-        `${remainingCount} row${remainingCount === 1 ? '' : 's'} remain quarantined this pass. ` +
-        `${reportRows.length ? `Durable report baseline: ${reportRows.length} needs-repair rows (${reportCoveredCount} overlay-covered / ${reportUnresolvedCount} unresolved)${reportGeneratedAt ? ` as of ${new Date(reportGeneratedAt).toLocaleString()}` : ''}.` : 'Durable degraded report unavailable in this build; run report generator script to refresh.'}`,
-      );
-      await loadCatalog();
-      if (selectedShopId) await loadShopInventory(selectedShopId);
-    } catch (repairError) {
-      setError(repairError.message || 'Degraded row repair failed.');
-      setImportStatus('');
-    } finally {
-      setImportingMode('');
-    }
-  }
+  }, [refreshWorldShopData]);
 
   async function handleGenerate() {
     setError('');
@@ -334,36 +223,7 @@ export default function WorldShopsPanel() {
 
   return (
     <div className="world-shops-shell">
-      <div className="world-shops-import-panel">
-        <div className="world-shops-panel-title">Catalog Import / Refresh</div>
-        <div className="world-shops-import-row">
-          <button
-            className="btn btn-primary"
-            onClick={() => runImport('srd')}
-            disabled={importingMode !== ''}
-          >
-            {importingMode === 'srd' ? 'Refreshing SRD…' : 'Refresh 2014 SRD Catalog'}
-          </button>
-          <button
-            className="btn btn-ghost"
-            onClick={() => runImport('custom')}
-            disabled={importingMode !== ''}
-          >
-            {importingMode === 'custom' ? 'Importing Seed…' : 'Import Custom Seed'}
-          </button>
-          <button
-            className="btn btn-ghost"
-            onClick={runRepairDegradedRows}
-            disabled={importingMode !== ''}
-          >
-            {importingMode === 'repair' ? 'Repairing…' : 'Repair Degraded SRD Rows'}
-          </button>
-        </div>
-        <div className="world-shops-import-help">
-          SRD refresh imports the baseline 2014 catalog. Custom seed import loads only curated rows from the repo seed file. Repair pass upgrades quarantined degraded SRD rows only when curated repair data is trustworthy.
-        </div>
-        {importStatus ? <div className="world-shops-import-status">{importStatus}</div> : null}
-      </div>
+      {showImportControls ? <ItemImportPanel onImportComplete={refreshWorldShopData} /> : null}
 
       <div className="world-shops-controls">
         <div className="world-shops-control-group">

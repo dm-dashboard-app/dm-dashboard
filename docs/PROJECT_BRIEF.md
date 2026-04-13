@@ -1,6 +1,6 @@
 # DM Dashboard — Project Brief
 
-Last updated: April 13, 2026 (degraded SRD report workflow baseline)
+Last updated: April 13, 2026 (live degraded SRD post-import report baseline)
 
 Purpose: This document is the current-state/background brief for DM Dashboard. It describes what the app now is, what is materially landed, and what principles future work must preserve.
 
@@ -201,7 +201,7 @@ Preservation rule:
 
 Landed baseline includes:
 
-- DM World → Shops now includes explicit one-action import controls for baseline SRD refresh and custom-seed import
+- DM Manage → Imports now hosts explicit one-action import controls for baseline SRD refresh and custom-seed import
 - import writes now run through a server-mediated RPC (`dm_import_item_master_rows`) instead of requiring terminal-only scripts for normal operator workflow
 - SRD refresh now degrades safely: index-derived fallback rows are still imported for catalog continuity, but those degraded rows are explicitly quarantined (`metadata_json.degraded_import=true`, `shop_bucket=fallback_quarantine`, `is_shop_eligible=false`) so they cannot pollute default shop generation or pricing paths
 - custom seed defaults are now explicit and safe: `docs/data/shop_custom_items_seed_2014.json` is intentionally empty-by-default, while prior sample rows live in `docs/data/shop_custom_items_seed_2014.example.json` as example/demo content
@@ -215,13 +215,9 @@ Preservation rule:
 
 Landed baseline includes:
 
-- DM World → Shops now includes an explicit **Repair Degraded SRD Rows** action
-- repair pass targets only rows currently flagged degraded/quarantined from SRD fallback import
 - repair data comes from durable repo artifact `docs/data/shop_srd_degraded_repairs_2014.json` (served in-app from `public/data/shop_srd_degraded_repairs_2014.json`)
-- only rows with trustworthy repair shape (type/category/subcategory plus price anchor) are upgraded
-- upgraded rows clear degraded quarantine flags and re-enter normal Stage 2/3 generation as shop-eligible
-- degraded rows without trustworthy repair overlay remain quarantined and excluded
-- degraded fallback discovery now has a durable report artifact (`docs/data/shop_srd_degraded_report_2014.json`, mirrored to `public/data/shop_srd_degraded_report_2014.json`) with a rerunnable generator command (`npm run report:items:degraded:2014`)
+- degraded rows remain quarantined and excluded from shop generation by default
+- SRD refresh now auto-reports the live degraded/quarantined SRD row set from current `item_master` rows immediately after import (no separate report-generation button)
 
 Preservation rule:
 
