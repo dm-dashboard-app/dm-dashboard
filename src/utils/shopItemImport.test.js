@@ -1,5 +1,6 @@
 import { buildSrdRepairRows, loadSrdDegradedReportRows } from './shopItemImport';
 import { generateShopRows } from './shopGenerator';
+import fs from 'fs';
 
 function degradedRow(overrides = {}) {
   return {
@@ -120,5 +121,21 @@ describe('loadSrdDegradedReportRows', () => {
     expect(report.generatedAt).toBe('2026-04-13T00:00:00.000Z');
     expect(report.rows).toHaveLength(1);
     expect(report.rows[0].external_key).toBe('official_srd_2014:test-item');
+  });
+});
+
+describe('degraded SRD repair overlay coverage', () => {
+  test('covers the full repo target list with explicit unresolved remainder', () => {
+    const targetRows = JSON.parse(fs.readFileSync('docs/degraded-srd-item-master-rows.json', 'utf8'));
+    const repairOverlay = JSON.parse(fs.readFileSync('docs/data/shop_srd_degraded_repairs_2014.json', 'utf8'));
+    const repairedRows = Array.isArray(repairOverlay.items) ? repairOverlay.items : [];
+    const unresolvedRows = repairOverlay?.coverage?.unresolved_rows_detail || [];
+
+    expect(targetRows).toHaveLength(307);
+    expect(repairOverlay.coverage.target_rows).toBe(targetRows.length);
+    expect(repairOverlay.coverage.repaired_rows).toBe(repairedRows.length);
+    expect(repairOverlay.coverage.unresolved_rows).toBe(unresolvedRows.length);
+    expect(repairedRows.length + unresolvedRows.length).toBe(targetRows.length);
+    expect(unresolvedRows.every(row => row.reason === 'missing_trustworthy_magic_price_overlay')).toBe(true);
   });
 });
