@@ -1,108 +1,114 @@
 {
   "version": "2026-04-13",
   "source": "Curated SRD degraded-row repair overlay",
-  "notes": "Expanded from docs/degraded-srd-item-master-rows.json using SRD 2014 detail data and curated magic pricing overlay with family-level alias mapping where trustworthy.",
+  "notes": "Expanded from docs/degraded-srd-item-master-rows.json using SRD 2014 detail data and curated magic pricing overlay with explicit alias repair and variant ambiguity handling.",
   "coverage": {
     "target_rows": 307,
-    "repaired_rows": 283,
-    "unresolved_rows": 24,
-    "unresolved_rule": "Rows remain unresolved only when no trustworthy price exists in curated magic pricing overlay even after family-level alias matching.",
+    "repaired_rows": 287,
+    "unresolved_rows": 20,
+    "unresolved_rule": "Rows remain unresolved only when variant choice is ambiguous, curated overlay is explicitly unpriced, or no trustworthy curated price source exists.",
     "unresolved_rows_detail": [
       {
         "slug": "demon-armor",
-        "reason": "missing_trustworthy_magic_price_overlay"
-      },
-      {
-        "slug": "efficient-quiver",
-        "reason": "missing_trustworthy_magic_price_overlay"
-      },
-      {
-        "slug": "iron-bands-of-binding",
-        "reason": "missing_trustworthy_magic_price_overlay"
+        "reason": "no_trustworthy_curated_price_source"
       },
       {
         "slug": "manual-of-bodily-health",
-        "reason": "missing_trustworthy_magic_price_overlay"
+        "reason": "no_trustworthy_curated_price_source"
       },
       {
         "slug": "manual-of-gainful-exercise",
-        "reason": "missing_trustworthy_magic_price_overlay"
+        "reason": "no_trustworthy_curated_price_source"
       },
       {
         "slug": "manual-of-golems-clay",
-        "reason": "missing_trustworthy_magic_price_overlay"
+        "reason": "no_trustworthy_curated_price_source"
       },
       {
         "slug": "manual-of-golems-flesh",
-        "reason": "missing_trustworthy_magic_price_overlay"
+        "reason": "no_trustworthy_curated_price_source"
       },
       {
         "slug": "manual-of-golems-iron",
-        "reason": "missing_trustworthy_magic_price_overlay"
+        "reason": "no_trustworthy_curated_price_source"
       },
       {
         "slug": "manual-of-golems-stone",
-        "reason": "missing_trustworthy_magic_price_overlay"
+        "reason": "no_trustworthy_curated_price_source"
       },
       {
         "slug": "manual-of-quickness-of-action",
-        "reason": "missing_trustworthy_magic_price_overlay"
+        "reason": "no_trustworthy_curated_price_source"
       },
       {
         "slug": "necklace-of-fireballs",
-        "reason": "missing_trustworthy_magic_price_overlay"
+        "reason": "variant_ambiguity",
+        "variant_price_candidates_gp": {
+          "one_bead": 300,
+          "two_beads": 480,
+          "three_beads": 960,
+          "four_beads": 1600,
+          "five_beads": 3840,
+          "six_beads": 7680
+        }
       },
       {
         "slug": "necklace-of-prayer-beads",
-        "reason": "missing_trustworthy_magic_price_overlay"
+        "reason": "variant_ambiguity",
+        "variant_price_candidates_gp": {
+          "bless": 2000,
+          "curing": 4000,
+          "favor": 32000,
+          "smiting": 1500,
+          "summons": 128000,
+          "wind_walking": 96000
+        }
       },
       {
         "slug": "orb-of-dragonkind",
-        "reason": "missing_trustworthy_magic_price_overlay"
+        "reason": "no_trustworthy_curated_price_source"
       },
       {
         "slug": "potion-of-giant-strength-cloud",
-        "reason": "missing_trustworthy_magic_price_overlay"
+        "reason": "overlay_present_but_explicitly_unpriced",
+        "overlay_slug": "potion-of-giant-strength"
       },
       {
         "slug": "potion-of-giant-strength-fire",
-        "reason": "missing_trustworthy_magic_price_overlay"
+        "reason": "overlay_present_but_explicitly_unpriced",
+        "overlay_slug": "potion-of-giant-strength"
       },
       {
         "slug": "potion-of-giant-strength-frost",
-        "reason": "missing_trustworthy_magic_price_overlay"
+        "reason": "overlay_present_but_explicitly_unpriced",
+        "overlay_slug": "potion-of-giant-strength"
       },
       {
         "slug": "potion-of-giant-strength-hill",
-        "reason": "missing_trustworthy_magic_price_overlay"
+        "reason": "overlay_present_but_explicitly_unpriced",
+        "overlay_slug": "potion-of-giant-strength"
       },
       {
         "slug": "potion-of-giant-strength-stone",
-        "reason": "missing_trustworthy_magic_price_overlay"
+        "reason": "overlay_present_but_explicitly_unpriced",
+        "overlay_slug": "potion-of-giant-strength"
       },
       {
         "slug": "potion-of-giant-strength-storm",
-        "reason": "missing_trustworthy_magic_price_overlay"
-      },
-      {
-        "slug": "stone-of-good-luck-luckstone",
-        "reason": "missing_trustworthy_magic_price_overlay"
-      },
-      {
-        "slug": "sun-blade",
-        "reason": "missing_trustworthy_magic_price_overlay"
+        "reason": "overlay_present_but_explicitly_unpriced",
+        "overlay_slug": "potion-of-giant-strength"
       },
       {
         "slug": "tome-of-clear-thought",
-        "reason": "missing_trustworthy_magic_price_overlay"
+        "reason": "no_trustworthy_curated_price_source"
       },
       {
         "slug": "tome-of-leadership-and-influence",
-        "reason": "missing_trustworthy_magic_price_overlay"
+        "reason": "no_trustworthy_curated_price_source"
       },
       {
         "slug": "tome-of-understanding",
-        "reason": "missing_trustworthy_magic_price_overlay"
+        "reason": "no_trustworthy_curated_price_source"
       }
     ]
   },
@@ -1083,6 +1089,19 @@
       "repair_price_source_slug": "dwarven-thrower"
     },
     {
+      "external_key": "official_srd_2014:efficient-quiver",
+      "source_slug": "efficient-quiver",
+      "name": "Efficient Quiver",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "description": "Wondrous item, uncommon\n\nEach of the quiver's three compartments connects to an extradimensional space that allows the quiver to hold numerous items while never weighing more than 2 pounds. The shortest compartment can hold up to sixty arrows, bolts, or similar objects. The midsize compartment holds up to eighteen javelins or similar objects. The longest compartment holds up to six long objects, such as bows, quarterstaffs, or spears.\n\nYou can draw any item the quiver contains as if doing so from a regular quiver or scabbard.",
+      "suggested_price_gp": 1000,
+      "shop_bucket": "noncombat",
+      "repair_reason": "trusted_srd_magic_detail_plus_family_overlay_price",
+      "repair_price_source_slug": "quiver-of-ehlonna"
+    },
+    {
       "external_key": "official_srd_2014:efreeti-bottle",
       "source_slug": "efreeti-bottle",
       "name": "Efreeti Bottle",
@@ -1354,6 +1373,19 @@
       "shop_bucket": "noncombat",
       "repair_reason": "trusted_srd_magic_detail_plus_family_overlay_price",
       "repair_price_source_slug": "ioun-stone-sustenance"
+    },
+    {
+      "external_key": "official_srd_2014:iron-bands-of-binding",
+      "source_slug": "iron-bands-of-binding",
+      "name": "Iron Bands of Binding",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "description": "Wondrous item, rare\n\nThis rusty iron sphere measures 3 inches in diameter and weighs 1 pound. You can use an action to speak the command word and throw the sphere at a Huge or smaller creature you can see within 60 feet of you. As the sphere moves through the air, it opens into a tangle of metal bands.\n\nMake a ranged attack roll with an attack bonus equal to your Dexterity modifier plus your proficiency bonus. On a hit, the target is restrained until you take a bonus action to speak the command word again to release it. Doing so, or missing with the attack, causes the bands to contract and become a sphere once more.\n\nA creature, including the one restrained, can use an action to make a DC 20 Strength check to break the iron bands. On a success, the item is destroyed, and the restrained creature is freed. If the check fails, any further attempts made by that creature automatically fail until 24 hours have elapsed.\n\nOnce the bands are used, they can't be used again until the next dawn.",
+      "suggested_price_gp": 4000,
+      "shop_bucket": "combat",
+      "repair_reason": "trusted_srd_magic_detail_plus_family_overlay_price",
+      "repair_price_source_slug": "iron-bands-of-bilarro"
     },
     {
       "external_key": "official_srd_2014:iron-flask",
@@ -3408,6 +3440,32 @@
       "shop_bucket": "summoning",
       "repair_reason": "trusted_srd_magic_detail_plus_curated_overlay_price",
       "repair_price_source_slug": "stone-of-controlling-earth-elementals"
+    },
+    {
+      "external_key": "official_srd_2014:stone-of-good-luck-luckstone",
+      "source_slug": "stone-of-good-luck-luckstone",
+      "name": "Stone of Good Luck (Luckstone)",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "description": "Wondrous item, uncommon (requires attunement)\n\nWhile this polished agate is on your person, you gain a +1 bonus to ability checks and saving throws.",
+      "suggested_price_gp": 4200,
+      "shop_bucket": "combat",
+      "repair_reason": "trusted_srd_magic_detail_plus_family_overlay_price",
+      "repair_price_source_slug": "luckstone"
+    },
+    {
+      "external_key": "official_srd_2014:sun-blade",
+      "source_slug": "sun-blade",
+      "name": "Sun Blade",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "description": "Weapon (longsword), rare (requires attunement)\n\nThis item appears to be a longsword hilt. While grasping the hilt, you can use a bonus action to cause a blade of pure radiance to spring into existence, or make the blade disappear. While the blade exists, this magic longsword has the finesse property. If you are proficient with shortswords or longswords, you are proficient with the sun blade.\n\nYou gain a +2 bonus to attack and damage rolls made with this weapon, which deals radiant damage instead of slashing damage. When you hit an undead with it, that target takes an extra 1d8 radiant damage.\n\nThe sword's luminous blade emits bright light in a 15-foot radius and dim light for an additional 15 feet. The light is sunlight. While the blade persists, you can use an action to expand or reduce its radius of bright and dim light by 5 feet each, to a maximum of 30 feet each or a minimum of 10 feet each.",
+      "suggested_price_gp": 12000,
+      "shop_bucket": "combat",
+      "repair_reason": "trusted_srd_magic_detail_plus_family_overlay_price",
+      "repair_price_source_slug": "sunblade"
     },
     {
       "external_key": "official_srd_2014:sword-of-life-stealing",

@@ -136,6 +136,11 @@ describe('degraded SRD repair overlay coverage', () => {
     expect(repairOverlay.coverage.repaired_rows).toBe(repairedRows.length);
     expect(repairOverlay.coverage.unresolved_rows).toBe(unresolvedRows.length);
     expect(repairedRows.length + unresolvedRows.length).toBe(targetRows.length);
-    expect(unresolvedRows.every(row => row.reason === 'missing_trustworthy_magic_price_overlay')).toBe(true);
+    const allowedReasons = new Set([
+      'variant_ambiguity',
+      'overlay_present_but_explicitly_unpriced',
+      'no_trustworthy_curated_price_source',
+    ]);
+    expect(unresolvedRows.every(row => allowedReasons.has(row.reason))).toBe(true);
   });
 });
