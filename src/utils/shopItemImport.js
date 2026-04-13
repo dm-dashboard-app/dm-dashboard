@@ -38,8 +38,16 @@ function parseCostGp(cost) {
   return null;
 }
 
+function resolveApiUrl(pathname = '') {
+  const value = String(pathname || '').trim();
+  if (/^https?:\/\//i.test(value)) return value;
+  if (value.startsWith('/api/2014/')) return `https://www.dnd5eapi.co${value}`;
+  const normalized = value.startsWith('/') ? value : `/${value}`;
+  return `${API_ROOT}${normalized}`;
+}
+
 async function fetchJson(pathname) {
-  const response = await fetch(`${API_ROOT}${pathname}`);
+  const response = await fetch(resolveApiUrl(pathname));
   if (!response.ok) throw new Error(`API request failed: ${pathname} (${response.status})`);
   return response.json();
 }
