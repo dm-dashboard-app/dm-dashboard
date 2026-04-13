@@ -84,7 +84,8 @@ export default function WorldShopsPanel() {
       .eq('is_shop_eligible', true)
       .order('name');
     if (loadError) throw loadError;
-    setCatalogItems(data || []);
+    const filtered = (data || []).filter(item => item?.metadata_json?.degraded_import !== true);
+    setCatalogItems(filtered);
   }, []);
 
   const loadSavedShops = useCallback(async () => {
@@ -294,13 +295,13 @@ export default function WorldShopsPanel() {
       <div className="world-shops-controls">
         <div className="world-shops-control-group">
           <label>Shop Type</label>
-          <select value={shopType} onChange={event => setShopType(event.target.value)}>
+          <select className="world-shops-select" value={shopType} onChange={event => setShopType(event.target.value)}>
             {SHOP_TYPES.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
           </select>
         </div>
         <div className="world-shops-control-group">
           <label>Affluence</label>
-          <select value={affluenceTier} onChange={event => setAffluenceTier(event.target.value)}>
+          <select className="world-shops-select" value={affluenceTier} onChange={event => setAffluenceTier(event.target.value)}>
             {AFFLUENCE_TIERS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
           </select>
         </div>

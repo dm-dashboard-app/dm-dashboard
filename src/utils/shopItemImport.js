@@ -75,6 +75,7 @@ function buildFallbackDetail(indexRow = {}, kind = 'equipment') {
     url: indexRow.url || null,
     desc: ['Imported from upstream index because the detail endpoint is unavailable.'],
     metadata_fallback: true,
+    metadata_fallback_reason: 'detail_endpoint_unavailable',
     equipment_category: kind === 'equipment' ? { name: 'Equipment' } : undefined,
   };
 }
@@ -152,33 +153,38 @@ function mapApiItem(detail = {}, kind = 'equipment') {
   const sourceSlug = String(detail.index || '').trim() || slugify(name);
   const slug = slugify(`${IMPORT_SOURCE_TYPE}-${sourceSlug}`);
   const requiresAttunement = parseAttunementFromName(name);
-  const basePrice = kind === 'equipment' ? parseCostGp(detail.cost) : null;
+  const isDegradedFallback = !!detail.metadata_fallback;
+  const sourceBasePrice = kind === 'equipment' ? parseCostGp(detail.cost) : null;
+  const trustedBasePrice = !isDegradedFallback && Number.isFinite(sourceBasePrice) ? sourceBasePrice : null;
 
   return {
     name,
     slug,
-    item_type: deriveItemType(detail, kind),
-    category: deriveCategory(detail, kind),
-    subcategory: deriveSubcategory(detail, kind),
+    item_type: isDegradedFallback && kind === 'equipment' ? 'equipment_fallback' : deriveItemType(detail, kind),
+    category: isDegradedFallback && kind === 'equipment' ? 'Fallback Equipment' : deriveCategory(detail, kind),
+    subcategory: isDegradedFallback ? 'unclassified' : deriveSubcategory(detail, kind),
     rarity: detail.rarity?.name || detail.rarity || null,
     requires_attunement: requiresAttunement,
     description: buildDescription(detail),
-    base_price_gp: basePrice,
-    suggested_price_gp: basePrice,
-    price_source: basePrice !== null ? 'srd_2014_base_cost' : null,
+    base_price_gp: trustedBasePrice,
+    suggested_price_gp: trustedBasePrice,
+    price_source: trustedBasePrice !== null ? 'srd_2014_base_cost' : (isDegradedFallback ? 'degraded_fallback_untrusted' : null),
     source_type: IMPORT_SOURCE_TYPE,
     source_book: IMPORT_SOURCE_BOOK,
     source_slug: sourceSlug,
     external_key: `${IMPORT_SOURCE_TYPE}:${sourceSlug}`,
     rules_era: RULES_ERA,
-    is_shop_eligible: true,
-    shop_bucket: kind === 'magic' ? 'magic' : 'mundane',
+    is_shop_eligible: !isDegradedFallback,
+    shop_bucket: isDegradedFallback ? 'fallback_quarantine' : (kind === 'magic' ? 'magic' : 'mundane'),
     metadata_json: {
       api_index: detail.index || null,
       api_url: detail.url || null,
       kind,
       contents: detail.contents || null,
       properties: detail.properties || null,
+      degraded_import: isDegradedFallback,
+      import_quality: isDegradedFallback ? 'degraded_fallback' : 'detail_verified',
+      degraded_reason: isDegradedFallback ? String(detail.metadata_fallback_reason || 'detail_endpoint_unavailable') : null,
     },
   };
 }

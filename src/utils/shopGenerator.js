@@ -40,7 +40,11 @@ const SHOP_KEYWORDS = {
   magic_shop: ['magic', 'wondrous', 'scroll', 'wand', 'rod', 'ring', 'staff', 'potion'],
 };
 
-const EXCLUDED_BUCKETS = new Set(['excluded', 'manual', 'unpriced', 'gamechanging']);
+const APOTHECARY_ALLOWED_TERMS = ['potion', 'poison', 'healing', 'herbal', 'alchem', 'antitoxin', 'healer', 'vial', 'flask'];
+const BLACKSMITH_ALLOWED_TERMS = ['weapon', 'armor', 'shield', 'ammo', 'smith', 'metal', 'martial'];
+const GENERAL_STORE_BLOCKLIST = ['vehicle', 'mount', 'ship', 'siege'];
+
+const EXCLUDED_BUCKETS = new Set(['excluded', 'manual', 'unpriced', 'gamechanging', 'fallback_quarantine']);
 const SPECIAL_BUCKETS = new Set(['special', 'artifact']);
 
 const MAGIC_BUCKET_WEIGHT = {
@@ -79,8 +83,12 @@ function rarityBaselinePrice(rarity = 'common') {
   return 25;
 }
 
+function itemHaystack(item = {}) {
+  return `${item.item_type || ''} ${item.category || ''} ${item.subcategory || ''} ${item.shop_bucket || ''} ${item.name || ''}`.toLowerCase();
+}
+
 function scoreShopFit(item = {}, shopType) {
-  const haystack = `${item.item_type || ''} ${item.category || ''} ${item.subcategory || ''} ${item.shop_bucket || ''} ${item.name || ''}`.toLowerCase();
+  const haystack = itemHaystack(item);
   const keywords = SHOP_KEYWORDS[shopType] || [];
   let score = 1;
   keywords.forEach(keyword => {
@@ -103,6 +111,10 @@ function scoreShopFit(item = {}, shopType) {
 
 function normalizeBucket(value = '') {
   return String(value || '').trim().toLowerCase();
+}
+
+function isDegradedFallback(item = {}) {
+  return item.metadata_json?.degraded_import === true || String(item.metadata_json?.import_quality || '').toLowerCase() === 'degraded_fallback';
 }
 
 function getOverlayState(item = {}) {
@@ -173,9 +185,29 @@ function computePricing(item = {}, { affluence = 'modest', shopType = 'general_s
   };
 }
 
+function isShopTypeMundaneMatch(item = {}, shopType) {
+  const haystack = itemHaystack(item);
+
+  if (shopType === 'apothecary') {
+    return APOTHECARY_ALLOWED_TERMS.some(term => haystack.includes(term));
+  }
+
+  if (shopType === 'blacksmith') {
+    return BLACKSMITH_ALLOWED_TERMS.some(term => haystack.includes(term));
+  }
+
+  if (shopType === 'general_store') {
+    return !GENERAL_STORE_BLOCKLIST.some(term => haystack.includes(term));
+  }
+
+  return true;
+}
+
 function isEligible(item = {}, shopType) {
   if (!item || item.rules_era !== '2014') return false;
   if (item.is_shop_eligible === false) return false;
+  if (isDegradedFallback(item)) return false;
+
   const overlayState = getOverlayState(item);
   if (overlayState.excluded) return false;
 
@@ -191,10 +223,11 @@ function isEligible(item = {}, shopType) {
     const rarity = normalizeRarity(item.rarity);
     const name = String(item.name || '').toLowerCase();
     const bucket = overlayState.bucket;
-    return (bucket === 'consumable' || name.includes('potion')) && (rarity === 'common' || rarity === 'uncommon');
+    return (bucket === 'consumable' || bucket === 'healing' || name.includes('potion'))
+      && (rarity === 'common' || rarity === 'uncommon');
   }
 
-  return true;
+  return isShopTypeMundaneMatch(item, shopType);
 }
 
 export function generateShopRows(items = [], { shopType = 'general_store', affluence = 'modest' } = {}) {
