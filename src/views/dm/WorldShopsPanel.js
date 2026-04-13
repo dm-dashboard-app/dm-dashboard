@@ -159,8 +159,9 @@ export default function WorldShopsPanel() {
       });
       if (importError) throw importError;
 
-      const importedCount = Number(data?.imported_rows || 0);
-      const eligibleCount = Number(data?.shop_eligible_rows || 0);
+      const rpcResult = Array.isArray(data) ? (data[0] || {}) : (data || {});
+      const importedCount = Number(rpcResult.imported_rows || 0);
+      const eligibleCount = Number(rpcResult.shop_eligible_rows || 0);
       setImportStatus(importedCount === 0
         ? (isSrdMode
             ? 'SRD import ran, but no rows were loaded. Check RPC logs and source connectivity.'
