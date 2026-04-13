@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import { generateShopRows } from '../../utils/shopGenerator';
-import { buildSrdImportRows, buildSrdRepairRows, loadCustomSeedRows } from '../../utils/shopItemImport';
+import { buildSrdImportRows, buildSrdRepairRows, loadCustomSeedRows, loadSrdDegradedReportRows } from '../../utils/shopItemImport';
 
 const SHOP_TYPES = [
   { value: 'blacksmith', label: 'Blacksmith' },
@@ -195,6 +195,16 @@ export default function WorldShopsPanel() {
     setImportStatus('Preparing degraded-row repair pass…');
 
     try {
+      let reportRows = [];
+      let reportGeneratedAt = null;
+      try {
+        const report = await loadSrdDegradedReportRows();
+        reportRows = report.rows || [];
+        reportGeneratedAt = report.generatedAt || null;
+      } catch (reportError) {
+        // Keep repair flow functional even if report artifact is missing or stale in local build context.
+      }
+
       const { data: degradedRows, error: degradedLoadError } = await supabase
         .from('item_master')
         .select('id, external_key, source_slug, name, slug, item_type, category, subcategory, rarity, requires_attunement, description, base_price_gp, suggested_price_gp, price_source, source_type, source_book, rules_era, is_shop_eligible, shop_bucket, metadata_json')
@@ -206,8 +216,13 @@ export default function WorldShopsPanel() {
 
       const repairResult = await buildSrdRepairRows(degradedRows || []);
       const repairRows = repairResult.rows || [];
+      const reportUnresolvedCount = reportRows.filter(row => row?.has_repair_overlay !== true).length;
+      const reportCoveredCount = reportRows.length - reportUnresolvedCount;
       if (repairRows.length === 0) {
-        setImportStatus(`Degraded repair pass complete: no rows upgraded (${repairResult.degradedCount} degraded scanned, ${repairResult.skippedCount} skipped).`);
+        setImportStatus(
+          `Degraded repair pass complete: no rows upgraded (${repairResult.degradedCount} degraded scanned, ${repairResult.skippedCount} skipped). ` +
+          `${reportRows.length ? `Durable report baseline: ${reportRows.length} needs-repair rows (${reportCoveredCount} overlay-covered / ${reportUnresolvedCount} unresolved)${reportGeneratedAt ? ` as of ${new Date(reportGeneratedAt).toLocaleString()}` : ''}.` : 'Durable degraded report unavailable in this build; run report generator script to refresh.'}`,
+        );
         return;
       }
 
@@ -221,7 +236,12 @@ export default function WorldShopsPanel() {
       const importedCount = Number(rpcResult.imported_rows || 0);
       const eligibleCount = Number(rpcResult.shop_eligible_rows || 0);
 
-      setImportStatus(`Degraded repair complete: ${importedCount} row${importedCount === 1 ? '' : 's'} upgraded (${eligibleCount} shop-eligible), ${repairResult.skippedCount} still quarantined due to missing/insufficient repair overlay data.`);
+      const remainingCount = Math.max(0, repairResult.degradedCount - repairRows.length);
+      setImportStatus(
+        `Degraded repair complete: ${importedCount} row${importedCount === 1 ? '' : 's'} upgraded (${eligibleCount} shop-eligible). ` +
+        `${remainingCount} row${remainingCount === 1 ? '' : 's'} remain quarantined this pass. ` +
+        `${reportRows.length ? `Durable report baseline: ${reportRows.length} needs-repair rows (${reportCoveredCount} overlay-covered / ${reportUnresolvedCount} unresolved)${reportGeneratedAt ? ` as of ${new Date(reportGeneratedAt).toLocaleString()}` : ''}.` : 'Durable degraded report unavailable in this build; run report generator script to refresh.'}`,
+      );
       await loadCatalog();
       if (selectedShopId) await loadShopInventory(selectedShopId);
     } catch (repairError) {

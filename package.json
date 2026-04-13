@@ -14,7 +14,8 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "import:items:2014": "node scripts/import_items_2014.mjs",
-    "import:items:custom:2014": "node scripts/import_items_custom_seed_2014.mjs"
+    "import:items:custom:2014": "node scripts/import_items_custom_seed_2014.mjs",
+    "report:items:degraded:2014": "node scripts/generate_srd_degraded_report_2014.mjs"
   },
   "eslintConfig": {
     "extends": [

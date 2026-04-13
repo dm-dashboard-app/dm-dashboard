@@ -329,6 +329,17 @@ export async function loadCustomSeedRows() {
   return items;
 }
 
+export async function loadSrdDegradedReportRows() {
+  const response = await fetch('/data/shop_srd_degraded_report_2014.json');
+  if (!response.ok) throw new Error('Failed to load degraded SRD report JSON.');
+  const parsed = await response.json();
+  const rows = Array.isArray(parsed?.items) ? parsed.items : [];
+  return {
+    rows,
+    generatedAt: parsed?.generated_at || null,
+  };
+}
+
 export async function buildSrdRepairRows(existingRows = []) {
   const overlayMap = await loadSrdRepairOverlay();
   const degradedRows = (existingRows || []).filter(row => row?.metadata_json?.degraded_import === true);

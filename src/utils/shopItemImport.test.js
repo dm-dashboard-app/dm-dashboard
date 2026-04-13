@@ -1,4 +1,4 @@
-import { buildSrdRepairRows } from './shopItemImport';
+import { buildSrdRepairRows, loadSrdDegradedReportRows } from './shopItemImport';
 import { generateShopRows } from './shopGenerator';
 
 function degradedRow(overrides = {}) {
@@ -102,5 +102,23 @@ describe('buildSrdRepairRows', () => {
 
     expect(degradedGenerated.some(row => row.item_name === 'Hempen Rope (50 feet)')).toBe(false);
     expect(repairedGenerated.some(row => row.item_name === 'Hempen Rope (50 feet)')).toBe(true);
+  });
+});
+
+describe('loadSrdDegradedReportRows', () => {
+  test('loads durable degraded report rows from artifact JSON', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        generated_at: '2026-04-13T00:00:00.000Z',
+        items: [{ external_key: 'official_srd_2014:test-item' }],
+      }),
+    });
+
+    const report = await loadSrdDegradedReportRows();
+
+    expect(report.generatedAt).toBe('2026-04-13T00:00:00.000Z');
+    expect(report.rows).toHaveLength(1);
+    expect(report.rows[0].external_key).toBe('official_srd_2014:test-item');
   });
 });

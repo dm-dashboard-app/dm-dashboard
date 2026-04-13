@@ -1,6 +1,6 @@
 # DM Dashboard — Project Brief
 
-Last updated: April 13, 2026 (shop fallback quarantine correction baseline)
+Last updated: April 13, 2026 (degraded SRD report workflow baseline)
 
 Purpose: This document is the current-state/background brief for DM Dashboard. It describes what the app now is, what is materially landed, and what principles future work must preserve.
 
@@ -221,6 +221,7 @@ Landed baseline includes:
 - only rows with trustworthy repair shape (type/category/subcategory plus price anchor) are upgraded
 - upgraded rows clear degraded quarantine flags and re-enter normal Stage 2/3 generation as shop-eligible
 - degraded rows without trustworthy repair overlay remain quarantined and excluded
+- degraded fallback discovery now has a durable report artifact (`docs/data/shop_srd_degraded_report_2014.json`, mirrored to `public/data/shop_srd_degraded_report_2014.json`) with a rerunnable generator command (`npm run report:items:degraded:2014`)
 
 Preservation rule:
 
