@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 13, 2026 (live degraded SRD post-import report workflow added)
+Last updated: April 13, 2026 (imports tab now includes live degraded-row list/export + spell import control)
 
 Purpose: This file is the active roadmap only. It should list genuinely open work, intentionally parked work, and clearly labeled future planning ideas that are not active implementation.
 
@@ -528,6 +528,8 @@ Design constraint:
 - ✅ corrected custom seed defaults: `docs/data/shop_custom_items_seed_2014.json` is now default-safe/empty and prior sample rows are moved to `docs/data/shop_custom_items_seed_2014.example.json` as example-only content
 - ✅ hardened in-app SRD refresh against upstream detail-endpoint breakage by falling back to index-derived item rows instead of dropping large portions of the catalog
 - ✅ SRD refresh now auto-reports live degraded/quarantined `item_master` SRD rows immediately after import so unresolved degraded rows are always current for that run
+- ✅ Manage → Imports now includes a live degraded/quarantined SRD row list view from current `item_master` plus copy/export JSON actions for operator repair targeting
+- ✅ spell SRD import control is now actually present in Manage → Imports (not a placeholder note), keeping imports centralized in the Imports tab
 
 **Phase 5 — Expansion hooks (later)**
 

@@ -93,6 +93,39 @@ async function importSrdSpells(onProgress) {
   }
 }
 
+export function SpellImportPanel() {
+  const [importing, setImporting] = useState(false);
+  const [status, setStatus] = useState('');
+
+  async function handleImportSrd() {
+    setImporting(true);
+    setStatus('Starting SRD 5.1 import…');
+    try {
+      await importSrdSpells(setStatus);
+      setStatus('SRD 5.1 spell import complete.');
+    } catch (error) {
+      setStatus(error?.message || 'Failed to import SRD spells.');
+    } finally {
+      setImporting(false);
+    }
+  }
+
+  return (
+    <div className="panel session-subpanel">
+      <div className="panel-title">Spell Import</div>
+      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
+        Import SRD spell rows into the live spells table.
+      </div>
+      <div className="form-row" style={{ flexWrap: 'wrap', gap: 8 }}>
+        <button type="button" className="btn btn-primary" onClick={handleImportSrd} disabled={importing}>
+          {importing ? 'Importing…' : 'Import SRD 5.1'}
+        </button>
+      </div>
+      {status ? <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 8 }}>{status}</div> : null}
+    </div>
+  );
+}
+
 function FilterChip({ label, selected, onClick }) {
   return (
     <button
@@ -267,7 +300,6 @@ export default function SpellManagementPanel() {
   const [homebrewForm, setHomebrewForm] = useState(emptyHomebrewForm());
   const [homebrewError, setHomebrewError] = useState('');
   const [savingHomebrew, setSavingHomebrew] = useState(false);
-  const [importing, setImporting] = useState(false);
 
   async function loadAll() {
     const { data, error } = await supabase.from('spells').select('*').order('level').order('name');
@@ -292,20 +324,6 @@ export default function SpellManagementPanel() {
       return true;
     });
   }, [spells, sourceFilter, classFilter, search, spellFilters]);
-
-  async function handleImportSrd() {
-    setImporting(true);
-    setStatus('Starting SRD 5.1 import…');
-    try {
-      await importSrdSpells(setStatus);
-      setStatus('SRD 5.1 spell import complete.');
-      await loadAll();
-    } catch (error) {
-      setStatus(error?.message || 'Failed to import SRD spells.');
-    } finally {
-      setImporting(false);
-    }
-  }
 
   async function saveHomebrew() {
     setSavingHomebrew(true);
@@ -405,7 +423,6 @@ export default function SpellManagementPanel() {
           Library/admin view. Browse spell details here. Homebrew spells remain editable through the detail modal.
         </div>
         <div className="form-row" style={{ flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
-          <button type="button" className="btn btn-primary" onClick={handleImportSrd} disabled={importing}>{importing ? 'Importing…' : 'Import SRD 5.1'}</button>
           <button type="button" className="btn btn-ghost" onClick={() => { setDetailSpell(null); setHomebrewError(''); setHomebrewForm(emptyHomebrewForm()); setHomebrewOpen(true); }}>+ Homebrew Spell</button>
         </div>
         {status && <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 8 }}>{status}</div>}
