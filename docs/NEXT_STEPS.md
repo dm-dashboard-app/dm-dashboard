@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 13, 2026 (Stage 1 item foundation landed)
+Last updated: April 13, 2026 (Stage 2 DM-only shop generator landed)
 
 Purpose: This file is the active roadmap only. It should list genuinely open work, intentionally parked work, and clearly labeled future planning ideas that are not active implementation.
 
@@ -210,7 +210,7 @@ This roadmap is healthy when a new chat can quickly see:
 
 ### DM World tab shop inventory generator + durable magic pricing overlay (2014-only, phased track)
 
-Status: **active track with Stage 1 foundation now landed**. Later phases remain open and intentionally scoped.
+Status: **active phased track with Stages 1-2 landed**. Later phases remain open and intentionally scoped.
 
 #### 1) Product framing
 
@@ -491,7 +491,7 @@ Design constraint:
 
 #### 10) Phased implementation plan
 
-**Phase 1 — Foundation (landed on implementation branch; pending merge)**
+**Phase 1 — Foundation (landed on main)**
 
 - ✅ reusable `item_master` schema SQL prepared with standalone reusable item entity
 - ✅ controlled 2014-only SRD import lane implemented (`npm run import:items:2014`)
@@ -500,15 +500,15 @@ Design constraint:
 - ✅ durable magic-pricing overlay (`docs/data/shop_magic_pricing_2014.json`) consumed directly by import lane
 - ✅ no World/shop UI added in this phase (intentionally deferred for scope control)
 
-**Phase 2 — DM-only shop generator**
+**Phase 2 — DM-only shop generator (landed on main)**
 
-- add World tab DM-only surface
-- add shop type + affluence controls
-- implement weighted stock generation
-- save generated shops
-- show quantity/listed/minimum/barter DC
-- include item detail view
-- keep strictly DM-only
+- ✅ added World tab DM-only surface in DM shell
+- ✅ added shop type + affluence controls
+- ✅ implemented weighted stock generation from `item_master`
+- ✅ added save and regenerate flows for durable shops
+- ✅ added quantity/listed/minimum/barter DC rows
+- ✅ added compact item detail modal
+- ✅ kept implementation DM-only (no player/display shop surface)
 
 **Phase 3 — Magic overlay + curation**
 
@@ -542,7 +542,7 @@ Design constraint:
 #### 12) Constraints / risk notes
 
 - Do not implement before current live session commitments complete.
-- Stage 1 foundation is now implemented as contained schema + controlled import work; generator UI remains deferred.
+- Stage 1 and Stage 2 are now implemented; later phases remain intentionally deferred.
 - Do not risk runtime stability before the session window.
 - Imports should be controlled + rerunnable; do not live-scrape during gameplay.
 - Avoid legal/data-quality assumptions around non-SRD bulk text ingestion.
@@ -552,4 +552,4 @@ Design constraint:
 
 #### 13) Planning recommendation / priority statement
 
-This is a strong next-feature candidate **after** live-play timing allows: it is high-utility for DM operations, creates reusable architecture value, should be implemented items-first then shops-second, and remains planning-only until explicitly scheduled as active implementation.
+This track now has a usable DM baseline (Stage 2). Remaining work should stay phased and avoid widening into player transactions/inventory automation until explicitly scheduled.

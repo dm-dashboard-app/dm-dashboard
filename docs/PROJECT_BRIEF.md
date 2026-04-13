@@ -1,6 +1,6 @@
 # DM Dashboard — Project Brief
 
-Last updated: April 13, 2026 (Stage 1 item foundation baseline)
+Last updated: April 13, 2026 (Stage 2 DM shop generator baseline)
 
 Purpose: This document is the current-state/background brief for DM Dashboard. It describes what the app now is, what is materially landed, and what principles future work must preserve.
 
@@ -163,6 +163,22 @@ Landed baseline includes:
 Preservation rule:
 
 - keep item catalog reusable across future shops and inventory/equipment work; do not collapse item definitions into shop rows
+
+
+### 11) DM-only world shops baseline (Stage 2)
+
+Landed baseline includes:
+
+- DM-shell **World** tab with a DM-only shops surface
+- shop type + affluence controls for fast generation
+- weighted stock generation using Stage 1 `item_master` catalog records
+- saved shop entity + generated inventory rows that reference `item_master` (no item embedding)
+- generated row pricing outputs (quantity, listed price, minimum barter price, barter DC)
+- compact item detail modal for in-session adjudication
+
+Preservation rule:
+
+- keep shop data separated from reusable item catalog records and keep world-shop UI DM-only
 
 ## Architectural / Product Principles for Future Work
 
