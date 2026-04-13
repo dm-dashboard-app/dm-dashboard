@@ -912,3 +912,179 @@
     flex-basis: 100%;
   }
 }
+
+.world-shops-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px;
+}
+
+.world-shops-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.world-shops-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
+}
+
+.world-shops-control-group label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.world-shops-control-group select {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text-primary);
+  border-radius: 10px;
+  padding: 8px;
+}
+
+.world-shops-layout {
+  display: grid;
+  grid-template-columns: minmax(180px, 240px) 1fr;
+  gap: 10px;
+}
+
+.world-shops-saved-list,
+.world-shops-stock-panel {
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 12px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.world-shops-panel-title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.world-shops-saved-item {
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(16, 21, 29, 0.7);
+  color: var(--text-primary);
+  padding: 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.world-shops-saved-item[data-active='true'] {
+  border-color: rgba(74, 158, 255, .5);
+  background: rgba(74, 158, 255, .1);
+}
+
+.world-shops-saved-item span {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.world-shops-stock-head,
+.world-shops-stock-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) 42px 88px 88px 44px;
+  gap: 8px;
+  align-items: center;
+}
+
+.world-shops-stock-head {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--text-secondary);
+  padding: 4px 6px;
+}
+
+.world-shops-stock-row {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(16, 21, 29, 0.7);
+  color: var(--text-primary);
+  padding: 6px;
+  text-align: left;
+  font-size: 12px;
+}
+
+.world-shops-stock-row .item-name {
+  font-weight: 700;
+}
+
+.world-shops-error {
+  color: #ffb1b1;
+  font-size: 12px;
+}
+
+.world-shop-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 180;
+  background: rgba(0, 0, 0, .55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+.world-shop-modal {
+  width: min(560px, 100%);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.world-shop-modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.world-shop-item-meta,
+.world-shop-pricing-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.world-shop-item-description {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+@media (max-width: 900px) {
+  .world-shops-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .world-shops-stock-head,
+  .world-shops-stock-row {
+    grid-template-columns: minmax(120px, 1fr) 34px 64px 64px 38px;
+    font-size: 11px;
+    gap: 4px;
+  }
+}
