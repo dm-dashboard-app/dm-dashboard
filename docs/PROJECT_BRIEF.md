@@ -174,6 +174,7 @@ Landed baseline includes:
 - weighted stock generation using Stage 1 `item_master` catalog records
 - saved shop entity + generated inventory rows that reference `item_master` (no item embedding)
 - server-mediated RPC persistence for saved shops/inventory rows (no broad client table RW)
+- trust boundary note: in current repo model, Supabase authenticated maps to DM path while player/display use local join-code or display-token flows
 - generated row pricing outputs (quantity, listed price, minimum barter price, barter DC)
 - compact item detail modal for in-session adjudication
 
