@@ -1,0 +1,1814 @@
+[
+  {
+    "external_key": "official_srd_2014:boots-of-the-winterlands",
+    "source_slug": "boots-of-the-winterlands",
+    "name": "Boots of the Winterlands",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "noncombat",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/boots-of-the-winterlands",
+      "contents": null,
+      "api_index": "boots-of-the-winterlands",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "boots-of-the-winterlands",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:bowl-of-commanding-water-elementals",
+    "source_slug": "bowl-of-commanding-water-elementals",
+    "name": "Bowl of Commanding Water Elementals",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "summoning",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/bowl-of-commanding-water-elementals",
+      "contents": null,
+      "api_index": "bowl-of-commanding-water-elementals",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "bowl-of-commanding-water-elementals",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:bracers-of-archery",
+    "source_slug": "bracers-of-archery",
+    "name": "Bracers of Archery",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "combat",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/bracers-of-archery",
+      "contents": null,
+      "api_index": "bracers-of-archery",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "bracers-of-archery",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:bracers-of-defense",
+    "source_slug": "bracers-of-defense",
+    "name": "Bracers of Defense",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "combat",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/bracers-of-defense",
+      "contents": null,
+      "api_index": "bracers-of-defense",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "bracers-of-defense",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:brazier-of-commanding-fire-elementals",
+    "source_slug": "brazier-of-commanding-fire-elementals",
+    "name": "Brazier of Commanding Fire Elementals",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "summoning",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/brazier-of-commanding-fire-elementals",
+      "contents": null,
+      "api_index": "brazier-of-commanding-fire-elementals",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "brazier-of-commanding-fire-elementals",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:brooch-of-shielding",
+    "source_slug": "brooch-of-shielding",
+    "name": "Brooch of Shielding",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "combat",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/brooch-of-shielding",
+      "contents": null,
+      "api_index": "brooch-of-shielding",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "brooch-of-shielding",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:broom-of-flying",
+    "source_slug": "broom-of-flying",
+    "name": "Broom of Flying",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "gamechanging",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/broom-of-flying",
+      "contents": null,
+      "api_index": "broom-of-flying",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "broom-of-flying",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:candle-of-invocation",
+    "source_slug": "candle-of-invocation",
+    "name": "Candle of Invocation",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "unpriced",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/candle-of-invocation",
+      "contents": null,
+      "api_index": "candle-of-invocation",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Source marks this as not normally priced/sold; keep excluded unless manually curated.",
+        "normalized_name": "candle-of-invocation",
+        "exclusion_reason": "Excluded in source (legacy balance concern).",
+        "exclude_from_shop": true
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:cape-of-the-mountebank",
+    "source_slug": "cape-of-the-mountebank",
+    "name": "Cape of the Mountebank",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "noncombat",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/cape-of-the-mountebank",
+      "contents": null,
+      "api_index": "cape-of-the-mountebank",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "cape-of-the-mountebank",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:carpet-of-flying",
+    "source_slug": "carpet-of-flying",
+    "name": "Carpet of Flying",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "gamechanging",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/carpet-of-flying",
+      "contents": null,
+      "api_index": "carpet-of-flying",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "carpet-of-flying",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:carpet-of-flying-3x5",
+    "source_slug": "carpet-of-flying-3x5",
+    "name": "Carpet of Flying (3 ft. × 5 ft.)",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "gamechanging",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/carpet-of-flying-3x5",
+      "contents": null,
+      "api_index": "carpet-of-flying-3x5",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "carpet-of-flying",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:carpet-of-flying-4x6",
+    "source_slug": "carpet-of-flying-4x6",
+    "name": "Carpet of Flying (4 ft. × 6 ft.)",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "gamechanging",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/carpet-of-flying-4x6",
+      "contents": null,
+      "api_index": "carpet-of-flying-4x6",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "carpet-of-flying",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:carpet-of-flying-5x7",
+    "source_slug": "carpet-of-flying-5x7",
+    "name": "Carpet of Flying (5 ft. × 7 ft.)",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "gamechanging",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/carpet-of-flying-5x7",
+      "contents": null,
+      "api_index": "carpet-of-flying-5x7",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "carpet-of-flying",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:carpet-of-flying-6x9",
+    "source_slug": "carpet-of-flying-6x9",
+    "name": "Carpet of Flying (6 ft. × 9 ft.)",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "gamechanging",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/carpet-of-flying-6x9",
+      "contents": null,
+      "api_index": "carpet-of-flying-6x9",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "carpet-of-flying",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:censer-of-controlling-air-elementals",
+    "source_slug": "censer-of-controlling-air-elementals",
+    "name": "Censer of Controlling Air Elementals",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "summoning",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/censer-of-controlling-air-elementals",
+      "contents": null,
+      "api_index": "censer-of-controlling-air-elementals",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "censer-of-controlling-air-elementals",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:chime-of-opening",
+    "source_slug": "chime-of-opening",
+    "name": "Chime of Opening",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "consumable",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/chime-of-opening",
+      "contents": null,
+      "api_index": "chime-of-opening",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "chime-of-opening",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:circlet-of-blasting",
+    "source_slug": "circlet-of-blasting",
+    "name": "Circlet of Blasting",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "combat",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/circlet-of-blasting",
+      "contents": null,
+      "api_index": "circlet-of-blasting",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "circlet-of-blasting",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:cloak-of-displacement",
+    "source_slug": "cloak-of-displacement",
+    "name": "Cloak of Displacement",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "noncombat",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/cloak-of-displacement",
+      "contents": null,
+      "api_index": "cloak-of-displacement",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "cloak-of-displacement",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:demon-armor",
+    "source_slug": "demon-armor",
+    "name": "Demon Armor",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/demon-armor",
+      "contents": null,
+      "api_index": "demon-armor",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:hammer",
+    "source_slug": "hammer",
+    "name": "Hammer",
+    "item_type": "equipment_fallback",
+    "category": "Fallback Equipment",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "equipment",
+      "api_url": "/api/2014/equipment/hammer",
+      "contents": null,
+      "api_index": "hammer",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:hammer-sledge",
+    "source_slug": "hammer-sledge",
+    "name": "Hammer, sledge",
+    "item_type": "equipment_fallback",
+    "category": "Fallback Equipment",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "equipment",
+      "api_url": "/api/2014/equipment/hammer-sledge",
+      "contents": null,
+      "api_index": "hammer-sledge",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:handaxe",
+    "source_slug": "handaxe",
+    "name": "Handaxe",
+    "item_type": "equipment_fallback",
+    "category": "Fallback Equipment",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "equipment",
+      "api_url": "/api/2014/equipment/handaxe",
+      "contents": null,
+      "api_index": "handaxe",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:healers-kit",
+    "source_slug": "healers-kit",
+    "name": "Healer's Kit",
+    "item_type": "equipment_fallback",
+    "category": "Fallback Equipment",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "equipment",
+      "api_url": "/api/2014/equipment/healers-kit",
+      "contents": null,
+      "api_index": "healers-kit",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:herbalism-kit",
+    "source_slug": "herbalism-kit",
+    "name": "Herbalism Kit",
+    "item_type": "equipment_fallback",
+    "category": "Fallback Equipment",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "equipment",
+      "api_url": "/api/2014/equipment/herbalism-kit",
+      "contents": null,
+      "api_index": "herbalism-kit",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:hide-armor",
+    "source_slug": "hide-armor",
+    "name": "Hide Armor",
+    "item_type": "equipment_fallback",
+    "category": "Fallback Equipment",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "equipment",
+      "api_url": "/api/2014/equipment/hide-armor",
+      "contents": null,
+      "api_index": "hide-armor",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:holy-water-flask",
+    "source_slug": "holy-water-flask",
+    "name": "Holy water (flask)",
+    "item_type": "equipment_fallback",
+    "category": "Fallback Equipment",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "equipment",
+      "api_url": "/api/2014/equipment/holy-water-flask",
+      "contents": null,
+      "api_index": "holy-water-flask",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:horn",
+    "source_slug": "horn",
+    "name": "Horn",
+    "item_type": "equipment_fallback",
+    "category": "Fallback Equipment",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "equipment",
+      "api_url": "/api/2014/equipment/horn",
+      "contents": null,
+      "api_index": "horn",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:horse-draft",
+    "source_slug": "horse-draft",
+    "name": "Horse, draft",
+    "item_type": "equipment_fallback",
+    "category": "Fallback Equipment",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "equipment",
+      "api_url": "/api/2014/equipment/horse-draft",
+      "contents": null,
+      "api_index": "horse-draft",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:horse-riding",
+    "source_slug": "horse-riding",
+    "name": "Horse, riding",
+    "item_type": "equipment_fallback",
+    "category": "Fallback Equipment",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "equipment",
+      "api_url": "/api/2014/equipment/horse-riding",
+      "contents": null,
+      "api_index": "horse-riding",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:hourglass",
+    "source_slug": "hourglass",
+    "name": "Hourglass",
+    "item_type": "equipment_fallback",
+    "category": "Fallback Equipment",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "equipment",
+      "api_url": "/api/2014/equipment/hourglass",
+      "contents": null,
+      "api_index": "hourglass",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:hunting-trap",
+    "source_slug": "hunting-trap",
+    "name": "Hunting trap",
+    "item_type": "equipment_fallback",
+    "category": "Fallback Equipment",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "equipment",
+      "api_url": "/api/2014/equipment/hunting-trap",
+      "contents": null,
+      "api_index": "hunting-trap",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:ink-1-ounce-bottle",
+    "source_slug": "ink-1-ounce-bottle",
+    "name": "Ink (1 ounce bottle)",
+    "item_type": "equipment_fallback",
+    "category": "Fallback Equipment",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "equipment",
+      "api_url": "/api/2014/equipment/ink-1-ounce-bottle",
+      "contents": null,
+      "api_index": "ink-1-ounce-bottle",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:ink-pen",
+    "source_slug": "ink-pen",
+    "name": "Ink pen",
+    "item_type": "equipment_fallback",
+    "category": "Fallback Equipment",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "equipment",
+      "api_url": "/api/2014/equipment/ink-pen",
+      "contents": null,
+      "api_index": "ink-pen",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:javelin",
+    "source_slug": "javelin",
+    "name": "Javelin",
+    "item_type": "equipment_fallback",
+    "category": "Fallback Equipment",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "equipment",
+      "api_url": "/api/2014/equipment/javelin",
+      "contents": null,
+      "api_index": "javelin",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:jewelers-tools",
+    "source_slug": "jewelers-tools",
+    "name": "Jeweler's Tools",
+    "item_type": "equipment_fallback",
+    "category": "Fallback Equipment",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "equipment",
+      "api_url": "/api/2014/equipment/jewelers-tools",
+      "contents": null,
+      "api_index": "jewelers-tools",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:jug-or-pitcher",
+    "source_slug": "jug-or-pitcher",
+    "name": "Jug or pitcher",
+    "item_type": "equipment_fallback",
+    "category": "Fallback Equipment",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "equipment",
+      "api_url": "/api/2014/equipment/jug-or-pitcher",
+      "contents": null,
+      "api_index": "jug-or-pitcher",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:keelboat",
+    "source_slug": "keelboat",
+    "name": "Keelboat",
+    "item_type": "equipment_fallback",
+    "category": "Fallback Equipment",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "equipment",
+      "api_url": "/api/2014/equipment/keelboat",
+      "contents": null,
+      "api_index": "keelboat",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:ladder-10-foot",
+    "source_slug": "ladder-10-foot",
+    "name": "Ladder (10-foot)",
+    "item_type": "equipment_fallback",
+    "category": "Fallback Equipment",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "equipment",
+      "api_url": "/api/2014/equipment/ladder-10-foot",
+      "contents": null,
+      "api_index": "ladder-10-foot",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:lamp",
+    "source_slug": "lamp",
+    "name": "Lamp",
+    "item_type": "equipment_fallback",
+    "category": "Fallback Equipment",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "equipment",
+      "api_url": "/api/2014/equipment/lamp",
+      "contents": null,
+      "api_index": "lamp",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:manual-of-bodily-health",
+    "source_slug": "manual-of-bodily-health",
+    "name": "Manual of Bodily Health",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/manual-of-bodily-health",
+      "contents": null,
+      "api_index": "manual-of-bodily-health",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:manual-of-golems-clay",
+    "source_slug": "manual-of-golems-clay",
+    "name": "Manual of Clay Golems",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/manual-of-golems-clay",
+      "contents": null,
+      "api_index": "manual-of-golems-clay",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:manual-of-golems-flesh",
+    "source_slug": "manual-of-golems-flesh",
+    "name": "Manual of Flesh Golems",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/manual-of-golems-flesh",
+      "contents": null,
+      "api_index": "manual-of-golems-flesh",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:manual-of-gainful-exercise",
+    "source_slug": "manual-of-gainful-exercise",
+    "name": "Manual of Gainful Exercise",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/manual-of-gainful-exercise",
+      "contents": null,
+      "api_index": "manual-of-gainful-exercise",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:manual-of-golems-iron",
+    "source_slug": "manual-of-golems-iron",
+    "name": "Manual of Iron Golems",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/manual-of-golems-iron",
+      "contents": null,
+      "api_index": "manual-of-golems-iron",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:manual-of-quickness-of-action",
+    "source_slug": "manual-of-quickness-of-action",
+    "name": "Manual of Quickness of Action",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/manual-of-quickness-of-action",
+      "contents": null,
+      "api_index": "manual-of-quickness-of-action",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:manual-of-golems-stone",
+    "source_slug": "manual-of-golems-stone",
+    "name": "Manual of Stone Golems",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/manual-of-golems-stone",
+      "contents": null,
+      "api_index": "manual-of-golems-stone",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:necklace-of-fireballs",
+    "source_slug": "necklace-of-fireballs",
+    "name": "Necklace of Fireballs",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/necklace-of-fireballs",
+      "contents": null,
+      "api_index": "necklace-of-fireballs",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:necklace-of-prayer-beads",
+    "source_slug": "necklace-of-prayer-beads",
+    "name": "Necklace of Prayer Beads",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/necklace-of-prayer-beads",
+      "contents": null,
+      "api_index": "necklace-of-prayer-beads",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:orb-of-dragonkind",
+    "source_slug": "orb-of-dragonkind",
+    "name": "Orb of Dragonkind",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/orb-of-dragonkind",
+      "contents": null,
+      "api_index": "orb-of-dragonkind",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-resistance-acid",
+    "source_slug": "potion-of-resistance-acid",
+    "name": "Potion of Acid Resistance",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-resistance-acid",
+      "contents": null,
+      "api_index": "potion-of-resistance-acid",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-giant-strength-cloud",
+    "source_slug": "potion-of-giant-strength-cloud",
+    "name": "Potion of Cloud Giant Strength",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-giant-strength-cloud",
+      "contents": null,
+      "api_index": "potion-of-giant-strength-cloud",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-resistance-cold",
+    "source_slug": "potion-of-resistance-cold",
+    "name": "Potion of Cold Resistance",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-resistance-cold",
+      "contents": null,
+      "api_index": "potion-of-resistance-cold",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-giant-strength-fire",
+    "source_slug": "potion-of-giant-strength-fire",
+    "name": "Potion of Fire Giant Strength",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-giant-strength-fire",
+      "contents": null,
+      "api_index": "potion-of-giant-strength-fire",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-resistance-fire",
+    "source_slug": "potion-of-resistance-fire",
+    "name": "Potion of Fire Resistance",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-resistance-fire",
+      "contents": null,
+      "api_index": "potion-of-resistance-fire",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-resistance-force",
+    "source_slug": "potion-of-resistance-force",
+    "name": "Potion of Force Resistance",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-resistance-force",
+      "contents": null,
+      "api_index": "potion-of-resistance-force",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-giant-strength-frost",
+    "source_slug": "potion-of-giant-strength-frost",
+    "name": "Potion of Frost Giant Strength",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-giant-strength-frost",
+      "contents": null,
+      "api_index": "potion-of-giant-strength-frost",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-healing-greater",
+    "source_slug": "potion-of-healing-greater",
+    "name": "Potion of Greater Healing",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "consumable",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-healing-greater",
+      "contents": null,
+      "api_index": "potion-of-healing-greater",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "potion-of-greater-healing",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-growth",
+    "source_slug": "potion-of-growth",
+    "name": "Potion of Growth",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "consumable",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-growth",
+      "contents": null,
+      "api_index": "potion-of-growth",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "potion-of-growth",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-healing-common",
+    "source_slug": "potion-of-healing-common",
+    "name": "Potion of Healing",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "consumable",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-healing-common",
+      "contents": null,
+      "api_index": "potion-of-healing-common",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "potion-of-healing",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-healing",
+    "source_slug": "potion-of-healing",
+    "name": "Potion of Healing",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "consumable",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-healing",
+      "contents": null,
+      "api_index": "potion-of-healing",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "potion-of-healing",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-heroism",
+    "source_slug": "potion-of-heroism",
+    "name": "Potion of Heroism",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "consumable",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-heroism",
+      "contents": null,
+      "api_index": "potion-of-heroism",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "potion-of-heroism",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-giant-strength-hill",
+    "source_slug": "potion-of-giant-strength-hill",
+    "name": "Potion of Hill Giant Strength",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-giant-strength-hill",
+      "contents": null,
+      "api_index": "potion-of-giant-strength-hill",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-invisibility",
+    "source_slug": "potion-of-invisibility",
+    "name": "Potion of Invisibility",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "consumable",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-invisibility",
+      "contents": null,
+      "api_index": "potion-of-invisibility",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "potion-of-invisibility",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-resistance-lightning",
+    "source_slug": "potion-of-resistance-lightning",
+    "name": "Potion of Lightning Resistance",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-resistance-lightning",
+      "contents": null,
+      "api_index": "potion-of-resistance-lightning",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-mind-reading",
+    "source_slug": "potion-of-mind-reading",
+    "name": "Potion of Mind Reading",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "consumable",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-mind-reading",
+      "contents": null,
+      "api_index": "potion-of-mind-reading",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "potion-of-mind-reading",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-resistance-necrotic",
+    "source_slug": "potion-of-resistance-necrotic",
+    "name": "Potion of Necrotic Resistance",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-resistance-necrotic",
+      "contents": null,
+      "api_index": "potion-of-resistance-necrotic",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-poison",
+    "source_slug": "potion-of-poison",
+    "name": "Potion of Poison",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "consumable",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-poison",
+      "contents": null,
+      "api_index": "potion-of-poison",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "potion-of-poison",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-resistance-poison",
+    "source_slug": "potion-of-resistance-poison",
+    "name": "Potion of Poison Resistance",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-resistance-poison",
+      "contents": null,
+      "api_index": "potion-of-resistance-poison",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-resistance-psychic",
+    "source_slug": "potion-of-resistance-psychic",
+    "name": "Potion of Psychic Resistance",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-resistance-psychic",
+      "contents": null,
+      "api_index": "potion-of-resistance-psychic",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-resistance-radiant",
+    "source_slug": "potion-of-resistance-radiant",
+    "name": "Potion of Radiant Resistance",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-resistance-radiant",
+      "contents": null,
+      "api_index": "potion-of-resistance-radiant",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-resistance",
+    "source_slug": "potion-of-resistance",
+    "name": "Potion of Resistance",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "consumable",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-resistance",
+      "contents": null,
+      "api_index": "potion-of-resistance",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "potion-of-resistance",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-giant-strength-stone",
+    "source_slug": "potion-of-giant-strength-stone",
+    "name": "Potion of Stone Giant Strength",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-giant-strength-stone",
+      "contents": null,
+      "api_index": "potion-of-giant-strength-stone",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-giant-strength-storm",
+    "source_slug": "potion-of-giant-strength-storm",
+    "name": "Potion of Storm Giant Strength",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-giant-strength-storm",
+      "contents": null,
+      "api_index": "potion-of-giant-strength-storm",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-healing-superior",
+    "source_slug": "potion-of-healing-superior",
+    "name": "Potion of Superior Healing",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "consumable",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-healing-superior",
+      "contents": null,
+      "api_index": "potion-of-healing-superior",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "potion-of-superior-healing",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:potion-of-healing-supreme",
+    "source_slug": "potion-of-healing-supreme",
+    "name": "Potion of Supreme Healing",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "consumable",
+    "price_source": "shop_magic_pricing_2014_overlay",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/potion-of-healing-supreme",
+      "contents": null,
+      "api_index": "potion-of-healing-supreme",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable",
+      "pricing_overlay": {
+        "notes": "Curated from Sane Magical Prices (2014-era planning overlay).",
+        "normalized_name": "potion-of-supreme-healing",
+        "exclusion_reason": "",
+        "exclude_from_shop": false
+      }
+    }
+  },
+  {
+    "external_key": "official_srd_2014:tome-of-clear-thought",
+    "source_slug": "tome-of-clear-thought",
+    "name": "Tome of Clear Thought",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/tome-of-clear-thought",
+      "contents": null,
+      "api_index": "tome-of-clear-thought",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:tome-of-leadership-and-influence",
+    "source_slug": "tome-of-leadership-and-influence",
+    "name": "Tome of Leadership and Influence",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/tome-of-leadership-and-influence",
+      "contents": null,
+      "api_index": "tome-of-leadership-and-influence",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  },
+  {
+    "external_key": "official_srd_2014:tome-of-understanding",
+    "source_slug": "tome-of-understanding",
+    "name": "Tome of Understanding",
+    "item_type": "magic_item",
+    "category": "magic",
+    "subcategory": "unclassified",
+    "is_shop_eligible": false,
+    "shop_bucket": "fallback_quarantine",
+    "price_source": "degraded_fallback_untrusted",
+    "metadata_json": {
+      "kind": "magic",
+      "api_url": "/api/2014/magic-items/tome-of-understanding",
+      "contents": null,
+      "api_index": "tome-of-understanding",
+      "properties": null,
+      "import_quality": "degraded_fallback",
+      "degraded_import": true,
+      "degraded_reason": "detail_endpoint_unavailable"
+    }
+  }
+]

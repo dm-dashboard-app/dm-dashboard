@@ -530,7 +530,7 @@ Design constraint:
 - ✅ SRD refresh now auto-reports live degraded/quarantined `item_master` SRD rows immediately after import so unresolved degraded rows are always current for that run
 - ✅ Manage → Imports now includes a live degraded/quarantined SRD row list view from current `item_master` plus copy/export JSON actions for operator repair targeting
 - ✅ spell SRD import control is now actually present in Manage → Imports (not a placeholder note), keeping imports centralized in the Imports tab
-- ✅ degraded SRD repair overlay was expanded against `docs/degraded-srd-item-master-rows.json` in one full pass (307 targets audited): 287 rows are now repair-covered, with 20 rows explicitly left quarantined with precise unresolved reasons (`variant_ambiguity`, `overlay_present_but_explicitly_unpriced`, `no_trustworthy_curated_price_source`)
+- ✅ final degraded SRD cleanup batch now fully resolves the remaining target set in `docs/degraded-srd-item-master-rows.json` (78 rows): 51 rows repaired into trustworthy typed/bucketed rows and 27 rows moved to explicit `excluded_on_purpose` policy outcomes (0 unresolved/degraded rows remain in that target file)
 
 **Phase 5 — Expansion hooks (later)**
 

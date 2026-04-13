@@ -1,118 +1,102 @@
 {
   "version": "2026-04-13",
   "source": "Curated SRD degraded-row repair overlay",
-  "notes": "Expanded from docs/degraded-srd-item-master-rows.json using SRD 2014 detail data and curated magic pricing overlay with explicit alias repair and variant ambiguity handling.",
+  "notes": "Expanded from docs/degraded-srd-item-master-rows.json with explicit per-item repair and exclusion outcomes for remaining degraded SRD rows.",
   "coverage": {
-    "target_rows": 307,
-    "repaired_rows": 287,
-    "unresolved_rows": 20,
-    "unresolved_rule": "Rows remain unresolved only when variant choice is ambiguous, curated overlay is explicitly unpriced, or no trustworthy curated price source exists.",
-    "unresolved_rows_detail": [
-      {
-        "slug": "demon-armor",
-        "reason": "no_trustworthy_curated_price_source"
-      },
-      {
-        "slug": "manual-of-bodily-health",
-        "reason": "no_trustworthy_curated_price_source"
-      },
-      {
-        "slug": "manual-of-gainful-exercise",
-        "reason": "no_trustworthy_curated_price_source"
-      },
-      {
-        "slug": "manual-of-golems-clay",
-        "reason": "no_trustworthy_curated_price_source"
-      },
-      {
-        "slug": "manual-of-golems-flesh",
-        "reason": "no_trustworthy_curated_price_source"
-      },
-      {
-        "slug": "manual-of-golems-iron",
-        "reason": "no_trustworthy_curated_price_source"
-      },
-      {
-        "slug": "manual-of-golems-stone",
-        "reason": "no_trustworthy_curated_price_source"
-      },
-      {
-        "slug": "manual-of-quickness-of-action",
-        "reason": "no_trustworthy_curated_price_source"
-      },
-      {
-        "slug": "necklace-of-fireballs",
-        "reason": "variant_ambiguity",
-        "variant_price_candidates_gp": {
-          "one_bead": 300,
-          "two_beads": 480,
-          "three_beads": 960,
-          "four_beads": 1600,
-          "five_beads": 3840,
-          "six_beads": 7680
-        }
-      },
-      {
-        "slug": "necklace-of-prayer-beads",
-        "reason": "variant_ambiguity",
-        "variant_price_candidates_gp": {
-          "bless": 2000,
-          "curing": 4000,
-          "favor": 32000,
-          "smiting": 1500,
-          "summons": 128000,
-          "wind_walking": 96000
-        }
-      },
-      {
-        "slug": "orb-of-dragonkind",
-        "reason": "no_trustworthy_curated_price_source"
-      },
-      {
-        "slug": "potion-of-giant-strength-cloud",
-        "reason": "overlay_present_but_explicitly_unpriced",
-        "overlay_slug": "potion-of-giant-strength"
-      },
-      {
-        "slug": "potion-of-giant-strength-fire",
-        "reason": "overlay_present_but_explicitly_unpriced",
-        "overlay_slug": "potion-of-giant-strength"
-      },
-      {
-        "slug": "potion-of-giant-strength-frost",
-        "reason": "overlay_present_but_explicitly_unpriced",
-        "overlay_slug": "potion-of-giant-strength"
-      },
-      {
-        "slug": "potion-of-giant-strength-hill",
-        "reason": "overlay_present_but_explicitly_unpriced",
-        "overlay_slug": "potion-of-giant-strength"
-      },
-      {
-        "slug": "potion-of-giant-strength-stone",
-        "reason": "overlay_present_but_explicitly_unpriced",
-        "overlay_slug": "potion-of-giant-strength"
-      },
-      {
-        "slug": "potion-of-giant-strength-storm",
-        "reason": "overlay_present_but_explicitly_unpriced",
-        "overlay_slug": "potion-of-giant-strength"
-      },
-      {
-        "slug": "tome-of-clear-thought",
-        "reason": "no_trustworthy_curated_price_source"
-      },
-      {
-        "slug": "tome-of-leadership-and-influence",
-        "reason": "no_trustworthy_curated_price_source"
-      },
-      {
-        "slug": "tome-of-understanding",
-        "reason": "no_trustworthy_curated_price_source"
-      }
-    ]
+    "target_rows": 78,
+    "repaired_rows": 51,
+    "excluded_rows": 27,
+    "unresolved_rows": 0,
+    "unresolved_rule": "Rows remain unresolved only when neither trustworthy repair nor explicit policy exclusion is available.",
+    "unresolved_rows_detail": []
   },
   "items": [
+    {
+      "external_key": "official_srd_2014:boots-of-the-winterlands",
+      "source_slug": "boots-of-the-winterlands",
+      "name": "Boots of the Winterlands",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 10000,
+      "suggested_price_gp": 10000,
+      "shop_bucket": "noncombat",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:bowl-of-commanding-water-elementals",
+      "source_slug": "bowl-of-commanding-water-elementals",
+      "name": "Bowl of Commanding Water Elementals",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 8000,
+      "suggested_price_gp": 8000,
+      "shop_bucket": "summoning",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:bracers-of-archery",
+      "source_slug": "bracers-of-archery",
+      "name": "Bracers of Archery",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 1500,
+      "suggested_price_gp": 1500,
+      "shop_bucket": "combat",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:bracers-of-defense",
+      "source_slug": "bracers-of-defense",
+      "name": "Bracers of Defense",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 6000,
+      "suggested_price_gp": 6000,
+      "shop_bucket": "combat",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:brazier-of-commanding-fire-elementals",
+      "source_slug": "brazier-of-commanding-fire-elementals",
+      "name": "Brazier of Commanding Fire Elementals",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 8000,
+      "suggested_price_gp": 8000,
+      "shop_bucket": "summoning",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:brooch-of-shielding",
+      "source_slug": "brooch-of-shielding",
+      "name": "Brooch of Shielding",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 7500,
+      "suggested_price_gp": 7500,
+      "shop_bucket": "combat",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:broom-of-flying",
+      "source_slug": "broom-of-flying",
+      "name": "Broom of Flying",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 8000,
+      "suggested_price_gp": 8000,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "excluded_legacy_balance_item",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
+    },
     {
       "external_key": "official_srd_2014:burglars-pack",
       "source_slug": "burglars-pack",
@@ -179,6 +163,32 @@
       "repair_reason": "trusted_srd_2014_equipment_detail_and_cost"
     },
     {
+      "external_key": "official_srd_2014:candle-of-invocation",
+      "source_slug": "candle-of-invocation",
+      "name": "Candle of Invocation",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 0,
+      "suggested_price_gp": 0,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "excluded_legacy_balance_item",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
+    },
+    {
+      "external_key": "official_srd_2014:cape-of-the-mountebank",
+      "source_slug": "cape-of-the-mountebank",
+      "name": "Cape of the Mountebank",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 8000,
+      "suggested_price_gp": 8000,
+      "shop_bucket": "noncombat",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
       "external_key": "official_srd_2014:carpenters-tools",
       "source_slug": "carpenters-tools",
       "name": "Carpenter's Tools",
@@ -190,6 +200,76 @@
       "suggested_price_gp": 8,
       "shop_bucket": "mundane",
       "repair_reason": "trusted_srd_2014_equipment_detail_and_cost"
+    },
+    {
+      "external_key": "official_srd_2014:carpet-of-flying",
+      "source_slug": "carpet-of-flying",
+      "name": "Carpet of Flying",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 12000,
+      "suggested_price_gp": 12000,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "variant_ambiguity_not_safely_resolved",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
+    },
+    {
+      "external_key": "official_srd_2014:carpet-of-flying-3x5",
+      "source_slug": "carpet-of-flying-3x5",
+      "name": "Carpet of Flying (3 ft. × 5 ft.)",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": null,
+      "suggested_price_gp": null,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "variant_ambiguity_not_safely_resolved",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
+    },
+    {
+      "external_key": "official_srd_2014:carpet-of-flying-4x6",
+      "source_slug": "carpet-of-flying-4x6",
+      "name": "Carpet of Flying (4 ft. × 6 ft.)",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": null,
+      "suggested_price_gp": null,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "variant_ambiguity_not_safely_resolved",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
+    },
+    {
+      "external_key": "official_srd_2014:carpet-of-flying-5x7",
+      "source_slug": "carpet-of-flying-5x7",
+      "name": "Carpet of Flying (5 ft. × 7 ft.)",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": null,
+      "suggested_price_gp": null,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "variant_ambiguity_not_safely_resolved",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
+    },
+    {
+      "external_key": "official_srd_2014:carpet-of-flying-6x9",
+      "source_slug": "carpet-of-flying-6x9",
+      "name": "Carpet of Flying (6 ft. × 9 ft.)",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": null,
+      "suggested_price_gp": null,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "variant_ambiguity_not_safely_resolved",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
     },
     {
       "external_key": "official_srd_2014:carriage",
@@ -270,6 +350,18 @@
       "repair_reason": "trusted_srd_2014_equipment_detail_and_cost"
     },
     {
+      "external_key": "official_srd_2014:censer-of-controlling-air-elementals",
+      "source_slug": "censer-of-controlling-air-elementals",
+      "name": "Censer of Controlling Air Elementals",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 8000,
+      "suggested_price_gp": 8000,
+      "shop_bucket": "summoning",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
       "external_key": "official_srd_2014:chain-10-feet",
       "source_slug": "chain-10-feet",
       "name": "Chain (10 feet)",
@@ -348,6 +440,30 @@
       "repair_reason": "trusted_srd_2014_equipment_detail_and_cost"
     },
     {
+      "external_key": "official_srd_2014:chime-of-opening",
+      "source_slug": "chime-of-opening",
+      "name": "Chime of Opening",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 1500,
+      "suggested_price_gp": 1500,
+      "shop_bucket": "consumable",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:circlet-of-blasting",
+      "source_slug": "circlet-of-blasting",
+      "name": "Circlet of Blasting",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 1500,
+      "suggested_price_gp": 1500,
+      "shop_bucket": "combat",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
       "external_key": "official_srd_2014:climbers-kit",
       "source_slug": "climbers-kit",
       "name": "Climber's Kit",
@@ -372,6 +488,18 @@
       "shop_bucket": "noncombat",
       "repair_reason": "trusted_srd_magic_detail_plus_curated_overlay_price",
       "repair_price_source_slug": "cloak-of-arachnida"
+    },
+    {
+      "external_key": "official_srd_2014:cloak-of-displacement",
+      "source_slug": "cloak-of-displacement",
+      "name": "Cloak of Displacement",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 60000,
+      "suggested_price_gp": 60000,
+      "shop_bucket": "noncombat",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
     },
     {
       "external_key": "official_srd_2014:cloak-of-elvenkind",
@@ -790,6 +918,20 @@
       "repair_price_source_slug": "defender"
     },
     {
+      "external_key": "official_srd_2014:demon-armor",
+      "source_slug": "demon-armor",
+      "name": "Demon Armor",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": null,
+      "suggested_price_gp": null,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "no_curated_supported_shop_policy",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
+    },
+    {
       "external_key": "official_srd_2014:dice-set",
       "source_slug": "dice-set",
       "name": "Dice Set",
@@ -1167,6 +1309,174 @@
       "repair_price_source_slug": "elemental-gem"
     },
     {
+      "external_key": "official_srd_2014:hammer",
+      "source_slug": "hammer",
+      "name": "Hammer",
+      "item_type": "adventuring_gear",
+      "category": "Adventuring Gear",
+      "subcategory": "Standard Gear",
+      "base_price_gp": 1,
+      "suggested_price_gp": 1,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_2014_equipment_detail_and_cost"
+    },
+    {
+      "external_key": "official_srd_2014:hammer-sledge",
+      "source_slug": "hammer-sledge",
+      "name": "Hammer, sledge",
+      "item_type": "adventuring_gear",
+      "category": "Adventuring Gear",
+      "subcategory": "Standard Gear",
+      "base_price_gp": 2,
+      "suggested_price_gp": 2,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_2014_equipment_detail_and_cost"
+    },
+    {
+      "external_key": "official_srd_2014:handaxe",
+      "source_slug": "handaxe",
+      "name": "Handaxe",
+      "item_type": "weapon",
+      "category": "Weapon",
+      "subcategory": "Simple",
+      "base_price_gp": 5,
+      "suggested_price_gp": 5,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_2014_equipment_detail_and_cost"
+    },
+    {
+      "external_key": "official_srd_2014:healers-kit",
+      "source_slug": "healers-kit",
+      "name": "Healer's Kit",
+      "item_type": "adventuring_gear",
+      "category": "Adventuring Gear",
+      "subcategory": "Kits",
+      "base_price_gp": 5,
+      "suggested_price_gp": 5,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_2014_equipment_detail_and_cost"
+    },
+    {
+      "external_key": "official_srd_2014:herbalism-kit",
+      "source_slug": "herbalism-kit",
+      "name": "Herbalism Kit",
+      "item_type": "adventuring_gear",
+      "category": "Adventuring Gear",
+      "subcategory": "Kits",
+      "base_price_gp": 5,
+      "suggested_price_gp": 5,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_2014_equipment_detail_and_cost"
+    },
+    {
+      "external_key": "official_srd_2014:hide-armor",
+      "source_slug": "hide-armor",
+      "name": "Hide Armor",
+      "item_type": "armor",
+      "category": "Armor",
+      "subcategory": "Medium",
+      "base_price_gp": 10,
+      "suggested_price_gp": 10,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_2014_equipment_detail_and_cost"
+    },
+    {
+      "external_key": "official_srd_2014:holy-water-flask",
+      "source_slug": "holy-water-flask",
+      "name": "Holy water (flask)",
+      "item_type": "adventuring_gear",
+      "category": "Adventuring Gear",
+      "subcategory": "Standard Gear",
+      "base_price_gp": 25,
+      "suggested_price_gp": 25,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_2014_equipment_detail_and_cost"
+    },
+    {
+      "external_key": "official_srd_2014:horn",
+      "source_slug": "horn",
+      "name": "Horn",
+      "item_type": "adventuring_gear",
+      "category": "Adventuring Gear",
+      "subcategory": "Standard Gear",
+      "base_price_gp": 3,
+      "suggested_price_gp": 3,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_2014_equipment_detail_and_cost"
+    },
+    {
+      "external_key": "official_srd_2014:horse-draft",
+      "source_slug": "horse-draft",
+      "name": "Horse, draft",
+      "item_type": "mount",
+      "category": "Mounts and Vehicles",
+      "subcategory": "Mounts and Other Animals",
+      "base_price_gp": 50,
+      "suggested_price_gp": 50,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_2014_equipment_detail_and_cost"
+    },
+    {
+      "external_key": "official_srd_2014:horse-riding",
+      "source_slug": "horse-riding",
+      "name": "Horse, riding",
+      "item_type": "mount",
+      "category": "Mounts and Vehicles",
+      "subcategory": "Mounts and Other Animals",
+      "base_price_gp": 75,
+      "suggested_price_gp": 75,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_2014_equipment_detail_and_cost"
+    },
+    {
+      "external_key": "official_srd_2014:hourglass",
+      "source_slug": "hourglass",
+      "name": "Hourglass",
+      "item_type": "adventuring_gear",
+      "category": "Adventuring Gear",
+      "subcategory": "Standard Gear",
+      "base_price_gp": 25,
+      "suggested_price_gp": 25,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_2014_equipment_detail_and_cost"
+    },
+    {
+      "external_key": "official_srd_2014:hunting-trap",
+      "source_slug": "hunting-trap",
+      "name": "Hunting trap",
+      "item_type": "adventuring_gear",
+      "category": "Adventuring Gear",
+      "subcategory": "Standard Gear",
+      "base_price_gp": 5,
+      "suggested_price_gp": 5,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_2014_equipment_detail_and_cost"
+    },
+    {
+      "external_key": "official_srd_2014:ink-1-ounce-bottle",
+      "source_slug": "ink-1-ounce-bottle",
+      "name": "Ink (1 ounce bottle)",
+      "item_type": "adventuring_gear",
+      "category": "Adventuring Gear",
+      "subcategory": "Standard Gear",
+      "base_price_gp": 10,
+      "suggested_price_gp": 10,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_2014_equipment_detail_and_cost"
+    },
+    {
+      "external_key": "official_srd_2014:ink-pen",
+      "source_slug": "ink-pen",
+      "name": "Ink pen",
+      "item_type": "adventuring_gear",
+      "category": "Adventuring Gear",
+      "subcategory": "Standard Gear",
+      "base_price_gp": 0.02,
+      "suggested_price_gp": 0.02,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_2014_equipment_detail_and_cost"
+    },
+    {
       "external_key": "official_srd_2014:instant-fortress",
       "source_slug": "instant-fortress",
       "name": "Instant Fortress",
@@ -1401,6 +1711,18 @@
       "repair_price_source_slug": "iron-flask"
     },
     {
+      "external_key": "official_srd_2014:javelin",
+      "source_slug": "javelin",
+      "name": "Javelin",
+      "item_type": "weapon",
+      "category": "Weapon",
+      "subcategory": "Simple",
+      "base_price_gp": 0.5,
+      "suggested_price_gp": 0.5,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_2014_equipment_detail_and_cost"
+    },
+    {
       "external_key": "official_srd_2014:javelin-of-lightning",
       "source_slug": "javelin-of-lightning",
       "name": "Javelin of Lightning",
@@ -1412,6 +1734,66 @@
       "shop_bucket": "combat",
       "repair_reason": "trusted_srd_magic_detail_plus_curated_overlay_price",
       "repair_price_source_slug": "javelin-of-lightning"
+    },
+    {
+      "external_key": "official_srd_2014:jewelers-tools",
+      "source_slug": "jewelers-tools",
+      "name": "Jeweler's Tools",
+      "item_type": "adventuring_gear",
+      "category": "Adventuring Gear",
+      "subcategory": "Artisan Tools",
+      "base_price_gp": 25,
+      "suggested_price_gp": 25,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_2014_equipment_detail_and_cost"
+    },
+    {
+      "external_key": "official_srd_2014:jug-or-pitcher",
+      "source_slug": "jug-or-pitcher",
+      "name": "Jug or pitcher",
+      "item_type": "adventuring_gear",
+      "category": "Adventuring Gear",
+      "subcategory": "Standard Gear",
+      "base_price_gp": 0.02,
+      "suggested_price_gp": 0.02,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_2014_equipment_detail_and_cost"
+    },
+    {
+      "external_key": "official_srd_2014:keelboat",
+      "source_slug": "keelboat",
+      "name": "Keelboat",
+      "item_type": "vehicle",
+      "category": "Mounts and Vehicles",
+      "subcategory": "Waterborne Vehicles",
+      "base_price_gp": 3000,
+      "suggested_price_gp": 3000,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_2014_equipment_detail_and_cost"
+    },
+    {
+      "external_key": "official_srd_2014:ladder-10-foot",
+      "source_slug": "ladder-10-foot",
+      "name": "Ladder (10-foot)",
+      "item_type": "adventuring_gear",
+      "category": "Adventuring Gear",
+      "subcategory": "Standard Gear",
+      "base_price_gp": 0.1,
+      "suggested_price_gp": 0.1,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_2014_equipment_detail_and_cost"
+    },
+    {
+      "external_key": "official_srd_2014:lamp",
+      "source_slug": "lamp",
+      "name": "Lamp",
+      "item_type": "adventuring_gear",
+      "category": "Adventuring Gear",
+      "subcategory": "Standard Gear",
+      "base_price_gp": 0.5,
+      "suggested_price_gp": 0.5,
+      "shop_bucket": "mundane",
+      "repair_reason": "trusted_srd_2014_equipment_detail_and_cost"
     },
     {
       "external_key": "official_srd_2014:lance",
@@ -1700,6 +2082,34 @@
       "repair_price_source_slug": "mantle-of-spell-resistance"
     },
     {
+      "external_key": "official_srd_2014:manual-of-bodily-health",
+      "source_slug": "manual-of-bodily-health",
+      "name": "Manual of Bodily Health",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": null,
+      "suggested_price_gp": null,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "excluded_legacy_balance_item",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
+    },
+    {
+      "external_key": "official_srd_2014:manual-of-gainful-exercise",
+      "source_slug": "manual-of-gainful-exercise",
+      "name": "Manual of Gainful Exercise",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": null,
+      "suggested_price_gp": null,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "excluded_legacy_balance_item",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
+    },
+    {
       "external_key": "official_srd_2014:manual-of-golems",
       "source_slug": "manual-of-golems",
       "name": "Manual of Golems",
@@ -1711,6 +2121,76 @@
       "shop_bucket": "unpriced",
       "repair_reason": "trusted_srd_magic_detail_plus_curated_overlay_price",
       "repair_price_source_slug": "manual-of-golems"
+    },
+    {
+      "external_key": "official_srd_2014:manual-of-golems-clay",
+      "source_slug": "manual-of-golems-clay",
+      "name": "Manual of Clay Golems",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": null,
+      "suggested_price_gp": null,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "no_curated_supported_shop_policy",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
+    },
+    {
+      "external_key": "official_srd_2014:manual-of-golems-flesh",
+      "source_slug": "manual-of-golems-flesh",
+      "name": "Manual of Flesh Golems",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": null,
+      "suggested_price_gp": null,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "no_curated_supported_shop_policy",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
+    },
+    {
+      "external_key": "official_srd_2014:manual-of-golems-iron",
+      "source_slug": "manual-of-golems-iron",
+      "name": "Manual of Iron Golems",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": null,
+      "suggested_price_gp": null,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "no_curated_supported_shop_policy",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
+    },
+    {
+      "external_key": "official_srd_2014:manual-of-golems-stone",
+      "source_slug": "manual-of-golems-stone",
+      "name": "Manual of Stone Golems",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": null,
+      "suggested_price_gp": null,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "no_curated_supported_shop_policy",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
+    },
+    {
+      "external_key": "official_srd_2014:manual-of-quickness-of-action",
+      "source_slug": "manual-of-quickness-of-action",
+      "name": "Manual of Quickness of Action",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": null,
+      "suggested_price_gp": null,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "excluded_legacy_balance_item",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
     },
     {
       "external_key": "official_srd_2014:marvelous-pigments",
@@ -1882,6 +2362,34 @@
       "repair_price_source_slug": "necklace-of-adaptation"
     },
     {
+      "external_key": "official_srd_2014:necklace-of-fireballs",
+      "source_slug": "necklace-of-fireballs",
+      "name": "Necklace of Fireballs",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": null,
+      "suggested_price_gp": null,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "variant_ambiguity_not_safely_resolved",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
+    },
+    {
+      "external_key": "official_srd_2014:necklace-of-prayer-beads",
+      "source_slug": "necklace-of-prayer-beads",
+      "name": "Necklace of Prayer Beads",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": null,
+      "suggested_price_gp": null,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "variant_ambiguity_not_safely_resolved",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
+    },
+    {
       "external_key": "official_srd_2014:net",
       "source_slug": "net",
       "name": "Net",
@@ -1984,6 +2492,20 @@
       "suggested_price_gp": 20,
       "shop_bucket": "mundane",
       "repair_reason": "trusted_srd_2014_equipment_detail_and_cost"
+    },
+    {
+      "external_key": "official_srd_2014:orb-of-dragonkind",
+      "source_slug": "orb-of-dragonkind",
+      "name": "Orb of Dragonkind",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": null,
+      "suggested_price_gp": null,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "excluded_legacy_balance_item",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
     },
     {
       "external_key": "official_srd_2014:padded-armor",
@@ -2400,6 +2922,330 @@
       "shop_bucket": "unpriced",
       "repair_reason": "trusted_srd_magic_detail_plus_curated_overlay_price",
       "repair_price_source_slug": "potion-of-giant-strength"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-giant-strength-cloud",
+      "source_slug": "potion-of-giant-strength-cloud",
+      "name": "Potion of Cloud Giant Strength",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": null,
+      "suggested_price_gp": null,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "overlay_present_but_explicitly_unpriced",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-giant-strength-fire",
+      "source_slug": "potion-of-giant-strength-fire",
+      "name": "Potion of Fire Giant Strength",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": null,
+      "suggested_price_gp": null,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "overlay_present_but_explicitly_unpriced",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-giant-strength-frost",
+      "source_slug": "potion-of-giant-strength-frost",
+      "name": "Potion of Frost Giant Strength",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": null,
+      "suggested_price_gp": null,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "overlay_present_but_explicitly_unpriced",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-giant-strength-hill",
+      "source_slug": "potion-of-giant-strength-hill",
+      "name": "Potion of Hill Giant Strength",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": null,
+      "suggested_price_gp": null,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "overlay_present_but_explicitly_unpriced",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-giant-strength-stone",
+      "source_slug": "potion-of-giant-strength-stone",
+      "name": "Potion of Stone Giant Strength",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": null,
+      "suggested_price_gp": null,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "overlay_present_but_explicitly_unpriced",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-giant-strength-storm",
+      "source_slug": "potion-of-giant-strength-storm",
+      "name": "Potion of Storm Giant Strength",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": null,
+      "suggested_price_gp": null,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "overlay_present_but_explicitly_unpriced",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-growth",
+      "source_slug": "potion-of-growth",
+      "name": "Potion of Growth",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 270,
+      "suggested_price_gp": 270,
+      "shop_bucket": "consumable",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-healing",
+      "source_slug": "potion-of-healing",
+      "name": "Potion of Healing",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 50,
+      "suggested_price_gp": 50,
+      "shop_bucket": "consumable",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-healing-common",
+      "source_slug": "potion-of-healing-common",
+      "name": "Potion of Healing",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 50,
+      "suggested_price_gp": 50,
+      "shop_bucket": "consumable",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-healing-greater",
+      "source_slug": "potion-of-healing-greater",
+      "name": "Potion of Greater Healing",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 150,
+      "suggested_price_gp": 150,
+      "shop_bucket": "consumable",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-healing-superior",
+      "source_slug": "potion-of-healing-superior",
+      "name": "Potion of Superior Healing",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 450,
+      "suggested_price_gp": 450,
+      "shop_bucket": "consumable",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-healing-supreme",
+      "source_slug": "potion-of-healing-supreme",
+      "name": "Potion of Supreme Healing",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 1350,
+      "suggested_price_gp": 1350,
+      "shop_bucket": "consumable",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-heroism",
+      "source_slug": "potion-of-heroism",
+      "name": "Potion of Heroism",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 180,
+      "suggested_price_gp": 180,
+      "shop_bucket": "consumable",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-invisibility",
+      "source_slug": "potion-of-invisibility",
+      "name": "Potion of Invisibility",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 180,
+      "suggested_price_gp": 180,
+      "shop_bucket": "consumable",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-mind-reading",
+      "source_slug": "potion-of-mind-reading",
+      "name": "Potion of Mind Reading",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 180,
+      "suggested_price_gp": 180,
+      "shop_bucket": "consumable",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-poison",
+      "source_slug": "potion-of-poison",
+      "name": "Potion of Poison",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 100,
+      "suggested_price_gp": 100,
+      "shop_bucket": "consumable",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-resistance",
+      "source_slug": "potion-of-resistance",
+      "name": "Potion of Resistance",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 300,
+      "suggested_price_gp": 300,
+      "shop_bucket": "consumable",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-resistance-acid",
+      "source_slug": "potion-of-resistance-acid",
+      "name": "Potion of Acid Resistance",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 300,
+      "suggested_price_gp": 300,
+      "shop_bucket": "consumable",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-resistance-cold",
+      "source_slug": "potion-of-resistance-cold",
+      "name": "Potion of Cold Resistance",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 300,
+      "suggested_price_gp": 300,
+      "shop_bucket": "consumable",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-resistance-fire",
+      "source_slug": "potion-of-resistance-fire",
+      "name": "Potion of Fire Resistance",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 300,
+      "suggested_price_gp": 300,
+      "shop_bucket": "consumable",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-resistance-force",
+      "source_slug": "potion-of-resistance-force",
+      "name": "Potion of Force Resistance",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 300,
+      "suggested_price_gp": 300,
+      "shop_bucket": "consumable",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-resistance-lightning",
+      "source_slug": "potion-of-resistance-lightning",
+      "name": "Potion of Lightning Resistance",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 300,
+      "suggested_price_gp": 300,
+      "shop_bucket": "consumable",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-resistance-necrotic",
+      "source_slug": "potion-of-resistance-necrotic",
+      "name": "Potion of Necrotic Resistance",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 300,
+      "suggested_price_gp": 300,
+      "shop_bucket": "consumable",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-resistance-poison",
+      "source_slug": "potion-of-resistance-poison",
+      "name": "Potion of Poison Resistance",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 300,
+      "suggested_price_gp": 300,
+      "shop_bucket": "consumable",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-resistance-psychic",
+      "source_slug": "potion-of-resistance-psychic",
+      "name": "Potion of Psychic Resistance",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 300,
+      "suggested_price_gp": 300,
+      "shop_bucket": "consumable",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
+    },
+    {
+      "external_key": "official_srd_2014:potion-of-resistance-radiant",
+      "source_slug": "potion-of-resistance-radiant",
+      "name": "Potion of Radiant Resistance",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": 300,
+      "suggested_price_gp": 300,
+      "shop_bucket": "consumable",
+      "repair_reason": "trusted_magic_overlay_curated_family_repair"
     },
     {
       "external_key": "official_srd_2014:potters-tools",
@@ -3544,6 +4390,48 @@
       "shop_bucket": "combat",
       "repair_reason": "trusted_srd_magic_detail_plus_curated_overlay_price",
       "repair_price_source_slug": "talisman-of-ultimate-evil"
+    },
+    {
+      "external_key": "official_srd_2014:tome-of-clear-thought",
+      "source_slug": "tome-of-clear-thought",
+      "name": "Tome of Clear Thought",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": null,
+      "suggested_price_gp": null,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "excluded_legacy_balance_item",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
+    },
+    {
+      "external_key": "official_srd_2014:tome-of-leadership-and-influence",
+      "source_slug": "tome-of-leadership-and-influence",
+      "name": "Tome of Leadership and Influence",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": null,
+      "suggested_price_gp": null,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "excluded_legacy_balance_item",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
+    },
+    {
+      "external_key": "official_srd_2014:tome-of-understanding",
+      "source_slug": "tome-of-understanding",
+      "name": "Tome of Understanding",
+      "item_type": "magic_item",
+      "category": "magic",
+      "subcategory": "standard",
+      "base_price_gp": null,
+      "suggested_price_gp": null,
+      "shop_bucket": "excluded",
+      "resolution_state": "excluded_on_purpose",
+      "excluded_reason": "excluded_legacy_balance_item",
+      "repair_reason": "explicit_policy_exclusion_for_shop_safety"
     },
     {
       "external_key": "official_srd_2014:trident",
