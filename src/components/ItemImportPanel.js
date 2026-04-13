@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { buildSrdImportRows, loadCustomSeedRows } from '../utils/shopItemImport';
 
-const DEGRADED_REPORT_SETTING_KEY = 'shop_srd_degraded_report_2014';
-
 async function loadLiveDegradedRows() {
   const { data, error } = await supabase
     .from('item_master')
@@ -16,52 +14,12 @@ async function loadLiveDegradedRows() {
   return data || [];
 }
 
-function buildDurableDegradedReport(rows = []) {
-  const items = rows.map(row => ({
-    external_key: row.external_key || null,
-    source_slug: row.source_slug || null,
-    name: row.name || null,
-    item_type: row.item_type || null,
-    category: row.category || null,
-    subcategory: row.subcategory || null,
-    shop_bucket: row.shop_bucket || null,
-    is_shop_eligible: !!row.is_shop_eligible,
-    price_source: row.price_source || null,
-    degraded_reason: row?.metadata_json?.degraded_reason || null,
-  }));
-
+function buildLiveDegradedSummary(rows = []) {
+  const unresolved = rows.filter(row => !row?.metadata_json?.repaired_from_overlay).length;
   return {
-    version: '2026-04-13',
-    generated_at: new Date().toISOString(),
-    source: 'item_master degraded/quarantined SRD rows',
-    item_count: items.length,
-    items,
+    count: rows.length,
+    unresolvedCount: unresolved,
   };
-}
-
-async function writeDurableReport(report) {
-  const attempts = [
-    { payload: { key: DEGRADED_REPORT_SETTING_KEY, value_json: report }, onConflict: 'key' },
-    { payload: { key: DEGRADED_REPORT_SETTING_KEY, value: report }, onConflict: 'key' },
-    { payload: { setting_key: DEGRADED_REPORT_SETTING_KEY, setting_value_json: report }, onConflict: 'setting_key' },
-    { payload: { setting_key: DEGRADED_REPORT_SETTING_KEY, setting_value: report }, onConflict: 'setting_key' },
-  ];
-
-  let lastError = null;
-  for (const attempt of attempts) {
-    const { error } = await supabase.from('app_settings').upsert(attempt.payload, { onConflict: attempt.onConflict });
-    if (!error) return;
-    lastError = error;
-  }
-
-  throw lastError || new Error('Unable to persist degraded report in app_settings.');
-}
-
-async function regenerateDurableDegradedReport() {
-  const liveRows = await loadLiveDegradedRows();
-  const report = buildDurableDegradedReport(liveRows);
-  await writeDurableReport(report);
-  return report;
 }
 
 export default function ItemImportPanel({ onImportComplete = null }) {
@@ -102,8 +60,11 @@ export default function ItemImportPanel({ onImportComplete = null }) {
         : `${isSrdMode ? 'SRD 2014 import' : 'Custom seed import'} complete: ${importedCount} rows loaded (${eligibleCount} shop-eligible).`;
 
       if (isSrdMode) {
-        const report = await regenerateDurableDegradedReport();
-        setImportStatus(`${baseStatus} Durable degraded report updated: ${report.item_count} quarantined row${report.item_count === 1 ? '' : 's'} (stored in app_settings as ${DEGRADED_REPORT_SETTING_KEY}).`);
+        const degradedRows = await loadLiveDegradedRows();
+        const summary = buildLiveDegradedSummary(degradedRows);
+        setImportStatus(
+          `${baseStatus} Live degraded SRD report: ${summary.count} quarantined row${summary.count === 1 ? '' : 's'} in current item_master (${summary.unresolvedCount} unresolved).`,
+        );
       } else {
         setImportStatus(baseStatus);
       }
@@ -137,7 +98,7 @@ export default function ItemImportPanel({ onImportComplete = null }) {
         </button>
       </div>
       <div className="world-shops-import-help">
-        SRD refresh imports catalog rows, then writes a durable degraded-row report from current quarantined SRD rows into app_settings.
+        SRD refresh imports catalog rows, then reports the live degraded/quarantined SRD row set from current item_master.
       </div>
       {importStatus ? <div className="world-shops-import-status">{importStatus}</div> : null}
       {error ? <div className="world-shops-error">{error}</div> : null}

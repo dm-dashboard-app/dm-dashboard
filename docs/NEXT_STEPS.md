@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 13, 2026 (durable degraded SRD report workflow added)
+Last updated: April 13, 2026 (live degraded SRD post-import report workflow added)
 
 Purpose: This file is the active roadmap only. It should list genuinely open work, intentionally parked work, and clearly labeled future planning ideas that are not active implementation.
 
@@ -527,7 +527,7 @@ Design constraint:
 - ✅ kept explicit source markers (`source_type`, `source_book`, `source_slug`) plus `rules_era=2014` validation in the server import path
 - ✅ corrected custom seed defaults: `docs/data/shop_custom_items_seed_2014.json` is now default-safe/empty and prior sample rows are moved to `docs/data/shop_custom_items_seed_2014.example.json` as example-only content
 - ✅ hardened in-app SRD refresh against upstream detail-endpoint breakage by falling back to index-derived item rows instead of dropping large portions of the catalog
-- ✅ SRD refresh now auto-regenerates a durable degraded-row report snapshot in `app_settings` from live quarantined `item_master` rows so unresolved degraded SRD rows are always current
+- ✅ SRD refresh now auto-reports live degraded/quarantined `item_master` SRD rows immediately after import so unresolved degraded rows are always current for that run
 
 **Phase 5 — Expansion hooks (later)**
 

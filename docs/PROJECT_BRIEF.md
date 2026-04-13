@@ -1,6 +1,6 @@
 # DM Dashboard — Project Brief
 
-Last updated: April 13, 2026 (degraded SRD report workflow baseline)
+Last updated: April 13, 2026 (live degraded SRD post-import report baseline)
 
 Purpose: This document is the current-state/background brief for DM Dashboard. It describes what the app now is, what is materially landed, and what principles future work must preserve.
 
@@ -217,7 +217,7 @@ Landed baseline includes:
 
 - repair data comes from durable repo artifact `docs/data/shop_srd_degraded_repairs_2014.json` (served in-app from `public/data/shop_srd_degraded_repairs_2014.json`)
 - degraded rows remain quarantined and excluded from shop generation by default
-- SRD refresh now auto-regenerates a durable degraded report snapshot in `app_settings` from current quarantined `item_master` SRD rows (no separate report-generation button)
+- SRD refresh now auto-reports the live degraded/quarantined SRD row set from current `item_master` rows immediately after import (no separate report-generation button)
 
 Preservation rule:
 
