@@ -1,6 +1,6 @@
 # DM Dashboard — Project Brief
 
-Last updated: April 13, 2026 (live degraded SRD post-import report baseline)
+Last updated: April 13, 2026 (imports tab now exposes live degraded-row list/export + spell import control)
 
 Purpose: This document is the current-state/background brief for DM Dashboard. It describes what the app now is, what is materially landed, and what principles future work must preserve.
 
@@ -202,6 +202,7 @@ Preservation rule:
 Landed baseline includes:
 
 - DM Manage → Imports now hosts explicit one-action import controls for baseline SRD refresh and custom-seed import
+- DM Manage → Imports also hosts the SRD spell import control so import admin actions are centralized in one tab
 - import writes now run through a server-mediated RPC (`dm_import_item_master_rows`) instead of requiring terminal-only scripts for normal operator workflow
 - SRD refresh now degrades safely: index-derived fallback rows are still imported for catalog continuity, but those degraded rows are explicitly quarantined (`metadata_json.degraded_import=true`, `shop_bucket=fallback_quarantine`, `is_shop_eligible=false`) so they cannot pollute default shop generation or pricing paths
 - custom seed defaults are now explicit and safe: `docs/data/shop_custom_items_seed_2014.json` is intentionally empty-by-default, while prior sample rows live in `docs/data/shop_custom_items_seed_2014.example.json` as example/demo content
@@ -218,6 +219,7 @@ Landed baseline includes:
 - repair data comes from durable repo artifact `docs/data/shop_srd_degraded_repairs_2014.json` (served in-app from `public/data/shop_srd_degraded_repairs_2014.json`)
 - degraded rows remain quarantined and excluded from shop generation by default
 - SRD refresh now auto-reports the live degraded/quarantined SRD row set from current `item_master` rows immediately after import (no separate report-generation button)
+- Manage → Imports now exposes that same live degraded/quarantined SRD row set directly as a readable row list with copy/export JSON actions for repair workflows
 
 Preservation rule:
 

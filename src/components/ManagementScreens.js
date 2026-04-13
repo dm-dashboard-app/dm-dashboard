@@ -22,7 +22,7 @@ import {
   getSpellcastingAbilityKey,
   getTotalLevel,
 } from '../utils/classResources';
-import SpellManagementPanel from './SpellManagementPanel';
+import SpellManagementPanel, { SpellImportPanel } from './SpellManagementPanel';
 import PlayerProfileSpellManager from './PlayerProfileSpellManager';
 import ItemImportPanel from './ItemImportPanel';
 
@@ -446,10 +446,7 @@ function ImportsManager() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
       <ItemImportPanel />
-      <div className="panel session-subpanel">
-        <div className="panel-title">Spell Import</div>
-        <div className="dm-section-subtitle">Spell import controls remain in Manage → Spells.</div>
-      </div>
+      <SpellImportPanel />
     </div>
   );
 }
