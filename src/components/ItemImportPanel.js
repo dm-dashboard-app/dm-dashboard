@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { supabase } from '../supabaseClient';
-import { buildSrdImportRows, loadCustomSeedRows } from '../utils/shopItemImport';
+import { applySrdRepairsToImportRows, buildSrdImportRows, loadCustomSeedRows } from '../utils/shopItemImport';
 
 async function loadLiveDegradedRows() {
   const { data, error } = await supabase
@@ -81,7 +81,10 @@ export default function ItemImportPanel({ onImportComplete = null }) {
       const srdResult = isSrdMode
         ? await buildSrdImportRows(message => setImportStatus(message))
         : null;
-      const rows = isSrdMode ? (srdResult?.rows || []) : await loadCustomSeedRows();
+      const repairedSrdResult = isSrdMode
+        ? await applySrdRepairsToImportRows(srdResult?.rows || [])
+        : null;
+      const rows = isSrdMode ? (repairedSrdResult?.rows || []) : await loadCustomSeedRows();
 
       const { data, error: importError } = await supabase.rpc('dm_import_item_master_rows', {
         p_import_mode: isSrdMode ? 'srd_2014' : 'custom_seed_2014',
@@ -92,11 +95,14 @@ export default function ItemImportPanel({ onImportComplete = null }) {
       const rpcResult = Array.isArray(data) ? (data[0] || {}) : (data || {});
       const importedCount = Number(rpcResult.imported_rows || 0);
       const eligibleCount = Number(rpcResult.shop_eligible_rows || 0);
+      const repairStatus = isSrdMode
+        ? ` Overlay repair applied ${Number(repairedSrdResult?.repairedCount || 0)} / ${Number(repairedSrdResult?.degradedCount || 0)} degraded row${Number(repairedSrdResult?.degradedCount || 0) === 1 ? '' : 's'} before import.`
+        : '';
       const baseStatus = importedCount === 0
         ? (isSrdMode
           ? 'SRD import ran, but no rows were loaded. Check RPC logs and source connectivity.'
           : 'Custom seed import ran with 0 rows. Seed file is intentionally empty by default; add your own curated items when ready.')
-        : `${isSrdMode ? 'SRD 2014 import' : 'Custom seed import'} complete: ${importedCount} rows loaded (${eligibleCount} shop-eligible).`;
+        : `${isSrdMode ? 'SRD 2014 import' : 'Custom seed import'} complete: ${importedCount} rows loaded (${eligibleCount} shop-eligible).${repairStatus}`;
 
       if (isSrdMode) {
         const nextDegradedRows = await loadLiveDegradedRows();

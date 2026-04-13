@@ -1,4 +1,4 @@
-import { buildSrdRepairRows, loadSrdDegradedReportRows } from './shopItemImport';
+import { applySrdRepairsToImportRows, buildSrdRepairRows, loadSrdDegradedReportRows } from './shopItemImport';
 import { generateShopRows } from './shopGenerator';
 import fs from 'fs';
 
@@ -103,6 +103,116 @@ describe('buildSrdRepairRows', () => {
 
     expect(degradedGenerated.some(row => row.item_name === 'Hempen Rope (50 feet)')).toBe(false);
     expect(repairedGenerated.some(row => row.item_name === 'Hempen Rope (50 feet)')).toBe(true);
+  });
+});
+
+describe('applySrdRepairsToImportRows', () => {
+  test('replaces degraded rows with repaired overlay rows in SRD import payload', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        items: [
+          {
+            external_key: 'official_srd_2014:elemental-gem-air',
+            source_slug: 'elemental-gem-air',
+            item_type: 'wondrous_item',
+            category: 'Wondrous Item',
+            subcategory: 'gem',
+            description: 'Elemental gem (air) repaired description',
+            base_price_gp: 5000,
+            suggested_price_gp: 5000,
+            shop_bucket: 'magic',
+          },
+        ],
+      }),
+    });
+
+    const degraded = degradedRow({
+      external_key: 'official_srd_2014:elemental-gem-air',
+      source_slug: 'elemental-gem-air',
+      name: 'Elemental Gem (Air)',
+    });
+    const clean = degradedRow({
+      id: 'clean-row',
+      external_key: 'official_srd_2014:rope-of-climbing',
+      source_slug: 'rope-of-climbing',
+      name: 'Rope of Climbing',
+      metadata_json: { degraded_import: false, import_quality: 'detail_verified' },
+      is_shop_eligible: true,
+      shop_bucket: 'magic',
+      item_type: 'wondrous_item',
+      category: 'Wondrous Item',
+      subcategory: 'standard',
+      price_source: 'shop_magic_pricing_2014_overlay',
+    });
+
+    const result = await applySrdRepairsToImportRows([degraded, clean]);
+
+    expect(result.degradedCount).toBe(1);
+    expect(result.repairedCount).toBe(1);
+    expect(result.rows).toHaveLength(2);
+    const repaired = result.rows.find(row => row.external_key === 'official_srd_2014:elemental-gem-air');
+    expect(repaired.shop_bucket).toBe('magic');
+    expect(repaired.price_source).toBe('shop_srd_degraded_repairs_2014_overlay');
+    expect(repaired.subcategory).toBe('gem');
+    expect(repaired.metadata_json.degraded_import).toBe(false);
+    const untouched = result.rows.find(row => row.external_key === 'official_srd_2014:rope-of-climbing');
+    expect(untouched.price_source).toBe('shop_magic_pricing_2014_overlay');
+  });
+
+  test('repairs elemental gem + dragon scale rows out of fallback quarantine shape', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        items: [
+          {
+            external_key: 'official_srd_2014:elemental-gem-air',
+            source_slug: 'elemental-gem-air',
+            item_type: 'wondrous_item',
+            category: 'Wondrous Item',
+            subcategory: 'gem',
+            base_price_gp: 5000,
+            suggested_price_gp: 5000,
+            shop_bucket: 'consumable',
+          },
+          {
+            external_key: 'official_srd_2014:dragon-scale-mail-black',
+            source_slug: 'dragon-scale-mail-black',
+            item_type: 'armor',
+            category: 'Armor',
+            subcategory: 'medium',
+            base_price_gp: 8000,
+            suggested_price_gp: 8000,
+            shop_bucket: 'combat',
+          },
+          {
+            external_key: 'official_srd_2014:dragon-scale-mail-blue',
+            source_slug: 'dragon-scale-mail-blue',
+            item_type: 'armor',
+            category: 'Armor',
+            subcategory: 'medium',
+            base_price_gp: 8000,
+            suggested_price_gp: 8000,
+            shop_bucket: 'combat',
+          },
+        ],
+      }),
+    });
+
+    const makeTarget = (key, slug, name) => degradedRow({ external_key: key, source_slug: slug, name });
+    const result = await applySrdRepairsToImportRows([
+      makeTarget('official_srd_2014:elemental-gem-air', 'elemental-gem-air', 'Elemental Gem (Air)'),
+      makeTarget('official_srd_2014:dragon-scale-mail-black', 'dragon-scale-mail-black', 'Dragon Scale Mail (Black)'),
+      makeTarget('official_srd_2014:dragon-scale-mail-blue', 'dragon-scale-mail-blue', 'Dragon Scale Mail (Blue)'),
+    ]);
+
+    expect(result.repairedCount).toBe(3);
+    result.rows.forEach(row => {
+      expect(row.shop_bucket).not.toBe('fallback_quarantine');
+      expect(row.price_source).toBe('shop_srd_degraded_repairs_2014_overlay');
+      expect(row.subcategory).not.toBe('unclassified');
+      expect(row.metadata_json.degraded_import).toBe(false);
+    });
   });
 });
 
