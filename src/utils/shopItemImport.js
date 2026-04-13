@@ -233,11 +233,41 @@ async function loadSrdRepairOverlay() {
   const parsed = await response.json();
   const items = Array.isArray(parsed?.items) ? parsed.items : [];
   const map = new Map();
+
+  const buildAliasKeys = (sourceSlug = '') => {
+    const slug = String(sourceSlug || '').trim();
+    if (!slug) return [];
+    const aliases = new Set([slug]);
+
+    const hornMatch = slug.match(/^horn-of-valhalla-(brass|bronze|iron|silver)$/);
+    if (hornMatch) aliases.add(`${hornMatch[1]}-horn-of-valhalla`);
+    const reverseHornMatch = slug.match(/^(brass|bronze|iron|silver)-horn-of-valhalla$/);
+    if (reverseHornMatch) aliases.add(`horn-of-valhalla-${reverseHornMatch[1]}`);
+
+    const elementalMatch = slug.match(/^ring-of-elemental-command-(air|earth|fire|water)$/);
+    if (elementalMatch) aliases.add(`ring-of-${elementalMatch[1]}-elemental-command`);
+    const reverseElementalMatch = slug.match(/^ring-of-(air|earth|fire|water)-elemental-command$/);
+    if (reverseElementalMatch) aliases.add(`ring-of-elemental-command-${reverseElementalMatch[1]}`);
+
+    if (slug === 'helm-of-comprehending-languages') aliases.add('helm-of-comprehend-languages');
+    if (slug === 'helm-of-comprehend-languages') aliases.add('helm-of-comprehending-languages');
+
+    if (slug === 'horseshoes-of-a-zephyr') aliases.add('horseshoes-of-the-zephyr');
+    if (slug === 'horseshoes-of-the-zephyr') aliases.add('horseshoes-of-a-zephyr');
+
+    return Array.from(aliases);
+  };
+
   for (const item of items) {
     const externalKey = String(item.external_key || '').trim();
     const sourceSlug = String(item.source_slug || '').trim();
     if (externalKey) map.set(externalKey, item);
-    if (sourceSlug) map.set(`${IMPORT_SOURCE_TYPE}:${sourceSlug}`, item);
+    if (sourceSlug) {
+      const aliasKeys = buildAliasKeys(sourceSlug);
+      aliasKeys.forEach(alias => {
+        map.set(`${IMPORT_SOURCE_TYPE}:${alias}`, item);
+      });
+    }
   }
   return map;
 }
