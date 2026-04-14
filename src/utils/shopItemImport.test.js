@@ -1,4 +1,4 @@
-import { applySrdRepairsToImportRows, buildSrdRepairRows, loadSrdDegradedReportRows } from './shopItemImport';
+import { applySrdRepairsToImportRows, buildSrdImportRows, buildSrdRepairRows, loadSrdDegradedReportRows } from './shopItemImport';
 import { generateShopRows } from './shopGenerator';
 import fs from 'fs';
 
@@ -318,11 +318,122 @@ describe('dm_import_item_master_rows SQL downgrade protection', () => {
     expect(sql).toContain('do update set');
     expect(sql).toContain('where (');
     expect(sql).toContain("excluded.metadata_json->>'degraded_import'");
+    expect(sql).toContain("v_mode <> 'srd_2014'");
+    expect(sql).toContain("degraded_fallback_untrusted");
+    expect(sql).toContain("fallback_quarantine");
     expect(sql).toContain("item_master.metadata_json->>'degraded_import'");
     expect(sql).toContain("= 'degraded_fallback'");
     expect(sql).toContain("= 'repaired_overlay_verified'");
     expect(sql).toContain("= 'excluded_on_purpose'");
     expect(sql).toContain('degraded_fallback_untrusted');
     expect(sql).toContain(') >= (');
+  });
+});
+
+
+describe('buildSrdImportRows trust-boundary hardening', () => {
+  function mockSrdFetch({ equipmentIndex = [], magicIndex = [], equipmentDetails = {}, magicDetails = {}, pricingItems = [] }) {
+    global.fetch = jest.fn(async (url) => {
+      if (url === '/data/shop_magic_pricing_2014.json') {
+        return { ok: true, json: async () => ({ items: pricingItems }) };
+      }
+
+      if (url === 'https://www.dnd5eapi.co/api/2014/equipment') {
+        return { ok: true, json: async () => ({ results: equipmentIndex }) };
+      }
+      if (url === 'https://www.dnd5eapi.co/api/2014/magic-items') {
+        return { ok: true, json: async () => ({ results: magicIndex }) };
+      }
+
+      if (url.includes('/equipment/')) {
+        const detail = equipmentDetails[url];
+        if (detail) return { ok: true, json: async () => detail };
+        return { ok: false, status: 503 };
+      }
+
+      if (url.includes('/magic-items/')) {
+        const detail = magicDetails[url];
+        if (detail) return { ok: true, json: async () => detail };
+        return { ok: false, status: 503 };
+      }
+
+      return { ok: false, status: 404 };
+    });
+  }
+
+  test('failed detail endpoint does not produce a persisted import row', async () => {
+    mockSrdFetch({
+      equipmentIndex: [{ index: 'rope', name: 'Rope', url: '/api/2014/equipment/rope' }],
+      magicIndex: [],
+      equipmentDetails: {},
+    });
+
+    const result = await buildSrdImportRows();
+
+    expect(result.attemptedCount).toBe(1);
+    expect(result.rows).toHaveLength(0);
+    expect(result.fetchFailureCount).toBe(1);
+    expect(result.fetchFailures[0].index).toBe('rope');
+  });
+
+  test('degraded magic fetch failure does not get pricing-overlay-shaped into persisted rows', async () => {
+    mockSrdFetch({
+      equipmentIndex: [],
+      magicIndex: [{ index: 'wand-of-secrets', name: 'Wand of Secrets', url: '/api/2014/magic-items/wand-of-secrets' }],
+      magicDetails: {},
+      pricingItems: [{ normalized_name: 'wand of secrets', suggested_price_gp: 2000, shop_bucket: 'magic' }],
+    });
+
+    const result = await buildSrdImportRows();
+
+    expect(result.rows).toHaveLength(0);
+    expect(result.fetchFailureCount).toBe(1);
+    expect(result.fetchFailures[0].name).toBe('Wand of Secrets');
+  });
+
+  test('repaired and excluded overlay rows still persist in repair pipeline', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        items: [
+          {
+            external_key: 'official_srd_2014:repair-me',
+            source_slug: 'repair-me',
+            item_type: 'wondrous_item',
+            category: 'Wondrous Item',
+            subcategory: 'standard',
+            base_price_gp: 250,
+            suggested_price_gp: 250,
+            shop_bucket: 'magic',
+          },
+          {
+            external_key: 'official_srd_2014:exclude-me',
+            source_slug: 'exclude-me',
+            resolution_state: 'excluded_on_purpose',
+            excluded_reason: 'test_exclusion',
+            item_type: 'magic_item',
+            category: 'magic',
+            subcategory: 'standard',
+            shop_bucket: 'excluded',
+          },
+        ],
+      }),
+    });
+
+    const rows = [
+      degradedRow({ external_key: 'official_srd_2014:repair-me', source_slug: 'repair-me', name: 'Repair Me' }),
+      degradedRow({ external_key: 'official_srd_2014:exclude-me', source_slug: 'exclude-me', name: 'Exclude Me' }),
+    ];
+
+    const result = await applySrdRepairsToImportRows(rows);
+
+    expect(result.rows).toHaveLength(2);
+    expect(result.repairedCount).toBe(2);
+    const repaired = result.rows.find(row => row.external_key === 'official_srd_2014:repair-me');
+    const excluded = result.rows.find(row => row.external_key === 'official_srd_2014:exclude-me');
+    expect(repaired.metadata_json.import_quality).toBe('repaired_overlay_verified');
+    expect(repaired.is_shop_eligible).toBe(true);
+    expect(excluded.metadata_json.import_quality).toBe('excluded_on_purpose');
+    expect(excluded.is_shop_eligible).toBe(false);
   });
 });

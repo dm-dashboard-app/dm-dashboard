@@ -67,25 +67,11 @@ async function fetchJson(pathname) {
   throw lastError || new Error(`API request failed: ${pathname}`);
 }
 
-function buildFallbackDetail(indexRow = {}, kind = 'equipment') {
-  const index = String(indexRow.index || '').trim();
-  const name = String(indexRow.name || index || 'Unknown item').trim();
-  return {
-    index: index || slugify(name),
-    name,
-    url: indexRow.url || null,
-    desc: ['Imported from upstream index because the detail endpoint is unavailable.'],
-    metadata_fallback: true,
-    metadata_fallback_reason: 'detail_endpoint_unavailable',
-    equipment_category: kind === 'equipment' ? { name: 'Equipment' } : undefined,
-  };
-}
-
 async function fetchAllDetails(indexPath, kind = 'equipment', onProgress = null) {
   const list = await fetchJson(indexPath);
   const rows = list?.results || [];
   const details = [];
-  const degraded = [];
+  const fetchFailures = [];
   const batchSize = 20;
 
   for (let i = 0; i < rows.length; i += batchSize) {
@@ -97,23 +83,26 @@ async function fetchAllDetails(indexPath, kind = 'equipment', onProgress = null)
         details.push(result.value);
         return;
       }
-      const fallback = buildFallbackDetail(sourceRow, kind);
-      details.push(fallback);
-      degraded.push({
+
+      fetchFailures.push({
         index: sourceRow.index || null,
         name: sourceRow.name || null,
         url: sourceRow.url || null,
         reason: result.reason?.message || 'Unknown detail fetch failure.',
+        kind,
       });
     });
+
     if (onProgress) {
-      onProgress(`Fetched ${Math.min(i + batch.length, rows.length)} / ${rows.length} ${indexPath.replace('/', '')} rows…${degraded.length ? ` (${degraded.length} fallback)` : ''}`);
+      onProgress(
+        `Fetched ${Math.min(i + batch.length, rows.length)} / ${rows.length} ${indexPath.replace('/', '')} rows…${fetchFailures.length ? ` (${fetchFailures.length} detail fetch failures)` : ''}`,
+      );
     }
   }
 
   return {
     details,
-    degraded,
+    fetchFailures,
     total: rows.length,
   };
 }
@@ -191,6 +180,12 @@ function mapApiItem(detail = {}, kind = 'equipment') {
 }
 
 function applyPricingOverlay(row, overlayByName) {
+  const importQuality = String(row?.metadata_json?.import_quality || '').toLowerCase();
+  const isDegraded = row?.metadata_json?.degraded_import === true
+    || importQuality === 'degraded_fallback'
+    || importQuality === 'degraded_import';
+  if (isDegraded) return row;
+
   const overlay = overlayByName.get(normalizeName(row.name)) || overlayByName.get(row.slug);
   if (!overlay) return row;
 
@@ -371,11 +366,11 @@ export async function buildSrdImportRows(onProgress = null) {
   ].map(item => applyPricingOverlay(item, overlayByName));
 
   const rows = Array.from(new Map(imported.map(item => [item.external_key, item])).values());
-  const degradedDetails = [...(equipmentResult.degraded || []), ...(magicResult.degraded || [])];
+  const fetchFailures = [...(equipmentResult.fetchFailures || []), ...(magicResult.fetchFailures || [])];
   return {
     rows,
-    degradedDetails,
-    degradedCount: degradedDetails.length,
+    fetchFailures,
+    fetchFailureCount: fetchFailures.length,
     attemptedCount: Number(equipmentResult.total || 0) + Number(magicResult.total || 0),
     succeededCount: rows.length,
   };
