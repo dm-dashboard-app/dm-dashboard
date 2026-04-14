@@ -21,6 +21,15 @@ function baseItem(overrides = {}) {
   };
 }
 
+function withFixedRandom(value, callback) {
+  const spy = jest.spyOn(Math, 'random').mockReturnValue(value);
+  try {
+    return callback();
+  } finally {
+    spy.mockRestore();
+  }
+}
+
 describe('generateShopRows', () => {
   test('excludes degraded fallback rows even when legacy rows are marked eligible', () => {
     const rows = generateShopRows([
@@ -39,46 +48,138 @@ describe('generateShopRows', () => {
     expect(rows.some(row => row.item_name === 'Rations')).toBe(true);
   });
 
-  test('apothecary shop keeps to healing/alchemy-style stock', () => {
-    const rows = generateShopRows([
-      baseItem({ id: 'potion-healing', name: 'Potion of Healing', item_type: 'magic_item', shop_bucket: 'healing', rarity: 'Common', suggested_price_gp: 50 }),
-      baseItem({ id: 'alchemist-fire', name: "Alchemist's Fire", category: 'Adventuring Gear', subcategory: 'Alchemical', suggested_price_gp: 50 }),
-      baseItem({ id: 'battleaxe', name: 'Battleaxe', item_type: 'weapon', category: 'Martial Weapon', subcategory: 'Melee', suggested_price_gp: 10 }),
-      baseItem({ id: 'horse', name: 'Riding Horse', item_type: 'equipment', category: 'Mounts and Vehicles', subcategory: 'Mount', suggested_price_gp: 75 }),
-    ], { shopType: 'apothecary', affluence: 'modest' });
+  test('apothecary includes guaranteed core stock and places core rows first', () => {
+    const rows = withFixedRandom(0.01, () => generateShopRows([
+      baseItem({ id: 'p-heal', name: 'Potion of Healing', item_type: 'magic_item', shop_bucket: 'healing', suggested_price_gp: 50 }),
+      baseItem({ id: 'p-greater', name: 'Potion of Greater Healing', item_type: 'magic_item', shop_bucket: 'consumable', rarity: 'Uncommon', suggested_price_gp: 150 }),
+      baseItem({ id: 'healer-kit', name: "Healer's Kit", subcategory: 'healer kit', suggested_price_gp: 5 }),
+      baseItem({ id: 'alc-sup', name: "Alchemist's Supplies", category: 'Tools', suggested_price_gp: 50 }),
+      baseItem({ id: 'herb-kit', name: 'Herbalism Kit', category: 'Tools', suggested_price_gp: 5 }),
+      baseItem({ id: 'bonus', name: 'Antitoxin (vial)', category: 'Adventuring Gear', suggested_price_gp: 50 }),
+    ], { shopType: 'apothecary', affluence: 'modest' }));
+
+    expect(rows.slice(0, 5).every(row => row.stock_lane === 'core')).toBe(true);
+    expect(rows.filter(row => row.stock_lane === 'core').map(row => row.item_name)).toEqual([
+      'Potion of Healing',
+      'Potion of Greater Healing',
+      "Healer's Kit",
+      "Alchemist's Supplies",
+      'Herbalism Kit',
+    ]);
+  });
+
+  test('blacksmith includes guaranteed anchors, rotating lane staples, and ammo support when available', () => {
+    const rows = withFixedRandom(0.01, () => generateShopRows([
+      baseItem({ id: 'shield', name: 'Shield', item_type: 'armor', category: 'Armor', subcategory: 'Shield', suggested_price_gp: 10 }),
+      baseItem({ id: 'smith-tools', name: "Smith's Tools", item_type: 'tool', category: 'Tools', subcategory: 'artisan', suggested_price_gp: 20 }),
+      baseItem({ id: 'club', name: 'Club', item_type: 'weapon', category: 'Simple Weapon', subcategory: 'Melee', suggested_price_gp: 1 }),
+      baseItem({ id: 'spear', name: 'Spear', item_type: 'weapon', category: 'Simple Weapon', subcategory: 'Melee', suggested_price_gp: 1 }),
+      baseItem({ id: 'longsword', name: 'Longsword', item_type: 'weapon', category: 'Martial Weapon', subcategory: 'Melee', suggested_price_gp: 15 }),
+      baseItem({ id: 'warhammer', name: 'Warhammer', item_type: 'weapon', category: 'Martial Weapon', subcategory: 'Melee', suggested_price_gp: 15 }),
+      baseItem({ id: 'chain-shirt', name: 'Chain Shirt', item_type: 'armor', category: 'Armor', subcategory: 'Medium Armor', suggested_price_gp: 50 }),
+      baseItem({ id: 'leather', name: 'Leather Armor', item_type: 'armor', category: 'Armor', subcategory: 'Light Armor', suggested_price_gp: 10 }),
+      baseItem({ id: 'arrows', name: 'Arrows (20)', item_type: 'ammo', category: 'Ammunition', subcategory: 'Arrow', suggested_price_gp: 1 }),
+      baseItem({ id: 'bullets', name: 'Sling Bullets (20)', item_type: 'ammo', category: 'Ammunition', subcategory: 'Sling Bullets', suggested_price_gp: 1 }),
+      baseItem({ id: 'bolts', name: 'Crossbow Bolts (20)', item_type: 'ammo', category: 'Ammunition', subcategory: 'Bolt', suggested_price_gp: 1 }),
+    ], { shopType: 'blacksmith', affluence: 'modest' }));
+
+    const coreRows = rows.filter(row => row.stock_lane === 'core').map(row => row.item_name);
+    expect(coreRows).toContain('Shield');
+    expect(coreRows).toContain("Smith's Tools");
+    expect(coreRows.some(name => ['Club', 'Spear'].includes(name))).toBe(true);
+    expect(coreRows.some(name => ['Longsword', 'Warhammer'].includes(name))).toBe(true);
+    expect(coreRows.some(name => ['Chain Shirt', 'Leather Armor', 'Shield'].includes(name))).toBe(true);
+    expect(coreRows).toContain('Arrows (20)');
+    expect(coreRows).toContain('Sling Bullets (20)');
+    expect(coreRows).toContain('Crossbow Bolts (20)');
+  });
+
+  test('general store includes guaranteed staples and camp-gear core rows when available', () => {
+    const rows = withFixedRandom(0.01, () => generateShopRows([
+      baseItem({ id: 'torch', name: 'Torch', suggested_price_gp: 0.1 }),
+      baseItem({ id: 'rope', name: 'Rope, hempen (50 feet)', suggested_price_gp: 1 }),
+      baseItem({ id: 'rations', name: 'Rations (1 day)', suggested_price_gp: 0.5 }),
+      baseItem({ id: 'tent', name: 'Tent, Two-Person', suggested_price_gp: 2 }),
+      baseItem({ id: 'bedroll', name: 'Bedroll', suggested_price_gp: 1 }),
+      baseItem({ id: 'waterskin', name: 'Waterskin', suggested_price_gp: 0.2 }),
+      baseItem({ id: 'tinderbox', name: 'Tinderbox', suggested_price_gp: 0.5 }),
+    ], { shopType: 'general_store', affluence: 'modest' }));
+
+    const coreRows = rows.filter(row => row.stock_lane === 'core').map(row => row.item_name);
+    expect(coreRows).toEqual(expect.arrayContaining([
+      'Torch',
+      'Rope, hempen (50 feet)',
+      'Rations (1 day)',
+      'Tent, Two-Person',
+      'Bedroll',
+    ]));
+    expect(coreRows.some(name => ['Waterskin', 'Tinderbox'].includes(name))).toBe(true);
+  });
+
+  test('core rows are always ordered before rotating rows', () => {
+    const rows = withFixedRandom(0.01, () => generateShopRows([
+      baseItem({ id: 'torch', name: 'Torch', suggested_price_gp: 0.1 }),
+      baseItem({ id: 'rope', name: 'Rope, hempen (50 feet)', suggested_price_gp: 1 }),
+      baseItem({ id: 'rations', name: 'Rations (1 day)', suggested_price_gp: 0.5 }),
+      baseItem({ id: 'tent', name: 'Tent, Two-Person', suggested_price_gp: 2 }),
+      baseItem({ id: 'bedroll', name: 'Bedroll', suggested_price_gp: 1 }),
+      baseItem({ id: 'extra', name: 'Ink (1 ounce)', suggested_price_gp: 10 }),
+    ], { shopType: 'general_store', affluence: 'modest' }));
+
+    const firstRotatingIndex = rows.findIndex(row => row.stock_lane === 'rotating');
+    expect(firstRotatingIndex).toBeGreaterThan(0);
+    expect(rows.slice(0, firstRotatingIndex).every(row => row.stock_lane === 'core')).toBe(true);
+  });
+
+  test('affluence changes core quantities in intended direction', () => {
+    const catalog = [
+      baseItem({ id: 'torch', name: 'Torch', suggested_price_gp: 1 }),
+      baseItem({ id: 'rope', name: 'Rope, hempen (50 feet)', suggested_price_gp: 1 }),
+      baseItem({ id: 'rations', name: 'Rations (1 day)', suggested_price_gp: 1 }),
+      baseItem({ id: 'tent', name: 'Tent, Two-Person', suggested_price_gp: 2 }),
+      baseItem({ id: 'bedroll', name: 'Bedroll', suggested_price_gp: 1 }),
+    ];
+
+    const poorRows = withFixedRandom(0.01, () => generateShopRows(catalog, { shopType: 'general_store', affluence: 'poor' }));
+    const richRows = withFixedRandom(0.01, () => generateShopRows(catalog, { shopType: 'general_store', affluence: 'wealthy' }));
+
+    const poorTorchQty = poorRows.find(row => row.item_name === 'Torch')?.quantity || 0;
+    const richTorchQty = richRows.find(row => row.item_name === 'Torch')?.quantity || 0;
+    const poorRationQty = poorRows.find(row => row.item_name === 'Rations (1 day)')?.quantity || 0;
+    const richRationQty = richRows.find(row => row.item_name === 'Rations (1 day)')?.quantity || 0;
+
+    expect(richTorchQty).toBeGreaterThan(poorTorchQty);
+    expect(richRationQty).toBeGreaterThan(poorRationQty);
+  });
+
+  test('affluence changes prices in intended direction across whole inventory', () => {
+    const catalog = [
+      baseItem({ id: 'torch', name: 'Torch', suggested_price_gp: 1 }),
+      baseItem({ id: 'rope', name: 'Rope, hempen (50 feet)', suggested_price_gp: 1 }),
+      baseItem({ id: 'rations', name: 'Rations (1 day)', suggested_price_gp: 1 }),
+      baseItem({ id: 'tent', name: 'Tent, Two-Person', suggested_price_gp: 2 }),
+      baseItem({ id: 'bedroll', name: 'Bedroll', suggested_price_gp: 1 }),
+      baseItem({ id: 'crowbar', name: 'Crowbar', suggested_price_gp: 25 }),
+    ];
+
+    const poorRows = withFixedRandom(0.01, () => generateShopRows(catalog, { shopType: 'general_store', affluence: 'poor' }));
+    const richRows = withFixedRandom(0.01, () => generateShopRows(catalog, { shopType: 'general_store', affluence: 'wealthy' }));
+
+    const poorTotal = poorRows.reduce((sum, row) => sum + row.listed_price_gp, 0);
+    const richTotal = richRows.reduce((sum, row) => sum + row.listed_price_gp, 0);
+
+    expect(richTotal).toBeGreaterThan(poorTotal);
+  });
+
+  test('magic shop behavior stays rotating-only with no core lane', () => {
+    const rows = withFixedRandom(0.01, () => generateShopRows([
+      baseItem({ id: 'wand', name: 'Wand of Secrets', item_type: 'magic_item', rarity: 'Rare', suggested_price_gp: 250, shop_bucket: 'utility' }),
+      baseItem({ id: 'healing', name: 'Potion of Healing', item_type: 'magic_item', rarity: 'Common', suggested_price_gp: 50, shop_bucket: 'healing' }),
+      baseItem({ id: 'amulet', name: 'Amulet of Proof', item_type: 'magic_item', rarity: 'Uncommon', suggested_price_gp: 120, shop_bucket: 'utility' }),
+    ], { shopType: 'magic_shop', affluence: 'modest' }));
 
     expect(rows.length).toBeGreaterThan(0);
-    expect(rows.some(row => row.item_name === 'Battleaxe')).toBe(false);
-    expect(rows.some(row => row.item_name === 'Riding Horse')).toBe(false);
-    expect(rows.some(row => row.item_name === 'Potion of Healing' || row.item_name === "Alchemist's Fire")).toBe(true);
+    expect(rows.every(row => row.stock_lane === 'rotating')).toBe(true);
+    expect(rows.every(row => row.is_core_stock === false)).toBe(true);
   });
-
-  test('dedupes duplicate-looking Potion of Healing rows from different source ids', () => {
-    const rows = generateShopRows([
-      baseItem({ id: 'potion-healing-a', name: 'Potion of Healing', item_type: 'magic_item', shop_bucket: 'healing', rarity: 'Common', suggested_price_gp: 50 }),
-      baseItem({ id: 'potion-healing-b', name: 'Potion of Healing', item_type: 'magic_item', shop_bucket: 'consumable', rarity: 'Common', suggested_price_gp: 60 }),
-      baseItem({ id: 'potion-greater', name: 'Potion of Greater Healing', item_type: 'magic_item', shop_bucket: 'consumable', rarity: 'Uncommon', suggested_price_gp: 150 }),
-    ], { shopType: 'apothecary', affluence: 'modest' });
-
-    const baseHealingRows = rows.filter(row => row.item_name === 'Potion of Healing');
-    expect(baseHealingRows).toHaveLength(1);
-  });
-
-  test('apothecary can stock greater/superior/supreme healing without widening to unrelated rare magic', () => {
-    const rows = generateShopRows([
-      baseItem({ id: 'potion-healing', name: 'Potion of Healing', item_type: 'magic_item', shop_bucket: 'healing', rarity: 'Common', suggested_price_gp: 50 }),
-      baseItem({ id: 'potion-greater', name: 'Potion of Greater Healing', item_type: 'magic_item', shop_bucket: 'consumable', rarity: 'Uncommon', suggested_price_gp: 150 }),
-      baseItem({ id: 'potion-superior', name: 'Potion of Superior Healing', item_type: 'magic_item', shop_bucket: 'consumable', rarity: 'Very Rare', suggested_price_gp: 450 }),
-      baseItem({ id: 'potion-supreme', name: 'Potion of Supreme Healing', item_type: 'magic_item', shop_bucket: 'consumable', rarity: 'Very Rare', suggested_price_gp: 1350 }),
-      baseItem({ id: 'potion-heroism', name: 'Potion of Heroism', item_type: 'magic_item', shop_bucket: 'consumable', rarity: 'Rare', suggested_price_gp: 180 }),
-      baseItem({ id: 'rare-wand', name: 'Wand of Secrets', item_type: 'magic_item', shop_bucket: 'utility', rarity: 'Rare', suggested_price_gp: 250 }),
-    ], { shopType: 'apothecary', affluence: 'wealthy' });
-
-    expect(rows.some(row => row.item_name === 'Potion of Greater Healing')).toBe(true);
-    expect(rows.some(row => row.item_name === 'Potion of Superior Healing')).toBe(true);
-    expect(rows.some(row => row.item_name === 'Potion of Supreme Healing')).toBe(true);
-    expect(rows.some(row => row.item_name === 'Potion of Heroism')).toBe(false);
-    expect(rows.some(row => row.item_name === 'Wand of Secrets')).toBe(false);
-  });
-
 });

@@ -83,6 +83,63 @@ function resolveItemDetailText(item = {}) {
   return { text: buildStructuredFallback(item), mode: 'structured_fallback' };
 }
 
+
+function normalizeName(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function rowLooksCore(row = {}, activeShopType = 'general_store') {
+  if (row.stock_lane === 'core' || row.is_core_stock === true) return true;
+  if (activeShopType === 'magic_shop') return false;
+  const name = normalizeName(row.item_name);
+  const haystack = `${row.item_type || ''} ${row.category || ''} ${row.subcategory || ''} ${row.shop_bucket || ''} ${row.item_name || ''}`.toLowerCase();
+
+  if (activeShopType === 'apothecary') {
+    return [
+      'potion of healing',
+      'potion of greater healing',
+      "healer's kit",
+      "alchemist's supplies",
+      'herbalism kit',
+    ].includes(name);
+  }
+
+  if (activeShopType === 'blacksmith') {
+    if (['shield', "smith's tools"].includes(name)) return true;
+    if (name.includes('arrows') || name.includes('sling bullets') || name.includes('crossbow bolts')) return true;
+    return false;
+  }
+
+  if (activeShopType === 'general_store') {
+    if (name.includes('torch') || name.includes('rope') || name.includes('ration') || name.includes('tent') || name.includes('bedroll')) return true;
+    return ['waterskin', 'mess kit', 'flint and steel', 'tinderbox', 'blanket', 'grappling hook', 'lantern', 'piton', 'hammer', 'crowbar']
+      .some(term => haystack.includes(term));
+  }
+
+  return false;
+}
+
+function applyStockLanes(rows = [], activeShopType = 'general_store') {
+  if (activeShopType === 'magic_shop') {
+    return rows.map((row, idx) => ({ ...row, stock_lane: 'rotating', is_core_stock: false, _lane_sort: idx }));
+  }
+
+  const withCore = rows.map((row, idx) => {
+    const isCore = rowLooksCore(row, activeShopType);
+    return {
+      ...row,
+      stock_lane: isCore ? 'core' : 'rotating',
+      is_core_stock: isCore,
+      _lane_sort: idx,
+    };
+  });
+
+  return withCore.sort((a, b) => {
+    if (a.stock_lane !== b.stock_lane) return a.stock_lane === 'core' ? -1 : 1;
+    return a._lane_sort - b._lane_sort;
+  });
+}
+
 function ItemDetailModal({ item, onClose }) {
   if (!item) return null;
   const detail = resolveItemDetailText(item);
@@ -194,8 +251,8 @@ export default function WorldShopsPanel({ showImportControls = false }) {
       barter_dc: row.barter_dc,
     }));
 
-    setGeneratedRows(normalized);
-  }, []);
+    setGeneratedRows(applyStockLanes(normalized, shopType));
+  }, [shopType]);
 
   const refreshWorldShopData = useCallback(async () => {
     await Promise.all([loadCatalog(), loadSavedShops()]);
@@ -224,7 +281,8 @@ export default function WorldShopsPanel({ showImportControls = false }) {
   async function handleGenerate() {
     setError('');
     const rows = generateShopRows(catalogItems, { shopType, affluence: affluenceTier });
-    setGeneratedRows(rows);
+    const laneRows = applyStockLanes(rows, shopType);
+    setGeneratedRows(laneRows);
     setSelectedShopId(null);
   }
 
@@ -276,12 +334,13 @@ export default function WorldShopsPanel({ showImportControls = false }) {
     }
 
     const rows = generateShopRows(catalogItems, { shopType, affluence: affluenceTier });
-    setGeneratedRows(rows);
+    const laneRows = applyStockLanes(rows, shopType);
+    setGeneratedRows(laneRows);
 
     try {
       setSaving(true);
       const generationSeed = crypto.randomUUID();
-      const payload = buildRpcRows(rows);
+      const payload = buildRpcRows(laneRows);
       const { error: replaceError } = await supabase.rpc('dm_replace_shop_inventory', {
         p_shop_id: selectedShopId,
         p_shop_type: shopType,
@@ -353,15 +412,29 @@ export default function WorldShopsPanel({ showImportControls = false }) {
             <span>Min</span>
             <span>DC</span>
           </div>
-          {generatedRows.map(row => (
-            <button key={`${row.item_id}-${row.item_name}`} className="world-shops-stock-row" onClick={() => setSelectedItem(row)}>
-              <span className="item-name">{row.item_name}</span>
-              <span>{row.quantity}</span>
-              <span>{gpLabel(row.listed_price_gp)}</span>
-              <span>{gpLabel(row.minimum_price_gp)}</span>
-              <span>{row.barter_dc}</span>
-            </button>
-          ))}
+          {generatedRows.map((row, index) => {
+            const previousLane = index > 0 ? generatedRows[index - 1].stock_lane : null;
+            const showLaneLabel = row.stock_lane && row.stock_lane !== previousLane;
+            return (
+              <React.Fragment key={`${row.item_id}-${row.item_name}-${index}`}>
+                {showLaneLabel ? (
+                  <div className="world-shops-stock-lane-label">
+                    {row.stock_lane === 'core' ? 'Core Stock' : 'Rotating Stock'}
+                  </div>
+                ) : null}
+                <button className="world-shops-stock-row" data-lane={row.stock_lane} onClick={() => setSelectedItem(row)}>
+                  <span className="item-name">
+                    {row.item_name}
+                    {row.stock_lane === 'core' ? <span className="world-shops-core-badge">Core</span> : null}
+                  </span>
+                  <span>{row.quantity}</span>
+                  <span>{gpLabel(row.listed_price_gp)}</span>
+                  <span>{gpLabel(row.minimum_price_gp)}</span>
+                  <span>{row.barter_dc}</span>
+                </button>
+              </React.Fragment>
+            );
+          })}
           {generatedRows.length === 0 ? <div className="empty-state">Generate stock to start building a shop.</div> : null}
         </div>
       </div>

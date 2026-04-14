@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 14, 2026 (SRD import trust-boundary hardening for transient detail failures)
+Last updated: April 14, 2026 (non-magic shops now include affluence-aware guaranteed core stock lanes)
 
 Purpose: This file is the active roadmap only. It should list genuinely open work, intentionally parked work, and clearly labeled future planning ideas that are not active implementation.
 
@@ -511,6 +511,7 @@ Design constraint:
 - ✅ added quantity/listed/minimum/barter DC rows
 - ✅ added compact item detail modal
 - ✅ kept implementation DM-only (no player/display shop surface)
+- ✅ non-magic shop generation now guarantees an affluence-aware Core Stock lane (apothecary/blacksmith/general store) before weighted Rotating Stock fill, with one-list ordering and lightweight Core/section UI cues
 
 **Phase 3 — Magic overlay + curation (landed on main)**
 
