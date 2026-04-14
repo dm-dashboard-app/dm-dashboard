@@ -24,10 +24,6 @@ function normalizeLane(value) {
 }
 
 export function applyPersistedStockLanes(rows = [], { shopType = 'general_store', generationSeed = '' } = {}) {
-  if (shopType === 'magic_shop') {
-    return rows.map(row => ({ ...row, stock_lane: 'rotating', is_core_stock: false }));
-  }
-
   const hasExplicitLane = rows.some(row => normalizeLane(row?.stock_lane));
   if (hasExplicitLane) {
     return rows.map(row => {

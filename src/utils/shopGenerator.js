@@ -1,8 +1,10 @@
+import { buildSpellScrollItem, getEligibleSpellsForLevel } from './spellScrolls';
+
 const SHOP_TARGET_COUNTS = {
   blacksmith: 16,
   general_store: 20,
   apothecary: 14,
-  magic_shop: 6,
+  magic_shop: 12,
 };
 
 const AFFLUENCE_PRICE_MULTIPLIER = {
@@ -24,13 +26,6 @@ const MAGIC_RARITY_WEIGHT_BY_AFFLUENCE = {
   modest: { common: 1.35, uncommon: 0.7, rare: 0.08, 'very rare': 0, legendary: 0 },
   middle_class: { common: 1.1, uncommon: 1, rare: 0.32, 'very rare': 0.04, legendary: 0 },
   wealthy: { common: 0.9, uncommon: 1.05, rare: 0.75, 'very rare': 0.16, legendary: 0.01 },
-};
-
-const MAGIC_SHOP_TARGET_BY_AFFLUENCE = {
-  poor: 4,
-  modest: 5,
-  middle_class: 7,
-  wealthy: 9,
 };
 
 const SHOP_KEYWORDS = {
@@ -214,7 +209,7 @@ function generateQuantity(item = {}, shopType, affluence) {
 
 function targetRowCount(shopType, affluence) {
   if (shopType !== 'magic_shop') return SHOP_TARGET_COUNTS[shopType] || 20;
-  return MAGIC_SHOP_TARGET_BY_AFFLUENCE[affluence] || SHOP_TARGET_COUNTS.magic_shop;
+  return SHOP_TARGET_COUNTS.magic_shop;
 }
 
 function computePricing(item = {}, { affluence = 'modest', shopType = 'general_store' } = {}) {
@@ -310,6 +305,7 @@ function coreScaledQuantity(base, affluence, min = 1, max = 99) {
 }
 
 function coreQuantity(item = {}, { shopType = 'general_store', affluence = 'modest', coreRole = 'default' } = {}) {
+  if (item?.metadata_json?.spell_scroll === true) return 1;
   const name = normalizeName(item.name);
 
   if (shopType === 'apothecary') {
@@ -442,21 +438,52 @@ function buildCoreStock(candidates = [], { shopType = 'general_store', affluence
   return state;
 }
 
-export function generateShopRows(items = [], { shopType = 'general_store', affluence = 'modest' } = {}) {
+function buildMagicCoreScrollStock(spells = [], { shopType = 'magic_shop', affluence = 'modest' } = {}) {
+  const state = {
+    byIdentity: new Map(),
+    coreRows: [],
+  };
+  const context = { shopType, affluence };
+
+  [1, 2, 3, 4, 5].forEach(level => {
+    const eligible = getEligibleSpellsForLevel(spells, level);
+    if (eligible.length === 0) return;
+    const selectedSpell = eligible[Math.floor(Math.random() * eligible.length)];
+    addCoreRow(buildSpellScrollItem(selectedSpell, level), context, state, { coreRole: `scroll-${level}` });
+  });
+
+  return state;
+}
+
+function buildMagicRotatingScrollCandidates(spells = []) {
+  const rows = [];
+  [6, 7, 8, 9].forEach(level => {
+    const eligible = getEligibleSpellsForLevel(spells, level);
+    eligible.forEach(spell => {
+      rows.push(buildSpellScrollItem(spell, level));
+    });
+  });
+  return rows;
+}
+
+export function generateShopRows(items = [], { shopType = 'general_store', affluence = 'modest', spells = [] } = {}) {
   const targetRows = targetRowCount(shopType, affluence);
   const rarityWeights = (shopType === 'magic_shop' ? MAGIC_RARITY_WEIGHT_BY_AFFLUENCE : RARITY_WEIGHT_BY_AFFLUENCE)[affluence]
     || RARITY_WEIGHT_BY_AFFLUENCE.modest;
-  const candidates = items.filter(item => isEligible(item, shopType));
+  const baseCandidates = items.filter(item => isEligible(item, shopType));
+  const rotatingSpellCandidates = shopType === 'magic_shop' ? buildMagicRotatingScrollCandidates(spells) : [];
+  const candidates = [...baseCandidates, ...rotatingSpellCandidates];
 
   const { byIdentity, coreRows } = shopType === 'magic_shop'
-    ? { byIdentity: new Map(), coreRows: [] }
+    ? buildMagicCoreScrollStock(spells, { shopType, affluence })
     : buildCoreStock(candidates, { shopType, affluence });
 
   const initialWeightedPool = candidates
     .filter(item => !byIdentity.has(getShopIdentityKey(item)))
     .map(item => {
       const rarity = normalizeRarity(item.rarity);
-      const rarityWeight = rarityWeights[rarity] ?? 0.2;
+      const baseRarityWeight = rarityWeights[rarity] ?? 0.2;
+      const rarityWeight = shopType === 'magic_shop' ? Math.max(0.05, baseRarityWeight) : baseRarityWeight;
       const fitWeight = scoreShopFit(item, shopType);
       const overlayState = getOverlayState(item);
       const magicBucketWeight = shopType === 'magic_shop'
