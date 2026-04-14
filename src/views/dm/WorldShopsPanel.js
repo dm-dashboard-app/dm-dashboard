@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import { generateShopRows } from '../../utils/shopGenerator';
 import ItemImportPanel from '../../components/ItemImportPanel';
@@ -131,6 +131,11 @@ export default function WorldShopsPanel({ showImportControls = false }) {
 
   const selectedShop = useMemo(() => savedShops.find(shop => shop.id === selectedShopId) || null, [savedShops, selectedShopId]);
   const catalogById = useMemo(() => new Map(catalogItems.map(item => [item.id, item])), [catalogItems]);
+  const catalogByIdRef = useRef(catalogById);
+
+  useEffect(() => {
+    catalogByIdRef.current = catalogById;
+  }, [catalogById]);
 
   function buildRpcRows(rows = []) {
     return rows.map((row, index) => ({
@@ -165,22 +170,24 @@ export default function WorldShopsPanel({ showImportControls = false }) {
     const { data, error: loadError } = await supabase.rpc('dm_get_shop_inventory', { p_shop_id: shopId });
     if (loadError) throw loadError;
 
+    const catalogLookup = catalogByIdRef.current;
+
     const normalized = (data || []).map(row => ({
-      ...(catalogById.get(row.item_id) || {}),
+      ...(catalogLookup.get(row.item_id) || {}),
       id: row.id,
       item_id: row.item_id,
       item_name: row.item_name,
       item_type: row.item_type,
       category: row.category,
-      subcategory: row.subcategory || catalogById.get(row.item_id)?.subcategory || null,
+      subcategory: row.subcategory || catalogLookup.get(row.item_id)?.subcategory || null,
       rarity: row.rarity,
       description: row.description,
       source_type: row.source_type,
       source_book: row.source_book,
       price_source: row.price_source,
       shop_bucket: row.shop_bucket,
-      metadata_json: catalogById.get(row.item_id)?.metadata_json || row.metadata_json || null,
-      requires_attunement: catalogById.get(row.item_id)?.requires_attunement ?? null,
+      metadata_json: catalogLookup.get(row.item_id)?.metadata_json || row.metadata_json || null,
+      requires_attunement: catalogLookup.get(row.item_id)?.requires_attunement ?? null,
       quantity: row.quantity,
       listed_price_gp: row.listed_price_gp,
       minimum_price_gp: row.minimum_price_gp,
@@ -188,7 +195,7 @@ export default function WorldShopsPanel({ showImportControls = false }) {
     }));
 
     setGeneratedRows(normalized);
-  }, [catalogById]);
+  }, []);
 
   const refreshWorldShopData = useCallback(async () => {
     await Promise.all([loadCatalog(), loadSavedShops()]);
