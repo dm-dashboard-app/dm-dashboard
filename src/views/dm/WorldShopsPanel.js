@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import { generateShopRows } from '../../utils/shopGenerator';
+import { applyPersistedStockLanes, buildGenerationSeedWithCoreCount, countCoreRows } from '../../utils/shopLanePersistence';
 import ItemImportPanel from '../../components/ItemImportPanel';
 
 const SHOP_TYPES = [
@@ -84,62 +85,6 @@ function resolveItemDetailText(item = {}) {
 }
 
 
-function normalizeName(value) {
-  return String(value || '').trim().toLowerCase();
-}
-
-function rowLooksCore(row = {}, activeShopType = 'general_store') {
-  if (row.stock_lane === 'core' || row.is_core_stock === true) return true;
-  if (activeShopType === 'magic_shop') return false;
-  const name = normalizeName(row.item_name);
-  const haystack = `${row.item_type || ''} ${row.category || ''} ${row.subcategory || ''} ${row.shop_bucket || ''} ${row.item_name || ''}`.toLowerCase();
-
-  if (activeShopType === 'apothecary') {
-    return [
-      'potion of healing',
-      'potion of greater healing',
-      "healer's kit",
-      "alchemist's supplies",
-      'herbalism kit',
-    ].includes(name);
-  }
-
-  if (activeShopType === 'blacksmith') {
-    if (['shield', "smith's tools"].includes(name)) return true;
-    if (name.includes('arrows') || name.includes('sling bullets') || name.includes('crossbow bolts')) return true;
-    return false;
-  }
-
-  if (activeShopType === 'general_store') {
-    if (name.includes('torch') || name.includes('rope') || name.includes('ration') || name.includes('tent') || name.includes('bedroll')) return true;
-    return ['waterskin', 'mess kit', 'flint and steel', 'tinderbox', 'blanket', 'grappling hook', 'lantern', 'piton', 'hammer', 'crowbar']
-      .some(term => haystack.includes(term));
-  }
-
-  return false;
-}
-
-function applyStockLanes(rows = [], activeShopType = 'general_store') {
-  if (activeShopType === 'magic_shop') {
-    return rows.map((row, idx) => ({ ...row, stock_lane: 'rotating', is_core_stock: false, _lane_sort: idx }));
-  }
-
-  const withCore = rows.map((row, idx) => {
-    const isCore = rowLooksCore(row, activeShopType);
-    return {
-      ...row,
-      stock_lane: isCore ? 'core' : 'rotating',
-      is_core_stock: isCore,
-      _lane_sort: idx,
-    };
-  });
-
-  return withCore.sort((a, b) => {
-    if (a.stock_lane !== b.stock_lane) return a.stock_lane === 'core' ? -1 : 1;
-    return a._lane_sort - b._lane_sort;
-  });
-}
-
 function ItemDetailModal({ item, onClose }) {
   if (!item) return null;
   const detail = resolveItemDetailText(item);
@@ -220,10 +165,12 @@ export default function WorldShopsPanel({ showImportControls = false }) {
   const loadSavedShops = useCallback(async () => {
     const { data, error: loadError } = await supabase.rpc('dm_list_shops');
     if (loadError) throw loadError;
-    setSavedShops(data || []);
+    const shops = data || [];
+    setSavedShops(shops);
+    return shops;
   }, []);
 
-  const loadShopInventory = useCallback(async shopId => {
+  const loadShopInventory = useCallback(async (shopId, generationSeed = '') => {
     const { data, error: loadError } = await supabase.rpc('dm_get_shop_inventory', { p_shop_id: shopId });
     if (loadError) throw loadError;
 
@@ -251,12 +198,15 @@ export default function WorldShopsPanel({ showImportControls = false }) {
       barter_dc: row.barter_dc,
     }));
 
-    setGeneratedRows(applyStockLanes(normalized, shopType));
+    setGeneratedRows(applyPersistedStockLanes(normalized, { shopType, generationSeed }));
   }, [shopType]);
 
   const refreshWorldShopData = useCallback(async () => {
-    await Promise.all([loadCatalog(), loadSavedShops()]);
-    if (selectedShopId) await loadShopInventory(selectedShopId);
+    const [, shops] = await Promise.all([loadCatalog(), loadSavedShops()]);
+    if (selectedShopId) {
+      const activeShop = (shops || []).find(shop => shop.id === selectedShopId);
+      await loadShopInventory(selectedShopId, activeShop?.generation_seed || '');
+    }
   }, [loadCatalog, loadSavedShops, loadShopInventory, selectedShopId]);
 
   useEffect(() => {
@@ -281,7 +231,7 @@ export default function WorldShopsPanel({ showImportControls = false }) {
   async function handleGenerate() {
     setError('');
     const rows = generateShopRows(catalogItems, { shopType, affluence: affluenceTier });
-    const laneRows = applyStockLanes(rows, shopType);
+    const laneRows = applyPersistedStockLanes(rows, { shopType });
     setGeneratedRows(laneRows);
     setSelectedShopId(null);
   }
@@ -295,7 +245,7 @@ export default function WorldShopsPanel({ showImportControls = false }) {
     setError('');
 
     try {
-      const generationSeed = crypto.randomUUID();
+      const generationSeed = buildGenerationSeedWithCoreCount(crypto.randomUUID(), countCoreRows(generatedRows));
       const payload = buildRpcRows(generatedRows);
       const { data: shopId, error: saveError } = await supabase.rpc('dm_save_shop', {
         p_shop_type: shopType,
@@ -321,7 +271,7 @@ export default function WorldShopsPanel({ showImportControls = false }) {
     setSelectedShopId(shop.id);
     setError('');
     try {
-      await loadShopInventory(shop.id);
+      await loadShopInventory(shop.id, shop.generation_seed || '');
     } catch (loadError) {
       setError(loadError.message || 'Failed to load saved shop inventory.');
     }
@@ -334,12 +284,12 @@ export default function WorldShopsPanel({ showImportControls = false }) {
     }
 
     const rows = generateShopRows(catalogItems, { shopType, affluence: affluenceTier });
-    const laneRows = applyStockLanes(rows, shopType);
+    const laneRows = applyPersistedStockLanes(rows, { shopType });
     setGeneratedRows(laneRows);
 
     try {
       setSaving(true);
-      const generationSeed = crypto.randomUUID();
+      const generationSeed = buildGenerationSeedWithCoreCount(crypto.randomUUID(), countCoreRows(laneRows));
       const payload = buildRpcRows(laneRows);
       const { error: replaceError } = await supabase.rpc('dm_replace_shop_inventory', {
         p_shop_id: selectedShopId,
@@ -414,7 +364,7 @@ export default function WorldShopsPanel({ showImportControls = false }) {
           </div>
           {generatedRows.map((row, index) => {
             const previousLane = index > 0 ? generatedRows[index - 1].stock_lane : null;
-            const showLaneLabel = row.stock_lane && row.stock_lane !== previousLane;
+            const showLaneLabel = (row.stock_lane || 'rotating') !== previousLane;
             return (
               <React.Fragment key={`${row.item_id}-${row.item_name}-${index}`}>
                 {showLaneLabel ? (
@@ -422,10 +372,10 @@ export default function WorldShopsPanel({ showImportControls = false }) {
                     {row.stock_lane === 'core' ? 'Core Stock' : 'Rotating Stock'}
                   </div>
                 ) : null}
-                <button className="world-shops-stock-row" data-lane={row.stock_lane} onClick={() => setSelectedItem(row)}>
+                <button className="world-shops-stock-row" data-lane={row.stock_lane || 'rotating'} onClick={() => setSelectedItem(row)}>
                   <span className="item-name">
                     {row.item_name}
-                    {row.stock_lane === 'core' ? <span className="world-shops-core-badge">Core</span> : null}
+                    {(row.stock_lane || 'rotating') === 'core' ? <span className="world-shops-core-badge">Core</span> : null}
                   </span>
                   <span>{row.quantity}</span>
                   <span>{gpLabel(row.listed_price_gp)}</span>
