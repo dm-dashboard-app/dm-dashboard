@@ -56,6 +56,25 @@ const MAGIC_BUCKET_WEIGHT = {
   combat: 0.74,
 };
 
+
+const HEALING_POTION_TIER_BY_NAME = {
+  'potion of healing': 'basic',
+  'potion of greater healing': 'greater',
+  'potion of superior healing': 'superior',
+  'potion of supreme healing': 'supreme',
+};
+
+function getHealingPotionTier(item = {}) {
+  const normalizedName = String(item.name || '').trim().toLowerCase();
+  return HEALING_POTION_TIER_BY_NAME[normalizedName] || null;
+}
+
+function getShopIdentityKey(item = {}) {
+  const healingTier = getHealingPotionTier(item);
+  if (healingTier) return `healing:${healingTier}`;
+  return `id:${item.id}`;
+}
+
 function normalizeRarity(rarity = '') {
   const value = String(rarity || '').trim().toLowerCase();
   if (!value) return 'common';
@@ -223,8 +242,11 @@ function isEligible(item = {}, shopType) {
     const rarity = normalizeRarity(item.rarity);
     const name = String(item.name || '').toLowerCase();
     const bucket = overlayState.bucket;
-    return (bucket === 'consumable' || bucket === 'healing' || name.includes('potion'))
-      && (rarity === 'common' || rarity === 'uncommon');
+    const isApothecaryStyle = bucket === 'consumable' || bucket === 'healing' || name.includes('potion');
+    if (!isApothecaryStyle) return false;
+
+    if (rarity === 'common' || rarity === 'uncommon') return true;
+    return getHealingPotionTier(item) !== null;
   }
 
   return isShopTypeMundaneMatch(item, shopType);
@@ -252,15 +274,17 @@ export function generateShopRows(items = [], { shopType = 'general_store', afflu
 
   const weightedPool = [...initialWeightedPool];
   const picked = [];
-  const byId = new Map();
+  const byIdentity = new Map();
 
   for (let index = 0; index < targetRows; index += 1) {
     const item = weightedPick(weightedPool);
     if (!item) break;
     const poolIndex = weightedPool.findIndex(row => row.item.id === item.id);
 
-    if (byId.has(item.id)) {
-      const row = byId.get(item.id);
+    const shopIdentityKey = getShopIdentityKey(item);
+
+    if (byIdentity.has(shopIdentityKey)) {
+      const row = byIdentity.get(shopIdentityKey);
       const bucket = normalizeBucket(item.shop_bucket);
       const canStack = bucket === 'consumable' || String(item.name || '').toLowerCase().includes('ammunition');
       if (canStack) row.quantity += generateQuantity(item, shopType, affluence);
@@ -287,7 +311,7 @@ export function generateShopRows(items = [], { shopType = 'general_store', afflu
       ...pricing,
     };
 
-    byId.set(item.id, row);
+    byIdentity.set(shopIdentityKey, row);
     picked.push(row);
     if (poolIndex >= 0) weightedPool.splice(poolIndex, 1);
   }
