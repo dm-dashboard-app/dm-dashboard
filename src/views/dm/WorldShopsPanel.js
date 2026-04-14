@@ -21,8 +21,72 @@ function gpLabel(value) {
   return `${Number(value || 0).toLocaleString()} gp`;
 }
 
+function textValue(value) {
+  const normalized = String(value || '').trim();
+  return normalized || null;
+}
+
+function listFromMetadata(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map(entry => {
+      if (!entry) return null;
+      if (typeof entry === 'string') return textValue(entry);
+      const name = textValue(entry?.item?.name || entry?.name || entry?.property?.name);
+      if (!name) return null;
+      const qty = Number(entry?.quantity);
+      if (Number.isFinite(qty) && qty > 1) return `${qty}x ${name}`;
+      return name;
+    })
+    .filter(Boolean);
+}
+
+function extractDetailTextFromMetadata(metadata = {}) {
+  const contents = listFromMetadata(metadata.contents);
+  const properties = listFromMetadata(metadata.properties);
+  const special = listFromMetadata(metadata.special);
+  const desc = listFromMetadata(metadata.desc);
+  const blocks = [];
+  if (desc.length) blocks.push(desc.join('\n\n'));
+  if (special.length) blocks.push(special.join('\n\n'));
+  if (contents.length) blocks.push(`Contents: ${contents.join(', ')}`);
+  if (properties.length) blocks.push(`Properties: ${properties.join(', ')}`);
+  return blocks.join('\n\n').trim() || null;
+}
+
+function buildStructuredFallback(item = {}) {
+  const lines = [];
+  lines.push(`Type: ${textValue(item.item_type) || 'Unknown'}`);
+  if (textValue(item.category)) lines.push(`Category: ${item.category}`);
+  if (textValue(item.subcategory)) lines.push(`Subcategory: ${item.subcategory}`);
+  if (textValue(item.rarity)) lines.push(`Rarity: ${item.rarity}`);
+  if (item.requires_attunement === true) lines.push('Attunement: Required');
+  if (item.requires_attunement === false) lines.push('Attunement: Not required');
+  if (textValue(item.shop_bucket)) lines.push(`Shop bucket: ${item.shop_bucket}`);
+
+  const metadata = item.metadata_json || {};
+  const contents = listFromMetadata(metadata.contents);
+  if (contents.length) lines.push(`Contents: ${contents.join(', ')}`);
+  const properties = listFromMetadata(metadata.properties);
+  if (properties.length) lines.push(`Properties: ${properties.join(', ')}`);
+
+  return lines.join('\n');
+}
+
+function resolveItemDetailText(item = {}) {
+  const primaryDescription = textValue(item.description);
+  if (primaryDescription) return { text: primaryDescription, mode: 'description' };
+
+  const metadataDescription = extractDetailTextFromMetadata(item.metadata_json || {});
+  if (metadataDescription) return { text: metadataDescription, mode: 'metadata' };
+
+  return { text: buildStructuredFallback(item), mode: 'structured_fallback' };
+}
+
 function ItemDetailModal({ item, onClose }) {
   if (!item) return null;
+  const detail = resolveItemDetailText(item);
+
   return (
     <div className="world-shop-modal-backdrop" onClick={onClose}>
       <div className="world-shop-modal" onClick={event => event.stopPropagation()}>
@@ -43,7 +107,11 @@ function ItemDetailModal({ item, onClose }) {
           <span>Barter DC: {item.barter_dc}</span>
         </div>
         {item.price_source ? <div className="world-shop-pricing-meta"><span>Pricing Basis: {item.price_source}</span></div> : null}
-        <p className="world-shop-item-description">{item.description || 'No description available in the imported catalog.'}</p>
+        {detail.mode === 'structured_fallback' ? (
+          <pre className="world-shop-item-description">{detail.text}</pre>
+        ) : (
+          <p className="world-shop-item-description">{detail.text}</p>
+        )}
       </div>
     </div>
   );
@@ -62,6 +130,7 @@ export default function WorldShopsPanel({ showImportControls = false }) {
   const [selectedItem, setSelectedItem] = useState(null);
 
   const selectedShop = useMemo(() => savedShops.find(shop => shop.id === selectedShopId) || null, [savedShops, selectedShopId]);
+  const catalogById = useMemo(() => new Map(catalogItems.map(item => [item.id, item])), [catalogItems]);
 
   function buildRpcRows(rows = []) {
     return rows.map((row, index) => ({
@@ -97,17 +166,21 @@ export default function WorldShopsPanel({ showImportControls = false }) {
     if (loadError) throw loadError;
 
     const normalized = (data || []).map(row => ({
+      ...(catalogById.get(row.item_id) || {}),
       id: row.id,
       item_id: row.item_id,
       item_name: row.item_name,
       item_type: row.item_type,
       category: row.category,
+      subcategory: row.subcategory || catalogById.get(row.item_id)?.subcategory || null,
       rarity: row.rarity,
       description: row.description,
       source_type: row.source_type,
       source_book: row.source_book,
       price_source: row.price_source,
       shop_bucket: row.shop_bucket,
+      metadata_json: catalogById.get(row.item_id)?.metadata_json || row.metadata_json || null,
+      requires_attunement: catalogById.get(row.item_id)?.requires_attunement ?? null,
       quantity: row.quantity,
       listed_price_gp: row.listed_price_gp,
       minimum_price_gp: row.minimum_price_gp,
@@ -115,7 +188,7 @@ export default function WorldShopsPanel({ showImportControls = false }) {
     }));
 
     setGeneratedRows(normalized);
-  }, []);
+  }, [catalogById]);
 
   const refreshWorldShopData = useCallback(async () => {
     await Promise.all([loadCatalog(), loadSavedShops()]);
