@@ -231,24 +231,6 @@ Preservation rule:
 
 - keep quarantine default-on for degraded SRD fallbacks and only clear it through explicit trustworthy repair data
 
-
-### 15) Inventory subsystem baseline (Phase 1)
-
-Landed baseline includes:
-
-- dedicated inventory subsystem tables + RPCs for player inventory items, currency, transfer lifecycle, and DM-only audit logs
-- unified inventory surface across DM player cards, player runtime card, and Manage → Players rows
-- compact inventory summary entry line format: `Inventory • {item quantity} items • {gp} gp`
-- player self-edit path for own inventory/currency authorized via join-code + profile ownership server checks
-- DM full edit path for any player inventory/currency and DM direct instant transfers
-- player-to-player transfer request flow with receiver confirmation (accept/decline) and acceptance-time validation
-- failure-safe transfer completion behavior (no partial applies on insufficient sender resources)
-- incoming transfer popup support in player runtime independent of inventory modal open state
-
-Preservation rule:
-
-- keep inventory permissions isolated to inventory-specific server RPC authorization and do not broaden general profile write access
-
 ## Architectural / Product Principles for Future Work
 
 - mobile-first practicality for real table use
@@ -259,4 +241,4 @@ Preservation rule:
 
 ## Future-facing note
 
-Inventory/equipment/abilities beyond Phase 1 remains a **planning track**. Future phases should stay phased and aligned with shared modifier-logic architecture (as outlined in `docs/NEXT_STEPS.md`).
+Inventory/equipment/abilities is currently a **planning track**, not landed baseline behavior. If pursued later, it should be phased and aligned with shared modifier-logic architecture (as outlined in `docs/NEXT_STEPS.md`).

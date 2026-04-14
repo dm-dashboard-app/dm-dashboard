@@ -158,6 +158,30 @@ Operational clarifications:
 - DB-dependent batches are not operationally complete until this SQL requirement is surfaced plainly to the operator.
 - This repo is browser/mobile/iPhone oriented; do not leave the operator hunting for required SQL after merge.
 
+### SQL delivery contract in final Codex completion response (hard merge gate)
+
+If a batch requires SQL, the final Codex completion response **must** include all of the following:
+
+1. `SQL REQUIRED: yes`
+2. exact SQL file path(s)
+3. a clearly labeled section named `SQL TO APPLY`
+4. the **full SQL text pasted directly** in that response under `SQL TO APPLY`
+5. the exact Supabase apply step
+
+Non-acceptable behavior (forbidden):
+
+- only saying SQL exists in the repo
+- only giving file paths
+- telling the operator to retrieve SQL from the repository
+
+If SQL is too large for one block, it must be split into clearly labeled consecutive parts in the **same final response**.
+
+A SQL-bearing batch is not complete unless the SQL text itself is directly included in the final response.
+
+Review enforcement rule:
+
+- Any PR that requires SQL is automatically **NO — do not merge** if the full SQL text was not directly provided in the Codex completion response, even if the SQL file exists in the repo and even if the PR is otherwise mergeable.
+
 ## DM Dashboard-specific preservation rules
 
 Always preserve:

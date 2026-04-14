@@ -9,8 +9,6 @@ import SkillsModal from '../components/SkillsModal';
 import { flattenStates } from './player/playerViewUtils';
 import PlayerConCheckLog from './player/PlayerConCheckLog';
 import { hasPreparationRequirement } from '../utils/spellWorkflow';
-import IncomingTransferPopup from '../inventory/IncomingTransferPopup';
-import { inventoryGetPendingIncoming, inventoryRespondTransfer } from '../inventory/inventoryClient';
 
 export default function PlayerView() {
   const [encounter, setEncounter] = useState(null);
@@ -24,8 +22,6 @@ export default function PlayerView() {
   const [initError, setInitError] = useState(null);
   const [initSuccess, setInitSuccess] = useState(false);
   const [tab, setTab] = useState('char');
-  const [pendingIncoming, setPendingIncoming] = useState([]);
-  const [dismissedTransferIds, setDismissedTransferIds] = useState(() => new Set());
   const profileId = localStorage.getItem('player_profile_id');
   const encounterId = localStorage.getItem('player_encounter_id');
 
@@ -51,16 +47,6 @@ export default function PlayerView() {
     }
   }, [encounterId, profileId]);
 
-  const refreshPendingIncoming = useCallback(async () => {
-    if (!profileId || !localStorage.getItem('player_join_code')) return;
-    try {
-      const rows = await inventoryGetPendingIncoming({ playerProfileId: profileId, joinCode: localStorage.getItem('player_join_code') });
-      setPendingIncoming(rows || []);
-    } catch (_err) {
-      setPendingIncoming([]);
-    }
-  }, [profileId]);
-
   useEffect(() => {
     if (!profileId || !encounterId) {
       setError('Session not found. Please re-enter your join code.');
@@ -68,11 +54,9 @@ export default function PlayerView() {
       return;
     }
     refreshAll().then(() => setLoading(false));
-    refreshPendingIncoming();
-  }, [refreshAll, refreshPendingIncoming, profileId, encounterId]);
+  }, [refreshAll, profileId, encounterId]);
 
   usePolling(refreshAll, 2000, !!encounterId);
-  usePolling(refreshPendingIncoming, 2500, !!profileId);
 
   async function handleSubmitInitiative() {
     if (!combatant || !initiativeInput) return;
@@ -136,20 +120,6 @@ export default function PlayerView() {
     refreshAll();
   }
 
-
-  async function respondToTransfer(transferId, accept) {
-    await inventoryRespondTransfer({
-      transferId,
-      receiverProfileId: profileId,
-      accept,
-      joinCode: localStorage.getItem('player_join_code'),
-    });
-    setDismissedTransferIds((curr) => new Set([...curr, transferId]));
-    await refreshPendingIncoming();
-    await refreshAll();
-  }
-
-  const activeIncoming = pendingIncoming.find((row) => !dismissedTransferIds.has(row.id)) || null;
   if (loading) return <div className="splash"><div className="splash-text">Joining session...</div></div>;
   if (error) return <div className="splash"><div className="splash-text">Warning: {error}</div><button className="btn btn-ghost" onClick={handleLeave}>Back to Join Screen</button></div>;
 
@@ -197,8 +167,6 @@ export default function PlayerView() {
         {tab === 'con' && <PlayerConCheckLog encounterId={encounterId} playerName={playerName} pendingDc={pendingConDc} onPass={handleConPass} onFail={handleConFail} />}
       </div>
       <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border)' }}><button className="btn btn-ghost" style={{ fontSize: 12, color: 'var(--text-muted)' }} onClick={handleLeave}>Leave Session</button></div>
-
-      <IncomingTransferPopup transfer={activeIncoming} onAccept={() => respondToTransfer(activeIncoming.id, true)} onDecline={() => respondToTransfer(activeIncoming.id, false)} />
 
       {showPrepModal && (
         <SpellWorkflowPanel
