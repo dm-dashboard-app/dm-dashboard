@@ -132,6 +132,39 @@ begin
       is_shop_eligible = excluded.is_shop_eligible,
       shop_bucket = excluded.shop_bucket,
       metadata_json = excluded.metadata_json
+    where (
+      case
+        when coalesce((excluded.metadata_json->>'degraded_import')::boolean, false)
+          or lower(coalesce(excluded.metadata_json->>'import_quality', '')) = 'degraded_fallback'
+          or coalesce(excluded.item_type, '') = 'equipment_fallback'
+          or coalesce(excluded.shop_bucket, '') = 'fallback_quarantine'
+          or coalesce(excluded.price_source, '') = 'degraded_fallback_untrusted'
+          then 1
+        when lower(coalesce(excluded.metadata_json->>'import_quality', '')) = 'excluded_on_purpose'
+          then 2
+        when lower(coalesce(excluded.metadata_json->>'import_quality', '')) = 'detail_verified'
+          then 3
+        when lower(coalesce(excluded.metadata_json->>'import_quality', '')) = 'repaired_overlay_verified'
+          then 4
+        else 3
+      end
+    ) >= (
+      case
+        when coalesce((item_master.metadata_json->>'degraded_import')::boolean, false)
+          or lower(coalesce(item_master.metadata_json->>'import_quality', '')) = 'degraded_fallback'
+          or coalesce(item_master.item_type, '') = 'equipment_fallback'
+          or coalesce(item_master.shop_bucket, '') = 'fallback_quarantine'
+          or coalesce(item_master.price_source, '') = 'degraded_fallback_untrusted'
+          then 1
+        when lower(coalesce(item_master.metadata_json->>'import_quality', '')) = 'excluded_on_purpose'
+          then 2
+        when lower(coalesce(item_master.metadata_json->>'import_quality', '')) = 'detail_verified'
+          then 3
+        when lower(coalesce(item_master.metadata_json->>'import_quality', '')) = 'repaired_overlay_verified'
+          then 4
+        else 3
+      end
+    )
     returning is_shop_eligible
   )
   select
