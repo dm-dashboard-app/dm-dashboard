@@ -447,7 +447,7 @@ begin
       values (p_player_profile_id, p_item_master_id, p_quantity, nullif(trim(coalesce(p_notes, '')), ''))
       on conflict (player_profile_id, item_master_id)
       do update set
-        quantity = excluded.quantity,
+        quantity = public.player_inventory_items.quantity + excluded.quantity,
         notes = excluded.notes
       returning id, coalesce((select name from public.item_master where id = p_item_master_id), 'Item')
       into v_item_id, v_resolved_name;
