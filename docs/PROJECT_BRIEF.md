@@ -1,6 +1,6 @@
 # DM Dashboard — Project Brief
 
-Last updated: April 13, 2026 (imports tab now exposes live degraded-row list/export + spell import control)
+Last updated: April 14, 2026 (SRD import trust-boundary hardening for transient detail failures)
 
 Purpose: This document is the current-state/background brief for DM Dashboard. It describes what the app now is, what is materially landed, and what principles future work must preserve.
 
@@ -204,7 +204,8 @@ Landed baseline includes:
 - DM Manage → Imports now hosts explicit one-action import controls for baseline SRD refresh and custom-seed import
 - DM Manage → Imports also hosts the SRD spell import control so import admin actions are centralized in one tab
 - import writes now run through a server-mediated RPC (`dm_import_item_master_rows`) instead of requiring terminal-only scripts for normal operator workflow
-- SRD refresh now degrades safely: index-derived fallback rows are still imported for catalog continuity, but those degraded rows are explicitly quarantined (`metadata_json.degraded_import=true`, `shop_bucket=fallback_quarantine`, `is_shop_eligible=false`) so they cannot pollute default shop generation or pricing paths
+- SRD refresh now treats upstream detail fetch failures as transient run-time failures (reported in UI) and no longer persists new degraded fallback rows from those failures into `item_master`
+- import RPC now hard-rejects degraded SRD payload rows (`degraded_import`, `degraded_fallback`, `fallback_quarantine`, `degraded_fallback_untrusted`) so client regressions cannot persist untrusted degraded SRD rows
 - custom seed defaults are now explicit and safe: `docs/data/shop_custom_items_seed_2014.json` is intentionally empty-by-default, while prior sample rows live in `docs/data/shop_custom_items_seed_2014.example.json` as example/demo content
 - preserved generation safety: only `is_shop_eligible=true` and `rules_era=2014` rows can enter Stage 2/3 generation
 

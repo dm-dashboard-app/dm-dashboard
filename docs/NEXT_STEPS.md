@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 13, 2026 (imports tab now includes live degraded-row list/export + spell import control)
+Last updated: April 14, 2026 (SRD import trust-boundary hardening for transient detail failures)
 
 Purpose: This file is the active roadmap only. It should list genuinely open work, intentionally parked work, and clearly labeled future planning ideas that are not active implementation.
 
@@ -531,6 +531,9 @@ Design constraint:
 - ✅ Manage → Imports now includes a live degraded/quarantined SRD row list view from current `item_master` plus copy/export JSON actions for operator repair targeting
 - ✅ spell SRD import control is now actually present in Manage → Imports (not a placeholder note), keeping imports centralized in the Imports tab
 - ✅ final degraded SRD cleanup batch now fully resolves the remaining target set in `docs/degraded-srd-item-master-rows.json` (78 rows): 51 rows repaired into trustworthy typed/bucketed rows and 27 rows moved to explicit `excluded_on_purpose` policy outcomes (0 unresolved/degraded rows remain in that target file)
+- ✅ SRD import builder now blocks persistence of transient upstream detail failures; failed detail endpoints are reported as transient fetch failures and excluded from import payload rows
+- ✅ pricing overlay now skips any row still marked degraded, preventing semi-curated shape mutations before trust resolution
+- ✅ server import RPC now rejects degraded SRD payload rows on insert/update (`degraded_import`, `degraded_fallback`, `fallback_quarantine`, `degraded_fallback_untrusted`) while preserving downgrade-protection quality ordering
 
 **Phase 5 — Expansion hooks (later)**
 

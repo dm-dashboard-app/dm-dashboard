@@ -69,6 +69,16 @@ begin
       and external_key <> ''
       and rules_era = '2014'
       and source_type = v_source_type
+      and (
+        v_mode <> 'srd_2014'
+        or (
+          coalesce((metadata_json->>'degraded_import')::boolean, false) = false
+          and lower(coalesce(metadata_json->>'import_quality', '')) not in ('degraded_fallback', 'degraded_import')
+          and coalesce(item_type, '') <> 'equipment_fallback'
+          and coalesce(shop_bucket, '') <> 'fallback_quarantine'
+          and coalesce(price_source, '') <> 'degraded_fallback_untrusted'
+        )
+      )
   ), upserted as (
     insert into public.item_master (
       external_key,

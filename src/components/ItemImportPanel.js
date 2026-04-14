@@ -29,6 +29,7 @@ export default function ItemImportPanel({ onImportComplete = null }) {
   const [degradedRows, setDegradedRows] = useState([]);
   const [loadingDegradedRows, setLoadingDegradedRows] = useState(false);
   const [degradedRowsError, setDegradedRowsError] = useState('');
+  const [lastFetchFailures, setLastFetchFailures] = useState([]);
 
   const degradedSummary = useMemo(() => buildLiveDegradedSummary(degradedRows), [degradedRows]);
   const degradedRowsExportJson = useMemo(() => JSON.stringify(degradedRows, null, 2), [degradedRows]);
@@ -75,6 +76,7 @@ export default function ItemImportPanel({ onImportComplete = null }) {
 
     setImportingMode(mode);
     setError('');
+    if (isSrdMode) setLastFetchFailures([]);
     setImportStatus(isSrdMode ? 'Preparing SRD 2014 import…' : 'Preparing custom seed import…');
 
     try {
@@ -98,18 +100,23 @@ export default function ItemImportPanel({ onImportComplete = null }) {
       const repairStatus = isSrdMode
         ? ` Overlay repair applied ${Number(repairedSrdResult?.repairedCount || 0)} / ${Number(repairedSrdResult?.degradedCount || 0)} degraded row${Number(repairedSrdResult?.degradedCount || 0) === 1 ? '' : 's'} before import.`
         : '';
+      const transientFailureCount = Number(srdResult?.fetchFailureCount || 0);
+      const transientFailureStatus = isSrdMode
+        ? ` Transient detail fetch failures this run: ${transientFailureCount}.`
+        : '';
       const baseStatus = importedCount === 0
         ? (isSrdMode
-          ? 'SRD import ran, but no rows were loaded. Check RPC logs and source connectivity.'
+          ? `SRD import ran, but no rows were loaded. Check RPC logs and source connectivity.${transientFailureStatus}`
           : 'Custom seed import ran with 0 rows. Seed file is intentionally empty by default; add your own curated items when ready.')
-        : `${isSrdMode ? 'SRD 2014 import' : 'Custom seed import'} complete: ${importedCount} rows loaded (${eligibleCount} shop-eligible).${repairStatus}`;
+        : `${isSrdMode ? 'SRD 2014 import' : 'Custom seed import'} complete: ${importedCount} rows loaded (${eligibleCount} shop-eligible).${repairStatus}${transientFailureStatus}`;
 
       if (isSrdMode) {
+        setLastFetchFailures(srdResult?.fetchFailures || []);
         const nextDegradedRows = await loadLiveDegradedRows();
         setDegradedRows(nextDegradedRows);
         const summary = buildLiveDegradedSummary(nextDegradedRows);
         setImportStatus(
-          `${baseStatus} Live degraded SRD report: ${summary.count} quarantined row${summary.count === 1 ? '' : 's'} in current item_master (${summary.unresolvedCount} unresolved).`,
+          `${baseStatus} Persisted unresolved DB rows: ${summary.count} quarantined row${summary.count === 1 ? '' : 's'} in current item_master (${summary.unresolvedCount} unresolved).`,
         );
       } else {
         setImportStatus(baseStatus);
@@ -148,6 +155,35 @@ export default function ItemImportPanel({ onImportComplete = null }) {
       </div>
       {importStatus ? <div className="world-shops-import-status">{importStatus}</div> : null}
       {error ? <div className="world-shops-error">{error}</div> : null}
+      <div className="panel session-subpanel" style={{ marginTop: 10 }}>
+        <div className="panel-title">Transient SRD Detail Fetch Failures (Last Refresh)</div>
+        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
+          These failures happened during the most recent SRD refresh and were not persisted to item_master.
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 8 }}>
+          {lastFetchFailures.length} transient fetch failure{lastFetchFailures.length === 1 ? '' : 's'}.
+        </div>
+        {lastFetchFailures.length > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {lastFetchFailures.map((row, index) => (
+              <div key={`${row.url || row.name || 'failure'}-${index}`} style={{ border: '1px solid var(--border)', borderRadius: 8, padding: 10, background: 'var(--bg-panel-2)', display: 'grid', gap: 4 }}>
+                <div style={{ fontSize: 14, fontWeight: 700 }}>{row.name || row.index || 'Unnamed SRD item'}</div>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                  kind: {row.kind || '—'} • index: {row.index || '—'} • url: {row.url || '—'}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                  reason: {row.reason || 'Unknown detail fetch failure.'}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state" style={{ marginTop: 0 }}>
+            No transient detail fetch failures recorded in this session yet.
+          </div>
+        )}
+      </div>
+
       <div className="panel session-subpanel" style={{ marginTop: 10 }}>
         <div className="panel-title">Live Degraded SRD Rows</div>
         <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
