@@ -1112,6 +1112,8 @@
   margin: 0;
   font-size: 13px;
   line-height: 1.4;
+  white-space: pre-wrap;
+  font-family: inherit;
 }
 
 @media (max-width: 900px) {
