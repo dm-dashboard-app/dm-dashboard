@@ -500,17 +500,26 @@ If SQL is required:
 
 If a batch introduces or changes any required database-side object or behavior (migration, table, column, policy, grant, function/RPC, trigger, view, or any server-side DB object), the handoff/review response must explicitly include:
 
-1. a clear statement that SQL rollout is required
+1. `SQL REQUIRED: yes`
 2. exact SQL file path(s)
-3. and for browser/Supabase operators, either:
-   - the direct SQL block, or
-   - a clearly labeled direct Supabase apply step
+3. a clearly labeled section named `SQL TO APPLY`
+4. the full SQL text pasted directly in that response under `SQL TO APPLY`
+5. the exact Supabase apply step
 
 Hard gate:
 
 - “SQL exists in repo” is not sufficient.
-- A DB-dependent batch is not operationally complete until required SQL rollout is surfaced directly to the operator.
+- Only providing file path(s) is not sufficient.
+- Telling the operator to retrieve SQL from the repository is not acceptable.
+- If SQL is too large for one block, split it into clearly labeled consecutive parts in the same final response.
+- A SQL-bearing batch is not complete unless the SQL text itself is directly included in the final response.
 - Because this project is browser/mobile/iPhone-first, never leave SQL discovery as implicit or post-merge guesswork.
+
+### 3.5.2 SQL response contract merge enforcement
+
+Review enforcement rule (non-optional):
+
+- Any PR that requires SQL is automatically **NO — do not merge** if the full SQL text was not directly provided in the Codex completion response, even when the SQL file exists in the repo and even when the PR is otherwise mergeable.
 
 ## Verification Discipline
 
