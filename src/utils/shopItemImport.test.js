@@ -263,6 +263,49 @@ describe('loadSrdDegradedReportRows', () => {
 });
 
 describe('degraded SRD repair overlay coverage', () => {
+
+
+  test('includes explicit repairs for remaining fallback equipment row targets', () => {
+    const repairOverlay = JSON.parse(fs.readFileSync('docs/data/shop_srd_degraded_repairs_2014.json', 'utf8'));
+    const repairedRows = Array.isArray(repairOverlay.items) ? repairOverlay.items : [];
+    const bySlug = new Map(repairedRows.map(row => [row.source_slug, row]));
+
+    const targets = [
+      'saddle-military',
+      'saddle-pack',
+      'saddle-riding',
+      'saddlebags',
+      'sailing-ship',
+      'scale-mail',
+      'scale-merchants',
+      'scholars-pack',
+      'scimitar',
+      'sealing-wax',
+      'shawm',
+      'shield',
+      'shortbow',
+      'shortsword',
+      'shovel',
+      'sickle',
+      'signal-whistle',
+      'signet-ring',
+      'sled',
+      'sling',
+    ];
+
+    expect(targets.every(slug => bySlug.has(slug))).toBe(true);
+
+    targets.forEach(slug => {
+      const row = bySlug.get(slug);
+      expect(row.item_type).not.toBe('equipment_fallback');
+      expect(row.category).not.toBe('Fallback Equipment');
+      expect(row.subcategory).not.toBe('unclassified');
+      expect(row.shop_bucket).not.toBe('fallback_quarantine');
+      expect(row.base_price_gp).toBeGreaterThan(0);
+      expect(row.suggested_price_gp).toBeGreaterThan(0);
+    });
+  });
+
   test('covers the full repo target list with explicit unresolved remainder', () => {
     const targetRows = JSON.parse(fs.readFileSync('docs/degraded-srd-item-master-rows.json', 'utf8'));
     const repairOverlay = JSON.parse(fs.readFileSync('docs/data/shop_srd_degraded_repairs_2014.json', 'utf8'));
