@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import { generateShopRows } from '../../utils/shopGenerator';
+import { applyPersistedStockLanes, buildGenerationSeedWithCoreCount, countCoreRows } from '../../utils/shopLanePersistence';
 import ItemImportPanel from '../../components/ItemImportPanel';
 
 const SHOP_TYPES = [
@@ -83,6 +84,7 @@ function resolveItemDetailText(item = {}) {
   return { text: buildStructuredFallback(item), mode: 'structured_fallback' };
 }
 
+
 function ItemDetailModal({ item, onClose }) {
   if (!item) return null;
   const detail = resolveItemDetailText(item);
@@ -163,10 +165,12 @@ export default function WorldShopsPanel({ showImportControls = false }) {
   const loadSavedShops = useCallback(async () => {
     const { data, error: loadError } = await supabase.rpc('dm_list_shops');
     if (loadError) throw loadError;
-    setSavedShops(data || []);
+    const shops = data || [];
+    setSavedShops(shops);
+    return shops;
   }, []);
 
-  const loadShopInventory = useCallback(async shopId => {
+  const loadShopInventory = useCallback(async (shopId, generationSeed = '') => {
     const { data, error: loadError } = await supabase.rpc('dm_get_shop_inventory', { p_shop_id: shopId });
     if (loadError) throw loadError;
 
@@ -194,12 +198,15 @@ export default function WorldShopsPanel({ showImportControls = false }) {
       barter_dc: row.barter_dc,
     }));
 
-    setGeneratedRows(normalized);
-  }, []);
+    setGeneratedRows(applyPersistedStockLanes(normalized, { shopType, generationSeed }));
+  }, [shopType]);
 
   const refreshWorldShopData = useCallback(async () => {
-    await Promise.all([loadCatalog(), loadSavedShops()]);
-    if (selectedShopId) await loadShopInventory(selectedShopId);
+    const [, shops] = await Promise.all([loadCatalog(), loadSavedShops()]);
+    if (selectedShopId) {
+      const activeShop = (shops || []).find(shop => shop.id === selectedShopId);
+      await loadShopInventory(selectedShopId, activeShop?.generation_seed || '');
+    }
   }, [loadCatalog, loadSavedShops, loadShopInventory, selectedShopId]);
 
   useEffect(() => {
@@ -224,7 +231,8 @@ export default function WorldShopsPanel({ showImportControls = false }) {
   async function handleGenerate() {
     setError('');
     const rows = generateShopRows(catalogItems, { shopType, affluence: affluenceTier });
-    setGeneratedRows(rows);
+    const laneRows = applyPersistedStockLanes(rows, { shopType });
+    setGeneratedRows(laneRows);
     setSelectedShopId(null);
   }
 
@@ -237,7 +245,7 @@ export default function WorldShopsPanel({ showImportControls = false }) {
     setError('');
 
     try {
-      const generationSeed = crypto.randomUUID();
+      const generationSeed = buildGenerationSeedWithCoreCount(crypto.randomUUID(), countCoreRows(generatedRows));
       const payload = buildRpcRows(generatedRows);
       const { data: shopId, error: saveError } = await supabase.rpc('dm_save_shop', {
         p_shop_type: shopType,
@@ -263,7 +271,7 @@ export default function WorldShopsPanel({ showImportControls = false }) {
     setSelectedShopId(shop.id);
     setError('');
     try {
-      await loadShopInventory(shop.id);
+      await loadShopInventory(shop.id, shop.generation_seed || '');
     } catch (loadError) {
       setError(loadError.message || 'Failed to load saved shop inventory.');
     }
@@ -276,12 +284,13 @@ export default function WorldShopsPanel({ showImportControls = false }) {
     }
 
     const rows = generateShopRows(catalogItems, { shopType, affluence: affluenceTier });
-    setGeneratedRows(rows);
+    const laneRows = applyPersistedStockLanes(rows, { shopType });
+    setGeneratedRows(laneRows);
 
     try {
       setSaving(true);
-      const generationSeed = crypto.randomUUID();
-      const payload = buildRpcRows(rows);
+      const generationSeed = buildGenerationSeedWithCoreCount(crypto.randomUUID(), countCoreRows(laneRows));
+      const payload = buildRpcRows(laneRows);
       const { error: replaceError } = await supabase.rpc('dm_replace_shop_inventory', {
         p_shop_id: selectedShopId,
         p_shop_type: shopType,
@@ -353,15 +362,29 @@ export default function WorldShopsPanel({ showImportControls = false }) {
             <span>Min</span>
             <span>DC</span>
           </div>
-          {generatedRows.map(row => (
-            <button key={`${row.item_id}-${row.item_name}`} className="world-shops-stock-row" onClick={() => setSelectedItem(row)}>
-              <span className="item-name">{row.item_name}</span>
-              <span>{row.quantity}</span>
-              <span>{gpLabel(row.listed_price_gp)}</span>
-              <span>{gpLabel(row.minimum_price_gp)}</span>
-              <span>{row.barter_dc}</span>
-            </button>
-          ))}
+          {generatedRows.map((row, index) => {
+            const previousLane = index > 0 ? generatedRows[index - 1].stock_lane : null;
+            const showLaneLabel = (row.stock_lane || 'rotating') !== previousLane;
+            return (
+              <React.Fragment key={`${row.item_id}-${row.item_name}-${index}`}>
+                {showLaneLabel ? (
+                  <div className="world-shops-stock-lane-label">
+                    {row.stock_lane === 'core' ? 'Core Stock' : 'Rotating Stock'}
+                  </div>
+                ) : null}
+                <button className="world-shops-stock-row" data-lane={row.stock_lane || 'rotating'} onClick={() => setSelectedItem(row)}>
+                  <span className="item-name">
+                    {row.item_name}
+                    {(row.stock_lane || 'rotating') === 'core' ? <span className="world-shops-core-badge">Core</span> : null}
+                  </span>
+                  <span>{row.quantity}</span>
+                  <span>{gpLabel(row.listed_price_gp)}</span>
+                  <span>{gpLabel(row.minimum_price_gp)}</span>
+                  <span>{row.barter_dc}</span>
+                </button>
+              </React.Fragment>
+            );
+          })}
           {generatedRows.length === 0 ? <div className="empty-state">Generate stock to start building a shop.</div> : null}
         </div>
       </div>

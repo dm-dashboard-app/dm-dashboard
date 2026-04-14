@@ -6,10 +6,10 @@ const SHOP_TARGET_COUNTS = {
 };
 
 const AFFLUENCE_PRICE_MULTIPLIER = {
-  poor: 0.9,
+  poor: 0.92,
   modest: 1,
-  middle_class: 1.08,
-  wealthy: 1.2,
+  middle_class: 1.09,
+  wealthy: 1.18,
 };
 
 const RARITY_WEIGHT_BY_AFFLUENCE = {
@@ -56,13 +56,51 @@ const MAGIC_BUCKET_WEIGHT = {
   combat: 0.74,
 };
 
-
 const HEALING_POTION_TIER_BY_NAME = {
   'potion of healing': 'basic',
   'potion of greater healing': 'greater',
   'potion of superior healing': 'superior',
   'potion of supreme healing': 'supreme',
 };
+
+const CORE_STOCK_AFFLUENCE_MULTIPLIER = {
+  poor: 0.75,
+  modest: 1,
+  middle_class: 1.25,
+  wealthy: 1.55,
+};
+
+const APOTHECARY_CORE_NAMES = [
+  'Potion of Healing',
+  'Potion of Greater Healing',
+  "Healer's Kit",
+  "Alchemist's Supplies",
+  'Herbalism Kit',
+];
+
+const GENERAL_STORE_CORE_NAME_GROUPS = [
+  ['Torch'],
+  ['Rope, hempen (50 feet)', 'Hempen Rope (50 feet)', 'Rope, hempen'],
+  ['Rations (1 day)', 'Rations'],
+  ['Tent, Two-Person', 'Tent (Two-Person)', 'Tent'],
+  ['Bedroll'],
+];
+
+const BLACKSMITH_ANCHOR_NAMES = ['Shield', "Smith's Tools"];
+const BLACKSMITH_AMMO_TERMS = ['arrows', 'arrow', 'sling bullets', 'crossbow bolts', 'bolts'];
+
+const CAMP_GEAR_TERMS = [
+  'waterskin',
+  'mess kit',
+  'flint and steel',
+  'tinderbox',
+  'blanket',
+  'grappling hook',
+  'lantern',
+  'piton',
+  'hammer',
+  'crowbar',
+];
 
 function getHealingPotionTier(item = {}) {
   const normalizedName = String(item.name || '').trim().toLowerCase();
@@ -185,10 +223,10 @@ function computePricing(item = {}, { affluence = 'modest', shopType = 'general_s
   const affluenceMult = AFFLUENCE_PRICE_MULTIPLIER[affluence] || 1;
   const magicPremium = shopType === 'magic_shop' ? 1.2 : 1;
   const rarityPremium = rarity === 'legendary' ? 1.25 : rarity === 'very rare' ? 1.16 : rarity === 'rare' ? 1.1 : 1;
-  const jitter = 0.96 + Math.random() * 0.15;
+  const jitter = 0.98 + Math.random() * 0.11;
 
   const listedPriceGp = Math.max(1, Math.round(anchor * affluenceMult * magicPremium * rarityPremium * jitter));
-  const floorFactor = shopType === 'magic_shop' ? 0.93 : affluence === 'poor' ? 0.78 : affluence === 'wealthy' ? 0.9 : 0.84;
+  const floorFactor = shopType === 'magic_shop' ? 0.93 : affluence === 'poor' ? 0.8 : affluence === 'wealthy' ? 0.91 : 0.85;
   const minimumPriceGp = Math.max(1, Math.floor(listedPriceGp * floorFactor));
 
   const dcBase = shopType === 'magic_shop' ? 15 : 11;
@@ -252,13 +290,170 @@ function isEligible(item = {}, shopType) {
   return isShopTypeMundaneMatch(item, shopType);
 }
 
+function normalizeName(value = '') {
+  return String(value || '').trim().toLowerCase();
+}
+
+function findByExactName(candidates = [], name = '') {
+  const target = normalizeName(name);
+  return candidates.find(item => normalizeName(item.name) === target) || null;
+}
+
+function hasAnyTerm(item = {}, terms = []) {
+  const haystack = itemHaystack(item);
+  return terms.some(term => haystack.includes(term));
+}
+
+function coreScaledQuantity(base, affluence, min = 1, max = 99) {
+  const multiplier = CORE_STOCK_AFFLUENCE_MULTIPLIER[affluence] || 1;
+  return Math.max(min, Math.min(max, Math.round(base * multiplier)));
+}
+
+function coreQuantity(item = {}, { shopType = 'general_store', affluence = 'modest', coreRole = 'default' } = {}) {
+  const name = normalizeName(item.name);
+
+  if (shopType === 'apothecary') {
+    if (name === 'potion of healing') return coreScaledQuantity(4, affluence, 2, 10);
+    if (name === 'potion of greater healing') return coreScaledQuantity(2, affluence, 1, 6);
+    return coreScaledQuantity(1, affluence, 1, 3);
+  }
+
+  if (shopType === 'blacksmith') {
+    if (coreRole === 'ammo') return coreScaledQuantity(14, affluence, 8, 28);
+    if (name === 'shield') return coreScaledQuantity(1, affluence, 1, 2);
+    if (name === "smith's tools") return coreScaledQuantity(1, affluence, 1, 2);
+    return 1;
+  }
+
+  if (shopType === 'general_store') {
+    if (name.includes('ration')) return coreScaledQuantity(8, affluence, 4, 16);
+    if (name.includes('torch')) return coreScaledQuantity(6, affluence, 3, 14);
+    if (name.includes('rope')) return coreScaledQuantity(3, affluence, 1, 6);
+    if (name.includes('tent')) return coreScaledQuantity(2, affluence, 1, 4);
+    if (name.includes('bedroll')) return coreScaledQuantity(3, affluence, 1, 6);
+    return coreScaledQuantity(2, affluence, 1, 5);
+  }
+
+  return generateQuantity(item, shopType, affluence);
+}
+
+function buildRow(item = {}, { shopType, affluence, stockLane = 'rotating', coreRole = 'default', coreOrder = null } = {}) {
+  const pricing = computePricing(item, { affluence, shopType });
+  const quantity = stockLane === 'core'
+    ? coreQuantity(item, { shopType, affluence, coreRole })
+    : generateQuantity(item, shopType, affluence);
+
+  return {
+    item_id: item.id,
+    item_name: item.name,
+    item_type: item.item_type,
+    category: item.category,
+    subcategory: item.subcategory,
+    rarity: item.rarity,
+    description: item.description,
+    source_type: item.source_type,
+    source_book: item.source_book,
+    price_source: item.price_source,
+    shop_bucket: item.shop_bucket,
+    metadata_json: item.metadata_json || null,
+    requires_attunement: item.requires_attunement ?? null,
+    quantity,
+    stock_lane: stockLane,
+    is_core_stock: stockLane === 'core',
+    core_order: coreOrder,
+    ...pricing,
+  };
+}
+
+function addCoreRow(item, context, state = {}, { coreRole = 'default' } = {}) {
+  if (!item) return;
+  const identityKey = getShopIdentityKey(item);
+  if (state.byIdentity.has(identityKey)) return;
+  const row = buildRow(item, { ...context, stockLane: 'core', coreRole, coreOrder: state.coreRows.length });
+  state.byIdentity.set(identityKey, row);
+  state.coreRows.push(row);
+}
+
+function pickOneFromPool(candidates = [], byIdentity = new Map()) {
+  const pool = candidates.filter(item => !byIdentity.has(getShopIdentityKey(item)));
+  if (!pool.length) return null;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function buildCoreStock(candidates = [], { shopType = 'general_store', affluence = 'modest' } = {}) {
+  const state = {
+    byIdentity: new Map(),
+    coreRows: [],
+  };
+  const context = { shopType, affluence };
+
+  if (shopType === 'apothecary') {
+    APOTHECARY_CORE_NAMES.forEach(name => addCoreRow(findByExactName(candidates, name), context, state));
+    return state;
+  }
+
+  if (shopType === 'blacksmith') {
+    BLACKSMITH_ANCHOR_NAMES.forEach(name => addCoreRow(findByExactName(candidates, name), context, state));
+
+    const simplePool = candidates.filter(item => {
+      const haystack = itemHaystack(item);
+      return haystack.includes('simple') && haystack.includes('weapon');
+    });
+    addCoreRow(pickOneFromPool(simplePool, state.byIdentity), context, state);
+
+    const martialPool = candidates.filter(item => {
+      const haystack = itemHaystack(item);
+      return haystack.includes('martial') && haystack.includes('weapon');
+    });
+    addCoreRow(pickOneFromPool(martialPool, state.byIdentity), context, state);
+
+    const armorPool = candidates.filter(item => {
+      const haystack = itemHaystack(item);
+      return haystack.includes('armor') || haystack.includes('shield');
+    });
+    addCoreRow(pickOneFromPool(armorPool, state.byIdentity), context, state);
+
+    const ammoPool = candidates.filter(item => hasAnyTerm(item, BLACKSMITH_AMMO_TERMS));
+    ['arrows', 'sling bullets', 'crossbow bolts'].forEach(ammoName => {
+      const matched = ammoPool.find(item => normalizeName(item.name).includes(ammoName));
+      addCoreRow(matched, context, state, { coreRole: 'ammo' });
+    });
+
+    return state;
+  }
+
+  if (shopType === 'general_store') {
+    GENERAL_STORE_CORE_NAME_GROUPS.forEach(group => {
+      const matched = group
+        .map(name => findByExactName(candidates, name))
+        .find(Boolean);
+      addCoreRow(matched, context, state);
+    });
+
+    const campPool = candidates.filter(item => hasAnyTerm(item, CAMP_GEAR_TERMS));
+    const campCount = affluence === 'poor' ? 1 : affluence === 'wealthy' ? 2 : Math.random() < 0.55 ? 2 : 1;
+    for (let index = 0; index < campCount; index += 1) {
+      addCoreRow(pickOneFromPool(campPool, state.byIdentity), context, state);
+    }
+
+    return state;
+  }
+
+  return state;
+}
+
 export function generateShopRows(items = [], { shopType = 'general_store', affluence = 'modest' } = {}) {
   const targetRows = targetRowCount(shopType, affluence);
   const rarityWeights = (shopType === 'magic_shop' ? MAGIC_RARITY_WEIGHT_BY_AFFLUENCE : RARITY_WEIGHT_BY_AFFLUENCE)[affluence]
     || RARITY_WEIGHT_BY_AFFLUENCE.modest;
   const candidates = items.filter(item => isEligible(item, shopType));
 
+  const { byIdentity, coreRows } = shopType === 'magic_shop'
+    ? { byIdentity: new Map(), coreRows: [] }
+    : buildCoreStock(candidates, { shopType, affluence });
+
   const initialWeightedPool = candidates
+    .filter(item => !byIdentity.has(getShopIdentityKey(item)))
     .map(item => {
       const rarity = normalizeRarity(item.rarity);
       const rarityWeight = rarityWeights[rarity] ?? 0.2;
@@ -273,10 +468,10 @@ export function generateShopRows(items = [], { shopType = 'general_store', afflu
     .filter(row => row.weight > 0);
 
   const weightedPool = [...initialWeightedPool];
-  const picked = [];
-  const byIdentity = new Map();
+  const rotatingRows = [];
+  const targetRotatingCount = Math.max(0, targetRows - coreRows.length);
 
-  for (let index = 0; index < targetRows; index += 1) {
+  for (let index = 0; index < targetRotatingCount; index += 1) {
     const item = weightedPick(weightedPool);
     if (!item) break;
     const poolIndex = weightedPool.findIndex(row => row.item.id === item.id);
@@ -287,34 +482,27 @@ export function generateShopRows(items = [], { shopType = 'general_store', afflu
       const row = byIdentity.get(shopIdentityKey);
       const bucket = normalizeBucket(item.shop_bucket);
       const canStack = bucket === 'consumable' || String(item.name || '').toLowerCase().includes('ammunition');
-      if (canStack) row.quantity += generateQuantity(item, shopType, affluence);
+      if (canStack && row.stock_lane !== 'core') row.quantity += generateQuantity(item, shopType, affluence);
       if (poolIndex >= 0) weightedPool.splice(poolIndex, 1);
       continue;
     }
 
-    const pricing = computePricing(item, { affluence, shopType });
-    const row = {
-      item_id: item.id,
-      item_name: item.name,
-      item_type: item.item_type,
-      category: item.category,
-      subcategory: item.subcategory,
-      rarity: item.rarity,
-      description: item.description,
-      source_type: item.source_type,
-      source_book: item.source_book,
-      price_source: item.price_source,
-      shop_bucket: item.shop_bucket,
-      metadata_json: item.metadata_json || null,
-      requires_attunement: item.requires_attunement ?? null,
-      quantity: generateQuantity(item, shopType, affluence),
-      ...pricing,
-    };
-
+    const row = buildRow(item, { shopType, affluence, stockLane: 'rotating' });
     byIdentity.set(shopIdentityKey, row);
-    picked.push(row);
+    rotatingRows.push(row);
     if (poolIndex >= 0) weightedPool.splice(poolIndex, 1);
   }
 
-  return picked.sort((a, b) => a.item_name.localeCompare(b.item_name));
+  const sortedCoreRows = [...coreRows].sort((a, b) => {
+    const orderA = Number.isFinite(a.core_order) ? a.core_order : 999;
+    const orderB = Number.isFinite(b.core_order) ? b.core_order : 999;
+    if (orderA !== orderB) return orderA - orderB;
+    return a.item_name.localeCompare(b.item_name);
+  });
+  const sortedRotatingRows = [...rotatingRows].sort((a, b) => a.item_name.localeCompare(b.item_name));
+
+  return [...sortedCoreRows, ...sortedRotatingRows].map((row, index) => ({
+    ...row,
+    core_order: row.stock_lane === 'core' ? index : null,
+  }));
 }

@@ -1,6 +1,6 @@
 # DM Dashboard — Project Brief
 
-Last updated: April 14, 2026 (SRD import trust-boundary hardening for transient detail failures)
+Last updated: April 14, 2026 (non-magic shops now include affluence-aware guaranteed core stock lanes)
 
 Purpose: This document is the current-state/background brief for DM Dashboard. It describes what the app now is, what is materially landed, and what principles future work must preserve.
 
@@ -176,6 +176,10 @@ Landed baseline includes:
 - server-mediated RPC persistence for saved shops/inventory rows (no broad client table RW)
 - trust boundary note: in current repo model, Supabase authenticated maps to DM path while player/display use local join-code or display-token flows
 - generated row pricing outputs (quantity, listed price, minimum barter price, barter DC)
+- non-magic shop inventory now builds in two internal lanes (Core Stock then Rotating Stock) while keeping one saved/rendered inventory list
+- guaranteed non-magic core rows for apothecary/blacksmith/general store with affluence-aware core quantities
+- affluence-sensitive pricing behavior across both core and rotating rows for non-magic shops (poorer somewhat cheaper, wealthier somewhat more expensive)
+- lightweight one-list UI treatment: Core Stock / Rotating Stock labels plus subtle Core badge/highlight
 - compact item detail modal for in-session adjudication
 
 Preservation rule:

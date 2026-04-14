@@ -1049,6 +1049,14 @@
   padding: 4px 6px;
 }
 
+.world-shops-stock-lane-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--text-secondary);
+  padding: 6px 6px 2px;
+}
+
 .world-shops-stock-row {
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -1061,6 +1069,26 @@
 
 .world-shops-stock-row .item-name {
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.world-shops-stock-row[data-lane='core'] {
+  border-color: rgba(74, 158, 255, .45);
+  background: linear-gradient(180deg, rgba(74, 158, 255, .10), rgba(74, 158, 255, .03));
+}
+
+.world-shops-core-badge {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(74, 158, 255, .45);
+  border-radius: 999px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  color: #b6d8ff;
 }
 
 .world-shops-error {
