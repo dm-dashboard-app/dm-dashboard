@@ -171,15 +171,41 @@ describe('generateShopRows', () => {
     expect(richTotal).toBeGreaterThan(poorTotal);
   });
 
-  test('magic shop behavior stays rotating-only with no core lane', () => {
+  test('magic shop includes guaranteed spell scroll core stock (levels 1-5) and total target of 12', () => {
     const rows = withFixedRandom(0.01, () => generateShopRows([
       baseItem({ id: 'wand', name: 'Wand of Secrets', item_type: 'magic_item', rarity: 'Rare', suggested_price_gp: 250, shop_bucket: 'utility' }),
       baseItem({ id: 'healing', name: 'Potion of Healing', item_type: 'magic_item', rarity: 'Common', suggested_price_gp: 50, shop_bucket: 'healing' }),
       baseItem({ id: 'amulet', name: 'Amulet of Proof', item_type: 'magic_item', rarity: 'Uncommon', suggested_price_gp: 120, shop_bucket: 'utility' }),
-    ], { shopType: 'magic_shop', affluence: 'modest' }));
+    ], {
+      shopType: 'magic_shop',
+      affluence: 'modest',
+      spells: [
+        { id: 's1', name: 'Magic Missile', level: 1, is_cantrip: false },
+        { id: 's2', name: 'Scorching Ray', level: 2, is_cantrip: false },
+        { id: 's3', name: 'Fireball', level: 3, is_cantrip: false },
+        { id: 's4', name: 'Dimension Door', level: 4, is_cantrip: false },
+        { id: 's5', name: 'Wall of Force', level: 5, is_cantrip: false },
+        { id: 's6', name: 'Disintegrate', level: 6, is_cantrip: false },
+        { id: 's7', name: 'Teleport', level: 7, is_cantrip: false },
+        { id: 's8', name: 'Sunburst', level: 8, is_cantrip: false },
+        { id: 's9', name: 'Wish', level: 9, is_cantrip: false },
+        { id: 'c0', name: 'Fire Bolt', level: 0, is_cantrip: true },
+      ],
+    }));
 
-    expect(rows.length).toBeGreaterThan(0);
-    expect(rows.every(row => row.stock_lane === 'rotating')).toBe(true);
-    expect(rows.every(row => row.is_core_stock === false)).toBe(true);
+    expect(rows).toHaveLength(12);
+    const coreRows = rows.filter(row => row.stock_lane === 'core');
+    expect(coreRows).toHaveLength(5);
+    expect(coreRows.map(row => row.item_name)).toEqual(expect.arrayContaining([
+      expect.stringMatching(/^Spell Scroll \(1st Level\) — /),
+      expect.stringMatching(/^Spell Scroll \(2nd Level\) — /),
+      expect.stringMatching(/^Spell Scroll \(3rd Level\) — /),
+      expect.stringMatching(/^Spell Scroll \(4th Level\) — /),
+      expect.stringMatching(/^Spell Scroll \(5th Level\) — /),
+    ]));
+    expect(coreRows.every(row => row.quantity === 1)).toBe(true);
+    expect(coreRows.some(row => row.item_name.includes('Cantrip'))).toBe(false);
+    expect(rows.some(row => /^Spell Scroll \(6th Level\) — /.test(row.item_name) && row.stock_lane === 'rotating')).toBe(true);
+    expect(rows.some(row => /^Spell Scroll \(9th Level\) — /.test(row.item_name) && row.stock_lane === 'core')).toBe(false);
   });
 });

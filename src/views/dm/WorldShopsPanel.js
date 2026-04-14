@@ -3,6 +3,7 @@ import { supabase } from '../../supabaseClient';
 import { generateShopRows } from '../../utils/shopGenerator';
 import { applyPersistedStockLanes, buildGenerationSeedWithCoreCount, countCoreRows } from '../../utils/shopLanePersistence';
 import ItemImportPanel from '../../components/ItemImportPanel';
+import { generateSpellScrollBatch } from '../../utils/spellScrolls';
 
 const SHOP_TYPES = [
   { value: 'blacksmith', label: 'Blacksmith' },
@@ -123,6 +124,7 @@ export default function WorldShopsPanel({ showImportControls = false }) {
   const [shopType, setShopType] = useState('general_store');
   const [affluenceTier, setAffluenceTier] = useState('modest');
   const [catalogItems, setCatalogItems] = useState([]);
+  const [spellItems, setSpellItems] = useState([]);
   const [generatedRows, setGeneratedRows] = useState([]);
   const [savedShops, setSavedShops] = useState([]);
   const [selectedShopId, setSelectedShopId] = useState(null);
@@ -130,6 +132,9 @@ export default function WorldShopsPanel({ showImportControls = false }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
+  const [scrollLevel, setScrollLevel] = useState(1);
+  const [scrollQuantity, setScrollQuantity] = useState(1);
+  const [generatedScrolls, setGeneratedScrolls] = useState([]);
 
   const selectedShop = useMemo(() => savedShops.find(shop => shop.id === selectedShopId) || null, [savedShops, selectedShopId]);
   const catalogById = useMemo(() => new Map(catalogItems.map(item => [item.id, item])), [catalogItems]);
@@ -170,6 +175,16 @@ export default function WorldShopsPanel({ showImportControls = false }) {
     return shops;
   }, []);
 
+  const loadSpells = useCallback(async () => {
+    const { data, error: loadError } = await supabase
+      .from('spells')
+      .select('id, name, level, is_cantrip, school, casting_time')
+      .order('level')
+      .order('name');
+    if (loadError) throw loadError;
+    setSpellItems(data || []);
+  }, []);
+
   const loadShopInventory = useCallback(async (shopId, generationSeed = '') => {
     const { data, error: loadError } = await supabase.rpc('dm_get_shop_inventory', { p_shop_id: shopId });
     if (loadError) throw loadError;
@@ -202,12 +217,12 @@ export default function WorldShopsPanel({ showImportControls = false }) {
   }, [shopType]);
 
   const refreshWorldShopData = useCallback(async () => {
-    const [, shops] = await Promise.all([loadCatalog(), loadSavedShops()]);
+    const [, , shops] = await Promise.all([loadCatalog(), loadSpells(), loadSavedShops()]);
     if (selectedShopId) {
       const activeShop = (shops || []).find(shop => shop.id === selectedShopId);
       await loadShopInventory(selectedShopId, activeShop?.generation_seed || '');
     }
-  }, [loadCatalog, loadSavedShops, loadShopInventory, selectedShopId]);
+  }, [loadCatalog, loadSavedShops, loadShopInventory, loadSpells, selectedShopId]);
 
   useEffect(() => {
     let active = true;
@@ -230,7 +245,7 @@ export default function WorldShopsPanel({ showImportControls = false }) {
 
   async function handleGenerate() {
     setError('');
-    const rows = generateShopRows(catalogItems, { shopType, affluence: affluenceTier });
+    const rows = generateShopRows(catalogItems, { shopType, affluence: affluenceTier, spells: spellItems });
     const laneRows = applyPersistedStockLanes(rows, { shopType });
     setGeneratedRows(laneRows);
     setSelectedShopId(null);
@@ -283,7 +298,7 @@ export default function WorldShopsPanel({ showImportControls = false }) {
       return;
     }
 
-    const rows = generateShopRows(catalogItems, { shopType, affluence: affluenceTier });
+    const rows = generateShopRows(catalogItems, { shopType, affluence: affluenceTier, spells: spellItems });
     const laneRows = applyPersistedStockLanes(rows, { shopType });
     setGeneratedRows(laneRows);
 
@@ -306,6 +321,14 @@ export default function WorldShopsPanel({ showImportControls = false }) {
     } finally {
       setSaving(false);
     }
+  }
+
+  function handleGenerateScrolls() {
+    const scrolls = generateSpellScrollBatch(spellItems, {
+      level: Number(scrollLevel || 1),
+      quantity: Number(scrollQuantity || 1),
+    });
+    setGeneratedScrolls(scrolls);
   }
 
   if (loading) return <div className="empty-state">Loading World Shops…</div>;
@@ -387,6 +410,42 @@ export default function WorldShopsPanel({ showImportControls = false }) {
           })}
           {generatedRows.length === 0 ? <div className="empty-state">Generate stock to start building a shop.</div> : null}
         </div>
+      </div>
+
+      <div className="world-shops-scroll-tool">
+        <div className="world-shops-panel-title">Spell Scroll Generator</div>
+        <div className="world-shops-controls">
+          <div className="world-shops-control-group">
+            <label>Spell Level</label>
+            <select className="world-shops-select" value={scrollLevel} onChange={event => setScrollLevel(Number(event.target.value))}>
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(level => <option key={level} value={level}>{level}</option>)}
+            </select>
+          </div>
+          <div className="world-shops-control-group">
+            <label>Quantity</label>
+            <input
+              className="world-shops-scroll-input"
+              type="number"
+              min={1}
+              max={30}
+              value={scrollQuantity}
+              onChange={event => setScrollQuantity(Math.max(1, Number(event.target.value || 1)))}
+            />
+          </div>
+          <button className="btn btn-primary" onClick={handleGenerateScrolls}>Generate Scrolls</button>
+        </div>
+        {generatedScrolls.length === 0 ? (
+          <div className="empty-state">Choose a level and quantity, then generate spell scrolls.</div>
+        ) : (
+          <div className="world-shops-scroll-list">
+            {generatedScrolls.map((scroll, index) => (
+              <div className="world-shops-scroll-row" key={`${scroll.id || scroll.name}-${index}`}>
+                <strong>{scroll.scroll_name}</strong>
+                <span>{scroll.school || 'Unknown school'}{scroll.casting_time ? ` • ${scroll.casting_time}` : ''}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <ItemDetailModal item={selectedItem} onClose={() => setSelectedItem(null)} />

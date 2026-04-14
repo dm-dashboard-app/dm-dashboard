@@ -43,19 +43,21 @@ describe('shop lane persistence', () => {
     expect(resolved.slice(5).every(row => row.stock_lane === 'rotating')).toBe(true);
   });
 
-  test('magic shop remains rotating-only even if seed encodes core count', () => {
+  test('magic shop restores core lane rows when generation seed encodes core count', () => {
     const rows = [
+      { item_name: 'Spell Scroll (1st Level) — Magic Missile' },
+      { item_name: 'Spell Scroll (2nd Level) — Scorching Ray' },
       { item_name: 'Wand of Secrets' },
       { item_name: 'Potion of Healing' },
     ];
 
     const resolved = applyPersistedStockLanes(rows, {
       shopType: 'magic_shop',
-      generationSeed: buildGenerationSeedWithCoreCount('seed-magic', 99),
+      generationSeed: buildGenerationSeedWithCoreCount('seed-magic', 2),
     });
 
-    expect(resolved.every(row => row.stock_lane === 'rotating')).toBe(true);
-    expect(resolved.every(row => row.is_core_stock === false)).toBe(true);
+    expect(resolved.slice(0, 2).every(row => row.stock_lane === 'core')).toBe(true);
+    expect(resolved.slice(2).every(row => row.stock_lane === 'rotating')).toBe(true);
   });
 
   test('legacy rows without metadata stay conservative (rotating)', () => {
