@@ -60,6 +60,19 @@ describe('shop lane persistence', () => {
     expect(resolved.slice(2).every(row => row.stock_lane === 'rotating')).toBe(true);
   });
 
+  test('preserves explicit is_core_stock metadata when stock_lane is missing', () => {
+    const resolved = applyPersistedStockLanes([
+      { item_name: 'Spell Scroll (1st Level) — Magic Missile', is_core_stock: true },
+      { item_name: 'Wand of Secrets', is_core_stock: false },
+    ], {
+      shopType: 'magic_shop',
+      generationSeed: 'legacy-seed-without-core-count',
+    });
+
+    expect(resolved.map(row => row.stock_lane)).toEqual(['core', 'rotating']);
+    expect(resolved.map(row => row.is_core_stock)).toEqual([true, false]);
+  });
+
   test('legacy rows without metadata stay conservative (rotating)', () => {
     const resolved = applyPersistedStockLanes([
       { item_name: 'Torch' },

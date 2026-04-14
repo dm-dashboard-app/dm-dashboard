@@ -24,10 +24,11 @@ function normalizeLane(value) {
 }
 
 export function applyPersistedStockLanes(rows = [], { shopType = 'general_store', generationSeed = '' } = {}) {
-  const hasExplicitLane = rows.some(row => normalizeLane(row?.stock_lane));
+  const hasExplicitLane = rows.some(row => normalizeLane(row?.stock_lane) || typeof row?.is_core_stock === 'boolean');
   if (hasExplicitLane) {
     return rows.map(row => {
-      const lane = normalizeLane(row?.stock_lane) || 'rotating';
+      const lane = normalizeLane(row?.stock_lane)
+        || (row?.is_core_stock === true ? 'core' : 'rotating');
       return { ...row, stock_lane: lane, is_core_stock: lane === 'core' };
     });
   }
