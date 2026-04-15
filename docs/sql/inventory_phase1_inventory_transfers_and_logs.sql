@@ -445,7 +445,7 @@ begin
     if p_item_master_id is not null then
       insert into public.player_inventory_items (player_profile_id, item_master_id, quantity, notes)
       values (p_player_profile_id, p_item_master_id, p_quantity, nullif(trim(coalesce(p_notes, '')), ''))
-      on conflict (player_profile_id, item_master_id)
+      on conflict (player_profile_id, item_master_id) where item_master_id is not null
       do update set
         quantity = public.player_inventory_items.quantity + excluded.quantity,
         notes = excluded.notes
@@ -622,7 +622,7 @@ begin
     if v_sender_item.item_master_id is not null then
       insert into public.player_inventory_items (player_profile_id, item_master_id, quantity, notes)
       values (v_transfer.receiver_profile_id, v_sender_item.item_master_id, v_transfer.item_quantity, v_sender_item.notes)
-      on conflict (player_profile_id, item_master_id)
+      on conflict (player_profile_id, item_master_id) where item_master_id is not null
       do update set quantity = public.player_inventory_items.quantity + excluded.quantity;
     else
       insert into public.player_inventory_items (player_profile_id, custom_name, quantity, notes)

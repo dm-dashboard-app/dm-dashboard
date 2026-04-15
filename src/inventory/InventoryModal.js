@@ -30,6 +30,15 @@ const DEFAULT_ITEM_TRANSFER = {
   receiver: '',
 };
 
+const CURRENCY_KEYS = ['pp', 'gp', 'sp', 'cp'];
+
+const CURRENCY_STYLE_MAP = {
+  pp: { label: 'PP', color: '#d6e4f0', border: 'rgba(214, 228, 240, 0.35)' },
+  gp: { label: 'GP', color: '#f2d48a', border: 'rgba(242, 212, 138, 0.45)' },
+  sp: { label: 'SP', color: '#d2d7e0', border: 'rgba(210, 215, 224, 0.42)' },
+  cp: { label: 'CP', color: '#d9a58a', border: 'rgba(217, 165, 138, 0.45)' },
+};
+
 export default function InventoryModal({
   open,
   onClose,
@@ -232,20 +241,53 @@ export default function InventoryModal({
           <div className="panel-title" style={{ marginBottom: 6 }}>Currency</div>
           {isPlayer ? (
             <>
-              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>
-                PP - {snapshot.currency?.pp ?? 0} GP - {snapshot.currency?.gp ?? 0} SP - {snapshot.currency?.sp ?? 0} CP - {snapshot.currency?.cp ?? 0}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+                  gap: 6,
+                  marginBottom: 8,
+                }}
+              >
+                {CURRENCY_KEYS.map((key) => {
+                  const tone = CURRENCY_STYLE_MAP[key];
+                  return (
+                    <div
+                      key={key}
+                      style={{
+                        border: `1px solid ${tone.border}`,
+                        borderRadius: 10,
+                        padding: '8px 6px',
+                        minHeight: 54,
+                        display: 'grid',
+                        placeItems: 'center',
+                        background: 'rgba(255, 255, 255, 0.02)',
+                      }}
+                    >
+                      <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.35, color: 'var(--text-muted)' }}>{tone.label}</div>
+                      <div style={{ fontSize: 18, lineHeight: 1.15, fontWeight: 800, color: tone.color }}>{snapshot.currency?.[key] ?? 0}</div>
+                    </div>
+                  );
+                })}
               </div>
               <button
-                className="btn btn-ghost"
+                className="btn btn-primary"
                 onClick={() => setTransferOpen((curr) => !curr)}
-                style={{ width: 'calc((100% - 18px) / 4)', minWidth: 92 }}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minHeight: 40,
+                  fontWeight: 700,
+                }}
               >
-                {transferOpen ? 'Close Transfer' : 'Transfer'}
+                {transferOpen ? 'Close Currency Transfer' : 'Transfer Currency'}
               </button>
             </>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 6 }}>
-              {['pp', 'gp', 'sp', 'cp'].map((key) => (
+              {CURRENCY_KEYS.map((key) => (
                 <label key={key} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   <span style={{ fontSize: 11, textTransform: 'uppercase', color: 'var(--text-muted)' }}>{key}</span>
                   <input

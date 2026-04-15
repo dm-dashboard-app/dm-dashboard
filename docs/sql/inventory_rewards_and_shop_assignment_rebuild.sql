@@ -207,7 +207,7 @@ begin
 
   insert into public.player_inventory_items (player_profile_id, item_master_id, quantity, notes)
   values (p_receiver_profile_id, v_row.item_id, v_qty, v_note)
-  on conflict (player_profile_id, item_master_id)
+  on conflict (player_profile_id, item_master_id) where item_master_id is not null
   do update set
     quantity = public.player_inventory_items.quantity + excluded.quantity,
     notes = coalesce(excluded.notes, public.player_inventory_items.notes);
