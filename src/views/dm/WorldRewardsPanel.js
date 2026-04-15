@@ -13,6 +13,8 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
   const [currencyAmount, setCurrencyAmount] = useState(100);
   const [currencyTarget, setCurrencyTarget] = useState('single');
   const [status, setStatus] = useState('');
+  const [isAssigningItem, setIsAssigningItem] = useState(false);
+  const [isAwardingCurrency, setIsAwardingCurrency] = useState(false);
 
   const players = useMemo(() => {
     const map = new Map();
@@ -25,7 +27,11 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
   }, [playerStates]);
 
   useEffect(() => {
-    if (!targetProfileId && players.length > 0) {
+    if (players.length === 0) {
+      setTargetProfileId('');
+      return;
+    }
+    if (!targetProfileId || !players.some((row) => row.id === targetProfileId)) {
       setTargetProfileId(players[0].id);
     }
   }, [players, targetProfileId]);
@@ -51,39 +57,64 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
     };
   }, [query]);
 
+  async function triggerInventoryRefresh() {
+    if (typeof onInventoryChanged !== 'function') return;
+    await onInventoryChanged();
+  }
+
   async function handleAssignItem() {
-    if (!selectedItem || !targetProfileId) return;
-    await inventoryUpsertItem({
-      playerProfileId: targetProfileId,
-      role: 'dm',
-      itemMasterId: selectedItem.id,
-      quantity: Number(quantity) || 1,
-      notes: notes || null,
-    });
-    setStatus(`Assigned ${selectedItem.name} x${Number(quantity) || 1}.`);
-    if (typeof onInventoryChanged === 'function') onInventoryChanged();
+    if (!selectedItem || !targetProfileId || isAssigningItem) return;
+    const normalizedQty = Math.max(1, Number.parseInt(String(quantity ?? '1'), 10) || 1);
+
+    try {
+      setIsAssigningItem(true);
+      setStatus('Assigning item…');
+      await inventoryUpsertItem({
+        playerProfileId: targetProfileId,
+        role: 'dm',
+        itemMasterId: selectedItem.id,
+        quantity: normalizedQty,
+        notes: notes || null,
+      });
+      await triggerInventoryRefresh();
+      setStatus(`Assigned ${selectedItem.name} x${normalizedQty}.`);
+    } catch (error) {
+      setStatus(`Item assignment failed: ${error?.message || 'Unknown error'}`);
+    } finally {
+      setIsAssigningItem(false);
+    }
   }
 
   async function handleAwardCurrency() {
-    const amount = Number(currencyAmount) || 0;
-    if (amount <= 0) return;
+    const amount = Math.max(0, Number(currencyAmount) || 0);
+    if (amount <= 0 || isAwardingCurrency) return;
+    if (currencyTarget === 'single' && !targetProfileId) return;
 
-    const rows = await inventoryDmAwardCurrency({
-      encounterId,
-      receiverProfileId: currencyTarget === 'single' ? targetProfileId : null,
-      currencyType,
-      amount,
-      awardAll: currencyTarget === 'all',
-      note: 'World rewards panel',
-    });
+    try {
+      setIsAwardingCurrency(true);
+      setStatus('Awarding currency…');
+      const rows = await inventoryDmAwardCurrency({
+        encounterId,
+        receiverProfileId: currencyTarget === 'single' ? targetProfileId : null,
+        currencyType,
+        amount,
+        awardAll: currencyTarget === 'all',
+        note: 'World rewards panel',
+      });
 
-    if (currencyTarget === 'all') {
-      const rowCount = Array.isArray(rows) ? rows.length : 0;
-      setStatus(`Awarded ${amount} ${currencyType.toUpperCase()} split across ${rowCount} active players.`);
-    } else {
-      setStatus(`Awarded ${amount} ${currencyType.toUpperCase()} to selected player.`);
+      await triggerInventoryRefresh();
+
+      if (currencyTarget === 'all') {
+        const rowCount = Array.isArray(rows) ? rows.length : 0;
+        setStatus(`Awarded ${amount} ${currencyType.toUpperCase()} split across ${rowCount} active players.`);
+      } else {
+        setStatus(`Awarded ${amount} ${currencyType.toUpperCase()} to selected player.`);
+      }
+    } catch (error) {
+      setStatus(`Currency award failed: ${error?.message || 'Unknown error'}`);
+    } finally {
+      setIsAwardingCurrency(false);
     }
-    if (typeof onInventoryChanged === 'function') onInventoryChanged();
   }
 
   return (
@@ -119,7 +150,7 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
                 <input className="form-input" type="number" min={1} value={quantity} onChange={(event) => setQuantity(event.target.value)} />
                 <input className="form-input" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Optional notes" />
               </div>
-              <button className="btn btn-primary" disabled={!targetProfileId} onClick={handleAssignItem}>Assign Item</button>
+              <button className="btn btn-primary" disabled={!targetProfileId || isAssigningItem} onClick={handleAssignItem}>{isAssigningItem ? 'Assigning…' : 'Assign Item'}</button>
             </>
           ) : (
             <div className="empty-state">Search and pick an item to assign.</div>
@@ -145,7 +176,7 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
             </select>
             <input className="form-input" type="number" min={1} value={currencyAmount} onChange={(event) => setCurrencyAmount(event.target.value)} />
           </div>
-          <button className="btn btn-primary" onClick={handleAwardCurrency} disabled={currencyTarget === 'single' && !targetProfileId}>Award Currency</button>
+          <button className="btn btn-primary" onClick={handleAwardCurrency} disabled={isAwardingCurrency || (currencyTarget === 'single' && !targetProfileId)}>{isAwardingCurrency ? 'Awarding…' : 'Award Currency'}</button>
           <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Remainder policy: extra currency is distributed one-by-one in ascending player-profile UUID order.</div>
         </div>
       </div>
