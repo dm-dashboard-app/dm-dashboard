@@ -239,7 +239,7 @@ begin
   with item_totals as (
     select coalesce(sum(quantity), 0)::integer as total_item_quantity
     from public.player_inventory_items
-    where player_profile_id = p_player_profile_id
+    where public.player_inventory_items.player_profile_id = p_player_profile_id
   )
   select
     p_player_profile_id,
@@ -476,6 +476,8 @@ $$;
 create or replace function public.inventory_remove_item(
   p_player_profile_id uuid,
   p_item_row_id uuid,
+  p_quantity integer default null,
+  p_reason text default 'remove',
   p_join_code text default null
 )
 returns void
@@ -488,6 +490,9 @@ declare
   v_actor_role text;
   v_actor_profile_id uuid := null;
   v_item_name text;
+  v_current_quantity integer;
+  v_remove_quantity integer := greatest(1, coalesce(p_quantity, 1));
+  v_remaining_quantity integer;
 begin
   if v_is_dm then
     v_actor_role := 'dm';
@@ -497,22 +502,53 @@ begin
     v_actor_profile_id := p_player_profile_id;
   end if;
 
-  delete from public.player_inventory_items
-  where id = p_item_row_id
-    and player_profile_id = p_player_profile_id
-  returning coalesce((select name from public.item_master where id = item_master_id), custom_name)
-  into v_item_name;
+  select
+    i.quantity,
+    coalesce((select name from public.item_master where id = i.item_master_id), i.custom_name)
+  into v_current_quantity, v_item_name
+  from public.player_inventory_items i
+  where i.id = p_item_row_id
+    and i.player_profile_id = p_player_profile_id
+  for update;
 
-  if v_item_name is null then
+  if v_current_quantity is null then
     raise exception 'Inventory item not found';
+  end if;
+
+  if v_remove_quantity > v_current_quantity then
+    raise exception 'Cannot remove more than current quantity';
+  end if;
+
+  v_remaining_quantity := v_current_quantity - v_remove_quantity;
+
+  if v_remaining_quantity <= 0 then
+    delete from public.player_inventory_items
+    where id = p_item_row_id
+      and player_profile_id = p_player_profile_id;
+  else
+    update public.player_inventory_items
+    set quantity = v_remaining_quantity,
+        updated_at = timezone('utc', now())
+    where id = p_item_row_id
+      and player_profile_id = p_player_profile_id;
   end if;
 
   perform public.inventory_log_event(
     p_player_profile_id,
     v_actor_role,
     v_actor_profile_id,
-    'remove_item',
-    format('Item removed: %s', v_item_name)
+    case
+      when coalesce(lower(trim(p_reason)), '') = 'use_one' then 'use_item'
+      else 'remove_item'
+    end,
+    case
+      when coalesce(lower(trim(p_reason)), '') = 'use_one' then
+        format('Item used: %s x%s', v_item_name, v_remove_quantity)
+      when v_remaining_quantity <= 0 then
+        format('Item removed: %s x%s', v_item_name, v_remove_quantity)
+      else
+        format('Item decremented: %s -%s (remaining %s)', v_item_name, v_remove_quantity, v_remaining_quantity)
+    end
   );
 end;
 $$;
@@ -986,7 +1022,7 @@ revoke all on function public.inventory_get_snapshot(uuid, text) from public;
 revoke all on function public.inventory_search_catalog(text, uuid, text, integer) from public;
 revoke all on function public.inventory_get_transfer_targets(uuid, text) from public;
 revoke all on function public.inventory_upsert_item(uuid, text, uuid, text, integer, text, uuid) from public;
-revoke all on function public.inventory_remove_item(uuid, uuid, text) from public;
+revoke all on function public.inventory_remove_item(uuid, uuid, integer, text, text) from public;
 revoke all on function public.inventory_set_currency(uuid, integer, integer, integer, integer, text) from public;
 revoke all on function public.inventory_apply_transfer(uuid) from public;
 revoke all on function public.inventory_create_transfer(uuid, uuid, text, uuid, integer, text, integer, text) from public;
@@ -1000,7 +1036,7 @@ grant execute on function public.inventory_get_snapshot(uuid, text) to anon, aut
 grant execute on function public.inventory_search_catalog(text, uuid, text, integer) to anon, authenticated;
 grant execute on function public.inventory_get_transfer_targets(uuid, text) to anon, authenticated;
 grant execute on function public.inventory_upsert_item(uuid, text, uuid, text, integer, text, uuid) to anon, authenticated;
-grant execute on function public.inventory_remove_item(uuid, uuid, text) to anon, authenticated;
+grant execute on function public.inventory_remove_item(uuid, uuid, integer, text, text) to anon, authenticated;
 grant execute on function public.inventory_set_currency(uuid, integer, integer, integer, integer, text) to anon, authenticated;
 grant execute on function public.inventory_create_transfer(uuid, uuid, text, uuid, integer, text, integer, text) to anon, authenticated;
 grant execute on function public.inventory_respond_transfer(uuid, uuid, boolean, text) to anon, authenticated;

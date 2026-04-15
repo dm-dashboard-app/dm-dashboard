@@ -25,12 +25,13 @@ function gpLabel(value) {
   return `${Number(value || 0).toLocaleString()} gp`;
 }
 
-function ItemDetailModal({ item, onClose, players = [] }) {
+function ItemDetailModal({ item, onClose, players = [], onAssignmentSuccess }) {
   const [receiverProfileId, setReceiverProfileId] = useState(players[0]?.id || '');
   const [quantity, setQuantity] = useState(1);
   const [pricingMode, setPricingMode] = useState('listed');
   const [customPrice, setCustomPrice] = useState(item?.listed_price_gp || 0);
   const [status, setStatus] = useState('');
+  const [assignLoading, setAssignLoading] = useState(false);
 
   useEffect(() => {
     setReceiverProfileId(players[0]?.id || '');
@@ -45,15 +46,24 @@ function ItemDetailModal({ item, onClose, players = [] }) {
 
   async function handleAssignToPlayer() {
     if (!receiverProfileId) return;
-    const result = await inventoryDmShopAssignItem({
-      receiverProfileId,
-      shopInventoryId: item.id,
-      quantity: Number(quantity) || 1,
-      priceMode: pricingMode,
-      customPriceGp: pricingMode === 'custom' ? Number(customPrice) || 0 : null,
-      note: 'World shop assignment',
-    });
-    setStatus(`Assigned ${result?.item_name || item.item_name} x${result?.quantity_assigned || quantity}. Charged ${result?.total_gp_charged || 0} gp.`);
+    try {
+      setAssignLoading(true);
+      setStatus('');
+      const result = await inventoryDmShopAssignItem({
+        receiverProfileId,
+        shopInventoryId: item.id,
+        quantity: Number(quantity) || 1,
+        priceMode: pricingMode,
+        customPriceGp: pricingMode === 'custom' ? Number(customPrice) || 0 : null,
+        note: 'World shop assignment',
+      });
+      await onAssignmentSuccess?.();
+      setStatus(`Success: assigned ${result?.item_name || item.item_name} x${result?.quantity_assigned || quantity}. Charged ${result?.total_gp_charged || 0} gp.`);
+    } catch (error) {
+      setStatus(`Assignment failed: ${error?.message || 'Unable to assign this item right now.'}`);
+    } finally {
+      setAssignLoading(false);
+    }
   }
 
   return (
@@ -94,7 +104,9 @@ function ItemDetailModal({ item, onClose, players = [] }) {
             {pricingMode === 'custom' ? (
               <input className="form-input" type="number" min={0} value={customPrice} onChange={(event) => setCustomPrice(event.target.value)} />
             ) : null}
-            <button className="btn btn-primary" disabled={!receiverProfileId} onClick={handleAssignToPlayer}>Apply Assignment</button>
+            <button className="btn btn-primary" disabled={!receiverProfileId || assignLoading} onClick={handleAssignToPlayer}>
+              {assignLoading ? 'Applying…' : 'Apply Assignment'}
+            </button>
             {status ? <div className="world-shops-import-status">{status}</div> : null}
           </div>
         </div>
@@ -434,7 +446,12 @@ export default function WorldShopsPanel({ showImportControls = false, playerStat
         )}
       </div>
 
-      <ItemDetailModal item={selectedItem} onClose={() => { setSelectedItem(null); refreshWorldShopData(); }} players={players} />
+      <ItemDetailModal
+        item={selectedItem}
+        onClose={() => { setSelectedItem(null); refreshWorldShopData(); }}
+        players={players}
+        onAssignmentSuccess={refreshWorldShopData}
+      />
     </div>
   );
 }

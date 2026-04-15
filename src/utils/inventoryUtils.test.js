@@ -1,6 +1,7 @@
 import {
   evaluateTransferLifecycle,
   formatInventorySummary,
+  isClearlyUsableInventoryItem,
   mergeCatalogItems,
   normalizeInventoryItemPayload,
 } from './inventoryUtils';
@@ -53,5 +54,21 @@ describe('transfer lifecycle rules', () => {
 
   test('dm direct transfer fails cleanly when invalid', () => {
     expect(evaluateTransferLifecycle({ senderAvailable: 1, requestedAmount: 4, isDmFlow: true })).toBe('failed');
+  });
+});
+
+describe('usable item heuristic', () => {
+  test('flags obvious consumables as usable', () => {
+    expect(isClearlyUsableInventoryItem({
+      inventoryItem: { name: 'Potion of Healing' },
+      catalogItem: { item_type: 'Potion' },
+    })).toBe(true);
+  });
+
+  test('does not flag clearly non-consumable equipment', () => {
+    expect(isClearlyUsableInventoryItem({
+      inventoryItem: { name: 'Chain Mail' },
+      catalogItem: { item_type: 'Armor', category: 'Heavy Armor' },
+    })).toBe(false);
   });
 });
