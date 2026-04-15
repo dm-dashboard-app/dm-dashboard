@@ -147,6 +147,18 @@ export async function inventoryDmShopAssignItem({ receiverProfileId, shopInvento
   });
 }
 
+
+export async function inventoryDmLocaleShopAssignItem({ receiverProfileId, localeShopInventoryId, quantity = 1, priceMode = 'listed', customPriceGp = null, note = null }) {
+  return rpc('dm_world_locale_shop_assign_inventory_item', {
+    p_receiver_profile_id: receiverProfileId,
+    p_locale_shop_inventory_id: localeShopInventoryId,
+    p_quantity: quantity,
+    p_price_mode: priceMode,
+    p_custom_price_gp: customPriceGp,
+    p_note: note,
+  });
+}
+
 export async function inventoryDmAssignGeneratedShopItem({ receiverProfileId, itemMasterId, quantity = 1, priceMode = 'listed', listedPriceGp = 0, minimumPriceGp = 0, customPriceGp = null, note = null, sourceContext = 'World shop assignment' }) {
   return rpc('dm_assign_generated_shop_item', {
     p_receiver_profile_id: receiverProfileId,

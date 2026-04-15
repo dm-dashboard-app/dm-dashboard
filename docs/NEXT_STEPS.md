@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 14, 2026 (non-magic shops now include affluence-aware guaranteed core stock lanes)
+Last updated: April 15, 2026 (World tab now includes Locales + NPC baseline with locale-bound persistent shops)
 
 Purpose: This file is the active roadmap only. It should list genuinely open work, intentionally parked work, and clearly labeled future planning ideas that are not active implementation.
 
@@ -30,6 +30,7 @@ As of main at commit `e6eb6aa` (April 13, 2026), the following tracks are treate
 - Inventory Phase 1 baseline (shared inventory UI, player self-edit, DM full edit, transfer lifecycle, DM-only audit log)
 - Inventory workflow rebuild baseline (role-separated inventory sheets, DM World Rewards sub-tab, DM shop-row assignment/sell flow, DM currency award split tooling)
 - Inventory follow-up baseline (quantity-aware item decrement/removal, player self-removal, narrow usable-item `Use 1` shortcut, hardened shop assignment feedback/loading + refresh behavior, and generated unsaved World Shop row assignment without requiring pre-save persistence)
+- World tab expansion baseline: top-level Locales / Shop Generator / Rewards / NPCs, with durable locale records, district tracking, locale-bound shops + persisted inventory generation, and global NPC card/list/full-page editing flows
 
 This roadmap stays intentionally lean and should not reopen those tracks without a verified current regression on `main`.
 
@@ -538,10 +539,10 @@ Design constraint:
 
 **Phase 5 — Expansion hooks (later)**
 
-- city-shop linkage
-- persistent world/city shop records
-- inventory/equipment reuse of shared item catalog
-- optional restock/regeneration policy layer
+Status update: baseline city/locales + district-linked persistent shops + global NPC library is now landed. Remaining Phase 5 follow-up work is now extension/polish only:
+
+- richer locale cross-linking and deeper world entity relationships
+- optional restock policy variants / economic simulation layers
 - optional transaction integration much later
 
 #### 11) Explicit future linkage section
