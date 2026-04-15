@@ -15,7 +15,7 @@ import { flattenStates } from './dm/dmViewUtils';
 import RecentAlertsStrip from './dm/RecentAlertsStrip';
 import DMCombatLog from './dm/DMCombatLog';
 import DMPlayerCardsSection from './dm/DMPlayerCardsSection';
-import WorldShopsPanel from './dm/WorldShopsPanel';
+import WorldPanel from './dm/WorldPanel';
 import { DISPLAY_MODE_OUT_OF_COMBAT, DISPLAY_MODE_IN_COMBAT, readDisplayModeFromEncounter, writeDisplayMode } from '../utils/displayMode';
 import { ensureSeenBoundary, markSeenBoundary, readSeenBoundary } from '../utils/dmActivityWatermark';
 
@@ -264,7 +264,7 @@ export default function DMView() {
         {tab === 'combat' && <div className="dm-combat-layout"><div className="dm-initiative-column"><div className="initiative-top-bar"><div className="initiative-top-bar-primary">Round {encounter.round}</div></div><InitiativePanel encounter={encounter} combatants={combatants} playerStates={playerStates} role="dm" onUpdate={refreshAll} /></div></div>}
         {tab === 'players' && <DMPlayerCardsSection combatants={pcCombatants} playerStates={playerStates} encounterId={encounter.id} playerEditMode={encounter.player_edit_mode} onUpdate={refreshAll} />}
         {tab === 'activity' && <div className="dm-activity-layout"><div className="dm-activity-primary"><RecentAlertsStrip encounterId={encounter.id} mode="panel" /><SecretRollInbox encounterId={encounter.id} /></div><div className="dm-activity-secondary"><DMCombatLog encounterId={encounter.id} /></div></div>}
-        {tab === 'world' && <WorldShopsPanel showImportControls={false} />}
+        {tab === 'world' && <WorldPanel encounterId={encounter.id} playerStates={playerStates} />}
         {tab === 'manage' && <ManagementScreens onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); setTab('combat'); }} currentEncounter={encounter} displayToken={displayToken} joinCodes={joinCodes} onGenerateDisplayToken={handleGenerateDisplayToken} onRevokeDisplayToken={handleRevokeDisplayToken} onFrontScreen={handleFrontScreen} onSignOut={signOut} displayCombatMode={displayCombatMode} onSetDisplayCombatMode={mode => handleSetDisplayCombatMode(mode, 'manual')} />}
       </div>
 

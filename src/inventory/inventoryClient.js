@@ -119,3 +119,25 @@ export async function inventoryGetTransferTargets({ playerProfileId, role, joinC
     p_join_code: playerJoinCode(role, joinCode),
   });
 }
+
+export async function inventoryDmAwardCurrency({ encounterId = null, receiverProfileId = null, currencyType = 'gp', amount = 0, awardAll = false, note = null }) {
+  return rpc('dm_inventory_award_currency', {
+    p_encounter_id: encounterId,
+    p_receiver_profile_id: receiverProfileId,
+    p_currency_type: currencyType,
+    p_amount: amount,
+    p_award_all: !!awardAll,
+    p_note: note,
+  });
+}
+
+export async function inventoryDmShopAssignItem({ receiverProfileId, shopInventoryId, quantity = 1, priceMode = 'listed', customPriceGp = null, note = null }) {
+  return rpc('dm_shop_assign_inventory_item', {
+    p_receiver_profile_id: receiverProfileId,
+    p_shop_inventory_id: shopInventoryId,
+    p_quantity: quantity,
+    p_price_mode: priceMode,
+    p_custom_price_gp: customPriceGp,
+    p_note: note,
+  });
+}

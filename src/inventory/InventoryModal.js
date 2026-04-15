@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { supabase } from '../supabaseClient';
 import {
   inventoryCreateTransfer,
   inventoryGetLog,
@@ -10,6 +11,13 @@ import {
   inventoryUpsertItem,
 } from './inventoryClient';
 import { formatInventorySummary, normalizeInventoryItemPayload } from '../utils/inventoryUtils';
+import { compactItemMeta, resolveItemDetailText } from '../utils/itemDetailText';
+
+const EMPTY_SNAPSHOT = {
+  items: [],
+  currency: { pp: 0, gp: 0, sp: 0, cp: 0 },
+  summary: { total_item_quantity: 0, gp: 0 },
+};
 
 export default function InventoryModal({
   open,
@@ -20,28 +28,29 @@ export default function InventoryModal({
   joinCode = null,
   senderProfileId = null,
 }) {
-  const [snapshot, setSnapshot] = useState({ items: [], currency: { pp: 0, gp: 0, sp: 0, cp: 0 }, summary: { total_item_quantity: 0, gp: 0 } });
-  const [query, setQuery] = useState('');
+  const isDm = role === 'dm';
+  const isPlayer = role === 'player';
+  const canManageItems = isDm;
+
+  const [snapshot, setSnapshot] = useState(EMPTY_SNAPSHOT);
+  const [itemFilter, setItemFilter] = useState('');
+  const [catalogQuery, setCatalogQuery] = useState('');
   const [catalogResults, setCatalogResults] = useState([]);
-  const [editingItem, setEditingItem] = useState(null);
-  const [customName, setCustomName] = useState('');
-  const [quantity, setQuantity] = useState('1');
-  const [notes, setNotes] = useState('');
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedItemCatalog, setSelectedItemCatalog] = useState(null);
   const [transferOpen, setTransferOpen] = useState(false);
   const [transferTargets, setTransferTargets] = useState([]);
   const [transferPayload, setTransferPayload] = useState({
     kind: 'item',
-    itemRowId: null,
+    itemRowId: '',
     quantity: 1,
     currencyType: 'gp',
     amount: 1,
     receiver: '',
   });
+  const [dmGrant, setDmGrant] = useState({ itemMasterId: '', quantity: 1, notes: '' });
   const [logRows, setLogRows] = useState([]);
   const [showLog, setShowLog] = useState(false);
-
-  const canEdit = role === 'dm' || role === 'player';
-  const isDm = role === 'dm';
 
   const loadAll = useCallback(async () => {
     if (!playerProfileId) return;
@@ -49,8 +58,9 @@ export default function InventoryModal({
       inventoryGetSnapshot({ playerProfileId, role, joinCode }),
       inventoryGetTransferTargets({ playerProfileId, role, joinCode }),
     ]);
-    setSnapshot(nextSnapshot || { items: [], currency: { pp: 0, gp: 0, sp: 0, cp: 0 }, summary: { total_item_quantity: 0, gp: 0 } });
+    setSnapshot(nextSnapshot || EMPTY_SNAPSHOT);
     setTransferTargets((targets || []).filter((row) => row.profile_id !== playerProfileId));
+
     if (isDm) {
       const rows = await inventoryGetLog({ playerProfileId });
       setLogRows(rows || []);
@@ -60,26 +70,27 @@ export default function InventoryModal({
   useEffect(() => {
     if (!open) return;
     loadAll();
-  }, [loadAll, open, playerProfileId]);
+  }, [loadAll, open]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || !canManageItems) return;
     let cancelled = false;
     const timer = setTimeout(async () => {
-      const rows = await inventorySearchCatalog({ profileId: playerProfileId, role, query, joinCode });
+      const rows = await inventorySearchCatalog({ profileId: playerProfileId, role, query: catalogQuery, joinCode });
       if (!cancelled) setCatalogResults(rows || []);
     }, 180);
+
     return () => {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [open, query, playerProfileId, role, joinCode]);
+  }, [open, canManageItems, catalogQuery, playerProfileId, role, joinCode]);
 
   const filteredItems = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = itemFilter.trim().toLowerCase();
     if (!q) return snapshot.items || [];
     return (snapshot.items || []).filter((item) => String(item.name || '').toLowerCase().includes(q));
-  }, [snapshot.items, query]);
+  }, [snapshot.items, itemFilter]);
 
   async function saveCurrency(nextCurrency) {
     await inventorySetCurrency({
@@ -94,33 +105,39 @@ export default function InventoryModal({
     await loadAll();
   }
 
-  async function saveItem({ itemMasterId = null, customName: nextCustom = null, quantity: nextQty = 1, notes: nextNotes = null, itemRowId = null }) {
-    const normalized = normalizeInventoryItemPayload({ itemMasterId, customName: nextCustom, quantity: nextQty, notes: nextNotes });
+  async function saveDmGrant() {
+    const normalized = normalizeInventoryItemPayload({
+      itemMasterId: dmGrant.itemMasterId || null,
+      customName: null,
+      quantity: dmGrant.quantity,
+      notes: dmGrant.notes,
+    });
+
     await inventoryUpsertItem({
       playerProfileId,
       role,
       joinCode,
       itemMasterId: normalized.itemMasterId,
-      customName: normalized.customName,
+      customName: null,
       quantity: normalized.quantity,
       notes: normalized.notes,
-      itemRowId,
+      itemRowId: null,
     });
-    setEditingItem(null);
-    setCustomName('');
-    setQuantity('1');
-    setNotes('');
+
+    setDmGrant({ itemMasterId: '', quantity: 1, notes: '' });
     await loadAll();
   }
 
   async function removeItem(itemRowId) {
     await inventoryRemoveItem({ playerProfileId, role, itemRowId, joinCode });
+    setSelectedItem(null);
     await loadAll();
   }
 
   async function submitTransfer() {
     if (!transferPayload.receiver) return;
     if (transferPayload.kind === 'item' && !transferPayload.itemRowId) return;
+
     await inventoryCreateTransfer({
       senderProfileId: senderProfileId || playerProfileId,
       receiverProfileId: transferPayload.receiver,
@@ -131,10 +148,39 @@ export default function InventoryModal({
       currencyType: transferPayload.kind === 'currency' ? transferPayload.currencyType : null,
       currencyAmount: transferPayload.kind === 'currency' ? Number(transferPayload.amount) || 1 : null,
     });
+
     setTransferOpen(false);
-    setTransferPayload({ kind: 'item', itemRowId: null, quantity: 1, currencyType: 'gp', amount: 1, receiver: '' });
+    setTransferPayload({ kind: 'item', itemRowId: '', quantity: 1, currencyType: 'gp', amount: 1, receiver: '' });
     await loadAll();
   }
+
+
+  useEffect(() => {
+    let active = true;
+    async function loadSelectedCatalog() {
+      if (!selectedItem?.item_master_id) {
+        setSelectedItemCatalog(null);
+        return;
+      }
+      const { data, error } = await supabase
+        .from('item_master')
+        .select('id, name, item_type, category, subcategory, rarity, description, metadata_json')
+        .eq('id', selectedItem.item_master_id)
+        .maybeSingle();
+      if (!active) return;
+      if (error) {
+        setSelectedItemCatalog(null);
+        return;
+      }
+      setSelectedItemCatalog(data || null);
+    }
+    loadSelectedCatalog();
+    return () => {
+      active = false;
+    };
+  }, [selectedItem?.id, selectedItem?.item_master_id]);
+
+  const selectedItemDetail = selectedItemCatalog ? resolveItemDetailText(selectedItemCatalog) : null;
 
   if (!open) return null;
 
@@ -149,50 +195,48 @@ export default function InventoryModal({
           <button className="btn btn-ghost btn-icon" onClick={onClose}>✕</button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 6 }}>
-          {['pp', 'gp', 'sp', 'cp'].map((key) => (
-            <label key={key} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontSize: 11, textTransform: 'uppercase', color: 'var(--text-muted)' }}>{key}</span>
-              <input
-                className="form-input"
-                type="number"
-                min={0}
-                value={snapshot.currency?.[key] ?? 0}
-                disabled={!canEdit}
-                onChange={(event) => setSnapshot((curr) => ({ ...curr, currency: { ...(curr.currency || {}), [key]: Math.max(0, parseInt(event.target.value || '0', 10) || 0) } }))}
-                onBlur={() => canEdit && saveCurrency(snapshot.currency || {})}
-              />
-            </label>
-          ))}
-        </div>
-
-        <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-          <input className="form-input" placeholder="Search inventory / catalog" value={query} onChange={(event) => setQuery(event.target.value)} />
-          {canEdit && <button className="btn btn-ghost" onClick={() => setEditingItem({})}>Add Item</button>}
-          {canEdit && <button className="btn btn-ghost" onClick={() => setTransferOpen((curr) => !curr)}>Transfer</button>}
-          {isDm && <button className="btn btn-ghost" onClick={() => setShowLog((curr) => !curr)}>{showLog ? 'Hide Log' : 'Show Log'}</button>}
-        </div>
-
-        {editingItem !== null && (
-          <div className="panel" style={{ marginTop: 8, padding: 8 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <input className="form-input" placeholder="Custom item name" value={customName} onChange={(event) => setCustomName(event.target.value)} />
-              <div style={{ display: 'grid', gridTemplateColumns: '84px 1fr', gap: 6 }}>
-                <input className="form-input" type="number" min={1} value={quantity} onChange={(event) => setQuantity(event.target.value)} />
-                <input className="form-input" placeholder="Notes" value={notes} onChange={(event) => setNotes(event.target.value)} />
-              </div>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                <button className="btn btn-primary" onClick={() => saveItem({ itemRowId: editingItem.id || null, customName, quantity, notes })}>Save Custom</button>
-                {catalogResults.slice(0, 5).map((row) => (
-                  <button key={row.id} className="btn btn-ghost" onClick={() => saveItem({ itemMasterId: row.id, quantity, notes })}>{row.name}</button>
-                ))}
-              </div>
-            </div>
+        <div className="panel" style={{ padding: 8 }}>
+          <div className="panel-title" style={{ marginBottom: 6 }}>Currency</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 6 }}>
+            {['pp', 'gp', 'sp', 'cp'].map((key) => (
+              <label key={key} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span style={{ fontSize: 11, textTransform: 'uppercase', color: 'var(--text-muted)' }}>{key}</span>
+                <input
+                  className="form-input"
+                  type="number"
+                  min={0}
+                  disabled={!isDm}
+                  value={snapshot.currency?.[key] ?? 0}
+                  onChange={(event) => setSnapshot((curr) => ({ ...curr, currency: { ...(curr.currency || {}), [key]: Math.max(0, parseInt(event.target.value || '0', 10) || 0) } }))}
+                  onBlur={() => isDm && saveCurrency(snapshot.currency || {})}
+                />
+              </label>
+            ))}
           </div>
-        )}
+          {isPlayer ? <div style={{ marginTop: 6, fontSize: 11, color: 'var(--text-muted)' }}>Players can transfer currency, but only the DM can directly edit totals.</div> : null}
+        </div>
+
+        <div className="panel" style={{ padding: 8, marginTop: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+            <div className="panel-title">Items</div>
+            <button className="btn btn-ghost" onClick={() => setTransferOpen((curr) => !curr)}>{transferOpen ? 'Close Transfer' : 'Transfer'}</button>
+          </div>
+          <input className="form-input" placeholder="Search items" value={itemFilter} onChange={(event) => setItemFilter(event.target.value)} />
+          <div style={{ marginTop: 8, display: 'grid', gap: 6 }}>
+            {filteredItems.length === 0 ? <div className="empty-state" style={{ padding: 8 }}>No items yet.</div> : null}
+            {filteredItems.map((item) => (
+              <button key={item.id} className="world-shops-saved-item" style={{ textAlign: 'left' }} onClick={() => setSelectedItem(item)}>
+                <strong>{item.name}</strong>
+                <span>Quantity: {item.quantity}</span>
+                {item.notes ? <span>{item.notes}</span> : null}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {transferOpen && (
           <div className="panel" style={{ marginTop: 8, padding: 8 }}>
+            <div className="panel-title" style={{ marginBottom: 6 }}>Transfer</div>
             <div style={{ display: 'grid', gap: 6 }}>
               <select className="form-input" value={transferPayload.kind} onChange={(event) => setTransferPayload((curr) => ({ ...curr, kind: event.target.value }))}>
                 <option value="item">Item</option>
@@ -204,7 +248,7 @@ export default function InventoryModal({
               </select>
               {transferPayload.kind === 'item' ? (
                 <>
-                  <select className="form-input" value={transferPayload.itemRowId || ''} onChange={(event) => setTransferPayload((curr) => ({ ...curr, itemRowId: event.target.value }))}>
+                  <select className="form-input" value={transferPayload.itemRowId} onChange={(event) => setTransferPayload((curr) => ({ ...curr, itemRowId: event.target.value }))}>
                     <option value="">Select item</option>
                     {(snapshot.items || []).map((item) => <option key={item.id} value={item.id}>{item.name} (x{item.quantity})</option>)}
                   </select>
@@ -222,35 +266,72 @@ export default function InventoryModal({
                 </>
               )}
               <button className="btn btn-primary" onClick={submitTransfer}>{isDm ? 'Send Instantly' : 'Send Request'}</button>
+              {isPlayer ? <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Receiver confirmation is required for player-initiated transfers.</div> : null}
             </div>
           </div>
         )}
 
-        <div style={{ marginTop: 8, display: 'grid', gap: 6 }}>
-          {filteredItems.length === 0 && <div className="empty-state" style={{ padding: 6 }}>No items yet.</div>}
-          {filteredItems.map((item) => (
-            <button key={item.id} className="manage-row" style={{ width: '100%', textAlign: 'left' }} onClick={() => {
-              setEditingItem(item);
-              setCustomName(item.custom_name || item.name || '');
-              setQuantity(String(item.quantity || 1));
-              setNotes(item.notes || '');
-            }}>
-              <span>{item.name} • x{item.quantity}{item.notes ? ` • ${item.notes}` : ''}</span>
-              {canEdit && <span style={{ display: 'flex', gap: 6 }}><button className="btn btn-ghost" onClick={(event) => { event.stopPropagation(); removeItem(item.id); }}>Remove</button></span>}
-            </button>
-          ))}
-        </div>
+        {isDm && (
+          <div className="panel" style={{ marginTop: 8, padding: 8 }}>
+            <div className="panel-title" style={{ marginBottom: 6 }}>DM Item Grant</div>
+            <div style={{ display: 'grid', gap: 6 }}>
+              <input className="form-input" value={catalogQuery} onChange={(event) => setCatalogQuery(event.target.value)} placeholder="Search item catalog" />
+              <select className="form-input" value={dmGrant.itemMasterId} onChange={(event) => setDmGrant((curr) => ({ ...curr, itemMasterId: event.target.value }))}>
+                <option value="">Select catalog item</option>
+                {catalogResults.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}
+              </select>
+              <div style={{ display: 'grid', gridTemplateColumns: '88px 1fr', gap: 6 }}>
+                <input className="form-input" type="number" min={1} value={dmGrant.quantity} onChange={(event) => setDmGrant((curr) => ({ ...curr, quantity: event.target.value }))} />
+                <input className="form-input" value={dmGrant.notes} onChange={(event) => setDmGrant((curr) => ({ ...curr, notes: event.target.value }))} placeholder="Optional notes" />
+              </div>
+              <button className="btn btn-primary" disabled={!dmGrant.itemMasterId} onClick={saveDmGrant}>Grant Item</button>
+            </div>
+          </div>
+        )}
 
-        {isDm && showLog && (
+        {isDm && (
           <div style={{ marginTop: 10, borderTop: '1px solid var(--border)', paddingTop: 8 }}>
-            <div className="panel-title" style={{ marginBottom: 6 }}>Inventory Audit Log (DM)</div>
-            <div style={{ display: 'grid', gap: 4 }}>
-              {logRows.length === 0 && <div className="empty-state" style={{ padding: 6 }}>No inventory log rows yet.</div>}
-              {logRows.map((row) => (
-                <div key={row.id} style={{ fontSize: 12, color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 8px' }}>
-                  <strong>{row.actor_name || row.actor_role}</strong> • {row.summary}
-                </div>
-              ))}
+            <button className="btn btn-ghost" onClick={() => setShowLog((curr) => !curr)}>{showLog ? 'Hide DM Log' : 'Show DM Log'}</button>
+            {showLog ? (
+              <div style={{ marginTop: 8, display: 'grid', gap: 4 }}>
+                {logRows.length === 0 ? <div className="empty-state" style={{ padding: 6 }}>No inventory log rows yet.</div> : null}
+                {logRows.map((row) => (
+                  <div key={row.id} style={{ fontSize: 12, color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 8px' }}>
+                    <strong>{row.actor_name || row.actor_role}</strong> • {row.summary}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        )}
+
+        {selectedItem && (
+          <div className="world-shop-modal-backdrop" onClick={() => setSelectedItem(null)}>
+            <div className="world-shop-modal" onClick={(event) => event.stopPropagation()}>
+              <div className="world-shop-modal-head">
+                <strong>{selectedItemCatalog?.name || selectedItem.name}</strong>
+                <button className="btn btn-ghost" onClick={() => setSelectedItem(null)}>Close</button>
+              </div>
+              <div className="world-shop-item-meta">
+                {compactItemMeta(selectedItemCatalog || {}).length > 0 ? (
+                  compactItemMeta(selectedItemCatalog || {}).map((entry) => <span key={entry}>{entry}</span>)
+                ) : (
+                  <span>Custom item</span>
+                )}
+                <span>• Quantity: {selectedItem.quantity}</span>
+                {selectedItem.updated_at ? <span>• Updated: {new Date(selectedItem.updated_at).toLocaleString()}</span> : null}
+              </div>
+              {selectedItemCatalog ? (
+                selectedItemDetail?.mode === 'structured_fallback' ? (
+                  <pre className="world-shop-item-description">{selectedItemDetail?.text}</pre>
+                ) : (
+                  <p className="world-shop-item-description">{selectedItemDetail?.text}</p>
+                )
+              ) : (
+                <p className="world-shop-item-description">{selectedItem.notes || 'No additional details available for this custom item.'}</p>
+              )}
+              {selectedItem.notes && selectedItemCatalog ? <p className="world-shop-item-description" style={{ opacity: 0.9 }}>Inventory notes: {selectedItem.notes}</p> : null}
+              {isDm ? <button className="btn btn-ghost" onClick={() => removeItem(selectedItem.id)}>Remove Item</button> : null}
             </div>
           </div>
         )}
