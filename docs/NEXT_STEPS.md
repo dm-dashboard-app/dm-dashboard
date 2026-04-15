@@ -29,7 +29,7 @@ As of main at commit `e6eb6aa` (April 13, 2026), the following tracks are treate
 - Stage 4 custom/homebrew/private lane + in-app DM import/refresh controls for item_master
 - Inventory Phase 1 baseline (shared inventory UI, player self-edit, DM full edit, transfer lifecycle, DM-only audit log)
 - Inventory workflow rebuild baseline (role-separated inventory sheets, DM World Rewards sub-tab, DM shop-row assignment/sell flow, DM currency award split tooling)
-- Inventory follow-up baseline (quantity-aware item decrement/removal, player self-removal, narrow usable-item `Use 1` shortcut, and hardened shop assignment feedback/loading + refresh behavior)
+- Inventory follow-up baseline (quantity-aware item decrement/removal, player self-removal, narrow usable-item `Use 1` shortcut, hardened shop assignment feedback/loading + refresh behavior, and generated unsaved World Shop row assignment without requiring pre-save persistence)
 
 This roadmap stays intentionally lean and should not reopen those tracks without a verified current regression on `main`.
 

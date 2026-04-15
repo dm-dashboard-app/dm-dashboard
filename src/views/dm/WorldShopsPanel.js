@@ -4,7 +4,7 @@ import { generateShopRows } from '../../utils/shopGenerator';
 import { applyPersistedStockLanes, buildGenerationSeedWithCoreCount, countCoreRows } from '../../utils/shopLanePersistence';
 import ItemImportPanel from '../../components/ItemImportPanel';
 import { generateSpellScrollBatch } from '../../utils/spellScrolls';
-import { inventoryDmShopAssignItem } from '../../inventory/inventoryClient';
+import { inventoryDmAssignGeneratedShopItem, inventoryDmShopAssignItem } from '../../inventory/inventoryClient';
 import { resolveItemDetailText } from '../../utils/itemDetailText';
 
 const SHOP_TYPES = [
@@ -39,7 +39,7 @@ function ItemDetailModal({ item, onClose, players = [], onAssignmentSuccess }) {
     setPricingMode('listed');
     setCustomPrice(item?.listed_price_gp || 0);
     setStatus('');
-  }, [item?.id, item?.listed_price_gp, players]);
+  }, [item?.id, item?.listed_price_gp, item?.shop_inventory_id, players]);
 
   if (!item) return null;
   const detail = resolveItemDetailText(item);
@@ -49,14 +49,27 @@ function ItemDetailModal({ item, onClose, players = [], onAssignmentSuccess }) {
     try {
       setAssignLoading(true);
       setStatus('');
-      const result = await inventoryDmShopAssignItem({
+      const hasPersistedShopInventoryId = !!item.shop_inventory_id;
+      const assignmentPayload = {
         receiverProfileId,
-        shopInventoryId: item.id,
         quantity: Number(quantity) || 1,
         priceMode: pricingMode,
         customPriceGp: pricingMode === 'custom' ? Number(customPrice) || 0 : null,
         note: 'World shop assignment',
-      });
+      };
+
+      const result = hasPersistedShopInventoryId
+        ? await inventoryDmShopAssignItem({
+          ...assignmentPayload,
+          shopInventoryId: item.shop_inventory_id,
+        })
+        : await inventoryDmAssignGeneratedShopItem({
+          ...assignmentPayload,
+          itemMasterId: item.item_id,
+          listedPriceGp: Number(item.listed_price_gp) || 0,
+          minimumPriceGp: Number(item.minimum_price_gp) || 0,
+          sourceContext: 'World shop generated row assignment',
+        });
       await onAssignmentSuccess?.();
       setStatus(`Success: assigned ${result?.item_name || item.item_name} x${result?.quantity_assigned || quantity}. Charged ${result?.total_gp_charged || 0} gp.`);
     } catch (error) {
@@ -199,6 +212,7 @@ export default function WorldShopsPanel({ showImportControls = false, playerStat
     const normalized = (data || []).map((row) => ({
       ...(catalogLookup.get(row.item_id) || {}),
       id: row.id,
+      shop_inventory_id: row.id,
       item_id: row.item_id,
       item_name: row.item_name,
       item_type: row.item_type,
