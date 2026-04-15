@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import { generateShopRows } from '../../utils/shopGenerator';
-import { inventoryDmAssignGeneratedShopItem } from '../../inventory/inventoryClient';
+import { inventoryDmLocaleShopAssignItem } from '../../inventory/inventoryClient';
 import { resolveItemDetailText } from '../../utils/itemDetailText';
 
 const LOCALE_TYPES = ['City', 'Town', 'Village', 'District', 'Outpost', 'Port', 'Stronghold', 'Hamlet'];
@@ -171,24 +171,21 @@ function LocaleShopItemModal({ item, players = [], onClose, onAssignmentSuccess 
 
   async function handleAssignToPlayer() {
     if (!receiverProfileId) return;
-    if (!item.item_id) {
-      setStatus('Assignment failed: this row has no catalog item id. Regenerate stock or import matching catalog rows first.');
+    if (!item.id) {
+      setStatus('Assignment failed: locale shop inventory row id is missing.');
       return;
     }
 
     try {
       setAssignLoading(true);
       setStatus('');
-      const result = await inventoryDmAssignGeneratedShopItem({
+      const result = await inventoryDmLocaleShopAssignItem({
         receiverProfileId,
-        itemMasterId: item.item_id,
+        localeShopInventoryId: item.id,
         quantity: Number(quantity) || 1,
         priceMode: pricingMode,
         customPriceGp: pricingMode === 'custom' ? Number(customPrice) || 0 : null,
-        listedPriceGp: Number(item.listed_price_gp) || 0,
-        minimumPriceGp: Number(item.minimum_price_gp) || 0,
         note: 'Locale shop inventory assignment',
-        sourceContext: 'Locale shop inventory assignment',
       });
       await onAssignmentSuccess?.();
       setStatus(`Success: assigned ${result?.item_name || item.item_name} x${result?.quantity_assigned || quantity}. Charged ${result?.total_gp_charged || 0} gp.`);
