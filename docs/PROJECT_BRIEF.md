@@ -263,7 +263,7 @@ Landed baseline includes:
 - Rewards surface is DM-only and supports item search/assign plus currency award to one player or all active players in current session, with explicit success/error feedback and inventory refresh on success
 - inventory item upsert merge paths now correctly target the non-null item identity uniqueness condition (`item_master_id is not null`) so DM rewards, shop assignment, and linked item transfers do not fail on ON CONFLICT mismatch
 - all-active currency split is deterministic: base equal split with remainder distributed one-by-one in ascending player-profile UUID order
-- shop rows now support direct assign/sell-to-player flow with listed/minimum/custom pricing and atomic GP deduction + inventory upsert server operation
+- shop rows now support direct assign/sell-to-player flow with listed/minimum/custom pricing and atomic GP deduction + inventory upsert server operation, including generated unsaved rows (no forced pre-save step)
 - inventory item detail now supports quantity-aware decrement/removal for both DM and player self-removal paths (including full-stack removal when quantity reaches zero)
 - inventory item detail now provides a narrow `Use 1` shortcut for clearly consumable/usable rows (for example potions/rations/torches/ammo-like naming) without widening to a full rules engine
 - world shop item-detail assignment flow now has explicit loading state plus success/failure feedback and post-success world/shop refresh behavior

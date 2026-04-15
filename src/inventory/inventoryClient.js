@@ -146,3 +146,17 @@ export async function inventoryDmShopAssignItem({ receiverProfileId, shopInvento
     p_note: note,
   });
 }
+
+export async function inventoryDmAssignGeneratedShopItem({ receiverProfileId, itemMasterId, quantity = 1, priceMode = 'listed', listedPriceGp = 0, minimumPriceGp = 0, customPriceGp = null, note = null, sourceContext = 'World shop assignment' }) {
+  return rpc('dm_assign_generated_shop_item', {
+    p_receiver_profile_id: receiverProfileId,
+    p_item_id: itemMasterId,
+    p_quantity: quantity,
+    p_price_mode: priceMode,
+    p_listed_price_gp: listedPriceGp,
+    p_minimum_price_gp: minimumPriceGp,
+    p_custom_price_gp: customPriceGp,
+    p_note: note,
+    p_source_context: sourceContext,
+  });
+}
