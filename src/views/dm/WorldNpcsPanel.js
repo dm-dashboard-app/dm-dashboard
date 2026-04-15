@@ -42,10 +42,10 @@ export default function WorldNpcsPanel() {
     if (loadError) throw loadError;
     const rows = data || [];
     setNpcs(rows);
-    if (!selectedNpcId || preferredNpcId) {
-      setSelectedNpcId(preferredNpcId || rows[0]?.id || null);
+    if (preferredNpcId) {
+      setSelectedNpcId(preferredNpcId);
     }
-  }, [selectedNpcId]);
+  }, []);
 
   useEffect(() => {
     let active = true;

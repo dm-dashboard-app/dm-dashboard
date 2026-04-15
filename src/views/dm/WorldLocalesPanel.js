@@ -150,9 +150,55 @@ function LocaleShopEditor({ shop, districts = [], onSave, onCancel }) {
   );
 }
 
-function LocaleShopItemModal({ item, onClose }) {
+function LocaleShopItemModal({ item, players = [], onClose, onAssignmentSuccess = null }) {
+  const [receiverProfileId, setReceiverProfileId] = useState(players[0]?.id || '');
+  const [quantity, setQuantity] = useState(1);
+  const [pricingMode, setPricingMode] = useState('listed');
+  const [customPrice, setCustomPrice] = useState(item?.listed_price_gp || 0);
+  const [status, setStatus] = useState('');
+  const [assignLoading, setAssignLoading] = useState(false);
+
+  useEffect(() => {
+    setReceiverProfileId(players[0]?.id || '');
+    setQuantity(1);
+    setPricingMode('listed');
+    setCustomPrice(item?.listed_price_gp || 0);
+    setStatus('');
+  }, [item?.id, item?.listed_price_gp, players]);
+
   if (!item) return null;
   const detail = resolveItemDetailText(item);
+
+  async function handleAssignToPlayer() {
+    if (!receiverProfileId) return;
+    if (!item.item_id) {
+      setStatus('Assignment failed: this row has no catalog item id. Regenerate stock or import matching catalog rows first.');
+      return;
+    }
+
+    try {
+      setAssignLoading(true);
+      setStatus('');
+      const result = await inventoryDmAssignGeneratedShopItem({
+        receiverProfileId,
+        itemMasterId: item.item_id,
+        quantity: Number(quantity) || 1,
+        priceMode: pricingMode,
+        customPriceGp: pricingMode === 'custom' ? Number(customPrice) || 0 : null,
+        listedPriceGp: Number(item.listed_price_gp) || 0,
+        minimumPriceGp: Number(item.minimum_price_gp) || 0,
+        note: 'Locale shop inventory assignment',
+        sourceContext: 'Locale shop inventory assignment',
+      });
+      await onAssignmentSuccess?.();
+      setStatus(`Success: assigned ${result?.item_name || item.item_name} x${result?.quantity_assigned || quantity}. Charged ${result?.total_gp_charged || 0} gp.`);
+    } catch (error) {
+      setStatus(`Assignment failed: ${error?.message || 'Unable to assign this item right now.'}`);
+    } finally {
+      setAssignLoading(false);
+    }
+  }
+
   return (
     <div className="world-sheet-backdrop" onClick={onClose}>
       <div className="world-sheet" onClick={(event) => event.stopPropagation()}>
@@ -172,6 +218,29 @@ function LocaleShopItemModal({ item, onClose }) {
           <span>DC {item.barter_dc}</span>
         </div>
         {detail.mode === 'structured_fallback' ? <pre className="world-card-body">{detail.text}</pre> : <div className="world-card-body" style={{ whiteSpace: 'pre-wrap' }}>{detail.text}</div>}
+
+        <div className="world-card" style={{ padding: 8 }}>
+          <div className="world-card-head"><strong>Assign / Sell to Player</strong></div>
+          <div className="world-form-grid">
+            <select className="form-input" value={receiverProfileId} onChange={(event) => setReceiverProfileId(event.target.value)}>
+              <option value="">Select player</option>
+              {players.map((player) => <option key={player.id} value={player.id}>{player.name}</option>)}
+            </select>
+            <input className="form-input" type="number" min={1} value={quantity} onChange={(event) => setQuantity(event.target.value)} />
+            <select className="form-input" value={pricingMode} onChange={(event) => setPricingMode(event.target.value)}>
+              <option value="listed">Listed price</option>
+              <option value="minimum">Minimum price</option>
+              <option value="custom">Custom price</option>
+            </select>
+            {pricingMode === 'custom' ? (
+              <input className="form-input" type="number" min={0} value={customPrice} onChange={(event) => setCustomPrice(event.target.value)} />
+            ) : null}
+            <button className="btn btn-primary" disabled={!receiverProfileId || assignLoading} onClick={handleAssignToPlayer}>
+              {assignLoading ? 'Applying…' : 'Apply Assignment'}
+            </button>
+            {status ? <div className="world-shops-import-status">{status}</div> : null}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -437,25 +506,6 @@ export default function WorldLocalesPanel({ playerStates = [] }) {
     }
   }
 
-  async function assignItemToFirstPlayer(row) {
-    const receiverProfileId = players[0]?.id;
-    if (!receiverProfileId || !row?.item_id) return;
-    try {
-      await inventoryDmAssignGeneratedShopItem({
-        receiverProfileId,
-        itemMasterId: row.item_id,
-        quantity: 1,
-        listedPriceGp: Number(row.listed_price_gp) || 0,
-        minimumPriceGp: Number(row.minimum_price_gp) || 0,
-        priceMode: 'listed',
-        sourceContext: 'Locale shop inventory assignment',
-      });
-      setStatus(`Assigned ${row.item_name} to ${players[0]?.name}.`);
-    } catch (assignError) {
-      setError(assignError.message || 'Assignment failed.');
-    }
-  }
-
   useEffect(() => {
     setEditingNotes(localeDetail?.notes || '');
   }, [localeDetail?.id, localeDetail?.notes]);
@@ -585,9 +635,6 @@ export default function WorldLocalesPanel({ playerStates = [] }) {
                           </button>
                         ))}
                       </div>
-                      {inventoryRows.length > 0 && players.length > 0 ? (
-                        <button className="btn btn-ghost" onClick={() => assignItemToFirstPlayer(inventoryRows[0])}>Quick Assign First Item to {players[0].name}</button>
-                      ) : null}
                     </>
                   ) : null}
 
@@ -631,7 +678,7 @@ export default function WorldLocalesPanel({ playerStates = [] }) {
       {editingLocale ? <LocaleEditor locale={editingLocale.id ? editingLocale : null} onCancel={() => setEditingLocale(null)} onSave={saveLocale} /> : null}
       {editingDistrict ? <DistrictEditor district={editingDistrict.id ? editingDistrict : null} onCancel={() => setEditingDistrict(null)} onSave={saveDistrict} /> : null}
       {editingShop ? <LocaleShopEditor shop={editingShop.id ? editingShop : null} districts={districts} onCancel={() => setEditingShop(null)} onSave={saveShop} /> : null}
-      <LocaleShopItemModal item={selectedInventoryItem} onClose={() => setSelectedInventoryItem(null)} />
+      <LocaleShopItemModal item={selectedInventoryItem} players={players} onClose={() => setSelectedInventoryItem(null)} onAssignmentSuccess={() => loadLocaleDetail(selectedLocaleId)} />
     </div>
   );
 }
