@@ -16,10 +16,13 @@ async function rpc(name, params) {
 }
 
 export async function inventoryGetSnapshot({ playerProfileId, role, joinCode }) {
-  return rpc('inventory_get_snapshot', {
+  const data = await rpc('inventory_get_snapshot', {
     p_player_profile_id: playerProfileId,
     p_join_code: playerJoinCode(role, joinCode),
   });
+  if (!data) return null;
+  if (Array.isArray(data)) return data[0] || null;
+  return data;
 }
 
 export async function inventoryGetSummary({ playerProfileId, role, joinCode }) {

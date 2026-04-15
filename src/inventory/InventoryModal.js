@@ -67,19 +67,41 @@ export default function InventoryModal({
   const [dmGrant, setDmGrant] = useState({ itemMasterId: '', quantity: 1, notes: '' });
   const [logRows, setLogRows] = useState([]);
   const [showLog, setShowLog] = useState(false);
+  const [snapshotLoadError, setSnapshotLoadError] = useState('');
 
   const loadAll = useCallback(async () => {
     if (!playerProfileId) return;
-    const [nextSnapshot, targets] = await Promise.all([
-      inventoryGetSnapshot({ playerProfileId, role, joinCode }),
-      inventoryGetTransferTargets({ playerProfileId, role, joinCode }),
-    ]);
-    setSnapshot(nextSnapshot || EMPTY_SNAPSHOT);
-    setTransferTargets((targets || []).filter((row) => row.profile_id !== playerProfileId));
+    setSnapshotLoadError('');
+
+    let nextSnapshot = null;
+    try {
+      nextSnapshot = await inventoryGetSnapshot({ playerProfileId, role, joinCode });
+    } catch (error) {
+      setSnapshotLoadError(error?.message || 'Unable to load inventory right now.');
+      return;
+    }
+
+    if (!nextSnapshot) {
+      setSnapshotLoadError('Inventory snapshot is unavailable right now.');
+      return;
+    }
+
+    setSnapshot(nextSnapshot);
+
+    try {
+      const targets = await inventoryGetTransferTargets({ playerProfileId, role, joinCode });
+      setTransferTargets((targets || []).filter((row) => row.profile_id !== playerProfileId));
+    } catch (error) {
+      // Keep valid snapshot visible even if transfer targets fail.
+    }
 
     if (isDm) {
-      const rows = await inventoryGetLog({ playerProfileId });
-      setLogRows(rows || []);
+      try {
+        const rows = await inventoryGetLog({ playerProfileId });
+        setLogRows(rows || []);
+      } catch (error) {
+        // Keep valid snapshot visible even if DM log fails.
+      }
     }
   }, [isDm, joinCode, playerProfileId, role]);
 
@@ -237,6 +259,21 @@ export default function InventoryModal({
           </div>
           <button className="btn btn-ghost btn-icon" onClick={onClose}>✕</button>
         </div>
+
+        {snapshotLoadError ? (
+          <div
+            className="panel"
+            style={{
+              marginBottom: 8,
+              borderColor: 'rgba(255, 120, 120, 0.45)',
+              background: 'rgba(120, 20, 20, 0.18)',
+              padding: 8,
+              fontSize: 13,
+            }}
+          >
+            Inventory load error: {snapshotLoadError}
+          </div>
+        ) : null}
 
         <div className="panel" style={{ padding: 8 }}>
           <div className="panel-title" style={{ marginBottom: 6 }}>Currency</div>
