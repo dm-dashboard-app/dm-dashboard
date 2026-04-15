@@ -4,6 +4,7 @@ import { generateShopRows } from '../../utils/shopGenerator';
 import { applyPersistedStockLanes, buildGenerationSeedWithCoreCount, countCoreRows } from '../../utils/shopLanePersistence';
 import ItemImportPanel from '../../components/ItemImportPanel';
 import { generateSpellScrollBatch } from '../../utils/spellScrolls';
+import { inventoryDmShopAssignItem } from '../../inventory/inventoryClient';
 
 const SHOP_TYPES = [
   { value: 'blacksmith', label: 'Blacksmith' },
@@ -31,7 +32,7 @@ function textValue(value) {
 function listFromMetadata(value) {
   if (!Array.isArray(value)) return [];
   return value
-    .map(entry => {
+    .map((entry) => {
       if (!entry) return null;
       if (typeof entry === 'string') return textValue(entry);
       const name = textValue(entry?.item?.name || entry?.name || entry?.property?.name);
@@ -85,14 +86,40 @@ function resolveItemDetailText(item = {}) {
   return { text: buildStructuredFallback(item), mode: 'structured_fallback' };
 }
 
+function ItemDetailModal({ item, onClose, players = [] }) {
+  const [receiverProfileId, setReceiverProfileId] = useState(players[0]?.id || '');
+  const [quantity, setQuantity] = useState(1);
+  const [pricingMode, setPricingMode] = useState('listed');
+  const [customPrice, setCustomPrice] = useState(item?.listed_price_gp || 0);
+  const [status, setStatus] = useState('');
 
-function ItemDetailModal({ item, onClose }) {
+  useEffect(() => {
+    setReceiverProfileId(players[0]?.id || '');
+    setQuantity(1);
+    setPricingMode('listed');
+    setCustomPrice(item?.listed_price_gp || 0);
+    setStatus('');
+  }, [item?.id, item?.listed_price_gp, players]);
+
   if (!item) return null;
   const detail = resolveItemDetailText(item);
 
+  async function handleAssignToPlayer() {
+    if (!receiverProfileId) return;
+    const result = await inventoryDmShopAssignItem({
+      receiverProfileId,
+      shopInventoryId: item.id,
+      quantity: Number(quantity) || 1,
+      priceMode: pricingMode,
+      customPriceGp: pricingMode === 'custom' ? Number(customPrice) || 0 : null,
+      note: 'World shop assignment',
+    });
+    setStatus(`Assigned ${result?.item_name || item.item_name} x${result?.quantity_assigned || quantity}. Charged ${result?.total_gp_charged || 0} gp.`);
+  }
+
   return (
     <div className="world-shop-modal-backdrop" onClick={onClose}>
-      <div className="world-shop-modal" onClick={event => event.stopPropagation()}>
+      <div className="world-shop-modal" onClick={(event) => event.stopPropagation()}>
         <div className="world-shop-modal-head">
           <strong>{item.item_name}</strong>
           <button className="btn btn-ghost" onClick={onClose}>Close</button>
@@ -102,7 +129,7 @@ function ItemDetailModal({ item, onClose }) {
           {item.category ? <span>• {item.category}</span> : null}
           {item.rarity ? <span>• {item.rarity}</span> : null}
           {item.shop_bucket ? <span>• {item.shop_bucket}</span> : null}
-          {item.source_book ? <span>• {item.source_book}</span> : null}
+          <span>• Stock: {item.quantity}</span>
         </div>
         <div className="world-shop-pricing-meta">
           <span>Listed: {gpLabel(item.listed_price_gp)}</span>
@@ -110,17 +137,34 @@ function ItemDetailModal({ item, onClose }) {
           <span>Barter DC: {item.barter_dc}</span>
         </div>
         {item.price_source ? <div className="world-shop-pricing-meta"><span>Pricing Basis: {item.price_source}</span></div> : null}
-        {detail.mode === 'structured_fallback' ? (
-          <pre className="world-shop-item-description">{detail.text}</pre>
-        ) : (
-          <p className="world-shop-item-description">{detail.text}</p>
-        )}
+        {detail.mode === 'structured_fallback' ? <pre className="world-shop-item-description">{detail.text}</pre> : <p className="world-shop-item-description">{detail.text}</p>}
+
+        <div className="panel" style={{ padding: 8 }}>
+          <div className="panel-title" style={{ marginBottom: 6 }}>Assign / Sell to Player</div>
+          <div style={{ display: 'grid', gap: 6 }}>
+            <select className="form-input" value={receiverProfileId} onChange={(event) => setReceiverProfileId(event.target.value)}>
+              <option value="">Select player</option>
+              {players.map((player) => <option key={player.id} value={player.id}>{player.name}</option>)}
+            </select>
+            <input className="form-input" type="number" min={1} value={quantity} onChange={(event) => setQuantity(event.target.value)} />
+            <select className="form-input" value={pricingMode} onChange={(event) => setPricingMode(event.target.value)}>
+              <option value="listed">Listed price</option>
+              <option value="minimum">Minimum price</option>
+              <option value="custom">Custom price</option>
+            </select>
+            {pricingMode === 'custom' ? (
+              <input className="form-input" type="number" min={0} value={customPrice} onChange={(event) => setCustomPrice(event.target.value)} />
+            ) : null}
+            <button className="btn btn-primary" disabled={!receiverProfileId} onClick={handleAssignToPlayer}>Apply Assignment</button>
+            {status ? <div className="world-shops-import-status">{status}</div> : null}
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-export default function WorldShopsPanel({ showImportControls = false }) {
+export default function WorldShopsPanel({ showImportControls = false, playerStates = [] }) {
   const [shopType, setShopType] = useState('general_store');
   const [affluenceTier, setAffluenceTier] = useState('modest');
   const [catalogItems, setCatalogItems] = useState([]);
@@ -136,8 +180,18 @@ export default function WorldShopsPanel({ showImportControls = false }) {
   const [scrollQuantity, setScrollQuantity] = useState(1);
   const [generatedScrolls, setGeneratedScrolls] = useState([]);
 
-  const selectedShop = useMemo(() => savedShops.find(shop => shop.id === selectedShopId) || null, [savedShops, selectedShopId]);
-  const catalogById = useMemo(() => new Map(catalogItems.map(item => [item.id, item])), [catalogItems]);
+  const players = useMemo(() => {
+    const map = new Map();
+    (playerStates || []).forEach((row) => {
+      const id = row.player_profile_id || row.profiles_players?.id;
+      if (!id || map.has(id)) return;
+      map.set(id, { id, name: row.profiles_players?.name || 'Player' });
+    });
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [playerStates]);
+
+  const selectedShop = useMemo(() => savedShops.find((shop) => shop.id === selectedShopId) || null, [savedShops, selectedShopId]);
+  const catalogById = useMemo(() => new Map(catalogItems.map((item) => [item.id, item])), [catalogItems]);
   const catalogByIdRef = useRef(catalogById);
 
   useEffect(() => {
@@ -163,7 +217,7 @@ export default function WorldShopsPanel({ showImportControls = false }) {
       .eq('is_shop_eligible', true)
       .order('name');
     if (loadError) throw loadError;
-    const filtered = (data || []).filter(item => item?.metadata_json?.degraded_import !== true);
+    const filtered = (data || []).filter((item) => item?.metadata_json?.degraded_import !== true);
     setCatalogItems(filtered);
   }, []);
 
@@ -191,7 +245,7 @@ export default function WorldShopsPanel({ showImportControls = false }) {
 
     const catalogLookup = catalogByIdRef.current;
 
-    const normalized = (data || []).map(row => ({
+    const normalized = (data || []).map((row) => ({
       ...(catalogLookup.get(row.item_id) || {}),
       id: row.id,
       item_id: row.item_id,
@@ -219,7 +273,7 @@ export default function WorldShopsPanel({ showImportControls = false }) {
   const refreshWorldShopData = useCallback(async () => {
     const [, , shops] = await Promise.all([loadCatalog(), loadSpells(), loadSavedShops()]);
     if (selectedShopId) {
-      const activeShop = (shops || []).find(shop => shop.id === selectedShopId);
+      const activeShop = (shops || []).find((shop) => shop.id === selectedShopId);
       await loadShopInventory(selectedShopId, activeShop?.generation_seed || '');
     }
   }, [loadCatalog, loadSavedShops, loadShopInventory, loadSpells, selectedShopId]);
@@ -340,14 +394,14 @@ export default function WorldShopsPanel({ showImportControls = false }) {
       <div className="world-shops-controls">
         <div className="world-shops-control-group">
           <label>Shop Type</label>
-          <select className="world-shops-select" value={shopType} onChange={event => setShopType(event.target.value)}>
-            {SHOP_TYPES.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+          <select className="world-shops-select" value={shopType} onChange={(event) => setShopType(event.target.value)}>
+            {SHOP_TYPES.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
           </select>
         </div>
         <div className="world-shops-control-group">
           <label>Affluence</label>
-          <select className="world-shops-select" value={affluenceTier} onChange={event => setAffluenceTier(event.target.value)}>
-            {AFFLUENCE_TIERS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+          <select className="world-shops-select" value={affluenceTier} onChange={(event) => setAffluenceTier(event.target.value)}>
+            {AFFLUENCE_TIERS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
           </select>
         </div>
         <button className="btn btn-primary" onClick={handleGenerate}>Generate</button>
@@ -361,7 +415,7 @@ export default function WorldShopsPanel({ showImportControls = false }) {
         <div className="world-shops-saved-list">
           <div className="world-shops-panel-title">Saved Shops</div>
           {savedShops.length === 0 ? <div className="empty-state">No saved shops yet.</div> : null}
-          {savedShops.map(shop => (
+          {savedShops.map((shop) => (
             <button
               type="button"
               key={shop.id}
@@ -390,16 +444,9 @@ export default function WorldShopsPanel({ showImportControls = false }) {
             const showLaneLabel = (row.stock_lane || 'rotating') !== previousLane;
             return (
               <React.Fragment key={`${row.item_id}-${row.item_name}-${index}`}>
-                {showLaneLabel ? (
-                  <div className="world-shops-stock-lane-label">
-                    {row.stock_lane === 'core' ? 'Core Stock' : 'Rotating Stock'}
-                  </div>
-                ) : null}
+                {showLaneLabel ? <div className="world-shops-stock-lane-label">{row.stock_lane === 'core' ? 'Core Stock' : 'Rotating Stock'}</div> : null}
                 <button className="world-shops-stock-row" data-lane={row.stock_lane || 'rotating'} onClick={() => setSelectedItem(row)}>
-                  <span className="item-name">
-                    {row.item_name}
-                    {(row.stock_lane || 'rotating') === 'core' ? <span className="world-shops-core-badge">Core</span> : null}
-                  </span>
+                  <span className="item-name">{row.item_name}{(row.stock_lane || 'rotating') === 'core' ? <span className="world-shops-core-badge">Core</span> : null}</span>
                   <span>{row.quantity}</span>
                   <span>{gpLabel(row.listed_price_gp)}</span>
                   <span>{gpLabel(row.minimum_price_gp)}</span>
@@ -417,8 +464,8 @@ export default function WorldShopsPanel({ showImportControls = false }) {
         <div className="world-shops-controls">
           <div className="world-shops-control-group">
             <label>Spell Level</label>
-            <select className="world-shops-select" value={scrollLevel} onChange={event => setScrollLevel(Number(event.target.value))}>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(level => <option key={level} value={level}>{level}</option>)}
+            <select className="world-shops-select" value={scrollLevel} onChange={(event) => setScrollLevel(Number(event.target.value))}>
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((level) => <option key={level} value={level}>{level}</option>)}
             </select>
           </div>
           <div className="world-shops-control-group">
@@ -429,7 +476,7 @@ export default function WorldShopsPanel({ showImportControls = false }) {
               min={1}
               max={30}
               value={scrollQuantity}
-              onChange={event => setScrollQuantity(Math.max(1, Number(event.target.value || 1)))}
+              onChange={(event) => setScrollQuantity(Math.max(1, Number(event.target.value || 1)))}
             />
           </div>
           <button className="btn btn-primary" onClick={handleGenerateScrolls}>Generate Scrolls</button>
@@ -448,7 +495,7 @@ export default function WorldShopsPanel({ showImportControls = false }) {
         )}
       </div>
 
-      <ItemDetailModal item={selectedItem} onClose={() => setSelectedItem(null)} />
+      <ItemDetailModal item={selectedItem} onClose={() => { setSelectedItem(null); refreshWorldShopData(); }} players={players} />
     </div>
   );
 }

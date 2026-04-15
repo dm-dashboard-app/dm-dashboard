@@ -28,6 +28,7 @@ As of main at commit `e6eb6aa` (April 13, 2026), the following tracks are treate
 - Stage 3 magic overlay-driven curation tuning for DM world shops
 - Stage 4 custom/homebrew/private lane + in-app DM import/refresh controls for item_master
 - Inventory Phase 1 baseline (shared inventory UI, player self-edit, DM full edit, transfer lifecycle, DM-only audit log)
+- Inventory workflow rebuild baseline (role-separated inventory sheets, DM World Rewards sub-tab, DM shop-row assignment/sell flow, DM currency award split tooling)
 
 This roadmap stays intentionally lean and should not reopen those tracks without a verified current regression on `main`.
 
@@ -123,6 +124,10 @@ Potential quality-of-life follow-ups if usage proves need:
 - low-risk management UX polish in repeated admin workflows
 
 ### Future planning track — Inventory / Equipment / Abilities (post-Phase-1 planning)
+
+Immediate follow-up note (still planning-only, not active scope):
+
+- party funds support remains deferred by design and should be handled in a dedicated future batch after the rebuilt reward/shop flows settle in table use.
 
 Status: planning-only direction. This is **not** active implementation scope in this batch.
 
