@@ -39,3 +39,22 @@ export function evaluateTransferLifecycle({ senderAvailable = 0, requestedAmount
   if (!accepted) return 'pending';
   return senderAvailable >= requestedAmount ? 'completed' : 'failed';
 }
+
+const USABLE_KEYWORDS = [
+  'potion',
+  'philter',
+  'vial',
+  'flask',
+  'ration',
+  'torch',
+  'arrow',
+  'bolt',
+  'bullet',
+  'ammo',
+];
+
+export function isClearlyUsableInventoryItem({ inventoryItem = null, catalogItem = null } = {}) {
+  const candidate = [catalogItem?.name, inventoryItem?.name, catalogItem?.item_type, catalogItem?.category, catalogItem?.subcategory]
+    .map((value) => String(value || '').toLowerCase());
+  return USABLE_KEYWORDS.some((keyword) => candidate.some((value) => value.includes(keyword)));
+}

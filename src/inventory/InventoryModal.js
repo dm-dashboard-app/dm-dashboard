@@ -10,7 +10,7 @@ import {
   inventorySetCurrency,
   inventoryUpsertItem,
 } from './inventoryClient';
-import { formatInventorySummary, normalizeInventoryItemPayload } from '../utils/inventoryUtils';
+import { formatInventorySummary, isClearlyUsableInventoryItem, normalizeInventoryItemPayload } from '../utils/inventoryUtils';
 import { compactItemMeta, resolveItemDetailText } from '../utils/itemDetailText';
 
 const EMPTY_SNAPSHOT = {
@@ -28,6 +28,13 @@ const DEFAULT_CURRENCY_TRANSFER = {
 const DEFAULT_ITEM_TRANSFER = {
   quantity: 1,
   receiver: '',
+};
+
+const DEFAULT_REMOVE_STATE = {
+  quantity: 1,
+  loading: false,
+  status: '',
+  error: '',
 };
 
 const CURRENCY_KEYS = ['pp', 'gp', 'sp', 'cp'];
@@ -68,6 +75,7 @@ export default function InventoryModal({
   const [logRows, setLogRows] = useState([]);
   const [showLog, setShowLog] = useState(false);
   const [snapshotLoadError, setSnapshotLoadError] = useState('');
+  const [removeItemState, setRemoveItemState] = useState(DEFAULT_REMOVE_STATE);
 
   const loadAll = useCallback(async () => {
     if (!playerProfileId) return;
@@ -166,10 +174,18 @@ export default function InventoryModal({
     await loadAll();
   }
 
-  async function removeItem(itemRowId) {
-    await inventoryRemoveItem({ playerProfileId, role, itemRowId, joinCode });
-    setSelectedItem(null);
-    await loadAll();
+  async function removeItem(itemRowId, quantity, reason = 'remove') {
+    if (!itemRowId) return;
+    try {
+      setRemoveItemState((curr) => ({ ...curr, loading: true, error: '', status: '' }));
+      await inventoryRemoveItem({ playerProfileId, role, itemRowId, quantity, reason, joinCode });
+      setSelectedItem(null);
+      await loadAll();
+    } catch (error) {
+      setRemoveItemState((curr) => ({ ...curr, error: error?.message || 'Unable to update inventory item right now.' }));
+    } finally {
+      setRemoveItemState((curr) => ({ ...curr, loading: false }));
+    }
   }
 
   async function submitCurrencyTransfer() {
@@ -237,6 +253,14 @@ export default function InventoryModal({
   }, [selectedItem?.id, selectedItem?.item_master_id]);
 
   const selectedItemDetail = selectedItemCatalog ? resolveItemDetailText(selectedItemCatalog) : null;
+  const selectedItemQuantity = Math.max(1, parseInt(selectedItem?.quantity || 1, 10) || 1);
+  const removeQuantity = Math.max(1, Math.min(selectedItemQuantity, parseInt(removeItemState.quantity || 1, 10) || 1));
+  const canUseOne = isClearlyUsableInventoryItem({ inventoryItem: selectedItem, catalogItem: selectedItemCatalog });
+
+  useEffect(() => {
+    if (!selectedItem) return;
+    setRemoveItemState(DEFAULT_REMOVE_STATE);
+  }, [selectedItem]);
 
   if (!open) return null;
 
@@ -460,8 +484,36 @@ export default function InventoryModal({
                   </>
                 ) : null}
               </div>
-
-              {isDm ? <button className="btn btn-ghost" onClick={() => removeItem(selectedItem.id)}>Remove Item</button> : null}
+              <div style={{ marginTop: 8, borderTop: '1px solid var(--border)', paddingTop: 8, display: 'grid', gap: 6 }}>
+                {canUseOne ? (
+                  <button
+                    className="btn btn-primary"
+                    disabled={removeItemState.loading}
+                    onClick={() => removeItem(selectedItem.id, 1, 'use_one')}
+                  >
+                    {removeItemState.loading ? 'Using…' : 'Use 1'}
+                  </button>
+                ) : null}
+                <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr', gap: 6 }}>
+                  <input
+                    className="form-input"
+                    type="number"
+                    min={1}
+                    max={selectedItemQuantity}
+                    disabled={removeItemState.loading}
+                    value={removeQuantity}
+                    onChange={(event) => setRemoveItemState((curr) => ({ ...curr, quantity: event.target.value }))}
+                  />
+                  <button
+                    className="btn btn-ghost"
+                    disabled={removeItemState.loading}
+                    onClick={() => removeItem(selectedItem.id, removeQuantity, 'remove')}
+                  >
+                    {removeItemState.loading ? 'Applying…' : removeQuantity >= selectedItemQuantity ? 'Remove Item' : `Remove ${removeQuantity}`}
+                  </button>
+                </div>
+                {removeItemState.error ? <div style={{ fontSize: 12, color: 'var(--danger, #ff8b8b)' }}>{removeItemState.error}</div> : null}
+              </div>
             </div>
           </div>
         )}

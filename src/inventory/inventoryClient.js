@@ -61,10 +61,12 @@ export async function inventoryUpsertItem({ playerProfileId, role, joinCode, ite
   });
 }
 
-export async function inventoryRemoveItem({ playerProfileId, role, itemRowId, joinCode }) {
+export async function inventoryRemoveItem({ playerProfileId, role, itemRowId, quantity = null, reason = 'remove', joinCode }) {
   return rpc('inventory_remove_item', {
     p_player_profile_id: playerProfileId,
     p_item_row_id: itemRowId,
+    p_quantity: quantity,
+    p_reason: reason,
     p_join_code: playerJoinCode(role, joinCode),
   });
 }
