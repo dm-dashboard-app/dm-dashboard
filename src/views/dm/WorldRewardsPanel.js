@@ -13,6 +13,7 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
   const [currencyAmount, setCurrencyAmount] = useState(100);
   const [currencyTarget, setCurrencyTarget] = useState('single');
   const [status, setStatus] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const players = useMemo(() => {
     const map = new Map();
@@ -40,7 +41,11 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
         .ilike('name', `%${query.trim()}%`)
         .order('name')
         .limit(40);
-      if (!cancelled && !error) {
+      if (!cancelled) {
+        if (error) {
+          setStatus(`Item search failed: ${error.message || 'Unknown error'}`);
+          return;
+        }
         setCatalog(data || []);
       }
     }, 150);
@@ -52,38 +57,54 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
   }, [query]);
 
   async function handleAssignItem() {
-    if (!selectedItem || !targetProfileId) return;
-    await inventoryUpsertItem({
-      playerProfileId: targetProfileId,
-      role: 'dm',
-      itemMasterId: selectedItem.id,
-      quantity: Number(quantity) || 1,
-      notes: notes || null,
-    });
-    setStatus(`Assigned ${selectedItem.name} x${Number(quantity) || 1}.`);
-    if (typeof onInventoryChanged === 'function') onInventoryChanged();
+    if (!selectedItem || !targetProfileId || loading) return;
+    setLoading(true);
+    setStatus('');
+    try {
+      await inventoryUpsertItem({
+        playerProfileId: targetProfileId,
+        role: 'dm',
+        itemMasterId: selectedItem.id,
+        quantity: Number(quantity) || 1,
+        notes: notes || null,
+      });
+      setStatus(`Assigned ${selectedItem.name} x${Number(quantity) || 1}.`);
+      if (typeof onInventoryChanged === 'function') await onInventoryChanged();
+    } catch (error) {
+      setStatus(`Item grant failed: ${error?.message || 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleAwardCurrency() {
     const amount = Number(currencyAmount) || 0;
-    if (amount <= 0) return;
+    if (amount <= 0 || loading) return;
 
-    const rows = await inventoryDmAwardCurrency({
-      encounterId,
-      receiverProfileId: currencyTarget === 'single' ? targetProfileId : null,
-      currencyType,
-      amount,
-      awardAll: currencyTarget === 'all',
-      note: 'World rewards panel',
-    });
+    setLoading(true);
+    setStatus('');
+    try {
+      const rows = await inventoryDmAwardCurrency({
+        encounterId,
+        receiverProfileId: currencyTarget === 'single' ? targetProfileId : null,
+        currencyType,
+        amount,
+        awardAll: currencyTarget === 'all',
+        note: 'World rewards panel',
+      });
 
-    if (currencyTarget === 'all') {
-      const rowCount = Array.isArray(rows) ? rows.length : 0;
-      setStatus(`Awarded ${amount} ${currencyType.toUpperCase()} split across ${rowCount} active players.`);
-    } else {
-      setStatus(`Awarded ${amount} ${currencyType.toUpperCase()} to selected player.`);
+      if (currencyTarget === 'all') {
+        const rowCount = Array.isArray(rows) ? rows.length : 0;
+        setStatus(`Awarded ${amount} ${currencyType.toUpperCase()} split across ${rowCount} active players.`);
+      } else {
+        setStatus(`Awarded ${amount} ${currencyType.toUpperCase()} to selected player.`);
+      }
+      if (typeof onInventoryChanged === 'function') await onInventoryChanged();
+    } catch (error) {
+      setStatus(`Currency award failed: ${error?.message || 'Unknown error'}`);
+    } finally {
+      setLoading(false);
     }
-    if (typeof onInventoryChanged === 'function') onInventoryChanged();
   }
 
   return (
@@ -119,7 +140,7 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
                 <input className="form-input" type="number" min={1} value={quantity} onChange={(event) => setQuantity(event.target.value)} />
                 <input className="form-input" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Optional notes" />
               </div>
-              <button className="btn btn-primary" disabled={!targetProfileId} onClick={handleAssignItem}>Assign Item</button>
+              <button className="btn btn-primary" disabled={!targetProfileId || loading} onClick={handleAssignItem}>Assign Item</button>
             </>
           ) : (
             <div className="empty-state">Search and pick an item to assign.</div>
@@ -145,7 +166,7 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
             </select>
             <input className="form-input" type="number" min={1} value={currencyAmount} onChange={(event) => setCurrencyAmount(event.target.value)} />
           </div>
-          <button className="btn btn-primary" onClick={handleAwardCurrency} disabled={currencyTarget === 'single' && !targetProfileId}>Award Currency</button>
+          <button className="btn btn-primary" onClick={handleAwardCurrency} disabled={loading || (currencyTarget === 'single' && !targetProfileId)}>Award Currency</button>
           <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Remainder policy: extra currency is distributed one-by-one in ascending player-profile UUID order.</div>
         </div>
       </div>

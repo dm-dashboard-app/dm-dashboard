@@ -19,6 +19,17 @@ const EMPTY_SNAPSHOT = {
   summary: { total_item_quantity: 0, gp: 0 },
 };
 
+const DEFAULT_CURRENCY_TRANSFER = {
+  currencyType: 'gp',
+  amount: 1,
+  receiver: '',
+};
+
+const DEFAULT_ITEM_TRANSFER = {
+  quantity: 1,
+  receiver: '',
+};
+
 export default function InventoryModal({
   open,
   onClose,
@@ -40,14 +51,9 @@ export default function InventoryModal({
   const [selectedItemCatalog, setSelectedItemCatalog] = useState(null);
   const [transferOpen, setTransferOpen] = useState(false);
   const [transferTargets, setTransferTargets] = useState([]);
-  const [transferPayload, setTransferPayload] = useState({
-    kind: 'item',
-    itemRowId: '',
-    quantity: 1,
-    currencyType: 'gp',
-    amount: 1,
-    receiver: '',
-  });
+  const [currencyTransfer, setCurrencyTransfer] = useState(DEFAULT_CURRENCY_TRANSFER);
+  const [selectedItemTransferOpen, setSelectedItemTransferOpen] = useState(false);
+  const [selectedItemTransfer, setSelectedItemTransfer] = useState(DEFAULT_ITEM_TRANSFER);
   const [dmGrant, setDmGrant] = useState({ itemMasterId: '', quantity: 1, notes: '' });
   const [logRows, setLogRows] = useState([]);
   const [showLog, setShowLog] = useState(false);
@@ -134,26 +140,44 @@ export default function InventoryModal({
     await loadAll();
   }
 
-  async function submitTransfer() {
-    if (!transferPayload.receiver) return;
-    if (transferPayload.kind === 'item' && !transferPayload.itemRowId) return;
+  async function submitCurrencyTransfer() {
+    if (!currencyTransfer.receiver) return;
 
     await inventoryCreateTransfer({
       senderProfileId: senderProfileId || playerProfileId,
-      receiverProfileId: transferPayload.receiver,
+      receiverProfileId: currencyTransfer.receiver,
       role,
       joinCode,
-      itemRowId: transferPayload.kind === 'item' ? transferPayload.itemRowId : null,
-      itemQuantity: transferPayload.kind === 'item' ? Number(transferPayload.quantity) || 1 : null,
-      currencyType: transferPayload.kind === 'currency' ? transferPayload.currencyType : null,
-      currencyAmount: transferPayload.kind === 'currency' ? Number(transferPayload.amount) || 1 : null,
+      itemRowId: null,
+      itemQuantity: null,
+      currencyType: currencyTransfer.currencyType,
+      currencyAmount: Number(currencyTransfer.amount) || 1,
     });
 
     setTransferOpen(false);
-    setTransferPayload({ kind: 'item', itemRowId: '', quantity: 1, currencyType: 'gp', amount: 1, receiver: '' });
+    setCurrencyTransfer(DEFAULT_CURRENCY_TRANSFER);
     await loadAll();
   }
 
+  async function submitSelectedItemTransfer() {
+    if (!selectedItem?.id || !selectedItemTransfer.receiver) return;
+
+    await inventoryCreateTransfer({
+      senderProfileId: senderProfileId || playerProfileId,
+      receiverProfileId: selectedItemTransfer.receiver,
+      role,
+      joinCode,
+      itemRowId: selectedItem.id,
+      itemQuantity: Number(selectedItemTransfer.quantity) || 1,
+      currencyType: null,
+      currencyAmount: null,
+    });
+
+    setSelectedItemTransferOpen(false);
+    setSelectedItemTransfer(DEFAULT_ITEM_TRANSFER);
+    setSelectedItem(null);
+    await loadAll();
+  }
 
   useEffect(() => {
     let active = true;
@@ -186,7 +210,16 @@ export default function InventoryModal({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-panel" style={{ width: 'min(760px, calc(100vw - 16px))', maxHeight: '88vh', overflow: 'auto' }} onClick={(event) => event.stopPropagation()}>
+      <div
+        className="modal-panel"
+        style={{
+          width: 'min(760px, calc(100vw - 16px))',
+          maxHeight: '92vh',
+          minHeight: '56vh',
+          overflow: 'auto',
+        }}
+        onClick={(event) => event.stopPropagation()}
+      >
         <div className="modal-header">
           <div>
             <div className="panel-title" style={{ marginBottom: 2 }}>{playerName || 'Inventory'}</div>
@@ -197,29 +230,65 @@ export default function InventoryModal({
 
         <div className="panel" style={{ padding: 8 }}>
           <div className="panel-title" style={{ marginBottom: 6 }}>Currency</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 6 }}>
-            {['pp', 'gp', 'sp', 'cp'].map((key) => (
-              <label key={key} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontSize: 11, textTransform: 'uppercase', color: 'var(--text-muted)' }}>{key}</span>
-                <input
-                  className="form-input"
-                  type="number"
-                  min={0}
-                  disabled={!isDm}
-                  value={snapshot.currency?.[key] ?? 0}
-                  onChange={(event) => setSnapshot((curr) => ({ ...curr, currency: { ...(curr.currency || {}), [key]: Math.max(0, parseInt(event.target.value || '0', 10) || 0) } }))}
-                  onBlur={() => isDm && saveCurrency(snapshot.currency || {})}
-                />
-              </label>
-            ))}
-          </div>
-          {isPlayer ? <div style={{ marginTop: 6, fontSize: 11, color: 'var(--text-muted)' }}>Players can transfer currency, but only the DM can directly edit totals.</div> : null}
+          {isPlayer ? (
+            <>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>
+                PP - {snapshot.currency?.pp ?? 0} GP - {snapshot.currency?.gp ?? 0} SP - {snapshot.currency?.sp ?? 0} CP - {snapshot.currency?.cp ?? 0}
+              </div>
+              <button
+                className="btn btn-ghost"
+                onClick={() => setTransferOpen((curr) => !curr)}
+                style={{ width: 'calc((100% - 18px) / 4)', minWidth: 92 }}
+              >
+                {transferOpen ? 'Close Transfer' : 'Transfer'}
+              </button>
+            </>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 6 }}>
+              {['pp', 'gp', 'sp', 'cp'].map((key) => (
+                <label key={key} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <span style={{ fontSize: 11, textTransform: 'uppercase', color: 'var(--text-muted)' }}>{key}</span>
+                  <input
+                    className="form-input"
+                    type="number"
+                    min={0}
+                    disabled={!isDm}
+                    value={snapshot.currency?.[key] ?? 0}
+                    onChange={(event) => setSnapshot((curr) => ({ ...curr, currency: { ...(curr.currency || {}), [key]: Math.max(0, parseInt(event.target.value || '0', 10) || 0) } }))}
+                    onBlur={() => isDm && saveCurrency(snapshot.currency || {})}
+                  />
+                </label>
+              ))}
+            </div>
+          )}
         </div>
+
+        {transferOpen && (
+          <div className="panel" style={{ marginTop: 8, padding: 8 }}>
+            <div className="panel-title" style={{ marginBottom: 6 }}>Currency Transfer</div>
+            <div style={{ display: 'grid', gap: 6 }}>
+              <select className="form-input" value={currencyTransfer.receiver} onChange={(event) => setCurrencyTransfer((curr) => ({ ...curr, receiver: event.target.value }))}>
+                <option value="">Select receiver</option>
+                {transferTargets.map((row) => <option key={row.profile_id} value={row.profile_id}>{row.name}</option>)}
+              </select>
+              <div style={{ display: 'grid', gridTemplateColumns: '98px 1fr', gap: 6 }}>
+                <select className="form-input" value={currencyTransfer.currencyType} onChange={(event) => setCurrencyTransfer((curr) => ({ ...curr, currencyType: event.target.value }))}>
+                  <option value="pp">PP</option>
+                  <option value="gp">GP</option>
+                  <option value="sp">SP</option>
+                  <option value="cp">CP</option>
+                </select>
+                <input className="form-input" type="number" min={1} value={currencyTransfer.amount} onChange={(event) => setCurrencyTransfer((curr) => ({ ...curr, amount: event.target.value }))} />
+              </div>
+              <button className="btn btn-primary" onClick={submitCurrencyTransfer}>{isDm ? 'Send Instantly' : 'Send Request'}</button>
+              {isPlayer ? <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Receiver confirmation is required for player-initiated transfers.</div> : null}
+            </div>
+          </div>
+        )}
 
         <div className="panel" style={{ padding: 8, marginTop: 8 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 6 }}>
             <div className="panel-title">Items</div>
-            <button className="btn btn-ghost" onClick={() => setTransferOpen((curr) => !curr)}>{transferOpen ? 'Close Transfer' : 'Transfer'}</button>
           </div>
           <input className="form-input" placeholder="Search items" value={itemFilter} onChange={(event) => setItemFilter(event.target.value)} />
           <div style={{ marginTop: 8, display: 'grid', gap: 6 }}>
@@ -233,43 +302,6 @@ export default function InventoryModal({
             ))}
           </div>
         </div>
-
-        {transferOpen && (
-          <div className="panel" style={{ marginTop: 8, padding: 8 }}>
-            <div className="panel-title" style={{ marginBottom: 6 }}>Transfer</div>
-            <div style={{ display: 'grid', gap: 6 }}>
-              <select className="form-input" value={transferPayload.kind} onChange={(event) => setTransferPayload((curr) => ({ ...curr, kind: event.target.value }))}>
-                <option value="item">Item</option>
-                <option value="currency">Currency</option>
-              </select>
-              <select className="form-input" value={transferPayload.receiver} onChange={(event) => setTransferPayload((curr) => ({ ...curr, receiver: event.target.value }))}>
-                <option value="">Select receiver</option>
-                {transferTargets.map((row) => <option key={row.profile_id} value={row.profile_id}>{row.name}</option>)}
-              </select>
-              {transferPayload.kind === 'item' ? (
-                <>
-                  <select className="form-input" value={transferPayload.itemRowId} onChange={(event) => setTransferPayload((curr) => ({ ...curr, itemRowId: event.target.value }))}>
-                    <option value="">Select item</option>
-                    {(snapshot.items || []).map((item) => <option key={item.id} value={item.id}>{item.name} (x{item.quantity})</option>)}
-                  </select>
-                  <input className="form-input" type="number" min={1} value={transferPayload.quantity} onChange={(event) => setTransferPayload((curr) => ({ ...curr, quantity: event.target.value }))} />
-                </>
-              ) : (
-                <>
-                  <select className="form-input" value={transferPayload.currencyType} onChange={(event) => setTransferPayload((curr) => ({ ...curr, currencyType: event.target.value }))}>
-                    <option value="pp">PP</option>
-                    <option value="gp">GP</option>
-                    <option value="sp">SP</option>
-                    <option value="cp">CP</option>
-                  </select>
-                  <input className="form-input" type="number" min={1} value={transferPayload.amount} onChange={(event) => setTransferPayload((curr) => ({ ...curr, amount: event.target.value }))} />
-                </>
-              )}
-              <button className="btn btn-primary" onClick={submitTransfer}>{isDm ? 'Send Instantly' : 'Send Request'}</button>
-              {isPlayer ? <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Receiver confirmation is required for player-initiated transfers.</div> : null}
-            </div>
-          </div>
-        )}
 
         {isDm && (
           <div className="panel" style={{ marginTop: 8, padding: 8 }}>
@@ -331,6 +363,24 @@ export default function InventoryModal({
                 <p className="world-shop-item-description">{selectedItem.notes || 'No additional details available for this custom item.'}</p>
               )}
               {selectedItem.notes && selectedItemCatalog ? <p className="world-shop-item-description" style={{ opacity: 0.9 }}>Inventory notes: {selectedItem.notes}</p> : null}
+
+              <div style={{ marginTop: 8, borderTop: '1px solid var(--border)', paddingTop: 8, display: 'grid', gap: 6 }}>
+                <button className="btn btn-primary" onClick={() => setSelectedItemTransferOpen((curr) => !curr)}>
+                  {selectedItemTransferOpen ? 'Cancel Transfer' : 'Transfer Item'}
+                </button>
+                {selectedItemTransferOpen ? (
+                  <>
+                    <select className="form-input" value={selectedItemTransfer.receiver} onChange={(event) => setSelectedItemTransfer((curr) => ({ ...curr, receiver: event.target.value }))}>
+                      <option value="">Select receiver</option>
+                      {transferTargets.map((row) => <option key={row.profile_id} value={row.profile_id}>{row.name}</option>)}
+                    </select>
+                    <input className="form-input" type="number" min={1} max={Math.max(1, Number(selectedItem.quantity) || 1)} value={selectedItemTransfer.quantity} onChange={(event) => setSelectedItemTransfer((curr) => ({ ...curr, quantity: event.target.value }))} />
+                    <button className="btn btn-primary" onClick={submitSelectedItemTransfer}>{isDm ? 'Send Instantly' : 'Send Request'}</button>
+                    {isPlayer ? <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Receiver confirmation is required for player-initiated transfers.</div> : null}
+                  </>
+                ) : null}
+              </div>
+
               {isDm ? <button className="btn btn-ghost" onClick={() => removeItem(selectedItem.id)}>Remove Item</button> : null}
             </div>
           </div>
