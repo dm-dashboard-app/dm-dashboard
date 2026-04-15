@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import { inventoryDmAwardCurrency, inventoryUpsertItem } from '../../inventory/inventoryClient';
 
-export default function WorldRewardsPanel({ encounterId, playerStates = [], onInventoryChanged = null }) {
+export default function WorldRewardsPanel({ encounterId, playerStates = [], onInventoryChanged = null, onInventoryRefresh = null }) {
   const [query, setQuery] = useState('');
   const [catalog, setCatalog] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -61,6 +61,11 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
     return player?.name || 'Unknown player';
   }
 
+  async function notifyInventoryRefresh() {
+    if (typeof onInventoryChanged === 'function') await onInventoryChanged();
+    if (typeof onInventoryRefresh === 'function') onInventoryRefresh();
+  }
+
 
   async function handleAssignItem() {
     if (!selectedItem || !targetProfileId || loading) return;
@@ -77,7 +82,7 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
       const grantedQuantity = Number(quantity) || 1;
       const targetName = getPlayerName(targetProfileId);
       setStatus(`${targetName} received ${selectedItem.name} x${grantedQuantity}.`);
-      if (typeof onInventoryChanged === 'function') await onInventoryChanged();
+      await notifyInventoryRefresh();
     } catch (error) {
       setStatus(`Item grant failed: ${error?.message || 'Unknown error'}`);
     } finally {
@@ -108,7 +113,7 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
         const targetName = getPlayerName(targetProfileId);
         setStatus(`${targetName} received ${amount} ${currencyType.toUpperCase()}.`);
       }
-      if (typeof onInventoryChanged === 'function') await onInventoryChanged();
+      await notifyInventoryRefresh();
     } catch (error) {
       setStatus(`Currency award failed: ${error?.message || 'Unknown error'}`);
     } finally {

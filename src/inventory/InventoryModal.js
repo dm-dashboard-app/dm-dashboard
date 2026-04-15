@@ -47,6 +47,7 @@ export default function InventoryModal({
   playerName,
   joinCode = null,
   senderProfileId = null,
+  inventoryRefreshTick = 0,
 }) {
   const isDm = role === 'dm';
   const isPlayer = role === 'player';
@@ -85,7 +86,7 @@ export default function InventoryModal({
   useEffect(() => {
     if (!open) return;
     loadAll();
-  }, [loadAll, open]);
+  }, [loadAll, open, inventoryRefreshTick]);
 
   useEffect(() => {
     if (!open || !canManageItems) return;

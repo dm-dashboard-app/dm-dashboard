@@ -58,6 +58,7 @@ export default function DMView() {
   const [recentRollCount, setRecentRollCount] = useState(0);
   const [recentAlertCount, setRecentAlertCount] = useState(0);
   const [displayCombatMode, setDisplayCombatMode] = useState(DISPLAY_MODE_OUT_OF_COMBAT);
+  const [inventoryRefreshTick, setInventoryRefreshTick] = useState(0);
 
   useEffect(() => { loadLatestEncounter(); }, []);
   useEffect(() => { setLongRestPrepOpen(!!encounter?.long_rest_prep_active); }, [encounter?.long_rest_prep_active]);
@@ -106,6 +107,10 @@ export default function DMView() {
     setRecentRollCount(rolls.count || 0);
     setRecentAlertCount(alerts.count || 0);
   }, [encounterId]);
+
+  const triggerInventoryRefresh = useCallback(() => {
+    setInventoryRefreshTick((current) => current + 1);
+  }, []);
 
   usePolling(refreshAll, 2000, !!encounterId);
   usePolling(refreshActivityPresence, 3000, !!encounterId);
@@ -243,7 +248,7 @@ export default function DMView() {
       <div className="app-shell">
         <div className="main-content dm-main-content" style={{ paddingTop: 12 }}>
           <EncounterSetup onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); setTab('combat'); }} />
-          <ManagementScreens currentEncounter={null} displayToken={null} joinCodes={[]} onGenerateDisplayToken={null} onRevokeDisplayToken={null} onFrontScreen={null} onSignOut={signOut} displayCombatMode={displayCombatMode} onSetDisplayCombatMode={null} />
+          <ManagementScreens currentEncounter={null} displayToken={null} joinCodes={[]} onGenerateDisplayToken={null} onRevokeDisplayToken={null} onFrontScreen={null} onSignOut={signOut} displayCombatMode={displayCombatMode} onSetDisplayCombatMode={null} inventoryRefreshTick={inventoryRefreshTick} />
         </div>
       </div>
     );
@@ -262,10 +267,10 @@ export default function DMView() {
     <div className="app-shell">
       <div className="main-content dm-main-content main-content--with-bottom-dock" style={{ paddingTop: 12, paddingBottom: tab === 'activity' ? 214 : 238 }}>
         {tab === 'combat' && <div className="dm-combat-layout"><div className="dm-initiative-column"><div className="initiative-top-bar"><div className="initiative-top-bar-primary">Round {encounter.round}</div></div><InitiativePanel encounter={encounter} combatants={combatants} playerStates={playerStates} role="dm" onUpdate={refreshAll} /></div></div>}
-        {tab === 'players' && <DMPlayerCardsSection combatants={pcCombatants} playerStates={playerStates} encounterId={encounter.id} playerEditMode={encounter.player_edit_mode} onUpdate={refreshAll} />}
+        {tab === 'players' && <DMPlayerCardsSection combatants={pcCombatants} playerStates={playerStates} encounterId={encounter.id} playerEditMode={encounter.player_edit_mode} onUpdate={refreshAll} inventoryRefreshTick={inventoryRefreshTick} />}
         {tab === 'activity' && <div className="dm-activity-layout"><div className="dm-activity-primary"><RecentAlertsStrip encounterId={encounter.id} mode="panel" /><SecretRollInbox encounterId={encounter.id} /></div><div className="dm-activity-secondary"><DMCombatLog encounterId={encounter.id} /></div></div>}
-        {tab === 'world' && <WorldPanel encounterId={encounter.id} playerStates={playerStates} refreshAll={refreshAll} />}
-        {tab === 'manage' && <ManagementScreens onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); setTab('combat'); }} currentEncounter={encounter} displayToken={displayToken} joinCodes={joinCodes} onGenerateDisplayToken={handleGenerateDisplayToken} onRevokeDisplayToken={handleRevokeDisplayToken} onFrontScreen={handleFrontScreen} onSignOut={signOut} displayCombatMode={displayCombatMode} onSetDisplayCombatMode={mode => handleSetDisplayCombatMode(mode, 'manual')} />}
+        {tab === 'world' && <WorldPanel encounterId={encounter.id} playerStates={playerStates} refreshAll={refreshAll} onInventoryRefresh={triggerInventoryRefresh} />}
+        {tab === 'manage' && <ManagementScreens onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); setTab('combat'); }} currentEncounter={encounter} displayToken={displayToken} joinCodes={joinCodes} onGenerateDisplayToken={handleGenerateDisplayToken} onRevokeDisplayToken={handleRevokeDisplayToken} onFrontScreen={handleFrontScreen} onSignOut={signOut} displayCombatMode={displayCombatMode} onSetDisplayCombatMode={mode => handleSetDisplayCombatMode(mode, 'manual')} inventoryRefreshTick={inventoryRefreshTick} />}
       </div>
 
       <div style={dockShellStyle}>
