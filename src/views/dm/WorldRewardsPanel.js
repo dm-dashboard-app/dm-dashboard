@@ -56,6 +56,12 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
     };
   }, [query]);
 
+  function getPlayerName(profileId) {
+    const player = players.find((entry) => entry.id === profileId);
+    return player?.name || 'Unknown player';
+  }
+
+
   async function handleAssignItem() {
     if (!selectedItem || !targetProfileId || loading) return;
     setLoading(true);
@@ -68,7 +74,9 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
         quantity: Number(quantity) || 1,
         notes: notes || null,
       });
-      setStatus(`Assigned ${selectedItem.name} x${Number(quantity) || 1}.`);
+      const grantedQuantity = Number(quantity) || 1;
+      const targetName = getPlayerName(targetProfileId);
+      setStatus(`${targetName} received ${selectedItem.name} x${grantedQuantity}.`);
       if (typeof onInventoryChanged === 'function') await onInventoryChanged();
     } catch (error) {
       setStatus(`Item grant failed: ${error?.message || 'Unknown error'}`);
@@ -95,9 +103,10 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
 
       if (currencyTarget === 'all') {
         const rowCount = Array.isArray(rows) ? rows.length : 0;
-        setStatus(`Awarded ${amount} ${currencyType.toUpperCase()} split across ${rowCount} active players.`);
+        setStatus(`Awarded ${amount} ${currencyType.toUpperCase()} to all active players (${rowCount} recipients; equal split).`);
       } else {
-        setStatus(`Awarded ${amount} ${currencyType.toUpperCase()} to selected player.`);
+        const targetName = getPlayerName(targetProfileId);
+        setStatus(`${targetName} received ${amount} ${currencyType.toUpperCase()}.`);
       }
       if (typeof onInventoryChanged === 'function') await onInventoryChanged();
     } catch (error) {
