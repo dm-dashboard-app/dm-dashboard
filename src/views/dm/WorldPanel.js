@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import WorldShopsPanel from './WorldShopsPanel';
 import WorldRewardsPanel from './WorldRewardsPanel';
 
-export default function WorldPanel({ encounterId, playerStates, refreshAll = null }) {
+export default function WorldPanel({ encounterId, playerStates, refreshAll = null, onInventoryRefresh = null }) {
   const [tab, setTab] = useState('shops');
 
   return (
@@ -13,7 +13,7 @@ export default function WorldPanel({ encounterId, playerStates, refreshAll = nul
       </div>
 
       {tab === 'shops' ? <WorldShopsPanel showImportControls={false} encounterId={encounterId} playerStates={playerStates} /> : null}
-      {tab === 'rewards' ? <WorldRewardsPanel encounterId={encounterId} playerStates={playerStates} onInventoryChanged={refreshAll} /> : null}
+      {tab === 'rewards' ? <WorldRewardsPanel encounterId={encounterId} playerStates={playerStates} onInventoryChanged={refreshAll} onInventoryRefresh={onInventoryRefresh} /> : null}
     </div>
   );
 }
