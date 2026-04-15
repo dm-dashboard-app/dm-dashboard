@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { supabase } from '../supabaseClient';
 import {
   inventoryCreateTransfer,
   inventoryGetLog,
@@ -10,6 +11,7 @@ import {
   inventoryUpsertItem,
 } from './inventoryClient';
 import { formatInventorySummary, normalizeInventoryItemPayload } from '../utils/inventoryUtils';
+import { compactItemMeta, resolveItemDetailText } from '../utils/itemDetailText';
 
 const EMPTY_SNAPSHOT = {
   items: [],
@@ -35,6 +37,7 @@ export default function InventoryModal({
   const [catalogQuery, setCatalogQuery] = useState('');
   const [catalogResults, setCatalogResults] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedItemCatalog, setSelectedItemCatalog] = useState(null);
   const [transferOpen, setTransferOpen] = useState(false);
   const [transferTargets, setTransferTargets] = useState([]);
   const [transferPayload, setTransferPayload] = useState({
@@ -150,6 +153,34 @@ export default function InventoryModal({
     setTransferPayload({ kind: 'item', itemRowId: '', quantity: 1, currencyType: 'gp', amount: 1, receiver: '' });
     await loadAll();
   }
+
+
+  useEffect(() => {
+    let active = true;
+    async function loadSelectedCatalog() {
+      if (!selectedItem?.item_master_id) {
+        setSelectedItemCatalog(null);
+        return;
+      }
+      const { data, error } = await supabase
+        .from('item_master')
+        .select('id, name, item_type, category, subcategory, rarity, description, metadata_json')
+        .eq('id', selectedItem.item_master_id)
+        .maybeSingle();
+      if (!active) return;
+      if (error) {
+        setSelectedItemCatalog(null);
+        return;
+      }
+      setSelectedItemCatalog(data || null);
+    }
+    loadSelectedCatalog();
+    return () => {
+      active = false;
+    };
+  }, [selectedItem?.id, selectedItem?.item_master_id]);
+
+  const selectedItemDetail = selectedItemCatalog ? resolveItemDetailText(selectedItemCatalog) : null;
 
   if (!open) return null;
 
@@ -278,14 +309,28 @@ export default function InventoryModal({
           <div className="world-shop-modal-backdrop" onClick={() => setSelectedItem(null)}>
             <div className="world-shop-modal" onClick={(event) => event.stopPropagation()}>
               <div className="world-shop-modal-head">
-                <strong>{selectedItem.name}</strong>
+                <strong>{selectedItemCatalog?.name || selectedItem.name}</strong>
                 <button className="btn btn-ghost" onClick={() => setSelectedItem(null)}>Close</button>
               </div>
               <div className="world-shop-item-meta">
-                <span>Quantity: {selectedItem.quantity}</span>
-                {selectedItem.updated_at ? <span>Updated: {new Date(selectedItem.updated_at).toLocaleString()}</span> : null}
+                {compactItemMeta(selectedItemCatalog || {}).length > 0 ? (
+                  compactItemMeta(selectedItemCatalog || {}).map((entry) => <span key={entry}>{entry}</span>)
+                ) : (
+                  <span>Custom item</span>
+                )}
+                <span>• Quantity: {selectedItem.quantity}</span>
+                {selectedItem.updated_at ? <span>• Updated: {new Date(selectedItem.updated_at).toLocaleString()}</span> : null}
               </div>
-              <p className="world-shop-item-description">{selectedItem.notes || 'No notes on this item.'}</p>
+              {selectedItemCatalog ? (
+                selectedItemDetail?.mode === 'structured_fallback' ? (
+                  <pre className="world-shop-item-description">{selectedItemDetail?.text}</pre>
+                ) : (
+                  <p className="world-shop-item-description">{selectedItemDetail?.text}</p>
+                )
+              ) : (
+                <p className="world-shop-item-description">{selectedItem.notes || 'No additional details available for this custom item.'}</p>
+              )}
+              {selectedItem.notes && selectedItemCatalog ? <p className="world-shop-item-description" style={{ opacity: 0.9 }}>Inventory notes: {selectedItem.notes}</p> : null}
               {isDm ? <button className="btn btn-ghost" onClick={() => removeItem(selectedItem.id)}>Remove Item</button> : null}
             </div>
           </div>
