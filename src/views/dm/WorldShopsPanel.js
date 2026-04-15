@@ -25,6 +25,10 @@ function gpLabel(value) {
   return `${Number(value || 0).toLocaleString()} gp`;
 }
 
+function isSyntheticSpellScrollId(value) {
+  return String(value || '').startsWith('spell-scroll:');
+}
+
 function ItemDetailModal({ item, onClose, players = [], onAssignmentSuccess }) {
   const [receiverProfileId, setReceiverProfileId] = useState(players[0]?.id || '');
   const [quantity, setQuantity] = useState(1);
@@ -57,6 +61,10 @@ function ItemDetailModal({ item, onClose, players = [], onAssignmentSuccess }) {
         customPriceGp: pricingMode === 'custom' ? Number(customPrice) || 0 : null,
         note: 'World shop assignment',
       };
+      const generatedItemMasterId = item.item_master_id || item.item_id;
+      if (!hasPersistedShopInventoryId && isSyntheticSpellScrollId(generatedItemMasterId)) {
+        throw new Error('Generated spell scroll could not be mapped to an assignable catalog UUID. Refresh imports and regenerate the shop.');
+      }
 
       const result = hasPersistedShopInventoryId
         ? await inventoryDmShopAssignItem({
@@ -65,7 +73,7 @@ function ItemDetailModal({ item, onClose, players = [], onAssignmentSuccess }) {
         })
         : await inventoryDmAssignGeneratedShopItem({
           ...assignmentPayload,
-          itemMasterId: item.item_id,
+          itemMasterId: generatedItemMasterId,
           listedPriceGp: Number(item.listed_price_gp) || 0,
           minimumPriceGp: Number(item.minimum_price_gp) || 0,
           sourceContext: 'World shop generated row assignment',

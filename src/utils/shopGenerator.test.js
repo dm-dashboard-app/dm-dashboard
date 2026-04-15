@@ -176,6 +176,15 @@ describe('generateShopRows', () => {
       baseItem({ id: 'wand', name: 'Wand of Secrets', item_type: 'magic_item', rarity: 'Rare', suggested_price_gp: 250, shop_bucket: 'utility' }),
       baseItem({ id: 'healing', name: 'Potion of Healing', item_type: 'magic_item', rarity: 'Common', suggested_price_gp: 50, shop_bucket: 'healing' }),
       baseItem({ id: 'amulet', name: 'Amulet of Proof', item_type: 'magic_item', rarity: 'Uncommon', suggested_price_gp: 120, shop_bucket: 'utility' }),
+      baseItem({ id: '11111111-1111-4111-8111-111111111111', source_slug: 'spell-scroll-1st', name: 'Spell Scroll (1st level)', rarity: 'Common', shop_bucket: 'consumable', suggested_price_gp: 75 }),
+      baseItem({ id: '22222222-2222-4222-8222-222222222222', source_slug: 'spell-scroll-2nd', name: 'Spell Scroll (2nd level)', rarity: 'Uncommon', shop_bucket: 'consumable', suggested_price_gp: 150 }),
+      baseItem({ id: '33333333-3333-4333-8333-333333333333', source_slug: 'spell-scroll-3rd', name: 'Spell Scroll (3rd level)', rarity: 'Uncommon', shop_bucket: 'consumable', suggested_price_gp: 300 }),
+      baseItem({ id: '44444444-4444-4444-8444-444444444444', source_slug: 'spell-scroll-4th', name: 'Spell Scroll (4th level)', rarity: 'Rare', shop_bucket: 'consumable', suggested_price_gp: 600 }),
+      baseItem({ id: '55555555-5555-4555-8555-555555555555', source_slug: 'spell-scroll-5th', name: 'Spell Scroll (5th level)', rarity: 'Rare', shop_bucket: 'consumable', suggested_price_gp: 1500 }),
+      baseItem({ id: '66666666-6666-4666-8666-666666666666', source_slug: 'spell-scroll-6th', name: 'Spell Scroll (6th level)', rarity: 'Very Rare', shop_bucket: 'consumable', suggested_price_gp: 3500 }),
+      baseItem({ id: '77777777-7777-4777-8777-777777777777', source_slug: 'spell-scroll-7th', name: 'Spell Scroll (7th level)', rarity: 'Very Rare', shop_bucket: 'consumable', suggested_price_gp: 10000 }),
+      baseItem({ id: '88888888-8888-4888-8888-888888888888', source_slug: 'spell-scroll-8th', name: 'Spell Scroll (8th level)', rarity: 'Very Rare', shop_bucket: 'consumable', suggested_price_gp: 15000 }),
+      baseItem({ id: '99999999-9999-4999-8999-999999999999', source_slug: 'spell-scroll-9th', name: 'Spell Scroll (9th level)', rarity: 'Legendary', shop_bucket: 'consumable', suggested_price_gp: 25000 }),
     ], {
       shopType: 'magic_shop',
       affluence: 'modest',
@@ -207,5 +216,8 @@ describe('generateShopRows', () => {
     expect(coreRows.some(row => row.item_name.includes('Cantrip'))).toBe(false);
     expect(rows.some(row => /^Spell Scroll \(6th Level\) — /.test(row.item_name) && row.stock_lane === 'rotating')).toBe(true);
     expect(rows.some(row => /^Spell Scroll \(9th Level\) — /.test(row.item_name) && row.stock_lane === 'core')).toBe(false);
+    const firstLevelScroll = coreRows.find(row => /^Spell Scroll \(1st Level\) — /.test(row.item_name));
+    expect(firstLevelScroll?.item_id).toBe('11111111-1111-4111-8111-111111111111');
+    expect(firstLevelScroll?.item_master_id).toBe('11111111-1111-4111-8111-111111111111');
   });
 });

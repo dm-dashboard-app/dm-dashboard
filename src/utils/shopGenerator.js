@@ -97,6 +97,18 @@ const CAMP_GEAR_TERMS = [
   'crowbar',
 ];
 
+const SPELL_SCROLL_LEVEL_SOURCE_SLUGS = {
+  1: 'spell-scroll-1st',
+  2: 'spell-scroll-2nd',
+  3: 'spell-scroll-3rd',
+  4: 'spell-scroll-4th',
+  5: 'spell-scroll-5th',
+  6: 'spell-scroll-6th',
+  7: 'spell-scroll-7th',
+  8: 'spell-scroll-8th',
+  9: 'spell-scroll-9th',
+};
+
 function getHealingPotionTier(item = {}) {
   const normalizedName = String(item.name || '').trim().toLowerCase();
   return HEALING_POTION_TIER_BY_NAME[normalizedName] || null;
@@ -340,7 +352,8 @@ function buildRow(item = {}, { shopType, affluence, stockLane = 'rotating', core
     : generateQuantity(item, shopType, affluence);
 
   return {
-    item_id: item.id,
+    item_id: item.item_master_id || item.id,
+    item_master_id: item.item_master_id || null,
     item_name: item.name,
     item_type: item.item_type,
     category: item.category,
@@ -444,26 +457,47 @@ function buildMagicCoreScrollStock(spells = [], { shopType = 'magic_shop', afflu
     coreRows: [],
   };
   const context = { shopType, affluence };
+  const spellScrollCatalogIdByLevel = buildSpellScrollCatalogIdByLevelMap(spells.catalogItems || []);
 
   [1, 2, 3, 4, 5].forEach(level => {
     const eligible = getEligibleSpellsForLevel(spells, level);
     if (eligible.length === 0) return;
     const selectedSpell = eligible[Math.floor(Math.random() * eligible.length)];
-    addCoreRow(buildSpellScrollItem(selectedSpell, level), context, state, { coreRole: `scroll-${level}` });
+    addCoreRow(
+      buildSpellScrollItem(selectedSpell, level, {
+        assignableItemId: spellScrollCatalogIdByLevel.get(level) || null,
+      }),
+      context,
+      state,
+      { coreRole: `scroll-${level}` },
+    );
   });
 
   return state;
 }
 
 function buildMagicRotatingScrollCandidates(spells = []) {
+  const spellScrollCatalogIdByLevel = buildSpellScrollCatalogIdByLevelMap(spells.catalogItems || []);
   const rows = [];
   [6, 7, 8, 9].forEach(level => {
     const eligible = getEligibleSpellsForLevel(spells, level);
     eligible.forEach(spell => {
-      rows.push(buildSpellScrollItem(spell, level));
+      rows.push(buildSpellScrollItem(spell, level, { assignableItemId: spellScrollCatalogIdByLevel.get(level) || null }));
     });
   });
   return rows;
+}
+
+function buildSpellScrollCatalogIdByLevelMap(items = []) {
+  const map = new Map();
+  (items || []).forEach((item) => {
+    const sourceSlug = String(item?.source_slug || '').trim().toLowerCase();
+    const matched = Object.entries(SPELL_SCROLL_LEVEL_SOURCE_SLUGS).find(([, slug]) => slug === sourceSlug);
+    if (!matched || !item?.id) return;
+    const level = Number(matched[0]);
+    if (!map.has(level)) map.set(level, item.id);
+  });
+  return map;
 }
 
 export function generateShopRows(items = [], { shopType = 'general_store', affluence = 'modest', spells = [] } = {}) {
@@ -471,11 +505,12 @@ export function generateShopRows(items = [], { shopType = 'general_store', afflu
   const rarityWeights = (shopType === 'magic_shop' ? MAGIC_RARITY_WEIGHT_BY_AFFLUENCE : RARITY_WEIGHT_BY_AFFLUENCE)[affluence]
     || RARITY_WEIGHT_BY_AFFLUENCE.modest;
   const baseCandidates = items.filter(item => isEligible(item, shopType));
-  const rotatingSpellCandidates = shopType === 'magic_shop' ? buildMagicRotatingScrollCandidates(spells) : [];
+  const spellContext = Object.assign([], spells, { catalogItems: items });
+  const rotatingSpellCandidates = shopType === 'magic_shop' ? buildMagicRotatingScrollCandidates(spellContext) : [];
   const candidates = [...baseCandidates, ...rotatingSpellCandidates];
 
   const { byIdentity, coreRows } = shopType === 'magic_shop'
-    ? buildMagicCoreScrollStock(spells, { shopType, affluence })
+    ? buildMagicCoreScrollStock(spellContext, { shopType, affluence })
     : buildCoreStock(candidates, { shopType, affluence });
 
   const initialWeightedPool = candidates
