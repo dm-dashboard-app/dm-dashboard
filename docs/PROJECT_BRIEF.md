@@ -1,6 +1,6 @@
 # DM Dashboard — Project Brief
 
-Last updated: April 14, 2026 (non-magic shops now include affluence-aware guaranteed core stock lanes)
+Last updated: April 15, 2026 (World tab Locales + NPC mobile-first baseline landed)
 
 Purpose: This document is the current-state/background brief for DM Dashboard. It describes what the app now is, what is materially landed, and what principles future work must preserve.
 
@@ -284,3 +284,32 @@ Preservation rule:
 ## Future-facing note
 
 Inventory/equipment/abilities beyond Phase 1 remains a **planning track**. Future phases should stay phased and aligned with shared modifier-logic architecture (as outlined in `docs/NEXT_STEPS.md`).
+
+### 17) World locales + district/shop persistence baseline
+
+Landed baseline includes:
+
+- World top-level tabs expanded to **Locales / Shop Generator / Rewards / NPCs**
+- Locales list/detail mobile-first flow with focused create/edit sheets instead of giant always-edit forms
+- locale overview model now includes politics/leadership, purpose, structure, notable features, hidden notes, and free notes
+- district tracking inside locales with durable district records and notable-location notes
+- locale-bound durable shop records (district-linkable) with full detail + inventory + notes sub-tabs
+- locale shop inventory now supports persisted first-generation stock and explicit regenerate behavior
+
+Preservation rule:
+
+- keep locales as durable world records and keep locale shops distinct from ad hoc Shop Generator utility flows
+
+### 18) World NPC library baseline
+
+Landed baseline includes:
+
+- standalone global NPC World tab (not nested under locales)
+- mobile searchable NPC list cards
+- full-page NPC detail card with portrait rail/top block behavior on phone
+- simple baseline NPC model (`name`, `race`, `portrait_url`, `body_text`) with saved display + explicit edit flow
+
+Preservation rule:
+
+- keep NPC baseline lightweight/card-first and avoid overfitting early into full structured schema complexity
+
