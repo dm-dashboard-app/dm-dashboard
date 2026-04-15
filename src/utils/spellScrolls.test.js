@@ -1,4 +1,4 @@
-import { formatSpellScrollName, generateSpellScrollBatch, getEligibleSpellsForLevel } from './spellScrolls';
+import { buildSpellScrollItem, formatSpellScrollName, generateSpellScrollBatch, getEligibleSpellsForLevel } from './spellScrolls';
 
 const SPELLS = [
   { id: 'c-fire', name: 'Fire Bolt', level: 0, is_cantrip: true },
@@ -34,5 +34,17 @@ describe('spell scroll helpers', () => {
     expect(rows).toHaveLength(3);
     expect(unique.size).toBe(1);
     expect(rows.every(row => row.name === 'Scorching Ray')).toBe(true);
+  });
+
+  test('spell scroll row keeps synthetic display id while carrying assignable catalog id', () => {
+    const row = buildSpellScrollItem(
+      { id: 'm-missile', name: 'Magic Missile', level: 1, is_cantrip: false },
+      1,
+      { assignableItemId: '11111111-1111-4111-8111-111111111111' },
+    );
+
+    expect(row.id).toBe('spell-scroll:1:m-missile');
+    expect(row.item_master_id).toBe('11111111-1111-4111-8111-111111111111');
+    expect(row.metadata_json?.assignable_item_id).toBe('11111111-1111-4111-8111-111111111111');
   });
 });

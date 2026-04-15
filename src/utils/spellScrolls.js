@@ -76,10 +76,11 @@ export function generateSpellScrollBatch(spells = [], { level = 1, quantity = 1 
   }));
 }
 
-export function buildSpellScrollItem(spell = {}, level) {
+export function buildSpellScrollItem(spell = {}, level, { assignableItemId = null } = {}) {
   const spellId = spell.id || spell.spellId || spell.spell_id || spell.name;
   return {
     id: `spell-scroll:${level}:${spellId}`,
+    item_master_id: assignableItemId || null,
     name: formatSpellScrollName(level, spell.name),
     item_type: 'magic_item',
     category: 'Spell Scroll',
@@ -98,6 +99,7 @@ export function buildSpellScrollItem(spell = {}, level) {
       spell_id: spell.id || spell.spellId || null,
       spell_name: spell.name || '',
       spell_level: level,
+      assignable_item_id: assignableItemId || null,
     },
   };
 }
