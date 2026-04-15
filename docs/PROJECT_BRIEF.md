@@ -256,10 +256,11 @@ Preservation rule:
 Landed baseline includes:
 
 - role-aware inventory modal behavior: player surface is list/detail/transfer focused while DM surface keeps direct management controls without modal overload
-- player inventory no longer allows direct currency total edits; player-to-player currency transfer still uses receiver confirmation and incoming popup path
+- top-level inventory transfer in the main sheet is currency-only; item transfer launches from item detail modal only
+- player currency display is compact read-only text plus transfer action (no direct player currency-total edits)
 - DM inventory still supports direct item grants, direct inventory/currency management, and DM audit-log access in a cleaner layout
 - DM World tab now has sub-tabs with separate **Shops** and **Rewards** surfaces
-- Rewards surface is DM-only and supports item search/assign plus currency award to one player or all active players in current session
+- Rewards surface is DM-only and supports item search/assign plus currency award to one player or all active players in current session, with explicit success/error feedback and inventory refresh on success
 - all-active currency split is deterministic: base equal split with remainder distributed one-by-one in ascending player-profile UUID order
 - shop rows now support direct assign/sell-to-player flow with listed/minimum/custom pricing and atomic GP deduction + inventory upsert server operation
 
