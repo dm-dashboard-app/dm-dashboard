@@ -952,6 +952,7 @@
   flex-wrap: wrap;
   gap: 8px;
   align-items: flex-end;
+  min-width: 0;
 }
 
 .world-shops-control-group {
@@ -959,6 +960,7 @@
   flex-direction: column;
   gap: 4px;
   min-width: 140px;
+  max-width: 100%;
 }
 
 .world-shops-control-group label {
@@ -990,6 +992,7 @@
   display: grid;
   grid-template-columns: minmax(180px, 240px) 1fr;
   gap: 10px;
+  min-width: 0;
 }
 
 .world-shops-saved-list,
@@ -1001,6 +1004,8 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .world-shops-scroll-tool {
@@ -1077,9 +1082,10 @@
 .world-shops-stock-head,
 .world-shops-stock-row {
   display: grid;
-  grid-template-columns: minmax(120px, 1fr) 42px 88px 88px 44px;
+  grid-template-columns: minmax(0, 1fr) 42px 88px 88px 44px;
   gap: 8px;
   align-items: center;
+  min-width: 0;
 }
 
 .world-shops-stock-head {
@@ -1113,6 +1119,10 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .world-shops-stock-row[data-lane='core'] {
@@ -1192,7 +1202,7 @@
 
   .world-shops-stock-head,
   .world-shops-stock-row {
-    grid-template-columns: minmax(120px, 1fr) 34px 64px 64px 38px;
+    grid-template-columns: minmax(0, 1fr) 28px 56px 56px 32px;
     font-size: 11px;
     gap: 4px;
   }
@@ -1260,6 +1270,16 @@
   display: grid;
   gap: 6px;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.world-tabs-row .btn {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.world-tabs-row--locale,
+.world-tabs-row--shop-detail {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .world-tabs-row .btn[data-active='true'] {
@@ -1417,6 +1437,12 @@
   background: var(--bg-panel-2);
 }
 
+.world-npc-body-compact {
+  min-height: 0;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
 .world-npc-portrait-empty {
   display: grid;
   place-items: center;
@@ -1431,8 +1457,23 @@
 }
 
 @media (max-width: 720px) {
+  .world-shops-control-group {
+    min-width: 0;
+    flex: 1 1 calc(50% - 4px);
+  }
+
+  .world-shops-controls > .btn {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 0;
+  }
+
   .world-tabs-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .world-tabs-row--locale,
+  .world-tabs-row--shop-detail {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .world-npc-hero {

@@ -270,8 +270,8 @@ export default function InventoryModal({
         className="modal-panel"
         style={{
           width: 'min(760px, calc(100vw - 16px))',
-          maxHeight: '92vh',
-          minHeight: '56vh',
+          maxHeight: '96vh',
+          minHeight: '72vh',
           overflow: 'auto',
         }}
         onClick={(event) => event.stopPropagation()}
@@ -395,7 +395,7 @@ export default function InventoryModal({
             <div className="panel-title">Items</div>
           </div>
           <input className="form-input" placeholder="Search items" value={itemFilter} onChange={(event) => setItemFilter(event.target.value)} />
-          <div style={{ marginTop: 8, display: 'grid', gap: 6 }}>
+          <div style={{ marginTop: 8, display: 'grid', gap: 6, maxHeight: '40vh', overflowY: 'auto', paddingRight: 2 }}>
             {filteredItems.length === 0 ? <div className="empty-state" style={{ padding: 8 }}>No items yet.</div> : null}
             {filteredItems.map((item) => (
               <button key={item.id} className="world-shops-saved-item" style={{ textAlign: 'left' }} onClick={() => setSelectedItem(item)}>

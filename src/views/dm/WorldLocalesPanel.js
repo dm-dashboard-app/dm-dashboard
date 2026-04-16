@@ -572,7 +572,7 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
             </div>
           </div>
 
-          <div className="world-tabs-row">
+          <div className="world-tabs-row world-tabs-row--locale">
             <button className="btn btn-ghost" data-active={selectedLocaleTab === 'overview'} onClick={() => setSelectedLocaleTab('overview')}>Overview</button>
             <button className="btn btn-ghost" data-active={selectedLocaleTab === 'districts'} onClick={() => setSelectedLocaleTab('districts')}>Districts</button>
             <button className="btn btn-ghost" data-active={selectedLocaleTab === 'shops'} onClick={() => setSelectedLocaleTab('shops')}>Shops</button>
@@ -615,7 +615,7 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
                   {selectedShop ? (
                     <>
                   {canEdit ? (
-                    <div className="world-tabs-row">
+                    <div className="world-tabs-row world-tabs-row--shop-detail">
                       <button className="btn btn-ghost" data-active={selectedShopTab === 'details'} onClick={() => setSelectedShopTab('details')}>Details</button>
                       {shopSupportsInventory(selectedShop?.shop_type) ? <button className="btn btn-ghost" data-active={selectedShopTab === 'inventory'} onClick={() => setSelectedShopTab('inventory')}>Inventory</button> : null}
                       <button className="btn btn-ghost" data-active={selectedShopTab === 'notes'} onClick={() => setSelectedShopTab('notes')}>Notes</button>
@@ -680,7 +680,6 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
                 </>
               ) : (
                 <>
-                  {canEdit ? <button className="btn btn-primary" onClick={() => setEditingShop({})}>New Shop</button> : null}
                   <div className="world-card-grid">
                     {shops.map((shop) => (
                       <button key={shop.id} type="button" className="world-card world-card-button" onClick={() => { setShopListMode(false); setSelectedShopId(shop.id); setSelectedShopTab('details'); }}>
