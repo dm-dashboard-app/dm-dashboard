@@ -181,12 +181,13 @@ export default function SpellSlotGrid({ profile, state, readOnly, canRestore = f
                 return (
                   <div key={level} className={`player-slot-row ${row.length === 1 ? 'player-slot-row--full' : ''}`}>
                     <div className="player-slot-row-head">
-                      <span className="player-slot-row-level">Level {level}</span>
-
-                      <div className="player-slot-row-head-controls">
-                        {isPlayer && (
+                      {isPlayer ? (
+                        <div className="player-slot-segmented-pill">
+                          <span className="player-slot-segment player-slot-segment--label">
+                            Level {level}
+                          </span>
                           <button
-                            className="btn btn-ghost player-slot-use-btn"
+                            className="player-slot-segment player-slot-segment--use"
                             onClick={() => spendPlayerSlot(level)}
                             disabled={disableUse}
                             title={
@@ -199,8 +200,10 @@ export default function SpellSlotGrid({ profile, state, readOnly, canRestore = f
                           >
                             Use
                           </button>
-                        )}
-                      </div>
+                        </div>
+                      ) : (
+                        <span className="player-slot-row-level">Level {level}</span>
+                      )}
                     </div>
 
                     <div className="player-slot-row-body">
