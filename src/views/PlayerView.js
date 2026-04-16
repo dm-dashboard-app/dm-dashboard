@@ -13,7 +13,7 @@ import IncomingTransferPopup from '../inventory/IncomingTransferPopup';
 import { inventoryGetPendingIncoming, inventoryRespondTransfer } from '../inventory/inventoryClient';
 import PlayerWorldPanel from './player/PlayerWorldPanel';
 import ShortRestResponsePanel from '../components/ShortRestResponsePanel';
-import { deriveShortRestProcedureState, SHORT_REST_LOG_ACTION, SHORT_REST_RESPONSE_ACTION } from '../utils/shortRestWorkflow';
+import { deriveShortRestProcedureState, getSongOfRestOwnerStateId, SHORT_REST_LOG_ACTION, SHORT_REST_RESPONSE_ACTION } from '../utils/shortRestWorkflow';
 
 export default function PlayerView() {
   const [encounter, setEncounter] = useState(null);
@@ -115,6 +115,8 @@ export default function PlayerView() {
   const prepActive = !!encounter?.long_rest_prep_active;
   const prepReady = !!state?.spell_prep_ready;
   const showPrepModal = prepActive && prepRequired && !prepReady && !!state?.profiles_players;
+  const shortRestSongOwnerId = getSongOfRestOwnerStateId(playerStates || []);
+  const sharedSongOfRestTotal = Math.max(0, parseInt(shortRestResponsesByStateId?.[shortRestSongOwnerId]?.response?.sections?.healing?.songOfRestTotal, 10) || 0);
 
   useEffect(() => {
     if (pendingConDc === null) setShowConPanel(false);
@@ -237,6 +239,7 @@ export default function PlayerView() {
         state={state}
         playerStates={playerStates}
         initialResponse={shortRestResponsesByStateId[state?.id]?.response}
+        sharedSongOfRestTotal={sharedSongOfRestTotal}
         onClose={() => setShortRestOpen(false)}
         onSubmitted={refreshAll}
       />

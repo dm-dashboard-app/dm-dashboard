@@ -25,6 +25,19 @@ describe('shortRestWorkflow', () => {
     expect(computeHealingTotal(response, profile, 4)).toBe(15);
   });
 
+
+  test('clears previous responses when a new short rest starts', () => {
+    const logs = [
+      { created_at: '2026-04-16T10:00:00Z', action: 'short_rest_procedure', detail: JSON.stringify({ type: 'start' }) },
+      { created_at: '2026-04-16T10:01:00Z', action: 'short_rest_response', detail: JSON.stringify({ player_state_id: 'state-old', response: { ready: true } }) },
+      { created_at: '2026-04-16T10:10:00Z', action: 'short_rest_procedure', detail: JSON.stringify({ type: 'start' }) },
+      { created_at: '2026-04-16T10:11:00Z', action: 'short_rest_response', detail: JSON.stringify({ player_state_id: 'state-new', response: { ready: true } }) },
+    ];
+    const state = deriveShortRestProcedureState(logs);
+    expect(state.responsesByStateId['state-old']).toBeUndefined();
+    expect(state.responsesByStateId['state-new']).toBeTruthy();
+  });
+
   test('derives active procedure and responses from logs', () => {
     const logs = [
       { created_at: '2026-04-16T10:00:00Z', action: 'short_rest_procedure', detail: JSON.stringify({ type: 'start' }) },

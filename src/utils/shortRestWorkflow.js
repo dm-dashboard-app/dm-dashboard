@@ -136,6 +136,7 @@ export function deriveShortRestProcedureState(logRows = []) {
       if (detail?.type === 'start') {
         active = true;
         startedAt = row.created_at;
+        Object.keys(responsesByStateId).forEach((key) => { delete responsesByStateId[key]; });
       }
       if (detail?.type === 'cancel' || detail?.type === 'complete') active = false;
       return;

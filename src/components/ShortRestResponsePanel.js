@@ -1,13 +1,15 @@
 import React, { useMemo, useState } from 'react';
 import { supabase } from '../supabaseClient';
+import { getAbilityModifier, readNumberField } from '../utils/classResources';
 import {
   getSongOfRestDie,
   getSongOfRestOwnerStateId,
   validateShortRestResponse,
   SHORT_REST_RESPONSE_ACTION,
+  computeHealingTotal,
 } from '../utils/shortRestWorkflow';
 
-export default function ShortRestResponsePanel({ open, encounterId, state, playerStates, initialResponse, onClose, onSubmitted }) {
+export default function ShortRestResponsePanel({ open, encounterId, state, playerStates, initialResponse, sharedSongOfRestTotal = 0, onClose, onSubmitted }) {
   const profile = useMemo(() => state?.profiles_players || {}, [state?.profiles_players]);
   const songOwnerId = useMemo(() => getSongOfRestOwnerStateId(playerStates || []), [playerStates]);
   const isSongOwner = state?.id === songOwnerId;
@@ -23,6 +25,9 @@ export default function ShortRestResponsePanel({ open, encounterId, state, playe
 
   const validation = useMemo(() => validateShortRestResponse({ input: draft, state, profile, isSongOfRestOwner: isSongOwner }), [draft, state, profile, isSongOwner]);
   const healing = validation.response.sections.healing;
+  const computedHealingTotal = computeHealingTotal(validation.response, profile, sharedSongOfRestTotal);
+  const conMod = getAbilityModifier(readNumberField(profile, ['ability_con'], 10));
+  const conContribution = conMod * healing.totalHitDiceUsed;
 
   function updateField(key, value) { setDraft(curr => ({ ...curr, [key]: value })); }
   function updateSpend(size, value) { setDraft(curr => ({ ...curr, spendBySize: { ...(curr.spendBySize || {}), [size]: value } })); }
@@ -88,7 +93,7 @@ export default function ShortRestResponsePanel({ open, encounterId, state, playe
               {validation.errors.map(error => <div key={error} style={{ fontSize: 11, color: 'var(--accent-red)', marginTop: 6 }}>{error}</div>)}
 
               <div className="rest-modal-player-meta" style={{ marginTop: 8 }}>
-                Preview: rolled {healing.rolledTotal} • hit dice {healing.totalHitDiceUsed}{isSongOwner ? ` • Song of Rest ${healing.songOfRestTotal}` : ''}
+                Healing preview: {computedHealingTotal} HP (rolled {healing.rolledTotal} + CON {conMod >= 0 ? `+${conMod}` : conMod} × {healing.totalHitDiceUsed} = {conContribution} + Song {sharedSongOfRestTotal})
               </div>
             </div>
           </div>
