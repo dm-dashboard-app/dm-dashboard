@@ -12,6 +12,8 @@ import { hasPreparationRequirement } from '../utils/spellWorkflow';
 import IncomingTransferPopup from '../inventory/IncomingTransferPopup';
 import { inventoryGetPendingIncoming, inventoryRespondTransfer } from '../inventory/inventoryClient';
 import PlayerWorldPanel from './player/PlayerWorldPanel';
+import ShortRestResponsePanel from '../components/ShortRestResponsePanel';
+import { deriveShortRestProcedureState, getSongOfRestOwnerStateId, SHORT_REST_LOG_ACTION, SHORT_REST_RESPONSE_ACTION } from '../utils/shortRestWorkflow';
 
 export default function PlayerView() {
   const [encounter, setEncounter] = useState(null);
@@ -29,16 +31,20 @@ export default function PlayerView() {
   const [showConPanel, setShowConPanel] = useState(false);
   const [pendingIncoming, setPendingIncoming] = useState([]);
   const [dismissedTransferIds, setDismissedTransferIds] = useState(() => new Set());
+  const [shortRestActive, setShortRestActive] = useState(false);
+  const [shortRestResponsesByStateId, setShortRestResponsesByStateId] = useState({});
+  const [shortRestOpen, setShortRestOpen] = useState(false);
   const profileId = localStorage.getItem('player_profile_id');
   const encounterId = localStorage.getItem('player_encounter_id');
 
   const refreshAll = useCallback(async () => {
     if (!encounterId || !profileId) return;
     try {
-      const [enc, combs, allStates] = await Promise.all([
+      const [enc, combs, allStates, shortRestLogs] = await Promise.all([
         supabase.from('encounters').select('*').eq('id', encounterId).maybeSingle(),
         supabase.from('combatants').select('*').eq('encounter_id', encounterId).order('initiative_total', { ascending: false }),
         supabase.from('player_encounter_state').select('*, profiles_players(*), profiles_wildshape(form_name, hp_max)').eq('encounter_id', encounterId),
+        supabase.from('combat_log').select('id, action, detail, created_at').eq('encounter_id', encounterId).in('action', [SHORT_REST_LOG_ACTION, SHORT_REST_RESPONSE_ACTION, 'rest']).order('created_at', { ascending: false }).limit(250),
       ]);
       if (enc.data) setEncounter(enc.data);
       const all = combs.data || [];
@@ -49,6 +55,9 @@ export default function PlayerView() {
       setCombatant(mine || null);
       const myState = flat.find(s => s.player_profile_id === profileId);
       if (myState) setState(myState);
+      const shortRestState = deriveShortRestProcedureState(shortRestLogs.data || []);
+      setShortRestActive(shortRestState.active);
+      setShortRestResponsesByStateId(shortRestState.responsesByStateId || {});
     } catch (err) {
       setError(err.message);
     }
@@ -106,6 +115,8 @@ export default function PlayerView() {
   const prepActive = !!encounter?.long_rest_prep_active;
   const prepReady = !!state?.spell_prep_ready;
   const showPrepModal = prepActive && prepRequired && !prepReady && !!state?.profiles_players;
+  const shortRestSongOwnerId = getSongOfRestOwnerStateId(playerStates || []);
+  const sharedSongOfRestTotal = Math.max(0, parseInt(shortRestResponsesByStateId?.[shortRestSongOwnerId]?.response?.sections?.healing?.songOfRestTotal, 10) || 0);
 
   useEffect(() => {
     if (pendingConDc === null) setShowConPanel(false);
@@ -179,6 +190,15 @@ export default function PlayerView() {
         )}
       </div>
 
+      {shortRestActive && state && (
+        <div style={{ background: 'rgba(74,158,255,0.10)', borderBottom: '1.5px solid var(--accent-blue)', padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: shortRestResponsesByStateId[state.id]?.response?.ready ? 'var(--accent-green)' : 'var(--accent-blue)' }}>
+            {shortRestResponsesByStateId[state.id]?.response?.ready ? 'Short rest response submitted. Waiting for DM confirmation.' : 'Short rest in progress — submit your healing response.'}
+          </span>
+          <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => setShortRestOpen(true)}>{shortRestResponsesByStateId[state.id]?.response?.ready ? 'Review' : 'Open'}</button>
+        </div>
+      )}
+
       {prepActive && prepRequired && !showPrepModal && (
         <div style={{ background: 'rgba(74,158,255,0.10)', borderBottom: '1.5px solid var(--accent-blue)', padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
           <span style={{ fontSize: 13, fontWeight: 600, color: prepReady ? 'var(--accent-green)' : 'var(--accent-blue)' }}>
@@ -212,6 +232,17 @@ export default function PlayerView() {
       <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border)' }}><button className="btn btn-ghost" style={{ fontSize: 12, color: 'var(--text-muted)' }} onClick={handleLeave}>Leave Session</button></div>
 
       <IncomingTransferPopup transfer={activeIncoming} onAccept={() => respondToTransfer(activeIncoming.id, true)} onDecline={() => respondToTransfer(activeIncoming.id, false)} />
+
+      <ShortRestResponsePanel
+        open={shortRestOpen}
+        encounterId={encounterId}
+        state={state}
+        playerStates={playerStates}
+        initialResponse={shortRestResponsesByStateId[state?.id]?.response}
+        sharedSongOfRestTotal={sharedSongOfRestTotal}
+        onClose={() => setShortRestOpen(false)}
+        onSubmitted={refreshAll}
+      />
 
       {showPrepModal && (
         <SpellWorkflowPanel

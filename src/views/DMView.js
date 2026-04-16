@@ -6,6 +6,7 @@ import SecretRollInbox from '../components/SecretRollInbox';
 import EncounterSetup from '../components/EncounterSetup';
 import ManagementScreens from '../components/ManagementScreens';
 import ShortRestModal from '../components/ShortRestModal';
+import { deriveShortRestProcedureState, SHORT_REST_LOG_ACTION, SHORT_REST_RESPONSE_ACTION } from '../utils/shortRestWorkflow';
 import DMNotificationOverlay from '../components/DMNotificationOverlay';
 import LongRestPrepModal from '../components/LongRestPrepModal';
 import { readNumberField } from '../utils/classResources';
@@ -54,6 +55,8 @@ export default function DMView() {
   const [encounterId, setEncounterId] = useState(null);
   const [rollingInit, setRollingInit] = useState(false);
   const [shortRestOpen, setShortRestOpen] = useState(false);
+  const [shortRestProcedureActive, setShortRestProcedureActive] = useState(false);
+  const [shortRestResponsesByStateId, setShortRestResponsesByStateId] = useState({});
   const [longRestPrepOpen, setLongRestPrepOpen] = useState(false);
   const [recentRollCount, setRecentRollCount] = useState(0);
   const [recentAlertCount, setRecentAlertCount] = useState(0);
@@ -80,12 +83,13 @@ export default function DMView() {
 
   const refreshAll = useCallback(async () => {
     if (!encounterId) return;
-    const [enc, comb, states, token, codes] = await Promise.all([
+    const [enc, comb, states, token, codes, shortRestLogs] = await Promise.all([
       supabase.from('encounters').select('*').eq('id', encounterId).maybeSingle(),
       supabase.from('combatants').select('*').eq('encounter_id', encounterId).order('initiative_total', { ascending: false, nullsFirst: false }),
       supabase.from('player_encounter_state').select('*, profiles_players(*), profiles_wildshape(form_name, hp_max)').eq('encounter_id', encounterId),
       supabase.from('display_sessions').select('token').eq('encounter_id', encounterId).maybeSingle(),
       supabase.from('player_sessions').select('join_code, profiles_players(name)').eq('encounter_id', encounterId),
+      supabase.from('combat_log').select('id, action, detail, created_at').eq('encounter_id', encounterId).in('action', [SHORT_REST_LOG_ACTION, SHORT_REST_RESPONSE_ACTION, 'rest']).order('created_at', { ascending: false }).limit(250),
     ]);
     if (enc.data) setEncounter(enc.data);
     setCombatants(comb.data || []);
@@ -94,6 +98,9 @@ export default function DMView() {
     setJoinCodes(codes.data || []);
     const mode = readDisplayModeFromEncounter(enc.data, { logMissing: true });
     setDisplayCombatMode(mode);
+    const shortRestState = deriveShortRestProcedureState(shortRestLogs.data || []);
+    setShortRestProcedureActive(shortRestState.active);
+    setShortRestResponsesByStateId(shortRestState.responsesByStateId || {});
   }, [encounterId]);
 
   const refreshActivityPresence = useCallback(async () => {
@@ -177,6 +184,19 @@ export default function DMView() {
     await Promise.all(affected.map(async state => supabase.from('player_encounter_state').update({ spell_prep_ready: false }).eq('id', state.id)));
     await supabase.from('encounters').update({ long_rest_prep_active: true }).eq('id', encounter.id);
     setLongRestPrepOpen(true);
+    await refreshAll();
+  }
+
+  async function beginShortRest() {
+    if (!encounter) return;
+    if (shortRestProcedureActive) {
+      setShortRestOpen(true);
+      return;
+    }
+    if (!window.confirm('Start short rest and wait for player healing responses?')) return;
+    await supabase.from('combat_log').insert({ encounter_id: encounter.id, actor: 'DM', action: SHORT_REST_LOG_ACTION, detail: JSON.stringify({ type: 'start' }) });
+    await supabase.from('combat_log').insert({ encounter_id: encounter.id, actor: 'DM', action: 'rest', detail: 'Short Rest started — awaiting player responses' });
+    setShortRestOpen(true);
     await refreshAll();
   }
 
@@ -285,14 +305,14 @@ export default function DMView() {
           </div>
           <div className="dm-bottom-action-row">
             <button className="btn btn-ghost" onClick={beginLongRest}>Long Rest</button>
-            <button className="btn btn-ghost" onClick={() => setShortRestOpen(true)}>Short Rest</button>
+            <button className="btn btn-ghost" onClick={beginShortRest}>{shortRestProcedureActive ? 'Short Rest (Active)' : 'Short Rest'}</button>
             <button className="btn btn-ghost" onClick={handleRollEnemyInitiative} disabled={rollingInit}>{rollingInit ? 'Rolling…' : 'Initiative'}</button>
             <button className="btn btn-primary dm-bottom-action-next" onClick={handleNextTurn}>Next</button>
           </div>
         </div>
       </div>
 
-      <ShortRestModal open={shortRestOpen} playerStates={playerStates} encounterId={encounter.id} onClose={() => setShortRestOpen(false)} onComplete={refreshAll} />
+      <ShortRestModal open={shortRestOpen} playerStates={playerStates} encounterId={encounter.id} responsesByStateId={shortRestResponsesByStateId} onClose={() => setShortRestOpen(false)} onComplete={refreshAll} />
       <LongRestPrepModal open={longRestPrepOpen} playerStates={playerStates} onClose={cancelLongRestPrep} onComplete={executeLongRest} onRefresh={refreshAll} />
     </div>
   );
