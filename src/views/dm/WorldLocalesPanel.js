@@ -10,6 +10,7 @@ const SHOP_TYPES = [
   { value: 'general_store', label: 'General Store' },
   { value: 'apothecary', label: 'Apothecary / Alchemy' },
   { value: 'magic_shop', label: 'Magic Shop' },
+  { value: 'inn', label: 'Inn' },
 ];
 const AFFLUENCE_TIERS = [
   { value: 'poor', label: 'Poor' },
@@ -20,6 +21,10 @@ const AFFLUENCE_TIERS = [
 
 function gpLabel(value) {
   return `${Number(value || 0).toLocaleString()} gp`;
+}
+
+function shopSupportsInventory(shopType) {
+  return String(shopType || '').toLowerCase() !== 'inn';
 }
 
 function CollapsibleSection({ title, value }) {
@@ -327,12 +332,12 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
       : (shopRows?.[0]?.id || null);
     setSelectedShopId(nextShopId);
 
-    if (nextShopId && canEdit) {
+    const nextShop = (shopRows || []).find((row) => row.id === nextShopId);
+    if (nextShopId && canEdit && shopSupportsInventory(nextShop?.shop_type)) {
       const { data: stockRows, error: stockError } = await supabase.rpc(rpcInventory, { p_shop_id: nextShopId });
       if (stockError) throw stockError;
       setInventoryRows(stockRows || []);
-      const shopRow = (shopRows || []).find((row) => row.id === nextShopId);
-      setEditingInventoryNotes(shopRow?.inventory_notes || '');
+      setEditingInventoryNotes(nextShop?.inventory_notes || '');
     } else {
       setInventoryRows([]);
       setEditingInventoryNotes('');
@@ -468,6 +473,7 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
 
   async function handleGenerateInventory(regenerate = false) {
     if (!selectedShop) return;
+    if (!shopSupportsInventory(selectedShop.shop_type)) return;
     if (!regenerate && inventoryRows.length > 0) return;
     try {
       const generatedRows = generateShopRows(catalogItems, {
@@ -517,6 +523,12 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
     const activeShop = shops.find((entry) => entry.id === selectedShopId) || null;
     setEditingInventoryNotes(activeShop?.inventory_notes || '');
   }, [selectedShopId, shops]);
+
+  useEffect(() => {
+    if (selectedShop && selectedShopTab === 'inventory' && !shopSupportsInventory(selectedShop.shop_type)) {
+      setSelectedShopTab('details');
+    }
+  }, [selectedShop, selectedShopTab]);
 
   if (loading) return <div className="empty-state">Loading locales…</div>;
 
@@ -600,7 +612,7 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
                   <button className="btn btn-ghost" onClick={() => setSelectedShopId(null)}>← Back to locale shops</button>
                   <div className="world-tabs-row">
                     <button className="btn btn-ghost" data-active={selectedShopTab === 'details'} onClick={() => setSelectedShopTab('details')}>Details</button>
-                    {canEdit ? <button className="btn btn-ghost" data-active={selectedShopTab === 'inventory'} onClick={() => setSelectedShopTab('inventory')}>Inventory</button> : null}
+                    {canEdit && shopSupportsInventory(selectedShop?.shop_type) ? <button className="btn btn-ghost" data-active={selectedShopTab === 'inventory'} onClick={() => setSelectedShopTab('inventory')}>Inventory</button> : null}
                     <button className="btn btn-ghost" data-active={selectedShopTab === 'notes'} onClick={() => setSelectedShopTab('notes')}>Notes</button>
                   </div>
 
@@ -643,11 +655,13 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
 
                   {selectedShopTab === 'notes' ? (
                     <div className="world-card">
-                      {canEdit ? (
+                      {canEdit && shopSupportsInventory(selectedShop?.shop_type) ? (
                         <>
                           <textarea className="form-input" rows={8} value={editingInventoryNotes} onChange={(event) => setEditingInventoryNotes(event.target.value)} placeholder="DM inventory notes" />
                           <button className="btn btn-primary" onClick={saveShopInventoryNotes}>Save Notes</button>
                         </>
+                      ) : canEdit ? (
+                        <div className="world-card-body">Inventory workflow does not apply to Inns.</div>
                       ) : (
                         <div className="world-card-body" style={{ whiteSpace: 'pre-wrap' }}>{selectedShop?.shop_notes || 'No shop notes saved.'}</div>
                       )}
@@ -663,7 +677,7 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
                         <div className="world-card-head"><strong>{shop.shop_name}</strong><span>{shop.shop_type.replace('_', ' ')}</span></div>
                         <div className="world-chip-row">
                           <span className="world-chip">{shop.affluence_tier.replace('_', ' ')}</span>
-                          <span className="world-chip">Stock {shop.inventory_count || 0}</span>
+                          {shopSupportsInventory(shop.shop_type) ? <span className="world-chip">Stock {shop.inventory_count || 0}</span> : <span className="world-chip">No Stock</span>}
                           {shop.district_name ? <span className="world-chip">{shop.district_name}</span> : null}
                         </div>
                       </button>

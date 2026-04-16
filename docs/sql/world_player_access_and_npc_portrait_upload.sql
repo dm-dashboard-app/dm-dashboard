@@ -3,6 +3,9 @@
 alter table if exists public.dm_world_npcs
   add column if not exists portrait_path text;
 
+drop function if exists public.dm_world_get_npcs();
+drop function if exists public.player_world_get_npcs();
+
 create or replace function public.dm_world_upsert_npc(
   p_npc_id uuid,
   p_name text,
