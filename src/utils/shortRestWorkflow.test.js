@@ -1,23 +1,25 @@
 import {
+  buildShortRestPatch,
   computeHealingTotal,
   deriveShortRestProcedureSnapshot,
   deriveShortRestProcedureState,
+  getSharedSongOfRestTotal,
   validateShortRestResponse,
 } from './shortRestWorkflow';
 
 describe('shortRestWorkflow', () => {
   test('validates hit-dice total against spend breakdown', () => {
-    const state = { hit_dice_d8_current: 3, hit_dice_d8_max: 3 };
+    const state = { hit_dice_d8_current: 3, hit_dice_d8_max: 3, hit_dice_d10_current: 2, hit_dice_d10_max: 2 };
     const profile = { ability_con: 14 };
     const invalid = validateShortRestResponse({
-      input: { rolledTotal: 6, totalHitDiceUsed: 2, spendBySize: { d8: 1 } },
+      input: { rolledTotal: 6, totalHitDiceUsed: 2, spendBySize: { d8: 1, d10: 0 } },
       state,
       profile,
     });
     expect(invalid.valid).toBe(false);
 
     const valid = validateShortRestResponse({
-      input: { rolledTotal: 6, totalHitDiceUsed: 2, spendBySize: { d8: 2 } },
+      input: { rolledTotal: 6, totalHitDiceUsed: 2, spendBySize: { d8: 1, d10: 1 } },
       state,
       profile,
     });
@@ -28,6 +30,75 @@ describe('shortRestWorkflow', () => {
     const response = { sections: { healing: { rolledTotal: 7, totalHitDiceUsed: 2 } } };
     const profile = { ability_con: 14 };
     expect(computeHealingTotal(response, profile, 4)).toBe(15);
+  });
+
+  test('auto-infers spend breakdown for single hit-die pool', () => {
+    const state = { hit_dice_d10_current: 4, hit_dice_d10_max: 4 };
+    const valid = validateShortRestResponse({
+      input: { rolledTotal: 8, totalHitDiceUsed: 2 },
+      state,
+      profile: { ability_con: 16 },
+    });
+    expect(valid.valid).toBe(true);
+    expect(valid.response.sections.healing.spendBySize).toEqual({ d10: 2 });
+  });
+
+  test('single-pool validation still enforces available dice cap', () => {
+    const state = { hit_dice_d10_current: 1, hit_dice_d10_max: 2 };
+    const invalid = validateShortRestResponse({
+      input: { rolledTotal: 5, totalHitDiceUsed: 2 },
+      state,
+      profile: { ability_con: 12 },
+    });
+    expect(invalid.valid).toBe(false);
+    expect(invalid.errors).toContain('Cannot spend more than 1d10.');
+  });
+
+  test('shared Song of Rest total is derived from owner response and used in patch-healing flow', () => {
+    const playerStates = [
+      { id: 'state-bard', profiles_players: { class_name: 'Bard', class_level: 5 } },
+      { id: 'state-fighter', profiles_players: { class_name: 'Fighter', class_level: 5 } },
+    ];
+    const responsesByStateId = {
+      'state-bard': {
+        response: {
+          sections: {
+            healing: {
+              rolledTotal: 8,
+              totalHitDiceUsed: 2,
+              spendBySize: { d10: 2 },
+              songOfRestTotal: 4,
+            },
+          },
+        },
+      },
+      'state-fighter': {
+        response: {
+          sections: {
+            healing: {
+              rolledTotal: 8,
+              totalHitDiceUsed: 2,
+              spendBySize: { d10: 2 },
+            },
+          },
+        },
+      },
+    };
+    const sharedSong = getSharedSongOfRestTotal({ playerStates, responsesByStateId });
+    expect(sharedSong).toBe(4);
+
+    const profile = { ability_con: 16, max_hp: 30 };
+    const response = responsesByStateId['state-fighter'].response;
+    const healingTotal = computeHealingTotal(response, profile, sharedSong);
+    expect(healingTotal).toBe(18);
+
+    const patch = buildShortRestPatch({
+      state: { current_hp: 5, hit_dice_d10_current: 4, hit_dice_d10_max: 4 },
+      profile,
+      healingTotal,
+      spendBySize: { d10: 2 },
+    });
+    expect(patch.current_hp).toBe(23);
   });
 
 

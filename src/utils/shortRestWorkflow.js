@@ -58,13 +58,19 @@ export function getSongOfRestOwnerStateId(playerStates = []) {
 
 export function normalizeShortRestResponseInput(input = {}, pools = []) {
   const spendBySize = {};
+  const totalHitDiceUsed = Math.max(0, parseInt(input.totalHitDiceUsed, 10) || 0);
+  const singlePool = pools.length === 1 ? pools[0] : null;
   pools.forEach((pool) => {
     const key = `d${pool.size}`;
+    if (singlePool && pool.size === singlePool.size) {
+      spendBySize[key] = totalHitDiceUsed;
+      return;
+    }
     spendBySize[key] = Math.max(0, parseInt(input.spendBySize?.[key], 10) || 0);
   });
   return {
     rolledTotal: Math.max(0, parseInt(input.rolledTotal, 10) || 0),
-    totalHitDiceUsed: Math.max(0, parseInt(input.totalHitDiceUsed, 10) || 0),
+    totalHitDiceUsed,
     songOfRestTotal: Math.max(0, parseInt(input.songOfRestTotal, 10) || 0),
     spendBySize,
   };
@@ -105,6 +111,12 @@ export function computeHealingTotal(response = {}, profile = {}, sharedSongOfRes
   const used = Math.max(0, parseInt(healing.totalHitDiceUsed, 10) || 0);
   const conMod = getAbilityModifier(readNumberField(profile, ['ability_con'], 10));
   return Math.max(0, rolled + (conMod * used) + Math.max(0, parseInt(sharedSongOfRestTotal, 10) || 0));
+}
+
+export function getSharedSongOfRestTotal({ playerStates = [], responsesByStateId = {} } = {}) {
+  const songOwnerId = getSongOfRestOwnerStateId(playerStates || []);
+  if (!songOwnerId) return 0;
+  return Math.max(0, parseInt(responsesByStateId?.[songOwnerId]?.response?.sections?.healing?.songOfRestTotal, 10) || 0);
 }
 
 export function buildShortRestPatch({ state = {}, profile = {}, healingTotal = 0, spendBySize = {} }) {
