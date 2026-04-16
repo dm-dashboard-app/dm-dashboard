@@ -46,7 +46,7 @@ export default function ShortRestResponsePanel({ open, encounterId, state, playe
           response: validation.response,
         }),
       });
-      onSubmitted?.();
+      onSubmitted?.(validation.response);
       onClose?.();
     } finally {
       setSubmitting(false);

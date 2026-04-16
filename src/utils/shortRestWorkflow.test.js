@@ -1,4 +1,9 @@
-import { computeHealingTotal, deriveShortRestProcedureState, validateShortRestResponse } from './shortRestWorkflow';
+import {
+  computeHealingTotal,
+  deriveShortRestProcedureSnapshot,
+  deriveShortRestProcedureState,
+  validateShortRestResponse,
+} from './shortRestWorkflow';
 
 describe('shortRestWorkflow', () => {
   test('validates hit-dice total against spend breakdown', () => {
@@ -46,5 +51,36 @@ describe('shortRestWorkflow', () => {
     const state = deriveShortRestProcedureState(logs);
     expect(state.active).toBe(true);
     expect(state.responsesByStateId['state-1']).toBeTruthy();
+  });
+
+  test('detects active cycle from latest procedure event and filters responses to that cycle', () => {
+    const state = deriveShortRestProcedureSnapshot({
+      procedureRows: [
+        { created_at: '2026-04-16T09:00:00Z', action: 'short_rest_procedure', detail: JSON.stringify({ type: 'start' }) },
+        { created_at: '2026-04-16T09:05:00Z', action: 'short_rest_procedure', detail: JSON.stringify({ type: 'cancel' }) },
+        { created_at: '2026-04-16T10:00:00Z', action: 'short_rest_procedure', detail: JSON.stringify({ type: 'start' }) },
+      ],
+      responseRows: [
+        { created_at: '2026-04-16T09:02:00Z', action: 'short_rest_response', detail: JSON.stringify({ player_state_id: 'state-old', response: { ready: true } }) },
+        { created_at: '2026-04-16T10:02:00Z', action: 'short_rest_response', detail: JSON.stringify({ player_state_id: 'state-new', response: { ready: true } }) },
+      ],
+    });
+    expect(state.active).toBe(true);
+    expect(state.responsesByStateId['state-old']).toBeUndefined();
+    expect(state.responsesByStateId['state-new']).toBeTruthy();
+  });
+
+  test('marks procedure inactive when latest event is cancel', () => {
+    const state = deriveShortRestProcedureSnapshot({
+      procedureRows: [
+        { created_at: '2026-04-16T10:00:00Z', action: 'short_rest_procedure', detail: JSON.stringify({ type: 'start' }) },
+        { created_at: '2026-04-16T10:03:00Z', action: 'short_rest_procedure', detail: JSON.stringify({ type: 'cancel' }) },
+      ],
+      responseRows: [
+        { created_at: '2026-04-16T10:02:00Z', action: 'short_rest_response', detail: JSON.stringify({ player_state_id: 'state-1', response: { ready: true } }) },
+      ],
+    });
+    expect(state.active).toBe(false);
+    expect(Object.keys(state.responsesByStateId)).toHaveLength(0);
   });
 });

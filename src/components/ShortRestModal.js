@@ -17,7 +17,16 @@ function spentSummary(spendBySize = {}) {
     .join(' ');
 }
 
-export default function ShortRestModal({ open, playerStates, encounterId, responsesByStateId = {}, onClose, onComplete }) {
+export default function ShortRestModal({
+  open,
+  playerStates,
+  encounterId,
+  responsesByStateId = {},
+  shortRestProcedureActive = false,
+  onClose,
+  onCancelProcedure,
+  onComplete,
+}) {
   const [submitting, setSubmitting] = useState(false);
 
   const rows = useMemo(() => {
@@ -75,7 +84,7 @@ export default function ShortRestModal({ open, playerStates, encounterId, respon
           detail: `${row.name}: short rest +${row.healingTotal} HP (${fromHp} → ${toHp})${spends ? ` • ${spends} spent` : ''}`,
         });
       }
-      await supabase.from('encounters').update({ round: 1, turn_index: 0 }).eq('id', encounterId);
+      await supabase.from('encounters').update({ round: 1, turn_index: 0, short_rest_active: false, short_rest_started_at: null }).eq('id', encounterId);
       await supabase.from('combat_log').insert({ encounter_id: encounterId, actor: 'DM', action: SHORT_REST_LOG_ACTION, detail: JSON.stringify({ type: 'complete' }) });
       await supabase.from('combat_log').insert({ encounter_id: encounterId, actor: 'DM', action: 'rest', detail: 'Short Rest completed — short-rest resources restored and round reset to 1' });
       onComplete?.();
@@ -119,7 +128,9 @@ export default function ShortRestModal({ open, playerStates, encounterId, respon
             {rows.length === 0 && <div className="empty-state">No player states found for this encounter.</div>}
           </div>
           <div className="rest-modal-actions">
-            <button className="btn btn-ghost" onClick={onClose} disabled={submitting}>Cancel</button>
+            <button className="btn btn-ghost" onClick={shortRestProcedureActive ? onCancelProcedure : onClose} disabled={submitting}>
+              {shortRestProcedureActive ? 'Cancel Short Rest' : 'Cancel'}
+            </button>
             <button className="btn btn-primary" onClick={handleConfirm} disabled={submitting || !allReady}>
               {submitting ? 'Applying…' : 'Confirm Short Rest'}
             </button>

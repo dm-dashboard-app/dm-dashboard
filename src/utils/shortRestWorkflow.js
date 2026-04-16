@@ -154,3 +154,33 @@ export function deriveShortRestProcedureState(logRows = []) {
 
   return { active, startedAt, responsesByStateId };
 }
+
+export function deriveShortRestProcedureSnapshot({ procedureRows = [], responseRows = [] } = {}) {
+  const rows = [...(procedureRows || [])].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  const latestProcedure = rows.reduce((latest, row) => {
+    const detail = parseJsonDetail(row?.detail);
+    if (!detail?.type) return latest;
+    return row;
+  }, null);
+
+  if (!latestProcedure) return { active: false, startedAt: null, responsesByStateId: {} };
+  const latestType = parseJsonDetail(latestProcedure.detail)?.type;
+  if (latestType !== 'start') return { active: false, startedAt: null, responsesByStateId: {} };
+
+  const startedAt = latestProcedure.created_at;
+  const responsesByStateId = {};
+  (responseRows || [])
+    .filter((row) => row?.action === SHORT_REST_RESPONSE_ACTION && row?.created_at >= startedAt)
+    .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+    .forEach((row) => {
+      const detail = parseJsonDetail(row.detail);
+      const stateId = detail?.player_state_id;
+      if (stateId) responsesByStateId[stateId] = detail;
+    });
+
+  return {
+    active: true,
+    startedAt,
+    responsesByStateId,
+  };
+}

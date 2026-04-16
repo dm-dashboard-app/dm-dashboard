@@ -6,7 +6,7 @@ import SecretRollInbox from '../components/SecretRollInbox';
 import EncounterSetup from '../components/EncounterSetup';
 import ManagementScreens from '../components/ManagementScreens';
 import ShortRestModal from '../components/ShortRestModal';
-import { deriveShortRestProcedureState, SHORT_REST_LOG_ACTION, SHORT_REST_RESPONSE_ACTION } from '../utils/shortRestWorkflow';
+import { SHORT_REST_LOG_ACTION, SHORT_REST_RESPONSE_ACTION } from '../utils/shortRestWorkflow';
 import DMNotificationOverlay from '../components/DMNotificationOverlay';
 import LongRestPrepModal from '../components/LongRestPrepModal';
 import { readNumberField } from '../utils/classResources';
@@ -83,13 +83,12 @@ export default function DMView() {
 
   const refreshAll = useCallback(async () => {
     if (!encounterId) return;
-    const [enc, comb, states, token, codes, shortRestLogs] = await Promise.all([
+    const [enc, comb, states, token, codes] = await Promise.all([
       supabase.from('encounters').select('*').eq('id', encounterId).maybeSingle(),
       supabase.from('combatants').select('*').eq('encounter_id', encounterId).order('initiative_total', { ascending: false, nullsFirst: false }),
       supabase.from('player_encounter_state').select('*, profiles_players(*), profiles_wildshape(form_name, hp_max)').eq('encounter_id', encounterId),
       supabase.from('display_sessions').select('token').eq('encounter_id', encounterId).maybeSingle(),
       supabase.from('player_sessions').select('join_code, profiles_players(name)').eq('encounter_id', encounterId),
-      supabase.from('combat_log').select('id, action, detail, created_at').eq('encounter_id', encounterId).in('action', [SHORT_REST_LOG_ACTION, SHORT_REST_RESPONSE_ACTION, 'rest']).order('created_at', { ascending: false }).limit(250),
     ]);
     if (enc.data) setEncounter(enc.data);
     setCombatants(comb.data || []);
@@ -98,9 +97,33 @@ export default function DMView() {
     setJoinCodes(codes.data || []);
     const mode = readDisplayModeFromEncounter(enc.data, { logMissing: true });
     setDisplayCombatMode(mode);
-    const shortRestState = deriveShortRestProcedureState(shortRestLogs.data || []);
-    setShortRestProcedureActive(shortRestState.active);
-    setShortRestResponsesByStateId(shortRestState.responsesByStateId || {});
+    const shortRestProcedureActiveNow = !!enc.data?.short_rest_active;
+    const shortRestStartedAt = enc.data?.short_rest_started_at || null;
+    let shortRestResponseLogs = [];
+    if (shortRestProcedureActiveNow && shortRestStartedAt) {
+      const { data } = await supabase
+        .from('combat_log')
+        .select('id, action, detail, created_at')
+        .eq('encounter_id', encounterId)
+        .eq('action', SHORT_REST_RESPONSE_ACTION)
+        .gte('created_at', shortRestStartedAt)
+        .order('created_at', { ascending: true })
+        .limit(250);
+      shortRestResponseLogs = data || [];
+    }
+    const responsesByStateId = {};
+    shortRestResponseLogs.forEach((row) => {
+      let detail = null;
+      try {
+        detail = typeof row.detail === 'object' ? row.detail : JSON.parse(row.detail);
+      } catch (_err) {
+        detail = null;
+      }
+      const stateId = detail?.player_state_id;
+      if (stateId) responsesByStateId[stateId] = detail;
+    });
+    setShortRestProcedureActive(shortRestProcedureActiveNow);
+    setShortRestResponsesByStateId(responsesByStateId);
   }, [encounterId]);
 
   const refreshActivityPresence = useCallback(async () => {
@@ -194,9 +217,23 @@ export default function DMView() {
       return;
     }
     if (!window.confirm('Start short rest and wait for player healing responses?')) return;
+    await supabase.from('encounters').update({ short_rest_active: true, short_rest_started_at: new Date().toISOString() }).eq('id', encounter.id);
     await supabase.from('combat_log').insert({ encounter_id: encounter.id, actor: 'DM', action: SHORT_REST_LOG_ACTION, detail: JSON.stringify({ type: 'start' }) });
     await supabase.from('combat_log').insert({ encounter_id: encounter.id, actor: 'DM', action: 'rest', detail: 'Short Rest started — awaiting player responses' });
     setShortRestOpen(true);
+    await refreshAll();
+  }
+
+  async function cancelShortRest() {
+    if (!encounter || !shortRestProcedureActive) {
+      setShortRestOpen(false);
+      return;
+    }
+    if (!window.confirm('Cancel active short rest? Player responses for this cycle will be discarded.')) return;
+    await supabase.from('encounters').update({ short_rest_active: false, short_rest_started_at: null }).eq('id', encounter.id);
+    await supabase.from('combat_log').insert({ encounter_id: encounter.id, actor: 'DM', action: SHORT_REST_LOG_ACTION, detail: JSON.stringify({ type: 'cancel' }) });
+    await supabase.from('combat_log').insert({ encounter_id: encounter.id, actor: 'DM', action: 'rest', detail: 'Short Rest cancelled — no healing or short-rest resource reset applied' });
+    setShortRestOpen(false);
     await refreshAll();
   }
 
@@ -312,7 +349,7 @@ export default function DMView() {
         </div>
       </div>
 
-      <ShortRestModal open={shortRestOpen} playerStates={playerStates} encounterId={encounter.id} responsesByStateId={shortRestResponsesByStateId} onClose={() => setShortRestOpen(false)} onComplete={refreshAll} />
+      <ShortRestModal open={shortRestOpen} playerStates={playerStates} encounterId={encounter.id} responsesByStateId={shortRestResponsesByStateId} onClose={() => setShortRestOpen(false)} onCancelProcedure={cancelShortRest} shortRestProcedureActive={shortRestProcedureActive} onComplete={refreshAll} />
       <LongRestPrepModal open={longRestPrepOpen} playerStates={playerStates} onClose={cancelLongRestPrep} onComplete={executeLongRest} onRefresh={refreshAll} />
     </div>
   );

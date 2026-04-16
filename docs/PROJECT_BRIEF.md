@@ -1,6 +1,6 @@
 # DM Dashboard — Project Brief
 
-Last updated: April 16, 2026 (short-rest player workflow + bardic pip styling landed)
+Last updated: April 16, 2026 (short-rest player visibility + DM cancel reliability fix landed)
 
 Purpose: This document is the current-state/background brief for DM Dashboard. It describes what the app now is, what is materially landed, and what principles future work must preserve.
 
@@ -91,6 +91,8 @@ Landed baseline includes:
 - long-rest preparation procedure integrated into long-rest flow
 - short-rest now runs as a player-response/DM-confirm procedure: DM starts, players submit healing + hit-dice responses, DM reviews concise per-player totals, then confirms final application
 - short-rest healing input now captures rolled total, total hit dice used, exact per-die-size spend breakdown, and one shared Song of Rest total from the eligible bard source
+- short-rest active-state visibility now uses encounter-level active-cycle markers (`short_rest_active` + `short_rest_started_at`) so player prompts no longer depend on player combat-log reads
+- DM short-rest modal now includes a true cancel action that writes a short-rest cancel procedure event and cleanly ends the active cycle without applying healing/resource changes
 - short-rest completion still preserves short-rest resource restoration and round/log reset behavior
 - spell-slot presentation now uses a compact mobile-first two-column layout for Levels 1–8 with Level 9 alone on the final row, with pact pips retained and the `PACT` text label removed
 - player-card Bardic Inspiration pips now use a bard-specific music-note visual treatment (without changing spell-slot visuals or resource logic)

@@ -13,7 +13,9 @@ import IncomingTransferPopup from '../inventory/IncomingTransferPopup';
 import { inventoryGetPendingIncoming, inventoryRespondTransfer } from '../inventory/inventoryClient';
 import PlayerWorldPanel from './player/PlayerWorldPanel';
 import ShortRestResponsePanel from '../components/ShortRestResponsePanel';
-import { deriveShortRestProcedureState, getSongOfRestOwnerStateId, SHORT_REST_LOG_ACTION, SHORT_REST_RESPONSE_ACTION } from '../utils/shortRestWorkflow';
+import {
+  getSongOfRestOwnerStateId,
+} from '../utils/shortRestWorkflow';
 
 export default function PlayerView() {
   const [encounter, setEncounter] = useState(null);
@@ -34,17 +36,17 @@ export default function PlayerView() {
   const [shortRestActive, setShortRestActive] = useState(false);
   const [shortRestResponsesByStateId, setShortRestResponsesByStateId] = useState({});
   const [shortRestOpen, setShortRestOpen] = useState(false);
+  const [lastSeenShortRestStartAt, setLastSeenShortRestStartAt] = useState(null);
   const profileId = localStorage.getItem('player_profile_id');
   const encounterId = localStorage.getItem('player_encounter_id');
 
   const refreshAll = useCallback(async () => {
     if (!encounterId || !profileId) return;
     try {
-      const [enc, combs, allStates, shortRestLogs] = await Promise.all([
+      const [enc, combs, allStates] = await Promise.all([
         supabase.from('encounters').select('*').eq('id', encounterId).maybeSingle(),
         supabase.from('combatants').select('*').eq('encounter_id', encounterId).order('initiative_total', { ascending: false }),
         supabase.from('player_encounter_state').select('*, profiles_players(*), profiles_wildshape(form_name, hp_max)').eq('encounter_id', encounterId),
-        supabase.from('combat_log').select('id, action, detail, created_at').eq('encounter_id', encounterId).in('action', [SHORT_REST_LOG_ACTION, SHORT_REST_RESPONSE_ACTION, 'rest']).order('created_at', { ascending: false }).limit(250),
       ]);
       if (enc.data) setEncounter(enc.data);
       const all = combs.data || [];
@@ -55,13 +57,22 @@ export default function PlayerView() {
       setCombatant(mine || null);
       const myState = flat.find(s => s.player_profile_id === profileId);
       if (myState) setState(myState);
-      const shortRestState = deriveShortRestProcedureState(shortRestLogs.data || []);
-      setShortRestActive(shortRestState.active);
-      setShortRestResponsesByStateId(shortRestState.responsesByStateId || {});
+      const shortRestIsActive = !!enc.data?.short_rest_active;
+      const shortRestStartedAt = enc.data?.short_rest_started_at || null;
+      setShortRestActive(shortRestIsActive);
+      if (shortRestIsActive && shortRestStartedAt && shortRestStartedAt !== lastSeenShortRestStartAt) {
+        setShortRestOpen(true);
+        setLastSeenShortRestStartAt(shortRestStartedAt);
+        setShortRestResponsesByStateId({});
+      }
+      if (!shortRestIsActive) {
+        setLastSeenShortRestStartAt(null);
+        setShortRestResponsesByStateId({});
+      }
     } catch (err) {
       setError(err.message);
     }
-  }, [encounterId, profileId]);
+  }, [encounterId, lastSeenShortRestStartAt, profileId]);
 
   const refreshPendingIncoming = useCallback(async () => {
     if (!profileId || !localStorage.getItem('player_join_code')) return;
@@ -241,7 +252,11 @@ export default function PlayerView() {
         initialResponse={shortRestResponsesByStateId[state?.id]?.response}
         sharedSongOfRestTotal={sharedSongOfRestTotal}
         onClose={() => setShortRestOpen(false)}
-        onSubmitted={refreshAll}
+        onSubmitted={(response) => {
+          if (!state?.id) return;
+          setShortRestResponsesByStateId((curr) => ({ ...curr, [state.id]: { response } }));
+          refreshAll();
+        }}
       />
 
       {showPrepModal && (
