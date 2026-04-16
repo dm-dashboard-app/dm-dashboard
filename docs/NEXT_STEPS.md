@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 16, 2026 (rest-procedure + attunement roadmap alignment)
+Last updated: April 16, 2026 (short-rest player workflow + bardic pip differentiation landed)
 
 Purpose: This file is the active roadmap only. It lists active next steps, intentionally parked/deferred work, and longer-range ideas.
 
@@ -20,26 +20,17 @@ This roadmap should focus on what to build next, not re-open already-landed base
 
 ## Active Next Steps (current roadmap)
 
-### 1) Rest procedure redesign — short-rest rework (active)
+### 1) Rest procedure architecture expansion — attunement section insertion (active)
 
-Goal: replace the current DM-entered short-rest healing flow with a shared player-submission + DM-confirm procedure that stays concise in-session and preserves current short-rest restoration behavior.
+Goal: extend the newly landed short-rest player-response/DM-confirm procedure shape with additional sections (starting with attunement) without regressing current healing/resource behavior.
 
-- DM starts short rest.
-- Players (not DM) submit healing inputs.
-- Player input model uses Option B:
-  - one rolled dice total
-  - one total hit dice used
-  - exact per-die-size spend breakdown for multiclass correctness
-- Healing formula:
-  - rolled dice total
-  - plus CON modifier multiplied by hit dice used
-  - plus one shared Song of Rest total if provided by the bard source
-- Only one Song of Rest total applies to the group.
-- DM review/confirm remains required before short rest completes.
-- DM review surface should stay concise and show per player:
-  - healing total
-  - hit dice used
-- Short rest completion should preserve the same short-rest restoration behavior currently on `main`, plus the new healing summary/application model.
+- Keep short rest as a sectional player-response + DM-confirm procedure.
+- Preserve landed short-rest healing response behavior:
+  - player-entered rolled total + total hit dice + per-die-size spend accounting
+  - shared Song of Rest source input and group application
+  - concise DM review summary and confirm step
+- Add attunement as the next section inside this shared rest procedure shape (not as a disconnected workflow).
+- Keep mobile-first response and review ergonomics.
 
 ### 2) Shared rest-procedure architecture direction (active)
 

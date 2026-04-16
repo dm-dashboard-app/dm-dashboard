@@ -1,133 +1,88 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { supabase } from '../supabaseClient';
-import { readNumberField, findExistingKey } from '../utils/classResources';
-import { getShortRestResourcePatch } from '../utils/resourcePolicy';
+import { readNumberField } from '../utils/classResources';
+import {
+  buildShortRestPatch,
+  computeHealingTotal,
+  getSongOfRestDie,
+  getSongOfRestOwnerStateId,
+  SHORT_REST_LOG_ACTION,
+} from '../utils/shortRestWorkflow';
 
-function getStateHitDicePools(state = {}, profile = {}) {
-  const pools = [
-    { size: 6, currentKey: 'hit_dice_d6_current', maxKey: 'hit_dice_d6_max', current: readNumberField(state, ['hit_dice_d6_current'], 0), max: readNumberField(state, ['hit_dice_d6_max'], 0) },
-    { size: 8, currentKey: 'hit_dice_d8_current', maxKey: 'hit_dice_d8_max', current: readNumberField(state, ['hit_dice_d8_current'], 0), max: readNumberField(state, ['hit_dice_d8_max'], 0) },
-    { size: 10, currentKey: 'hit_dice_d10_current', maxKey: 'hit_dice_d10_max', current: readNumberField(state, ['hit_dice_d10_current'], 0), max: readNumberField(state, ['hit_dice_d10_max'], 0) },
-    { size: 12, currentKey: 'hit_dice_d12_current', maxKey: 'hit_dice_d12_max', current: readNumberField(state, ['hit_dice_d12_current'], 0), max: readNumberField(state, ['hit_dice_d12_max'], 0) },
-  ].filter(pool => pool.max > 0 || pool.current > 0);
-  if (pools.length > 0) return pools;
-  const legacyCurrent = readNumberField(state, ['hit_dice_current', 'hit_dice_remaining'], null);
-  const legacyMax = readNumberField(state, ['hit_dice_max'], null);
-  const legacySize = readNumberField(state, ['hit_die_size'], readNumberField(profile, ['hit_die_size'], null));
-  if (legacyCurrent !== null || legacyMax !== null || legacySize !== null) {
-    return [{ size: legacySize || 0, currentKey: findExistingKey(state, ['hit_dice_current', 'hit_dice_remaining']) || 'hit_dice_current', maxKey: findExistingKey(state, ['hit_dice_max']) || 'hit_dice_max', current: legacyCurrent ?? 0, max: legacyMax ?? 0 }];
-  }
-  return [];
+function spentSummary(spendBySize = {}) {
+  return Object.entries(spendBySize)
+    .map(([label, value]) => ({ label, value: Math.max(0, parseInt(value, 10) || 0) }))
+    .filter(entry => entry.value > 0)
+    .map(entry => `${entry.value}${entry.label}`)
+    .join(' ');
 }
-function formatHitDicePoolSummary(pools = []) { return pools.map(pool => `${pool.current}${pool.max !== null ? `/${pool.max}` : ''} d${pool.size}`).join(' • '); }
-function getProfileClassLevel(profile = {}, targetClass = '') {
-  const lower = targetClass.toLowerCase();
-  const primary = (profile.class_name || '').toLowerCase() === lower ? parseInt(profile.class_level, 10) || 0 : 0;
-  const secondary = (profile.class_name_2 || '').toLowerCase() === lower ? parseInt(profile.class_level_2, 10) || 0 : 0;
-  return primary + secondary;
-}
-function getSongOfRestDie(level = 0) {
-  if (level >= 17) return 'd12';
-  if (level >= 13) return 'd10';
-  if (level >= 9) return 'd8';
-  if (level >= 2) return 'd6';
-  return null;
-}
-function buildShortRestPatch(state = {}, healAmount = 0, spentBySize = {}, songOfRest = 0) {
-  const patch = {};
-  const hpCurrent = readNumberField(state, ['current_hp'], 0);
-  const maxHp = (() => {
-    const override = readNumberField(state, ['max_hp_override'], null);
-    if (override !== null) return override;
-    const profileMax = readNumberField(state?.profiles_players, ['max_hp'], null);
-    if (profileMax !== null) return profileMax;
-    return readNumberField(state, ['current_hp'], 0);
-  })();
-  const safeHeal = Math.max(0, parseInt(healAmount, 10) || 0);
-  const safeSong = Math.max(0, parseInt(songOfRest, 10) || 0);
-  patch.current_hp = Math.min(maxHp, hpCurrent + safeHeal + safeSong);
-  const pools = getStateHitDicePools(state, state?.profiles_players || {});
-  if (pools.length > 0) {
-    pools.forEach(pool => {
-      const requested = Math.max(0, parseInt(spentBySize[`d${pool.size}`], 10) || 0);
-      const spend = Math.max(0, Math.min(pool.current, requested));
-      patch[pool.currentKey] = pool.current - spend;
-    });
-  } else {
-    const hitDiceCurrentKey = findExistingKey(state, ['hit_dice_current', 'hit_dice_remaining']);
-    if (hitDiceCurrentKey) {
-      const currentDice = readNumberField(state, [hitDiceCurrentKey], 0);
-      const totalSpend = Object.values(spentBySize || {}).reduce((sum, value) => sum + (parseInt(value, 10) || 0), 0);
-      const spend = Math.max(0, Math.min(currentDice, totalSpend));
-      patch[hitDiceCurrentKey] = currentDice - spend;
-    }
-  }
-  return patch;
-}
-function mergeDefined(...objects) { const merged = {}; objects.forEach(obj => Object.entries(obj || {}).forEach(([key, value]) => { if (value !== undefined) merged[key] = value; })); return merged; }
 
-export default function ShortRestModal({ open, playerStates, encounterId, onClose, onComplete }) {
-  const [drafts, setDrafts] = useState({});
+export default function ShortRestModal({ open, playerStates, encounterId, responsesByStateId = {}, onClose, onComplete }) {
   const [submitting, setSubmitting] = useState(false);
+
   const rows = useMemo(() => {
-    const mapped = (playerStates || []).map(state => {
+    const songOwnerId = getSongOfRestOwnerStateId(playerStates || []);
+    const baseRows = (playerStates || []).map((state) => {
       const profile = state?.profiles_players || {};
-      const name = profile.name || 'Unknown Player';
-      const currentHp = readNumberField(state, ['current_hp'], 0);
-      const maxHpOverride = readNumberField(state, ['max_hp_override'], null);
-      const profileMax = readNumberField(profile, ['max_hp'], 0);
-      const maxHp = maxHpOverride !== null ? maxHpOverride : profileMax;
-      const hitDicePools = getStateHitDicePools(state, profile);
-      const bardLevel = getProfileClassLevel(profile, 'bard');
-      const songOfRestDie = getSongOfRestDie(bardLevel);
-      return { state, profile, name, currentHp, maxHp, hitDicePools, bardLevel, songOfRestDie };
+      const responsePayload = responsesByStateId[state.id] || {};
+      const response = responsePayload?.response || null;
+      const healingSection = response?.sections?.healing || {};
+      return {
+        state,
+        profile,
+        name: profile.name || 'Unknown Player',
+        response,
+        responsePayload,
+        totalHitDiceUsed: Math.max(0, parseInt(healingSection.totalHitDiceUsed, 10) || 0),
+        spendBySize: healingSection.spendBySize || {},
+        isReady: !!response?.ready,
+        isSongOwner: state.id === songOwnerId,
+      };
     });
-    const highestBard = [...mapped].sort((a, b) => b.bardLevel - a.bardLevel)[0];
-    const songOfRestOwnerId = highestBard?.songOfRestDie ? highestBard.state.id : null;
-    return mapped.map(row => ({ ...row, isSongOfRestOwner: row.state.id === songOfRestOwnerId }));
-  }, [playerStates]);
 
-  useEffect(() => {
-    if (!open) return;
-    const next = {};
-    rows.forEach(row => {
-      const hitDice = {};
-      row.hitDicePools.forEach(pool => { hitDice[`d${pool.size}`] = ''; });
-      next[row.state.id] = { heal: '', hitDice, songOfRest: '' };
-    });
-    setDrafts(next);
-  }, [open, rows]);
+    const sharedSong = Math.max(0, ...baseRows
+      .filter(row => row.isSongOwner)
+      .map(row => parseInt(row?.response?.sections?.healing?.songOfRestTotal, 10) || 0), 0);
 
-  function updateDraft(stateId, field, value) { setDrafts(current => ({ ...current, [stateId]: { ...(current[stateId] || { heal: '', hitDice: {}, songOfRest: '' }), [field]: value } })); }
-  function updateHitDiceDraft(stateId, dieLabel, value) { setDrafts(current => ({ ...current, [stateId]: { ...(current[stateId] || { heal: '', hitDice: {}, songOfRest: '' }), hitDice: { ...((current[stateId] || {}).hitDice || {}), [dieLabel]: value } } })); }
+    return baseRows.map((row) => ({
+      ...row,
+      healingTotal: row.response ? computeHealingTotal(row.response, row.profile, sharedSong) : 0,
+      sharedSong,
+    }));
+  }, [playerStates, responsesByStateId]);
 
-  async function handleApplyShortRest() {
-    if (!encounterId || submitting) return;
+  const allReady = rows.length > 0 && rows.every(row => row.isReady);
+
+  async function handleConfirm() {
+    if (!encounterId || submitting || !allReady) return;
     setSubmitting(true);
     try {
-      const songOfRestValue = rows.reduce((acc, row) => row.isSongOfRestOwner ? Math.max(acc, Math.max(0, parseInt(drafts[row.state.id]?.songOfRest, 10) || 0)) : acc, 0);
       for (const row of rows) {
-        const state = row.state;
-        const profile = row.profile;
-        const draft = drafts[state.id] || { heal: '', hitDice: {}, songOfRest: '' };
-        const healAmount = Math.max(0, parseInt(draft.heal, 10) || 0);
-        const spentBySize = draft.hitDice || {};
-        const basePatch = buildShortRestPatch(state, healAmount, spentBySize, songOfRestValue);
-        const resourcePatch = getShortRestResourcePatch(state, profile);
-        const patch = mergeDefined(basePatch, resourcePatch);
-        if (Object.keys(patch).length > 0) await supabase.from('player_encounter_state').update(patch).eq('id', state.id);
-        const spentSummary = Object.entries(spentBySize).map(([label, value]) => ({ label, value: Math.max(0, parseInt(value, 10) || 0) })).filter(entry => entry.value > 0).map(entry => `${entry.value}${entry.label}`).join(' ');
-        if (healAmount > 0 || spentSummary || songOfRestValue > 0) {
-          const fromHp = readNumberField(state, ['current_hp'], 0);
-          const toHp = patch.current_hp ?? fromHp;
-          await supabase.from('combat_log').insert({ encounter_id: encounterId, actor: 'DM', action: 'heal', detail: `${row.name}: short rest${healAmount > 0 ? ` +${healAmount} HP` : ''}${songOfRestValue > 0 ? `${healAmount > 0 ? ' +' : ' +'}${songOfRestValue} Song of Rest` : ''} (${fromHp} → ${toHp})${spentSummary ? ` • ${spentSummary} spent` : ''}` });
-        }
+        const patch = buildShortRestPatch({
+          state: row.state,
+          profile: row.profile,
+          healingTotal: row.healingTotal,
+          spendBySize: row.spendBySize,
+        });
+        await supabase.from('player_encounter_state').update(patch).eq('id', row.state.id);
+        const fromHp = readNumberField(row.state, ['current_hp'], 0);
+        const toHp = patch.current_hp ?? fromHp;
+        const spends = spentSummary(row.spendBySize);
+        await supabase.from('combat_log').insert({
+          encounter_id: encounterId,
+          actor: 'DM',
+          action: 'heal',
+          detail: `${row.name}: short rest +${row.healingTotal} HP (${fromHp} → ${toHp})${spends ? ` • ${spends} spent` : ''}`,
+        });
       }
       await supabase.from('encounters').update({ round: 1, turn_index: 0 }).eq('id', encounterId);
+      await supabase.from('combat_log').insert({ encounter_id: encounterId, actor: 'DM', action: SHORT_REST_LOG_ACTION, detail: JSON.stringify({ type: 'complete' }) });
       await supabase.from('combat_log').insert({ encounter_id: encounterId, actor: 'DM', action: 'rest', detail: 'Short Rest completed — short-rest resources restored and round reset to 1' });
       onComplete?.();
       onClose?.();
-    } finally { setSubmitting(false); }
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (!open) return null;
@@ -137,37 +92,38 @@ export default function ShortRestModal({ open, playerStates, encounterId, onClos
         <div className="rest-modal">
           <div className="rest-modal-header">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <div className="panel-title" style={{ margin: 0 }}>Short Rest</div>
-              <div className="rest-modal-subtitle">Enter each player's total healing rolled and spent hit dice by die size.</div>
+              <div className="panel-title" style={{ margin: 0 }}>Short Rest Review</div>
+              <div className="rest-modal-subtitle">Await player responses, review healing + hit dice, then confirm.</div>
             </div>
             <button className="btn btn-ghost" onClick={onClose} disabled={submitting}>Close</button>
           </div>
           <div className="rest-modal-body">
-            {rows.length === 0 && <div className="empty-state">No player states found for this encounter.</div>}
-            {rows.map(row => {
-              const draft = drafts[row.state.id] || { heal: '', hitDice: {}, songOfRest: '' };
-              const healPreview = Math.max(0, parseInt(draft.heal, 10) || 0);
-              const songPreview = row.isSongOfRestOwner ? Math.max(0, parseInt(draft.songOfRest, 10) || 0) : 0;
-              const previewHp = Math.min(row.maxHp, row.currentHp + healPreview + songPreview);
-              return (
-                <div key={row.state.id} className="rest-modal-player-card">
-                  <div className="rest-modal-player-header">
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                      <span className="rest-modal-player-name">{row.name}</span>
-                      <span className="rest-modal-player-meta">HP {row.currentHp} / {row.maxHp}{healPreview > 0 || songPreview > 0 ? ` → ${previewHp} / ${row.maxHp}` : ''}</span>
-                    </div>
-                    {row.hitDicePools.length > 0 && <span className="rest-modal-hit-dice">{formatHitDicePoolSummary(row.hitDicePools)}</span>}
+            {rows.map((row) => (
+              <div key={row.state.id} className="rest-modal-player-card">
+                <div className="rest-modal-player-header">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <span className="rest-modal-player-name">{row.name}</span>
+                    <span className="rest-modal-player-meta">
+                      {row.isReady ? `Healing ${row.healingTotal} • Hit Dice ${row.totalHitDiceUsed}` : 'Waiting for player response'}
+                    </span>
                   </div>
-                  <div className="rest-modal-grid">
-                    <label className="rest-modal-field"><span className="rest-modal-label">Healing Applied</span><input className="rest-modal-input" type="number" inputMode="numeric" min={0} value={draft.heal} onChange={e => updateDraft(row.state.id, 'heal', e.target.value)} placeholder="0" /></label>
-                    {row.isSongOfRestOwner && row.songOfRestDie && <label className="rest-modal-field"><span className="rest-modal-label">Song of Rest ({row.songOfRestDie})</span><input className="rest-modal-input" type="number" inputMode="numeric" min={0} value={draft.songOfRest} onChange={e => updateDraft(row.state.id, 'songOfRest', e.target.value)} placeholder="0" /></label>}
-                  </div>
-                  {row.hitDicePools.length > 0 && <div className="rest-modal-grid" style={{ marginTop: 8 }}>{row.hitDicePools.map(pool => <label key={`${row.state.id}-d${pool.size}`} className="rest-modal-field"><span className="rest-modal-label">Spend d{pool.size}</span><input className="rest-modal-input" type="number" inputMode="numeric" min={0} max={pool.current} value={draft.hitDice?.[`d${pool.size}`] || ''} onChange={e => updateHitDiceDraft(row.state.id, `d${pool.size}`, e.target.value)} placeholder="0" /></label>)}</div>}
+                  <span className="rest-modal-hit-dice" style={{ color: row.isReady ? 'var(--accent-green)' : 'var(--text-muted)' }}>
+                    {row.isReady ? 'READY' : 'PENDING'}
+                  </span>
                 </div>
-              );
-            })}
+                {row.isSongOwner && getSongOfRestDie(row.profile) && row.response?.sections?.healing?.songOfRestTotal > 0 && (
+                  <div className="rest-modal-player-meta">Song of Rest shared total: +{row.response.sections.healing.songOfRestTotal}</div>
+                )}
+              </div>
+            ))}
+            {rows.length === 0 && <div className="empty-state">No player states found for this encounter.</div>}
           </div>
-          <div className="rest-modal-actions"><button className="btn btn-ghost" onClick={onClose} disabled={submitting}>Cancel</button><button className="btn btn-primary" onClick={handleApplyShortRest} disabled={submitting}>{submitting ? 'Applying…' : 'Apply Short Rest'}</button></div>
+          <div className="rest-modal-actions">
+            <button className="btn btn-ghost" onClick={onClose} disabled={submitting}>Cancel</button>
+            <button className="btn btn-primary" onClick={handleConfirm} disabled={submitting || !allReady}>
+              {submitting ? 'Applying…' : 'Confirm Short Rest'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

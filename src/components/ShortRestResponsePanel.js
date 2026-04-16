@@ -1,0 +1,103 @@
+import React, { useMemo, useState } from 'react';
+import { supabase } from '../supabaseClient';
+import {
+  getSongOfRestDie,
+  getSongOfRestOwnerStateId,
+  validateShortRestResponse,
+  SHORT_REST_RESPONSE_ACTION,
+} from '../utils/shortRestWorkflow';
+
+export default function ShortRestResponsePanel({ open, encounterId, state, playerStates, initialResponse, onClose, onSubmitted }) {
+  const profile = useMemo(() => state?.profiles_players || {}, [state?.profiles_players]);
+  const songOwnerId = useMemo(() => getSongOfRestOwnerStateId(playerStates || []), [playerStates]);
+  const isSongOwner = state?.id === songOwnerId;
+  const songDie = getSongOfRestDie(profile);
+  const initialHealing = initialResponse?.sections?.healing || {};
+  const [draft, setDraft] = useState(() => ({
+    rolledTotal: initialHealing.rolledTotal ?? '',
+    totalHitDiceUsed: initialHealing.totalHitDiceUsed ?? '',
+    songOfRestTotal: initialHealing.songOfRestTotal ?? '',
+    spendBySize: initialHealing.spendBySize || {},
+  }));
+  const [submitting, setSubmitting] = useState(false);
+
+  const validation = useMemo(() => validateShortRestResponse({ input: draft, state, profile, isSongOfRestOwner: isSongOwner }), [draft, state, profile, isSongOwner]);
+  const healing = validation.response.sections.healing;
+
+  function updateField(key, value) { setDraft(curr => ({ ...curr, [key]: value })); }
+  function updateSpend(size, value) { setDraft(curr => ({ ...curr, spendBySize: { ...(curr.spendBySize || {}), [size]: value } })); }
+
+  async function handleSubmit() {
+    if (!encounterId || !state?.id || !validation.valid || submitting) return;
+    setSubmitting(true);
+    try {
+      await supabase.from('combat_log').insert({
+        encounter_id: encounterId,
+        actor: profile?.name || 'Player',
+        action: SHORT_REST_RESPONSE_ACTION,
+        detail: JSON.stringify({
+          player_state_id: state.id,
+          player_profile_id: state.player_profile_id,
+          response: validation.response,
+        }),
+      });
+      onSubmitted?.();
+      onClose?.();
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (!open || !state) return null;
+
+  return (
+    <div className="rest-modal-overlay" onClick={onClose}>
+      <div className="rest-modal-panel" onClick={(e) => e.stopPropagation()}>
+        <div className="rest-modal">
+          <div className="rest-modal-header">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div className="panel-title" style={{ margin: 0 }}>Short Rest Response</div>
+              <div className="rest-modal-subtitle">Enter totals, check your preview, then mark ready.</div>
+            </div>
+            <button className="btn btn-ghost" onClick={onClose} disabled={submitting}>Close</button>
+          </div>
+          <div className="rest-modal-body">
+            <div className="rest-modal-player-card">
+              <div className="rest-modal-grid">
+                <label className="rest-modal-field"><span className="rest-modal-label">Rolled dice total</span><input className="rest-modal-input" type="number" min={0} inputMode="numeric" value={draft.rolledTotal} onChange={(e) => updateField('rolledTotal', e.target.value)} /></label>
+                <label className="rest-modal-field"><span className="rest-modal-label">Total hit dice used</span><input className="rest-modal-input" type="number" min={0} inputMode="numeric" value={draft.totalHitDiceUsed} onChange={(e) => updateField('totalHitDiceUsed', e.target.value)} /></label>
+              </div>
+
+              {validation.pools.length > 0 && (
+                <div className="rest-modal-grid" style={{ marginTop: 8 }}>
+                  {validation.pools.map(pool => (
+                    <label key={`spend-d${pool.size}`} className="rest-modal-field">
+                      <span className="rest-modal-label">Spend d{pool.size} (max {pool.current})</span>
+                      <input className="rest-modal-input" type="number" min={0} max={pool.current} inputMode="numeric" value={draft.spendBySize?.[`d${pool.size}`] ?? ''} onChange={(e) => updateSpend(`d${pool.size}`, e.target.value)} />
+                    </label>
+                  ))}
+                </div>
+              )}
+
+              {isSongOwner && songDie && (
+                <div className="rest-modal-grid" style={{ marginTop: 8 }}>
+                  <label className="rest-modal-field"><span className="rest-modal-label">Song of Rest shared total ({songDie})</span><input className="rest-modal-input" type="number" min={0} inputMode="numeric" value={draft.songOfRestTotal} onChange={(e) => updateField('songOfRestTotal', e.target.value)} /></label>
+                </div>
+              )}
+
+              {validation.errors.map(error => <div key={error} style={{ fontSize: 11, color: 'var(--accent-red)', marginTop: 6 }}>{error}</div>)}
+
+              <div className="rest-modal-player-meta" style={{ marginTop: 8 }}>
+                Preview: rolled {healing.rolledTotal} • hit dice {healing.totalHitDiceUsed}{isSongOwner ? ` • Song of Rest ${healing.songOfRestTotal}` : ''}
+              </div>
+            </div>
+          </div>
+          <div className="rest-modal-actions">
+            <button className="btn btn-ghost" onClick={onClose} disabled={submitting}>Cancel</button>
+            <button className="btn btn-primary" onClick={handleSubmit} disabled={submitting || !validation.valid}>{submitting ? 'Submitting…' : 'Mark Ready'}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
