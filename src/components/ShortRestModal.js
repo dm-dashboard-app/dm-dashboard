@@ -84,7 +84,7 @@ export default function ShortRestModal({
           detail: `${row.name}: short rest +${row.healingTotal} HP (${fromHp} → ${toHp})${spends ? ` • ${spends} spent` : ''}`,
         });
       }
-      await supabase.from('encounters').update({ round: 1, turn_index: 0 }).eq('id', encounterId);
+      await supabase.from('encounters').update({ round: 1, turn_index: 0, short_rest_active: false, short_rest_started_at: null }).eq('id', encounterId);
       await supabase.from('combat_log').insert({ encounter_id: encounterId, actor: 'DM', action: SHORT_REST_LOG_ACTION, detail: JSON.stringify({ type: 'complete' }) });
       await supabase.from('combat_log').insert({ encounter_id: encounterId, actor: 'DM', action: 'rest', detail: 'Short Rest completed — short-rest resources restored and round reset to 1' });
       onComplete?.();

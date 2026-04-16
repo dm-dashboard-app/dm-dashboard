@@ -14,10 +14,7 @@ import { inventoryGetPendingIncoming, inventoryRespondTransfer } from '../invent
 import PlayerWorldPanel from './player/PlayerWorldPanel';
 import ShortRestResponsePanel from '../components/ShortRestResponsePanel';
 import {
-  deriveShortRestProcedureSnapshot,
   getSongOfRestOwnerStateId,
-  SHORT_REST_LOG_ACTION,
-  SHORT_REST_RESPONSE_ACTION,
 } from '../utils/shortRestWorkflow';
 
 export default function PlayerView() {
@@ -46,11 +43,10 @@ export default function PlayerView() {
   const refreshAll = useCallback(async () => {
     if (!encounterId || !profileId) return;
     try {
-      const [enc, combs, allStates, shortRestProcedureLogs] = await Promise.all([
+      const [enc, combs, allStates] = await Promise.all([
         supabase.from('encounters').select('*').eq('id', encounterId).maybeSingle(),
         supabase.from('combatants').select('*').eq('encounter_id', encounterId).order('initiative_total', { ascending: false }),
         supabase.from('player_encounter_state').select('*, profiles_players(*), profiles_wildshape(form_name, hp_max)').eq('encounter_id', encounterId),
-        supabase.from('combat_log').select('id, action, detail, created_at').eq('encounter_id', encounterId).eq('action', SHORT_REST_LOG_ACTION).order('created_at', { ascending: false }).limit(25),
       ]);
       if (enc.data) setEncounter(enc.data);
       const all = combs.data || [];
@@ -61,30 +57,18 @@ export default function PlayerView() {
       setCombatant(mine || null);
       const myState = flat.find(s => s.player_profile_id === profileId);
       if (myState) setState(myState);
-      const shortRestProcedureState = deriveShortRestProcedureSnapshot({ procedureRows: shortRestProcedureLogs.data || [] });
-      let shortRestResponseLogs = [];
-      if (shortRestProcedureState.active && shortRestProcedureState.startedAt) {
-        const { data } = await supabase
-          .from('combat_log')
-          .select('id, action, detail, created_at')
-          .eq('encounter_id', encounterId)
-          .eq('action', SHORT_REST_RESPONSE_ACTION)
-          .gte('created_at', shortRestProcedureState.startedAt)
-          .order('created_at', { ascending: true })
-          .limit(250);
-        shortRestResponseLogs = data || [];
-      }
-      const shortRestState = deriveShortRestProcedureSnapshot({
-        procedureRows: shortRestProcedureLogs.data || [],
-        responseRows: shortRestResponseLogs,
-      });
-      setShortRestActive(shortRestState.active);
-      setShortRestResponsesByStateId(shortRestState.responsesByStateId || {});
-      if (shortRestState.active && shortRestState.startedAt && shortRestState.startedAt !== lastSeenShortRestStartAt) {
+      const shortRestIsActive = !!enc.data?.short_rest_active;
+      const shortRestStartedAt = enc.data?.short_rest_started_at || null;
+      setShortRestActive(shortRestIsActive);
+      if (shortRestIsActive && shortRestStartedAt && shortRestStartedAt !== lastSeenShortRestStartAt) {
         setShortRestOpen(true);
-        setLastSeenShortRestStartAt(shortRestState.startedAt);
+        setLastSeenShortRestStartAt(shortRestStartedAt);
+        setShortRestResponsesByStateId({});
       }
-      if (!shortRestState.active) setLastSeenShortRestStartAt(null);
+      if (!shortRestIsActive) {
+        setLastSeenShortRestStartAt(null);
+        setShortRestResponsesByStateId({});
+      }
     } catch (err) {
       setError(err.message);
     }
@@ -268,7 +252,11 @@ export default function PlayerView() {
         initialResponse={shortRestResponsesByStateId[state?.id]?.response}
         sharedSongOfRestTotal={sharedSongOfRestTotal}
         onClose={() => setShortRestOpen(false)}
-        onSubmitted={refreshAll}
+        onSubmitted={(response) => {
+          if (!state?.id) return;
+          setShortRestResponsesByStateId((curr) => ({ ...curr, [state.id]: { response } }));
+          refreshAll();
+        }}
       />
 
       {showPrepModal && (

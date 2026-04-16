@@ -26,7 +26,7 @@ Goal: extend the newly landed short-rest player-response/DM-confirm procedure sh
 
 - Keep short rest as a sectional player-response + DM-confirm procedure.
 - Preserve newly landed short-rest reliability behavior:
-  - active-cycle detection should stay tied to latest short-rest procedure events plus cycle-bounded response rows
+  - player active-cycle detection should stay tied to encounter-level short-rest active markers (not player combat-log reads)
   - DM cancel should remain a true procedure cancel event that clears active-cycle state without applying rest effects
 - Preserve landed short-rest healing response behavior:
   - player-entered rolled total + total hit dice + per-die-size spend accounting
