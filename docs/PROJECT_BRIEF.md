@@ -1,6 +1,6 @@
 # DM Dashboard — Project Brief
 
-Last updated: April 15, 2026 (World tab Locales + NPC mobile-first baseline landed)
+Last updated: April 15, 2026 (World player read access + NPC portrait upload workflow landed)
 
 Purpose: This document is the current-state/background brief for DM Dashboard. It describes what the app now is, what is materially landed, and what principles future work must preserve.
 
@@ -313,3 +313,28 @@ Preservation rule:
 
 - keep NPC baseline lightweight/card-first and avoid overfitting early into full structured schema complexity
 
+### 19) World player read-access baseline (Locales + NPCs)
+
+Landed baseline includes:
+
+- player-facing World surface exposing Locales and NPCs as read-only references
+- DM World top-level utility tabs preserved as Locales / Shop Generator / Rewards / NPCs
+- player World excludes Shop Generator and Rewards
+- player locale shop view keeps descriptive/shop worldbuilding detail while excluding locale shop inventory stock rows and DM assignment/sell actions
+- player NPC view includes searchable list, portrait thumbnails, and full NPC detail card, but excludes create/edit management actions
+
+Preservation rule:
+
+- keep player world access strictly view-only and preserve DM-only mutation workflows
+
+### 20) NPC portrait upload baseline
+
+Landed baseline includes:
+
+- NPC editor portrait flow now supports in-app upload, preview, replacement, and removal
+- NPC records now support storage-path-backed portrait references in addition to legacy URL compatibility
+- NPC detail and list rendering now resolve app-managed portrait storage paths with clean no-image fallbacks
+
+Preservation rule:
+
+- keep portrait handling app-managed and mobile-friendly; avoid returning to raw external-hosting-only workflow

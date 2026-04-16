@@ -243,7 +243,13 @@ function LocaleShopItemModal({ item, players = [], onClose, onAssignmentSuccess 
   );
 }
 
-export default function WorldLocalesPanel({ playerStates = [] }) {
+export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
+  const canEdit = role === 'dm';
+  const rpcOverview = canEdit ? 'dm_world_get_locales_overview' : 'player_world_get_locales_overview';
+  const rpcDetail = canEdit ? 'dm_world_get_locale_detail' : 'player_world_get_locale_detail';
+  const rpcDistricts = canEdit ? 'dm_world_get_locale_districts' : 'player_world_get_locale_districts';
+  const rpcShops = canEdit ? 'dm_world_get_locale_shops' : 'player_world_get_locale_shops';
+  const rpcInventory = 'dm_world_get_locale_shop_inventory';
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [status, setStatus] = useState('');
@@ -295,18 +301,18 @@ export default function WorldLocalesPanel({ playerStates = [] }) {
   }, []);
 
   const loadLocales = useCallback(async () => {
-    const { data, error: localesError } = await supabase.rpc('dm_world_get_locales_overview');
+    const { data, error: localesError } = await supabase.rpc(rpcOverview);
     if (localesError) throw localesError;
     const rows = data || [];
     setLocales(rows);
     return rows;
-  }, []);
+  }, [rpcOverview]);
 
   const loadLocaleDetail = useCallback(async (localeId) => {
     const [{ data: detailRows, error: detailError }, { data: districtRows, error: districtError }, { data: shopRows, error: shopError }] = await Promise.all([
-      supabase.rpc('dm_world_get_locale_detail', { p_locale_id: localeId }),
-      supabase.rpc('dm_world_get_locale_districts', { p_locale_id: localeId }),
-      supabase.rpc('dm_world_get_locale_shops', { p_locale_id: localeId }),
+      supabase.rpc(rpcDetail, { p_locale_id: localeId }),
+      supabase.rpc(rpcDistricts, { p_locale_id: localeId }),
+      supabase.rpc(rpcShops, { p_locale_id: localeId }),
     ]);
     if (detailError) throw detailError;
     if (districtError) throw districtError;
@@ -321,8 +327,8 @@ export default function WorldLocalesPanel({ playerStates = [] }) {
       : (shopRows?.[0]?.id || null);
     setSelectedShopId(nextShopId);
 
-    if (nextShopId) {
-      const { data: stockRows, error: stockError } = await supabase.rpc('dm_world_get_locale_shop_inventory', { p_shop_id: nextShopId });
+    if (nextShopId && canEdit) {
+      const { data: stockRows, error: stockError } = await supabase.rpc(rpcInventory, { p_shop_id: nextShopId });
       if (stockError) throw stockError;
       setInventoryRows(stockRows || []);
       const shopRow = (shopRows || []).find((row) => row.id === nextShopId);
@@ -331,7 +337,7 @@ export default function WorldLocalesPanel({ playerStates = [] }) {
       setInventoryRows([]);
       setEditingInventoryNotes('');
     }
-  }, [selectedShopId]);
+  }, [canEdit, rpcDetail, rpcDistricts, rpcInventory, rpcShops, selectedShopId]);
 
   const refreshAll = useCallback(async (preferredLocaleId = null) => {
     setError('');
@@ -346,7 +352,7 @@ export default function WorldLocalesPanel({ playerStates = [] }) {
     async function load() {
       try {
         setLoading(true);
-        await Promise.all([loadCatalog(), refreshAll()]);
+        await Promise.all([canEdit ? loadCatalog() : Promise.resolve(), refreshAll()]);
       } catch (loadError) {
         if (active) setError(loadError.message || 'Failed to load locales.');
       } finally {
@@ -355,7 +361,7 @@ export default function WorldLocalesPanel({ playerStates = [] }) {
     }
     load();
     return () => { active = false; };
-  }, [loadCatalog, refreshAll]);
+  }, [canEdit, loadCatalog, refreshAll]);
 
   async function saveLocale(form) {
     setStatus('');
@@ -518,7 +524,7 @@ export default function WorldLocalesPanel({ playerStates = [] }) {
     <div className="world-shops-shell">
       <div className="world-mobile-stack">
         {selectedLocaleId ? <button className="btn btn-ghost" onClick={() => { setSelectedLocaleId(null); setSelectedShopId(null); }}>← Back to Locales</button> : null}
-        {!selectedLocaleId ? <button className="btn btn-primary" onClick={() => setEditingLocale({})}>New Locale</button> : null}
+        {!selectedLocaleId && canEdit ? <button className="btn btn-primary" onClick={() => setEditingLocale({})}>New Locale</button> : null}
       </div>
 
       {status ? <div className="world-shops-import-status">{status}</div> : null}
@@ -537,7 +543,7 @@ export default function WorldLocalesPanel({ playerStates = [] }) {
               </div>
             </button>
           ))}
-          {locales.length === 0 ? <div className="empty-state">No locales yet. Create your first world locale.</div> : null}
+          {locales.length === 0 ? <div className="empty-state">{canEdit ? 'No locales yet. Create your first world locale.' : 'No locales published yet.'}</div> : null}
         </div>
       ) : (
         <>
@@ -548,7 +554,7 @@ export default function WorldLocalesPanel({ playerStates = [] }) {
             </div>
             <div className="world-card-body">{localeDetail?.short_description || 'No short description saved.'}</div>
             <div className="world-mobile-stack" style={{ marginTop: 6 }}>
-              <button className="btn btn-ghost" onClick={() => setEditingLocale(localeDetail)}>Edit Locale</button>
+              {canEdit ? <button className="btn btn-ghost" onClick={() => setEditingLocale(localeDetail)}>Edit Locale</button> : null}
             </div>
           </div>
 
@@ -565,17 +571,17 @@ export default function WorldLocalesPanel({ playerStates = [] }) {
               <CollapsibleSection title="Purpose" value={localeDetail?.purpose} />
               <CollapsibleSection title="Structure / Shape" value={localeDetail?.settlement_structure} />
               <CollapsibleSection title="Notable Features" value={localeDetail?.notable_features} />
-              <CollapsibleSection title="Hidden / Underbelly" value={localeDetail?.hidden_or_underbelly_notes} />
+              {canEdit ? <CollapsibleSection title="Hidden / Underbelly" value={localeDetail?.hidden_or_underbelly_notes} /> : null}
               <CollapsibleSection title="Free Notes" value={localeDetail?.free_notes} />
             </div>
           ) : null}
 
           {selectedLocaleTab === 'districts' ? (
             <>
-              <button className="btn btn-primary" onClick={() => setEditingDistrict({})}>New District</button>
+              {canEdit ? <button className="btn btn-primary" onClick={() => setEditingDistrict({})}>New District</button> : null}
               <div className="world-card-grid">
                 {districts.map((district) => (
-                  <button type="button" key={district.id} className="world-card world-card-button" onClick={() => setEditingDistrict(district)}>
+                  <button type="button" key={district.id} className="world-card world-card-button" onClick={() => (canEdit ? setEditingDistrict(district) : null)}>
                     <div className="world-card-head"><strong>{district.name}</strong></div>
                     <div className="world-card-body">{district.short_description || district.atmosphere_or_identity || 'No summary yet.'}</div>
                     {district.notable_locations ? <div className="world-card-body">Notable: {district.notable_locations.slice(0, 120)}</div> : null}
@@ -588,13 +594,13 @@ export default function WorldLocalesPanel({ playerStates = [] }) {
 
           {selectedLocaleTab === 'shops' ? (
             <>
-              {!selectedShopId ? <button className="btn btn-primary" onClick={() => setEditingShop({})}>New Shop</button> : null}
+              {!selectedShopId && canEdit ? <button className="btn btn-primary" onClick={() => setEditingShop({})}>New Shop</button> : null}
               {selectedShopId ? (
                 <>
                   <button className="btn btn-ghost" onClick={() => setSelectedShopId(null)}>← Back to locale shops</button>
                   <div className="world-tabs-row">
                     <button className="btn btn-ghost" data-active={selectedShopTab === 'details'} onClick={() => setSelectedShopTab('details')}>Details</button>
-                    <button className="btn btn-ghost" data-active={selectedShopTab === 'inventory'} onClick={() => setSelectedShopTab('inventory')}>Inventory</button>
+                    {canEdit ? <button className="btn btn-ghost" data-active={selectedShopTab === 'inventory'} onClick={() => setSelectedShopTab('inventory')}>Inventory</button> : null}
                     <button className="btn btn-ghost" data-active={selectedShopTab === 'notes'} onClick={() => setSelectedShopTab('notes')}>Notes</button>
                   </div>
 
@@ -605,7 +611,7 @@ export default function WorldLocalesPanel({ playerStates = [] }) {
                         <div className="world-card-body">Affluence: {selectedShop.affluence_tier.replace('_', ' ')}</div>
                         {selectedShop.district_name ? <div className="world-card-body">District: {selectedShop.district_name}</div> : null}
                         {selectedShop.proprietor_name ? <div className="world-card-body">Proprietor: {selectedShop.proprietor_name}{selectedShop.proprietor_race ? ` (${selectedShop.proprietor_race})` : ''}</div> : null}
-                        <button className="btn btn-ghost" onClick={() => setEditingShop(selectedShop)}>Edit Details</button>
+                        {canEdit ? <button className="btn btn-ghost" onClick={() => setEditingShop(selectedShop)}>Edit Details</button> : null}
                       </div>
                       <CollapsibleSection title="Proprietor Description" value={selectedShop.proprietor_description} />
                       <CollapsibleSection title="Exterior" value={selectedShop.exterior_description} />
@@ -637,14 +643,20 @@ export default function WorldLocalesPanel({ playerStates = [] }) {
 
                   {selectedShopTab === 'notes' ? (
                     <div className="world-card">
-                      <textarea className="form-input" rows={8} value={editingInventoryNotes} onChange={(event) => setEditingInventoryNotes(event.target.value)} placeholder="DM inventory notes" />
-                      <button className="btn btn-primary" onClick={saveShopInventoryNotes}>Save Notes</button>
+                      {canEdit ? (
+                        <>
+                          <textarea className="form-input" rows={8} value={editingInventoryNotes} onChange={(event) => setEditingInventoryNotes(event.target.value)} placeholder="DM inventory notes" />
+                          <button className="btn btn-primary" onClick={saveShopInventoryNotes}>Save Notes</button>
+                        </>
+                      ) : (
+                        <div className="world-card-body" style={{ whiteSpace: 'pre-wrap' }}>{selectedShop?.shop_notes || 'No shop notes saved.'}</div>
+                      )}
                     </div>
                   ) : null}
                 </>
               ) : (
                 <>
-                  <button className="btn btn-primary" onClick={() => setEditingShop({})}>New Shop</button>
+                  {canEdit ? <button className="btn btn-primary" onClick={() => setEditingShop({})}>New Shop</button> : null}
                   <div className="world-card-grid">
                     {shops.map((shop) => (
                       <button key={shop.id} type="button" className="world-card world-card-button" onClick={() => { setSelectedShopId(shop.id); setSelectedShopTab('details'); }}>
@@ -665,17 +677,23 @@ export default function WorldLocalesPanel({ playerStates = [] }) {
 
           {selectedLocaleTab === 'notes' ? (
             <div className="world-card">
-              <textarea className="form-input" rows={8} placeholder="General locale notes" value={editingNotes} onChange={(event) => setEditingNotes(event.target.value)} />
-              <button className="btn btn-primary" onClick={saveLocaleNotes}>Save Notes</button>
+              {canEdit ? (
+                <>
+                  <textarea className="form-input" rows={8} placeholder="General locale notes" value={editingNotes} onChange={(event) => setEditingNotes(event.target.value)} />
+                  <button className="btn btn-primary" onClick={saveLocaleNotes}>Save Notes</button>
+                </>
+              ) : (
+                <div className="world-card-body" style={{ whiteSpace: 'pre-wrap' }}>{localeDetail?.notes || localeDetail?.free_notes || 'No notes saved.'}</div>
+              )}
             </div>
           ) : null}
         </>
       )}
 
-      {editingLocale ? <LocaleEditor locale={editingLocale.id ? editingLocale : null} onCancel={() => setEditingLocale(null)} onSave={saveLocale} /> : null}
-      {editingDistrict ? <DistrictEditor district={editingDistrict.id ? editingDistrict : null} onCancel={() => setEditingDistrict(null)} onSave={saveDistrict} /> : null}
-      {editingShop ? <LocaleShopEditor shop={editingShop.id ? editingShop : null} districts={districts} onCancel={() => setEditingShop(null)} onSave={saveShop} /> : null}
-      <LocaleShopItemModal item={selectedInventoryItem} players={players} onClose={() => setSelectedInventoryItem(null)} onAssignmentSuccess={() => loadLocaleDetail(selectedLocaleId)} />
+      {canEdit && editingLocale ? <LocaleEditor locale={editingLocale.id ? editingLocale : null} onCancel={() => setEditingLocale(null)} onSave={saveLocale} /> : null}
+      {canEdit && editingDistrict ? <DistrictEditor district={editingDistrict.id ? editingDistrict : null} onCancel={() => setEditingDistrict(null)} onSave={saveDistrict} /> : null}
+      {canEdit && editingShop ? <LocaleShopEditor shop={editingShop.id ? editingShop : null} districts={districts} onCancel={() => setEditingShop(null)} onSave={saveShop} /> : null}
+      {canEdit ? <LocaleShopItemModal item={selectedInventoryItem} players={players} onClose={() => setSelectedInventoryItem(null)} onAssignmentSuccess={() => loadLocaleDetail(selectedLocaleId)} /> : null}
     </div>
   );
 }

@@ -11,6 +11,7 @@ import PlayerConCheckLog from './player/PlayerConCheckLog';
 import { hasPreparationRequirement } from '../utils/spellWorkflow';
 import IncomingTransferPopup from '../inventory/IncomingTransferPopup';
 import { inventoryGetPendingIncoming, inventoryRespondTransfer } from '../inventory/inventoryClient';
+import PlayerWorldPanel from './player/PlayerWorldPanel';
 
 export default function PlayerView() {
   const [encounter, setEncounter] = useState(null);
@@ -163,6 +164,7 @@ export default function PlayerView() {
           <button className={`tab-btn ${tab === 'spells' ? 'active' : ''}`} onClick={() => setTab('spells')}>Spells</button>
           <button className={`tab-btn ${tab === 'combat' ? 'active' : ''}`} onClick={() => setTab('combat')}>Combat</button>
           <button className={`tab-btn ${tab === 'rolls' ? 'active' : ''}`} onClick={() => setTab('rolls')}>Rolls</button>
+          <button className={`tab-btn ${tab === 'world' ? 'active' : ''}`} onClick={() => setTab('world')}>World</button>
           <button className={`tab-btn ${tab === 'con' ? 'active' : ''}`} onClick={() => setTab('con')}>CON{pendingConDc !== null ? <span className="tab-badge">!</span> : ''}</button>
         </div>
       </div>
@@ -194,6 +196,7 @@ export default function PlayerView() {
           </>
         )}
         {tab === 'rolls' && combatant && <SecretRollPanel playerId={profileId} encounterId={encounterId} />}
+        {tab === 'world' && <PlayerWorldPanel />}
         {tab === 'con' && <PlayerConCheckLog encounterId={encounterId} playerName={playerName} pendingDc={pendingConDc} onPass={handleConPass} onFail={handleConFail} />}
       </div>
       <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border)' }}><button className="btn btn-ghost" style={{ fontSize: 12, color: 'var(--text-muted)' }} onClick={handleLeave}>Leave Session</button></div>

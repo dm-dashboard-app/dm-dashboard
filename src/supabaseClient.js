@@ -116,6 +116,31 @@ export async function uploadPortrait(file, playerName) {
   return data.publicUrl;
 }
 
+export function resolvePortraitUrl(portraitPath, portraitUrl = null) {
+  const directUrl = String(portraitUrl || '').trim();
+  if (directUrl) return directUrl;
+  const path = String(portraitPath || '').trim();
+  if (!path) return '';
+  return supabase.storage.from('portraits').getPublicUrl(path)?.data?.publicUrl || '';
+}
+
+export async function uploadNpcPortrait(file, npcName = 'npc') {
+  const ext = file.name.split('.').pop();
+  const slug = npcName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const filename = `npcs/${slug || 'npc'}-${Date.now()}.${ext}`;
+  const { error } = await supabase.storage
+    .from('portraits')
+    .upload(filename, file, { upsert: true });
+  if (error) throw error;
+  return filename;
+}
+
+export async function removePortraitPath(portraitPath) {
+  const path = String(portraitPath || '').trim();
+  if (!path) return;
+  await supabase.storage.from('portraits').remove([path]);
+}
+
 export async function uploadWorldMap(file, encounterName = 'encounter') {
   const ext = file.name.split('.').pop();
   const slug = encounterName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');

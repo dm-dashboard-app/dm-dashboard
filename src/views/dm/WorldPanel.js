@@ -16,10 +16,10 @@ export default function WorldPanel({ encounterId, playerStates, refreshAll = nul
         <button className="btn btn-ghost" style={{ borderColor: tab === 'npcs' ? 'var(--accent-blue)' : 'var(--border)' }} onClick={() => setTab('npcs')}>NPCs</button>
       </div>
 
-      {tab === 'locales' ? <WorldLocalesPanel playerStates={playerStates} /> : null}
+      {tab === 'locales' ? <WorldLocalesPanel playerStates={playerStates} role="dm" /> : null}
       {tab === 'shops' ? <WorldShopsPanel showImportControls={false} encounterId={encounterId} playerStates={playerStates} /> : null}
       {tab === 'rewards' ? <WorldRewardsPanel encounterId={encounterId} playerStates={playerStates} onInventoryChanged={refreshAll} onInventoryRefresh={onInventoryRefresh} /> : null}
-      {tab === 'npcs' ? <WorldNpcsPanel /> : null}
+      {tab === 'npcs' ? <WorldNpcsPanel role="dm" /> : null}
     </div>
   );
 }
