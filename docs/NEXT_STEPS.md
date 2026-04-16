@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 16, 2026 (roadmap reset: future development promoted, validation/security follow-up parked)
+Last updated: April 16, 2026 (rest-procedure + attunement roadmap alignment)
 
 Purpose: This file is the active roadmap only. It lists active next steps, intentionally parked/deferred work, and longer-range ideas.
 
@@ -20,15 +20,47 @@ This roadmap should focus on what to build next, not re-open already-landed base
 
 ## Active Next Steps (current roadmap)
 
-### 1) Inventory / Equipment / Abilities — post-Phase-1 delivery track
+### 1) Rest procedure redesign — short-rest rework (active)
 
-Goal: continue from landed Inventory Phase 1 into phased character-capability expansion without unsafe all-at-once rules rewrites.
+Goal: replace the current DM-entered short-rest healing flow with a shared player-submission + DM-confirm procedure that stays concise in-session and preserves current short-rest restoration behavior.
 
-#### Phase 2 — equipment / attunement state
+- DM starts short rest.
+- Players (not DM) submit healing inputs.
+- Player input model uses Option B:
+  - one rolled dice total
+  - one total hit dice used
+  - exact per-die-size spend breakdown for multiclass correctness
+- Healing formula:
+  - rolled dice total
+  - plus CON modifier multiplied by hit dice used
+  - plus one shared Song of Rest total if provided by the bard source
+- Only one Song of Rest total applies to the group.
+- DM review/confirm remains required before short rest completes.
+- DM review surface should stay concise and show per player:
+  - healing total
+  - hit dice used
+- Short rest completion should preserve the same short-rest restoration behavior currently on `main`, plus the new healing summary/application model.
+
+### 2) Shared rest-procedure architecture direction (active)
+
+Goal: build practical reusable rest flow structure now so future rest work does not fork into isolated one-off forms.
+
+- Implement short rest as a shared player-submission / DM-confirm procedure shape, not a one-off short-rest healing form.
+- Keep short-rest response payloads sectional and future-extensible.
+- Do not implement attunement in this batch, but structure the flow so attunement sections can plug in later.
+- Keep healing inputs and hit-dice accounting separate from future equipment/attunement effect logic.
+- Prioritize practical product flow reuse for short rest + long rest, not abstract architecture for its own sake.
+
+### 3) Inventory / Equipment / Abilities — phased expansion track
+
+Goal: continue from landed Inventory Phase 1 into phased character-capability expansion, with attunement explicitly planned inside shared rest procedures.
+
+#### Phase 2 — equipment / attunement state + rest integration design
 
 - add equipped / unequipped and attuned / unattuned state
 - support practical item categories (armor / weapon / shield / wondrous)
 - keep initial implementation state-driven (avoid broad derived-math rewrites in this phase)
+- design attunement as a rest-embedded procedure, not a standalone unrelated workflow
 
 #### Phase 3 — shared mechanical effect engine (high-risk; architecture-first)
 
@@ -48,7 +80,19 @@ Goal: continue from landed Inventory Phase 1 into phased character-capability ex
 - preserve profile-first durable state plus encounter-runtime overlay model
 - centralize shared modifier logic; avoid duplicated surface-level formulas
 
-### 2) Spell architecture follow-up — subclass-granted spell modeling
+### 4) Attunement inside rest procedures — upcoming design track (not yet in-flight)
+
+Goal: lock the future product direction so attunement work lands coherently across rest flows.
+
+- Attunement belongs inside rest procedures, not as a separate unrelated workflow.
+- Attunement must later sit inside short rest.
+- Attunement must also sit inside long rest.
+- Long rest should use the same attunement procedure/UI pattern as short rest where practical.
+- In long rest, attunement will live alongside spell preparation rather than replacing it.
+- Shared rest-procedure UI/flow should be reused across short rest and long rest where practical.
+- This is active roadmap/design direction, but it is not yet landed and not currently in-flight implementation.
+
+### 5) Spell architecture follow-up — subclass-granted spell modeling
 
 Goal: close known modeling gaps for subclass spell access while preserving current role/runtime correctness.
 
@@ -56,12 +100,7 @@ Goal: close known modeling gaps for subclass spell access while preserving curre
 - support always-prepared subclass spells without consuming ordinary prep slots
 - avoid fragile per-view exceptions across DM/player/runtime spell surfaces
 
-### 3) World and management product-development follow-ups (usage-driven)
-
-- world-map quality-of-life improvements (for example: map presets / recurring scenes) when table usage justifies it
-- archive/management surface improvements (for example: better filtering/search in large monster/NPC libraries) when repeated admin friction is validated
-
-### 4) Conservative code-health batches (after product track slices)
+### 6) Conservative code-health batches (after product track slices)
 
 - legacy initiative path decision (`src/components/InitiativePanel.js`)
 - DMView de-densify/extraction (`src/views/DMView.js`) as isolated maintenance
@@ -104,8 +143,7 @@ Deferral principle:
 
 ## Longer-range Ideas (not active)
 
-- additional world-facing quality-of-life features only after active roadmap tracks are materially progressed
-- optional admin-surface polish that is not currently tied to verified table friction
+- additional optional quality-of-life features only after active roadmap tracks are materially progressed
 
 ## What A New Chat Should Do First
 
