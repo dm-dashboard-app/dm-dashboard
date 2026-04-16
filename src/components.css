@@ -1346,11 +1346,30 @@
   position: relative;
 }
 
-.world-npc-list-head {
+.world-npc-list-row {
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr);
-  gap: 8px;
-  align-items: center;
+  grid-template-columns: 74px minmax(0, 1fr);
+  gap: 10px;
+  align-items: stretch;
+  min-height: 116px;
+}
+
+.world-npc-list-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: center;
+}
+
+.world-npc-list-portrait {
+  width: 74px;
+  height: 100%;
+  min-height: 96px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-panel-2);
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
 .world-npc-upload-row {
@@ -1379,6 +1398,8 @@
   place-items: center;
   color: var(--text-secondary);
   font-size: 12px;
+  text-align: center;
+  padding: 6px;
 }
 
 .world-npc-hero {

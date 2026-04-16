@@ -28,7 +28,7 @@ function shopSupportsInventory(shopType) {
 }
 
 function CollapsibleSection({ title, value }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   if (!value) return null;
   return (
     <div className="world-card">
@@ -275,7 +275,6 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
   const [editingLocale, setEditingLocale] = useState(null);
   const [editingDistrict, setEditingDistrict] = useState(null);
   const [editingShop, setEditingShop] = useState(null);
-  const [editingNotes, setEditingNotes] = useState('');
   const [editingInventoryNotes, setEditingInventoryNotes] = useState('');
   const [selectedInventoryItem, setSelectedInventoryItem] = useState(null);
 
@@ -455,20 +454,6 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
     }
   }
 
-  async function saveLocaleNotes() {
-    try {
-      const { error: saveError } = await supabase.rpc('dm_world_set_locale_notes', {
-        p_locale_id: selectedLocaleId,
-        p_notes: editingNotes,
-      });
-      if (saveError) throw saveError;
-      setStatus('Locale notes saved.');
-      await loadLocaleDetail(selectedLocaleId);
-    } catch (saveError) {
-      setError(saveError.message || 'Failed to save locale notes.');
-    }
-  }
-
   async function saveShopInventoryNotes() {
     if (!selectedShopId) return;
     try {
@@ -529,10 +514,6 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
   }
 
   useEffect(() => {
-    setEditingNotes(localeDetail?.notes || '');
-  }, [localeDetail?.id, localeDetail?.notes]);
-
-  useEffect(() => {
     const activeShop = shops.find((entry) => entry.id === selectedShopId) || null;
     setEditingInventoryNotes(activeShop?.inventory_notes || '');
   }, [selectedShopId, shops]);
@@ -570,7 +551,6 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
               <div className="world-chip-row">
                 <span className="world-chip">Districts {locale.districts_count || 0}</span>
                 <span className="world-chip">Shops {locale.shops_count || 0}</span>
-                <span className="world-chip">Notes {locale.notes_count || 0}</span>
               </div>
             </button>
           ))}
@@ -596,7 +576,6 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
             <button className="btn btn-ghost" data-active={selectedLocaleTab === 'overview'} onClick={() => setSelectedLocaleTab('overview')}>Overview</button>
             <button className="btn btn-ghost" data-active={selectedLocaleTab === 'districts'} onClick={() => setSelectedLocaleTab('districts')}>Districts</button>
             <button className="btn btn-ghost" data-active={selectedLocaleTab === 'shops'} onClick={() => setSelectedLocaleTab('shops')}>Shops</button>
-            <button className="btn btn-ghost" data-active={selectedLocaleTab === 'notes'} onClick={() => setSelectedLocaleTab('notes')}>Notes</button>
           </div>
 
           {selectedLocaleTab === 'overview' ? (
@@ -635,11 +614,13 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
                   {!selectedShop ? <div className="empty-state">Loading shop detail…</div> : null}
                   {selectedShop ? (
                     <>
-                  <div className="world-tabs-row">
-                    <button className="btn btn-ghost" data-active={selectedShopTab === 'details'} onClick={() => setSelectedShopTab('details')}>Details</button>
-                    {canEdit && shopSupportsInventory(selectedShop?.shop_type) ? <button className="btn btn-ghost" data-active={selectedShopTab === 'inventory'} onClick={() => setSelectedShopTab('inventory')}>Inventory</button> : null}
-                    <button className="btn btn-ghost" data-active={selectedShopTab === 'notes'} onClick={() => setSelectedShopTab('notes')}>Notes</button>
-                  </div>
+                  {canEdit ? (
+                    <div className="world-tabs-row">
+                      <button className="btn btn-ghost" data-active={selectedShopTab === 'details'} onClick={() => setSelectedShopTab('details')}>Details</button>
+                      {shopSupportsInventory(selectedShop?.shop_type) ? <button className="btn btn-ghost" data-active={selectedShopTab === 'inventory'} onClick={() => setSelectedShopTab('inventory')}>Inventory</button> : null}
+                      <button className="btn btn-ghost" data-active={selectedShopTab === 'notes'} onClick={() => setSelectedShopTab('notes')}>Notes</button>
+                    </div>
+                  ) : null}
 
                   {selectedShopTab === 'details' ? (
                     <div className="world-card-grid">
@@ -650,14 +631,18 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
                         {selectedShop.proprietor_name ? <div className="world-card-body">Proprietor: {selectedShop.proprietor_name}{selectedShop.proprietor_race ? ` (${selectedShop.proprietor_race})` : ''}</div> : null}
                         {canEdit ? <button className="btn btn-ghost" onClick={() => setEditingShop(selectedShop)}>Edit Details</button> : null}
                       </div>
-                      <CollapsibleSection title="Proprietor Description" value={selectedShop.proprietor_description} />
-                      <CollapsibleSection title="Exterior" value={selectedShop.exterior_description} />
-                      <CollapsibleSection title="Interior" value={selectedShop.interior_description} />
-                      <CollapsibleSection title="Shop Notes" value={selectedShop.shop_notes} />
+                      {canEdit ? (
+                        <>
+                          <CollapsibleSection title="Proprietor Description" value={selectedShop.proprietor_description} />
+                          <CollapsibleSection title="Exterior" value={selectedShop.exterior_description} />
+                          <CollapsibleSection title="Interior" value={selectedShop.interior_description} />
+                          <CollapsibleSection title="Shop Notes" value={selectedShop.shop_notes} />
+                        </>
+                      ) : null}
                     </div>
                   ) : null}
 
-                  {selectedShopTab === 'inventory' ? (
+                  {canEdit && selectedShopTab === 'inventory' ? (
                     <>
                       <div className="world-mobile-stack">
                         <button className="btn btn-primary" onClick={() => handleGenerateInventory(false)} disabled={inventoryRows.length > 0}>Generate Stock</button>
@@ -678,17 +663,15 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
                     </>
                   ) : null}
 
-                  {selectedShopTab === 'notes' ? (
+                  {canEdit && selectedShopTab === 'notes' ? (
                     <div className="world-card">
-                      {canEdit && shopSupportsInventory(selectedShop?.shop_type) ? (
+                      {shopSupportsInventory(selectedShop?.shop_type) ? (
                         <>
                           <textarea className="form-input" rows={8} value={editingInventoryNotes} onChange={(event) => setEditingInventoryNotes(event.target.value)} placeholder="DM inventory notes" />
                           <button className="btn btn-primary" onClick={saveShopInventoryNotes}>Save Notes</button>
                         </>
-                      ) : canEdit ? (
-                        <div className="world-card-body">Inventory workflow does not apply to Inns.</div>
                       ) : (
-                        <div className="world-card-body" style={{ whiteSpace: 'pre-wrap' }}>{selectedShop?.shop_notes || 'No shop notes saved.'}</div>
+                        <div className="world-card-body">Inventory workflow does not apply to Inns.</div>
                       )}
                     </div>
                   ) : null}
@@ -716,18 +699,6 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
             </>
           ) : null}
 
-          {selectedLocaleTab === 'notes' ? (
-            <div className="world-card">
-              {canEdit ? (
-                <>
-                  <textarea className="form-input" rows={8} placeholder="General locale notes" value={editingNotes} onChange={(event) => setEditingNotes(event.target.value)} />
-                  <button className="btn btn-primary" onClick={saveLocaleNotes}>Save Notes</button>
-                </>
-              ) : (
-                <div className="world-card-body" style={{ whiteSpace: 'pre-wrap' }}>{localeDetail?.notes || localeDetail?.free_notes || 'No notes saved.'}</div>
-              )}
-            </div>
-          ) : null}
             </>
           ) : null}
         </>

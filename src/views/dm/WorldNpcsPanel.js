@@ -181,12 +181,12 @@ export default function WorldNpcsPanel({ role = 'dm' }) {
             {filtered.map((npc) => {
               const thumbUrl = resolvePortraitUrl(npc.portrait_path, npc.portrait_url);
               return (
-                <button key={npc.id} type="button" className="world-card world-card-button" onClick={() => setSelectedNpcId(npc.id)}>
-                  <div className="world-npc-list-head">
-                    {thumbUrl ? <img className="world-npc-thumb" src={thumbUrl} alt="NPC portrait" /> : <div className="world-npc-thumb world-npc-thumb-empty">—</div>}
+                <button key={npc.id} type="button" className="world-card world-card-button world-npc-list-row" onClick={() => setSelectedNpcId(npc.id)}>
+                  {thumbUrl ? <img className="world-npc-list-portrait" src={thumbUrl} alt="NPC portrait" /> : <div className="world-npc-list-portrait world-npc-thumb-empty">No portrait</div>}
+                  <div className="world-npc-list-content">
                     <div className="world-card-head"><strong>{npc.name}</strong><span>{npc.race || 'Unknown race'}</span></div>
+                    <div className="world-card-body">{(npc.body_text || 'No profile text saved.').slice(0, 160)}</div>
                   </div>
-                  <div className="world-card-body">{(npc.body_text || 'No profile text saved.').slice(0, 160)}</div>
                 </button>
               );
             })}
