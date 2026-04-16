@@ -284,7 +284,9 @@ Preservation rule:
 
 ## Future-facing note
 
-Inventory/equipment/abilities beyond Phase 1 remains a **planning track**. Future phases should stay phased and aligned with shared modifier-logic architecture (as outlined in `docs/NEXT_STEPS.md`).
+Inventory/equipment/abilities beyond Phase 1 is now the primary active development track in the roadmap, with phased delivery and shared modifier-logic architecture requirements documented in `docs/NEXT_STEPS.md`.
+
+Real-table validation sweeps and Supabase security/access-model hardening follow-up remain intentionally deferred until after major product-development slices.
 
 ### 17) World locales + district/shop persistence baseline
 
