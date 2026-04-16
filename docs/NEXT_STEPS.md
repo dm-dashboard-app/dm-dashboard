@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 15, 2026 (World tab now includes Locales + NPC baseline with locale-bound persistent shops)
+Last updated: April 15, 2026 (World player-read expansion + NPC upload portraits landed)
 
 Purpose: This file is the active roadmap only. It should list genuinely open work, intentionally parked work, and clearly labeled future planning ideas that are not active implementation.
 
@@ -33,6 +33,13 @@ As of main at commit `e6eb6aa` (April 13, 2026), the following tracks are treate
 - World tab expansion baseline: top-level Locales / Shop Generator / Rewards / NPCs, with durable locale records, district tracking, locale-bound shops + persisted inventory generation, and global NPC card/list/full-page editing flows
 
 This roadmap stays intentionally lean and should not reopen those tracks without a verified current regression on `main`.
+
+Latest landed follow-up (same World track):
+
+- NPC portrait workflow now supports app-managed upload/replacement/removal (no raw external URL entry required for normal use)
+- NPC list cards now include compact portrait thumbnails with clean fallback placeholders
+- Player World access now includes read-only **Locales** and **NPCs** surfaces
+- Player World keeps **Shop Generator** and **Rewards** excluded, and locale shop inventory stock rows remain DM-only
 
 Code-health note:
 

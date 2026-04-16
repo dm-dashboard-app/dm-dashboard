@@ -1346,6 +1346,41 @@
   position: relative;
 }
 
+.world-npc-list-head {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.world-npc-upload-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.world-npc-thumb {
+  width: 44px;
+  height: 56px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-panel-2);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.world-npc-thumb-lg {
+  width: 72px;
+  height: 92px;
+}
+
+.world-npc-thumb-empty {
+  display: grid;
+  place-items: center;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
 .world-npc-hero {
   display: grid;
   gap: 8px;
@@ -1381,6 +1416,10 @@
 
   .world-npc-hero {
     grid-template-columns: 1fr;
+  }
+
+  .world-npc-upload-row {
+    align-items: flex-start;
   }
 
   .world-stock-row {
