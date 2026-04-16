@@ -281,9 +281,6 @@ export default function SpellSlotGrid({ profile, state, readOnly, canRestore = f
                       )}
                     </div>
 
-                    {allUsed && !readOnly && !pactCanPowerThisLevel && (
-                      <div className="player-slot-row-note">All standard slots expended</div>
-                    )}
                   </div>
                 );
               })}
