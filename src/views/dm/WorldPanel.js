@@ -10,10 +10,10 @@ export default function WorldPanel({ encounterId, playerStates, refreshAll = nul
   return (
     <div className="world-shops-shell">
       <div className="world-tabs-row world-tabs-row--world-main">
-        <button className="btn btn-ghost" style={{ borderColor: tab === 'locales' ? 'var(--accent-blue)' : 'var(--border)' }} onClick={() => setTab('locales')}>Locales</button>
-        <button className="btn btn-ghost" style={{ borderColor: tab === 'shops' ? 'var(--accent-blue)' : 'var(--border)' }} onClick={() => setTab('shops')}>Shop Generator</button>
-        <button className="btn btn-ghost" style={{ borderColor: tab === 'rewards' ? 'var(--accent-blue)' : 'var(--border)' }} onClick={() => setTab('rewards')}>Rewards</button>
-        <button className="btn btn-ghost" style={{ borderColor: tab === 'npcs' ? 'var(--accent-blue)' : 'var(--border)' }} onClick={() => setTab('npcs')}>NPCs</button>
+        <button className="btn btn-ghost" data-active={tab === 'locales'} onClick={() => setTab('locales')}>Locales</button>
+        <button className="btn btn-ghost" data-active={tab === 'shops'} onClick={() => setTab('shops')}>Shop Generator</button>
+        <button className="btn btn-ghost" data-active={tab === 'rewards'} onClick={() => setTab('rewards')}>Rewards</button>
+        <button className="btn btn-ghost" data-active={tab === 'npcs'} onClick={() => setTab('npcs')}>NPCs</button>
       </div>
 
       {tab === 'locales' ? <WorldLocalesPanel playerStates={playerStates} role="dm" /> : null}

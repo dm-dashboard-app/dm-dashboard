@@ -1,6 +1,6 @@
 # DM Dashboard — Project Brief
 
-Last updated: April 15, 2026 (World player read access + NPC portrait upload workflow landed)
+Last updated: April 16, 2026 (Spell-slot compact grid + DM World tab mobile-fit polish landed)
 
 Purpose: This document is the current-state/background brief for DM Dashboard. It describes what the app now is, what is materially landed, and what principles future work must preserve.
 
@@ -90,6 +90,7 @@ Landed baseline includes:
 - known/prepared runtime viewing model
 - long-rest preparation procedure integrated into long-rest flow
 - short-rest extension support (including Song of Rest path)
+- spell-slot presentation now uses a compact mobile-first two-column layout for Levels 1–8 with Level 9 alone on the final row, with pact pips retained and the `PACT` text label removed
 
 Preservation rule:
 
@@ -289,7 +290,7 @@ Inventory/equipment/abilities beyond Phase 1 remains a **planning track**. Futur
 
 Landed baseline includes:
 
-- World top-level tabs expanded to **Locales / Shop Generator / Rewards / NPCs**
+- World top-level tabs expanded to **Locales / Shop Generator / Rewards / NPCs** and tuned to fit a single clean mobile row without overflow/overlap
 - Locales list/detail mobile-first flow with focused create/edit sheets instead of giant always-edit forms
 - locale overview model now includes politics/leadership, purpose, structure, notable features, hidden notes, and free notes
 - district tracking inside locales with durable district records and notable-location notes
