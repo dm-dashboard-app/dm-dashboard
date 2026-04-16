@@ -24,7 +24,9 @@ export default function PlayerView() {
   const [initiativeInput, setInitiativeInput] = useState('');
   const [initError, setInitError] = useState(null);
   const [initSuccess, setInitSuccess] = useState(false);
-  const [tab, setTab] = useState('char');
+  const [topTab, setTopTab] = useState('char');
+  const [charTab, setCharTab] = useState('sheet');
+  const [showConPanel, setShowConPanel] = useState(false);
   const [pendingIncoming, setPendingIncoming] = useState([]);
   const [dismissedTransferIds, setDismissedTransferIds] = useState(() => new Set());
   const profileId = localStorage.getItem('player_profile_id');
@@ -105,6 +107,10 @@ export default function PlayerView() {
   const prepReady = !!state?.spell_prep_ready;
   const showPrepModal = prepActive && prepRequired && !prepReady && !!state?.profiles_players;
 
+  useEffect(() => {
+    if (pendingConDc === null) setShowConPanel(false);
+  }, [pendingConDc]);
+
   async function handleConPass() {
     if (!state) return;
     if (playerName) {
@@ -159,14 +165,18 @@ export default function PlayerView() {
       <div className="shell-nav-stack">
         <div className="top-bar"><div className="top-bar-spacer" /></div>
         <div className="tab-bar">
-          <button className={`tab-btn ${tab === 'char' ? 'active' : ''}`} onClick={() => setTab('char')}>Char</button>
-          <button className={`tab-btn ${tab === 'skills' ? 'active' : ''}`} onClick={() => setTab('skills')}>Skills</button>
-          <button className={`tab-btn ${tab === 'spells' ? 'active' : ''}`} onClick={() => setTab('spells')}>Spells</button>
-          <button className={`tab-btn ${tab === 'combat' ? 'active' : ''}`} onClick={() => setTab('combat')}>Combat</button>
-          <button className={`tab-btn ${tab === 'rolls' ? 'active' : ''}`} onClick={() => setTab('rolls')}>Rolls</button>
-          <button className={`tab-btn ${tab === 'world' ? 'active' : ''}`} onClick={() => setTab('world')}>World</button>
-          <button className={`tab-btn ${tab === 'con' ? 'active' : ''}`} onClick={() => setTab('con')}>CON{pendingConDc !== null ? <span className="tab-badge">!</span> : ''}</button>
+          <button className={`tab-btn ${topTab === 'char' ? 'active' : ''}`} onClick={() => setTopTab('char')}>Char</button>
+          <button className={`tab-btn ${topTab === 'combat' ? 'active' : ''}`} onClick={() => setTopTab('combat')}>Combat</button>
+          <button className={`tab-btn ${topTab === 'rolls' ? 'active' : ''}`} onClick={() => setTopTab('rolls')}>Rolls</button>
+          <button className={`tab-btn ${topTab === 'world' ? 'active' : ''}`} onClick={() => setTopTab('world')}>World</button>
         </div>
+        {topTab === 'char' && (
+          <div className="tab-bar tab-bar-subnav">
+            <button className={`tab-btn ${charTab === 'sheet' ? 'active' : ''}`} onClick={() => setCharTab('sheet')}>Sheet</button>
+            <button className={`tab-btn ${charTab === 'skills' ? 'active' : ''}`} onClick={() => setCharTab('skills')}>Skills</button>
+            <button className={`tab-btn ${charTab === 'spells' ? 'active' : ''}`} onClick={() => setCharTab('spells')}>Spells</button>
+          </div>
+        )}
       </div>
 
       {prepActive && prepRequired && !showPrepModal && (
@@ -174,19 +184,20 @@ export default function PlayerView() {
           <span style={{ fontSize: 13, fontWeight: 600, color: prepReady ? 'var(--accent-green)' : 'var(--accent-blue)' }}>
             {prepReady ? 'Long rest spell prep complete. Waiting for DM to finish the long rest.' : 'Long rest spell prep required.'}
           </span>
-          {!prepReady && <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => setTab('spells')}>Open Spells</button>}
+          {!prepReady && <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => { setTopTab('char'); setCharTab('spells'); }}>Open Spells</button>}
         </div>
       )}
 
-      {pendingConDc !== null && tab !== 'char' && tab !== 'con' && (
-        <div style={{ background: 'rgba(240,180,41,0.12)', borderBottom: '1.5px solid var(--accent-gold)', padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: 'pointer' }} onClick={() => setTab('con')}><span style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent-gold)' }}>CON Save Required - DC {pendingConDc}</span><span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Tap to confirm</span></div>
+      {pendingConDc !== null && (
+        <div style={{ background: 'rgba(240,180,41,0.12)', borderBottom: '1.5px solid var(--accent-gold)', padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: 'pointer' }} onClick={() => setShowConPanel(true)}><span style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent-gold)' }}>CON Save Required - DC {pendingConDc}</span><span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Tap to confirm</span></div>
       )}
 
       <div className="main-content">
-        {tab === 'char' && combatant && state && <PlayerCard combatant={combatant} state={state} role="player" isEditMode={encounter?.player_edit_mode} encounterId={encounterId} onUpdate={refreshAll} />}
-        {tab === 'skills' && state?.profiles_players && <SkillsModal variant="panel" profile={state.profiles_players} title="Skills" />}
-        {tab === 'spells' && state?.profiles_players && <SpellWorkflowPanel profile={state.profiles_players} state={state} encounterId={encounterId} onUpdate={refreshAll} role="player" mode="runtime" />}
-        {tab === 'combat' && (
+        {showConPanel && pendingConDc !== null && <PlayerConCheckLog encounterId={encounterId} playerName={playerName} pendingDc={pendingConDc} onPass={handleConPass} onFail={handleConFail} />}
+        {topTab === 'char' && charTab === 'sheet' && combatant && state && <PlayerCard combatant={combatant} state={state} role="player" isEditMode={encounter?.player_edit_mode} encounterId={encounterId} onUpdate={refreshAll} />}
+        {topTab === 'char' && charTab === 'skills' && state?.profiles_players && <SkillsModal variant="panel" profile={state.profiles_players} title="Skills" />}
+        {topTab === 'char' && charTab === 'spells' && state?.profiles_players && <SpellWorkflowPanel profile={state.profiles_players} state={state} encounterId={encounterId} onUpdate={refreshAll} role="player" mode="runtime" />}
+        {topTab === 'combat' && (
           <>
             <div className="initiative-top-bar">
               <div className="initiative-top-bar-primary">Round {encounter?.round || 1}</div>
@@ -195,9 +206,8 @@ export default function PlayerView() {
             <InitiativePanel encounter={encounter} combatants={combatants} playerStates={playerStates} role="player" myCombatantId={combatant?.id} onUpdate={refreshAll} />
           </>
         )}
-        {tab === 'rolls' && combatant && <SecretRollPanel playerId={profileId} encounterId={encounterId} />}
-        {tab === 'world' && <PlayerWorldPanel />}
-        {tab === 'con' && <PlayerConCheckLog encounterId={encounterId} playerName={playerName} pendingDc={pendingConDc} onPass={handleConPass} onFail={handleConFail} />}
+        {topTab === 'rolls' && combatant && <SecretRollPanel playerId={profileId} encounterId={encounterId} />}
+        {topTab === 'world' && <PlayerWorldPanel />}
       </div>
       <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border)' }}><button className="btn btn-ghost" style={{ fontSize: 12, color: 'var(--text-muted)' }} onClick={handleLeave}>Leave Session</button></div>
 

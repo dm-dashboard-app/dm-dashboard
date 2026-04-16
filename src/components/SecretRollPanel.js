@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 
 const SKILLS = [
-  { key: 'perception',   label: 'Perception',   icon: 'View' },
-  { key: 'insight',      label: 'Insight',       icon: '🧠' },
-  { key: 'investigation',label: 'Investigation', icon: '🔍' },
-  { key: 'survival',     label: 'Survival',      icon: '🌿' },
+  { key: 'perception', label: 'Perception' },
+  { key: 'insight', label: 'Insight' },
+  { key: 'investigation', label: 'Investigation' },
+  { key: 'survival', label: 'Survival' },
 ];
 
 export default function SecretRollPanel({ playerId, encounterId }) {
@@ -39,12 +39,9 @@ export default function SecretRollPanel({ playerId, encounterId }) {
   return (
     <div className="panel">
       <div className="panel-title">Secret Rolls</div>
-      <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>
-        The DM sees the result — you only see confirmation.
-      </div>
 
       <div className="secret-roll-buttons">
-        {SKILLS.map(({ key, label, icon }) => {
+        {SKILLS.map(({ key, label }) => {
           const isActive  = sending === key;
           const wasSent   = sent === key;
 
@@ -56,7 +53,7 @@ export default function SecretRollPanel({ playerId, encounterId }) {
               disabled={!!sending}
               style={{ opacity: sending && !isActive ? 0.4 : 1 }}
             >
-              {isActive ? 'Rolling…' : wasSent ? `${icon} Sent ` : `${icon} ${label}`}
+              {isActive ? 'Rolling…' : wasSent ? 'Sent' : label}
             </button>
           );
         })}

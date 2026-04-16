@@ -9,7 +9,7 @@ export default function WorldPanel({ encounterId, playerStates, refreshAll = nul
 
   return (
     <div className="world-shops-shell">
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 8 }}>
+      <div className="world-tabs-row world-tabs-row--world-main">
         <button className="btn btn-ghost" style={{ borderColor: tab === 'locales' ? 'var(--accent-blue)' : 'var(--border)' }} onClick={() => setTab('locales')}>Locales</button>
         <button className="btn btn-ghost" style={{ borderColor: tab === 'shops' ? 'var(--accent-blue)' : 'var(--border)' }} onClick={() => setTab('shops')}>Shop Generator</button>
         <button className="btn btn-ghost" style={{ borderColor: tab === 'rewards' ? 'var(--accent-blue)' : 'var(--border)' }} onClick={() => setTab('rewards')}>Rewards</button>

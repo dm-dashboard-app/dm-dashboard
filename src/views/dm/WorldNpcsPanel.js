@@ -202,7 +202,7 @@ export default function WorldNpcsPanel({ role = 'dm' }) {
               : <div className="world-npc-portrait world-npc-portrait-empty">No Portrait</div>}
             <div className="world-card">
               <div className="world-card-head"><strong>{selectedNpc.name}</strong><span>{selectedNpc.race || 'Race not set'}</span></div>
-              <div className="world-card-body" style={{ whiteSpace: 'pre-wrap', minHeight: 180 }}>{selectedNpc.body_text || 'No NPC details saved yet.'}</div>
+              <div className="world-card-body world-npc-body-compact" style={{ whiteSpace: 'pre-wrap' }}>{selectedNpc.body_text || 'No NPC details saved yet.'}</div>
             </div>
           </div>
           {canEdit ? <button className="btn btn-primary world-fab" onClick={() => setEditingNpc(selectedNpc)}>Edit NPC</button> : null}
