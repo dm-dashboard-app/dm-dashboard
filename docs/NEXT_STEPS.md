@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 16, 2026 (short-rest player workflow + bardic pip differentiation landed)
+Last updated: April 16, 2026 (short-rest player visibility + DM cancel reliability fix landed)
 
 Purpose: This file is the active roadmap only. It lists active next steps, intentionally parked/deferred work, and longer-range ideas.
 
@@ -25,6 +25,9 @@ This roadmap should focus on what to build next, not re-open already-landed base
 Goal: extend the newly landed short-rest player-response/DM-confirm procedure shape with additional sections (starting with attunement) without regressing current healing/resource behavior.
 
 - Keep short rest as a sectional player-response + DM-confirm procedure.
+- Preserve newly landed short-rest reliability behavior:
+  - active-cycle detection should stay tied to latest short-rest procedure events plus cycle-bounded response rows
+  - DM cancel should remain a true procedure cancel event that clears active-cycle state without applying rest effects
 - Preserve landed short-rest healing response behavior:
   - player-entered rolled total + total hit dice + per-die-size spend accounting
   - shared Song of Rest source input and group application

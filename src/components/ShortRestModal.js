@@ -17,7 +17,16 @@ function spentSummary(spendBySize = {}) {
     .join(' ');
 }
 
-export default function ShortRestModal({ open, playerStates, encounterId, responsesByStateId = {}, onClose, onComplete }) {
+export default function ShortRestModal({
+  open,
+  playerStates,
+  encounterId,
+  responsesByStateId = {},
+  shortRestProcedureActive = false,
+  onClose,
+  onCancelProcedure,
+  onComplete,
+}) {
   const [submitting, setSubmitting] = useState(false);
 
   const rows = useMemo(() => {
@@ -119,7 +128,9 @@ export default function ShortRestModal({ open, playerStates, encounterId, respon
             {rows.length === 0 && <div className="empty-state">No player states found for this encounter.</div>}
           </div>
           <div className="rest-modal-actions">
-            <button className="btn btn-ghost" onClick={onClose} disabled={submitting}>Cancel</button>
+            <button className="btn btn-ghost" onClick={shortRestProcedureActive ? onCancelProcedure : onClose} disabled={submitting}>
+              {shortRestProcedureActive ? 'Cancel Short Rest' : 'Cancel'}
+            </button>
             <button className="btn btn-primary" onClick={handleConfirm} disabled={submitting || !allReady}>
               {submitting ? 'Applying…' : 'Confirm Short Rest'}
             </button>
