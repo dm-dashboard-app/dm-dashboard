@@ -1,17 +1,301 @@
 import React, { useState } from 'react';
-import { getSpellSlotAvailability, getStandardSlotState, getPactSlotState, spendStandardSlot, restoreStandardSlot, resetStandardSlotsForLevel, spendPactSlot, restorePactSlot, spendSpellSlotWithChoice } from '../utils/spellSlotMutations';
-const PACT_COLOR='var(--accent-green)'; const PACT_BG='rgba(78,201,140,0.22)'; const PACT_BORDER='rgba(78,201,140,0.55)';
-function PactPip({ isAvailable, onClick, disabled, title }) { return <button className={`slot-pip ${isAvailable ? 'available' : 'used'} slot-pip--pact`} onClick={onClick} disabled={disabled} title={title} style={{ borderColor: isAvailable ? PACT_COLOR : 'rgba(78,201,140,0.45)', background: isAvailable ? PACT_BG : 'rgba(17,34,25,0.8)', boxShadow: isAvailable ? `0 0 0 1px ${PACT_BORDER} inset` : 'none' }} />; }
-function SlotChoiceModal({ level, onChoose, onClose }) { return <div className="modal-overlay" onClick={onClose}><div className="modal-panel" onClick={e=>e.stopPropagation()} style={{ width:'min(420px, calc(100vw - 24px))' }}><div className="modal-header"><div><div className="panel-title" style={{ marginBottom:4 }}>Choose Slot</div><div className="modal-subtitle">Select which slot type to spend for level {level}.</div></div><button className="btn btn-ghost btn-icon" onClick={onClose}>✕</button></div><div style={{ display:'flex', flexDirection:'column', gap:10 }}><button className="btn btn-ghost" style={{ minHeight:48, justifyContent:'space-between' }} onClick={()=>onChoose(false)}><span>Standard Slot</span><span>Spellcasting</span></button><button className="btn btn-ghost" style={{ minHeight:48, justifyContent:'space-between', borderColor:PACT_COLOR, color:PACT_COLOR }} onClick={()=>onChoose(true)}><span>Pact Slot</span><span>Warlock</span></button></div><div className="form-row" style={{ justifyContent:'flex-end', marginTop:12 }}><button className="btn btn-ghost" onClick={onClose}>Cancel</button></div></div></div>; }
-export default function SpellSlotGrid({ profile, state, readOnly, canRestore=false, onUpdate }) {
- const [choiceLevel, setChoiceLevel] = useState(null);
- const levels=[1,2,3,4,5,6,7,8,9]; const standardActiveLevels=levels.filter(level=>(profile[`slots_max_${level}`]||0)>0); const pact=getPactSlotState(profile,state,1); const activeLevels=Array.from(new Set([...standardActiveLevels,...(pact.level>0&&pact.max>0?[pact.level]:[])])).sort((a,b)=>a-b); if(activeLevels.length===0) return null;
- async function spendStandard(level){ if(!state?.id) return; const changed=await spendStandardSlot(state.id,profile,state,level); if(changed) onUpdate(); }
- async function restoreStandard(level){ if(!state?.id||!canRestore) return; const changed=await restoreStandardSlot(state.id,state,level); if(changed) onUpdate(); }
- async function resetLevel(level){ if(!state?.id||!canRestore) return; const changed=await resetStandardSlotsForLevel(state.id,level); if(changed) onUpdate(); }
- async function spendPact(){ if(!state?.id) return; const changed=await spendPactSlot(state.id,profile,state); if(changed) onUpdate(); }
- async function restorePact(){ if(!state?.id||!canRestore) return; const changed=await restorePactSlot(state.id,profile,state); if(changed) onUpdate(); }
- async function spendPlayerSlot(level){ if(!state?.id) return; const { standard, pact:levelPact }=getSpellSlotAvailability(profile,state,level); if(levelPact.canSpend&&standard.canSpend){ setChoiceLevel(level); return; } const changed=await spendSpellSlotWithChoice({ stateId:state.id, profile, state, level }); if(changed) onUpdate(); }
- async function handleChoice(preferPact){ const level=choiceLevel; setChoiceLevel(null); if(!level||!state?.id) return; const changed=await spendSpellSlotWithChoice({ stateId:state.id, profile, state, level, preferPact }); if(changed) onUpdate(); }
- const nonNineLevels=activeLevels.filter(level=>level!==9); const gridRows=[]; for(let i=0;i<nonNineLevels.length;i+=2) gridRows.push(nonNineLevels.slice(i,i+2)); if(activeLevels.includes(9)) gridRows.push([9]);
- return <><div className="player-slot-grid-shell"><div className="player-card-section-title">Spell Slots</div><div className="player-slot-grid">{gridRows.map((row,rowIndex)=><div key={`row-${rowIndex}`} className="player-slot-grid-row">{row.map(level=>{ const standard=getStandardSlotState(profile,state,level); const rowPact=getPactSlotState(profile,state,level); const allUsed=standard.used>=standard.max; const isPlayer=!canRestore&&!readOnly; const pactOnRow=rowPact.hasAny&&rowPact.level===level; const pactCanPowerThisLevel=rowPact.canPowerLevel; const pactAllUsed=rowPact.current<=0; return <div key={level} className={`player-slot-row ${row.length===1?'player-slot-row--full':''}`}><div className="player-slot-row-head"><span className="player-slot-row-level">Level {level}</span></div><div className="player-slot-row-body"><div className="player-slot-row-pips"><div className="player-slot-pips-group">{Array.from({ length:standard.max }).map((_,i)=>{ const isUsed=i>=Math.max(0,standard.max-standard.used); return <button key={`std-${i}`} className={`slot-pip ${isUsed?'used':'available'}`} onClick={()=>{ if(readOnly) return; if(canRestore){ if(isUsed) restoreStandard(level); else spendStandard(level); } }} disabled={readOnly} title={canRestore?(isUsed?'Click to restore slot':'Click to use slot'):isUsed?'Expended':'Available'} style={{ cursor:canRestore?'pointer':'default' }} />; })}</div>{pactOnRow&&<div className="player-slot-pact-group">{Array.from({ length:rowPact.max }).map((_,i)=>{ const isAvailable=i<rowPact.current; return <PactPip key={`pact-${i}`} isAvailable={isAvailable} onClick={()=>{ if(readOnly) return; if(canRestore){ if(isAvailable) spendPact(); else restorePact(); } }} disabled={readOnly} title={canRestore?(isAvailable?'Click to use pact slot':'Click to restore pact slot'):isAvailable?'Available pact slot':'Expended pact slot'} />; })}</div>}</div>{isPlayer&&<button className="btn btn-ghost player-slot-use-btn" onClick={()=>spendPlayerSlot(level)} disabled={(!pactCanPowerThisLevel&&allUsed)||(pactCanPowerThisLevel&&pactAllUsed&&allUsed)} title={pactCanPowerThisLevel?'Use a standard or pact slot':allUsed?'All slots used':'Use one slot'}>Use</button>}{canRestore&&!readOnly&&standard.used>0&&<button className="slots-reset-btn" onClick={()=>resetLevel(level)} title="Restore all standard slots at this level">↺</button>}</div>{allUsed&&!readOnly&&!pactCanPowerThisLevel&&<div className="player-slot-row-note">All standard slots expended</div>}</div>; })}</div>)}</div></div>{choiceLevel!==null&&<SlotChoiceModal level={choiceLevel} onChoose={handleChoice} onClose={()=>setChoiceLevel(null)} />}</>; }
+import {
+  getSpellSlotAvailability,
+  getStandardSlotState,
+  getPactSlotState,
+  spendStandardSlot,
+  restoreStandardSlot,
+  resetStandardSlotsForLevel,
+  spendPactSlot,
+  restorePactSlot,
+  spendSpellSlotWithChoice,
+} from '../utils/spellSlotMutations';
+
+const PACT_COLOR = 'var(--accent-green)';
+const PACT_BG = 'rgba(78,201,140,0.22)';
+const PACT_BORDER = 'rgba(78,201,140,0.55)';
+
+function PactPip({ isAvailable, onClick, disabled, title }) {
+  return (
+    <button
+      className={`slot-pip ${isAvailable ? 'available' : 'used'} slot-pip--pact`}
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      style={{
+        borderColor: isAvailable ? PACT_COLOR : 'rgba(78,201,140,0.45)',
+        background: isAvailable ? PACT_BG : 'rgba(17,34,25,0.8)',
+        boxShadow: isAvailable ? `0 0 0 1px ${PACT_BORDER} inset` : 'none',
+      }}
+    />
+  );
+}
+
+function SlotChoiceModal({ level, onChoose, onClose }) {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div
+        className="modal-panel"
+        onClick={(e) => e.stopPropagation()}
+        style={{ width: 'min(420px, calc(100vw - 24px))' }}
+      >
+        <div className="modal-header">
+          <div>
+            <div className="panel-title" style={{ marginBottom: 4 }}>
+              Choose Slot
+            </div>
+            <div className="modal-subtitle">
+              Select which slot type to spend for level {level}.
+            </div>
+          </div>
+          <button className="btn btn-ghost btn-icon" onClick={onClose}>
+            ✕
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <button
+            className="btn btn-ghost"
+            style={{ minHeight: 48, justifyContent: 'space-between' }}
+            onClick={() => onChoose(false)}
+          >
+            <span>Standard Slot</span>
+            <span>Spellcasting</span>
+          </button>
+          <button
+            className="btn btn-ghost"
+            style={{
+              minHeight: 48,
+              justifyContent: 'space-between',
+              borderColor: PACT_COLOR,
+              color: PACT_COLOR,
+            }}
+            onClick={() => onChoose(true)}
+          >
+            <span>Pact Slot</span>
+            <span>Warlock</span>
+          </button>
+        </div>
+
+        <div className="form-row" style={{ justifyContent: 'flex-end', marginTop: 12 }}>
+          <button className="btn btn-ghost" onClick={onClose}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function SpellSlotGrid({ profile, state, readOnly, canRestore = false, onUpdate }) {
+  const [choiceLevel, setChoiceLevel] = useState(null);
+
+  const levels = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  const standardActiveLevels = levels.filter((level) => (profile[`slots_max_${level}`] || 0) > 0);
+  const pact = getPactSlotState(profile, state, 1);
+  const activeLevels = Array.from(
+    new Set([...standardActiveLevels, ...(pact.level > 0 && pact.max > 0 ? [pact.level] : [])])
+  ).sort((a, b) => a - b);
+
+  if (activeLevels.length === 0) return null;
+
+  async function spendStandard(level) {
+    if (!state?.id) return;
+    const changed = await spendStandardSlot(state.id, profile, state, level);
+    if (changed) onUpdate();
+  }
+
+  async function restoreStandard(level) {
+    if (!state?.id || !canRestore) return;
+    const changed = await restoreStandardSlot(state.id, state, level);
+    if (changed) onUpdate();
+  }
+
+  async function resetLevel(level) {
+    if (!state?.id || !canRestore) return;
+    const changed = await resetStandardSlotsForLevel(state.id, level);
+    if (changed) onUpdate();
+  }
+
+  async function spendPact() {
+    if (!state?.id) return;
+    const changed = await spendPactSlot(state.id, profile, state);
+    if (changed) onUpdate();
+  }
+
+  async function restorePact() {
+    if (!state?.id || !canRestore) return;
+    const changed = await restorePactSlot(state.id, profile, state);
+    if (changed) onUpdate();
+  }
+
+  async function spendPlayerSlot(level) {
+    if (!state?.id) return;
+    const { standard, pact: levelPact } = getSpellSlotAvailability(profile, state, level);
+    if (levelPact.canSpend && standard.canSpend) {
+      setChoiceLevel(level);
+      return;
+    }
+    const changed = await spendSpellSlotWithChoice({ stateId: state.id, profile, state, level });
+    if (changed) onUpdate();
+  }
+
+  async function handleChoice(preferPact) {
+    const level = choiceLevel;
+    setChoiceLevel(null);
+    if (!level || !state?.id) return;
+    const changed = await spendSpellSlotWithChoice({
+      stateId: state.id,
+      profile,
+      state,
+      level,
+      preferPact,
+    });
+    if (changed) onUpdate();
+  }
+
+  const nonNineLevels = activeLevels.filter((level) => level !== 9);
+  const gridRows = [];
+  for (let i = 0; i < nonNineLevels.length; i += 2) gridRows.push(nonNineLevels.slice(i, i + 2));
+  if (activeLevels.includes(9)) gridRows.push([9]);
+
+  return (
+    <>
+      <div className="player-slot-grid-shell">
+        <div className="player-card-section-title">Spell Slots</div>
+
+        <div className="player-slot-grid">
+          {gridRows.map((row, rowIndex) => (
+            <div key={`row-${rowIndex}`} className="player-slot-grid-row">
+              {row.map((level) => {
+                const standard = getStandardSlotState(profile, state, level);
+                const rowPact = getPactSlotState(profile, state, level);
+                const allUsed = standard.used >= standard.max;
+                const isPlayer = !canRestore && !readOnly;
+                const pactOnRow = rowPact.hasAny && rowPact.level === level;
+                const pactCanPowerThisLevel = rowPact.canPowerLevel;
+                const pactAllUsed = rowPact.current <= 0;
+                const disableUse =
+                  (!pactCanPowerThisLevel && allUsed) || (pactCanPowerThisLevel && pactAllUsed && allUsed);
+
+                return (
+                  <div key={level} className={`player-slot-row ${row.length === 1 ? 'player-slot-row--full' : ''}`}>
+                    <div className="player-slot-row-head">
+                      {isPlayer ? (
+                        <div className="player-slot-segmented-pill">
+                          <span className="player-slot-segment player-slot-segment--label">
+                            Level {level}
+                          </span>
+                          <button
+                            className="player-slot-segment player-slot-segment--use"
+                            onClick={() => spendPlayerSlot(level)}
+                            disabled={disableUse}
+                            title={
+                              pactCanPowerThisLevel
+                                ? 'Use a standard or pact slot'
+                                : allUsed
+                                  ? 'All slots used'
+                                  : 'Use one slot'
+                            }
+                          >
+                            Use
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="player-slot-row-level">Level {level}</span>
+                      )}
+                    </div>
+
+                    <div className="player-slot-row-body">
+                      <div className="player-slot-row-pips">
+                        <div className="player-slot-pips-group">
+                          {Array.from({ length: standard.max }).map((_, i) => {
+                            const isUsed = i >= Math.max(0, standard.max - standard.used);
+                            return (
+                              <button
+                                key={`std-${i}`}
+                                className={`slot-pip ${isUsed ? 'used' : 'available'}`}
+                                onClick={() => {
+                                  if (readOnly) return;
+                                  if (canRestore) {
+                                    if (isUsed) restoreStandard(level);
+                                    else spendStandard(level);
+                                  }
+                                }}
+                                disabled={readOnly}
+                                title={
+                                  canRestore
+                                    ? isUsed
+                                      ? 'Click to restore slot'
+                                      : 'Click to use slot'
+                                    : isUsed
+                                      ? 'Expended'
+                                      : 'Available'
+                                }
+                                style={{ cursor: canRestore ? 'pointer' : 'default' }}
+                              />
+                            );
+                          })}
+                        </div>
+
+                        {pactOnRow && (
+                          <div className="player-slot-pact-group">
+                            {Array.from({ length: rowPact.max }).map((_, i) => {
+                              const isAvailable = i < rowPact.current;
+                              return (
+                                <PactPip
+                                  key={`pact-${i}`}
+                                  isAvailable={isAvailable}
+                                  onClick={() => {
+                                    if (readOnly) return;
+                                    if (canRestore) {
+                                      if (isAvailable) spendPact();
+                                      else restorePact();
+                                    }
+                                  }}
+                                  disabled={readOnly}
+                                  title={
+                                    canRestore
+                                      ? isAvailable
+                                        ? 'Click to use pact slot'
+                                        : 'Click to restore pact slot'
+                                      : isAvailable
+                                        ? 'Available pact slot'
+                                        : 'Expended pact slot'
+                                  }
+                                />
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      {canRestore && !readOnly && standard.used > 0 && (
+                        <button
+                          className="slots-reset-btn"
+                          onClick={() => resetLevel(level)}
+                          title="Restore all standard slots at this level"
+                        >
+                          ↺
+                        </button>
+                      )}
+                    </div>
+
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {choiceLevel !== null && (
+        <SlotChoiceModal
+          level={choiceLevel}
+          onChoose={handleChoice}
+          onClose={() => setChoiceLevel(null)}
+        />
+      )}
+    </>
+  );
+}
