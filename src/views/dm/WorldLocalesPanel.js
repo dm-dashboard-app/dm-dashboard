@@ -260,8 +260,10 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
   const [status, setStatus] = useState('');
   const [locales, setLocales] = useState([]);
   const [selectedLocaleId, setSelectedLocaleId] = useState(null);
+  const [localeListMode, setLocaleListMode] = useState(true);
   const [selectedLocaleTab, setSelectedLocaleTab] = useState('overview');
   const [selectedShopId, setSelectedShopId] = useState(null);
+  const [shopListMode, setShopListMode] = useState(true);
   const [selectedShopTab, setSelectedShopTab] = useState('details');
   const [localeDetail, setLocaleDetail] = useState(null);
   const [districts, setDistricts] = useState([]);
@@ -327,9 +329,8 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
     setDistricts(districtRows || []);
     setShops(shopRows || []);
 
-    const nextShopId = selectedShopId && (shopRows || []).some((shop) => shop.id === selectedShopId)
-      ? selectedShopId
-      : (shopRows?.[0]?.id || null);
+    const hasSelectedShop = selectedShopId && (shopRows || []).some((shop) => shop.id === selectedShopId);
+    const nextShopId = (!shopListMode && hasSelectedShop) ? selectedShopId : null;
     setSelectedShopId(nextShopId);
 
     const nextShop = (shopRows || []).find((row) => row.id === nextShopId);
@@ -342,15 +343,26 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
       setInventoryRows([]);
       setEditingInventoryNotes('');
     }
-  }, [canEdit, rpcDetail, rpcDistricts, rpcInventory, rpcShops, selectedShopId]);
+  }, [canEdit, rpcDetail, rpcDistricts, rpcInventory, rpcShops, selectedShopId, shopListMode]);
 
   const refreshAll = useCallback(async (preferredLocaleId = null) => {
     setError('');
     const rows = await loadLocales();
-    const activeLocaleId = preferredLocaleId || selectedLocaleId || rows?.[0]?.id || null;
+    const hasSelectedLocale = selectedLocaleId && rows.some((locale) => locale.id === selectedLocaleId);
+    const activeLocaleId = preferredLocaleId || ((!localeListMode && hasSelectedLocale) ? selectedLocaleId : null);
     setSelectedLocaleId(activeLocaleId);
-    if (activeLocaleId) await loadLocaleDetail(activeLocaleId);
-  }, [loadLocales, loadLocaleDetail, selectedLocaleId]);
+    if (activeLocaleId) {
+      setLocaleListMode(false);
+      await loadLocaleDetail(activeLocaleId);
+    } else {
+      setLocaleDetail(null);
+      setDistricts([]);
+      setShops([]);
+      setInventoryRows([]);
+      setShopListMode(true);
+      setSelectedShopId(null);
+    }
+  }, [loadLocales, loadLocaleDetail, localeListMode, selectedLocaleId]);
 
   useEffect(() => {
     let active = true;
@@ -417,7 +429,7 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
 
   async function saveShop(form) {
     try {
-      const { data, error: saveError } = await supabase.rpc('dm_world_upsert_locale_shop', {
+      const { error: saveError } = await supabase.rpc('dm_world_upsert_locale_shop', {
         p_shop_id: editingShop?.id || null,
         p_locale_id: selectedLocaleId,
         p_district_id: form.district_id || null,
@@ -433,7 +445,8 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
       });
       if (saveError) throw saveError;
       setEditingShop(null);
-      setSelectedShopId(data);
+      setShopListMode(true);
+      setSelectedShopId(null);
       setStatus('Shop saved.');
       await loadLocaleDetail(selectedLocaleId);
       await loadLocales();
@@ -530,22 +543,28 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
     }
   }, [selectedShop, selectedShopTab]);
 
+  useEffect(() => {
+    if (!localeListMode && selectedLocaleId) {
+      loadLocaleDetail(selectedLocaleId).catch((loadError) => setError(loadError.message || 'Failed to load locale detail.'));
+    }
+  }, [loadLocaleDetail, localeListMode, selectedLocaleId]);
+
   if (loading) return <div className="empty-state">Loading locales…</div>;
 
   return (
     <div className="world-shops-shell">
       <div className="world-mobile-stack">
-        {selectedLocaleId ? <button className="btn btn-ghost" onClick={() => { setSelectedLocaleId(null); setSelectedShopId(null); }}>← Back to Locales</button> : null}
-        {!selectedLocaleId && canEdit ? <button className="btn btn-primary" onClick={() => setEditingLocale({})}>New Locale</button> : null}
+        {!localeListMode ? <button className="btn btn-ghost" onClick={() => { setLocaleListMode(true); setSelectedLocaleId(null); setSelectedShopId(null); setShopListMode(true); }}>← Back to Locales</button> : null}
+        {localeListMode && canEdit ? <button className="btn btn-primary" onClick={() => setEditingLocale({})}>New Locale</button> : null}
       </div>
 
       {status ? <div className="world-shops-import-status">{status}</div> : null}
       {error ? <div className="world-shops-error">{error}</div> : null}
 
-      {!selectedLocaleId ? (
+      {localeListMode ? (
         <div className="world-card-grid">
           {locales.map((locale) => (
-            <button key={locale.id} type="button" className="world-card world-card-button" onClick={() => { setSelectedLocaleId(locale.id); setSelectedLocaleTab('overview'); }}>
+            <button key={locale.id} type="button" className="world-card world-card-button" onClick={() => { setLocaleListMode(false); setSelectedLocaleId(locale.id); setSelectedLocaleTab('overview'); setShopListMode(true); setSelectedShopId(null); }}>
               <div className="world-card-head"><strong>{locale.name}</strong><span>{locale.locale_type}</span></div>
               <div className="world-card-body">{locale.short_description || 'No summary yet.'}</div>
               <div className="world-chip-row">
@@ -559,6 +578,9 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
         </div>
       ) : (
         <>
+          {!localeDetail ? <div className="empty-state">Loading locale detail…</div> : null}
+          {localeDetail ? (
+            <>
           <div className="world-card">
             <div className="world-card-head">
               <strong>{localeDetail?.name || 'Locale'}</strong>
@@ -606,10 +628,13 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
 
           {selectedLocaleTab === 'shops' ? (
             <>
-              {!selectedShopId && canEdit ? <button className="btn btn-primary" onClick={() => setEditingShop({})}>New Shop</button> : null}
-              {selectedShopId ? (
+              {shopListMode && canEdit ? <button className="btn btn-primary" onClick={() => setEditingShop({})}>New Shop</button> : null}
+              {!shopListMode && selectedShopId ? (
                 <>
-                  <button className="btn btn-ghost" onClick={() => setSelectedShopId(null)}>← Back to locale shops</button>
+                  <button className="btn btn-ghost" onClick={() => { setShopListMode(true); setSelectedShopId(null); }}>← Back to locale shops</button>
+                  {!selectedShop ? <div className="empty-state">Loading shop detail…</div> : null}
+                  {selectedShop ? (
+                    <>
                   <div className="world-tabs-row">
                     <button className="btn btn-ghost" data-active={selectedShopTab === 'details'} onClick={() => setSelectedShopTab('details')}>Details</button>
                     {canEdit && shopSupportsInventory(selectedShop?.shop_type) ? <button className="btn btn-ghost" data-active={selectedShopTab === 'inventory'} onClick={() => setSelectedShopTab('inventory')}>Inventory</button> : null}
@@ -667,13 +692,15 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
                       )}
                     </div>
                   ) : null}
+                    </>
+                  ) : null}
                 </>
               ) : (
                 <>
                   {canEdit ? <button className="btn btn-primary" onClick={() => setEditingShop({})}>New Shop</button> : null}
                   <div className="world-card-grid">
                     {shops.map((shop) => (
-                      <button key={shop.id} type="button" className="world-card world-card-button" onClick={() => { setSelectedShopId(shop.id); setSelectedShopTab('details'); }}>
+                      <button key={shop.id} type="button" className="world-card world-card-button" onClick={() => { setShopListMode(false); setSelectedShopId(shop.id); setSelectedShopTab('details'); }}>
                         <div className="world-card-head"><strong>{shop.shop_name}</strong><span>{shop.shop_type.replace('_', ' ')}</span></div>
                         <div className="world-chip-row">
                           <span className="world-chip">{shop.affluence_tier.replace('_', ' ')}</span>
@@ -700,6 +727,8 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
                 <div className="world-card-body" style={{ whiteSpace: 'pre-wrap' }}>{localeDetail?.notes || localeDetail?.free_notes || 'No notes saved.'}</div>
               )}
             </div>
+          ) : null}
+            </>
           ) : null}
         </>
       )}
