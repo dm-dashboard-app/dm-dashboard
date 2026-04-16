@@ -6,6 +6,7 @@ import {
   computeHealingTotal,
   getSongOfRestDie,
   getSongOfRestOwnerStateId,
+  getSharedSongOfRestTotal,
   SHORT_REST_LOG_ACTION,
 } from '../utils/shortRestWorkflow';
 
@@ -49,9 +50,7 @@ export default function ShortRestModal({
       };
     });
 
-    const sharedSong = Math.max(0, ...baseRows
-      .filter(row => row.isSongOwner)
-      .map(row => parseInt(row?.response?.sections?.healing?.songOfRestTotal, 10) || 0), 0);
+    const sharedSong = getSharedSongOfRestTotal({ playerStates, responsesByStateId });
 
     return baseRows.map((row) => ({
       ...row,

@@ -25,7 +25,11 @@ export default function ShortRestResponsePanel({ open, encounterId, state, playe
 
   const validation = useMemo(() => validateShortRestResponse({ input: draft, state, profile, isSongOfRestOwner: isSongOwner }), [draft, state, profile, isSongOwner]);
   const healing = validation.response.sections.healing;
-  const computedHealingTotal = computeHealingTotal(validation.response, profile, sharedSongOfRestTotal);
+  const singlePool = validation.pools.length === 1 ? validation.pools[0] : null;
+  const effectiveSharedSong = isSongOwner
+    ? Math.max(sharedSongOfRestTotal, Math.max(0, parseInt(draft.songOfRestTotal, 10) || 0))
+    : sharedSongOfRestTotal;
+  const computedHealingTotal = computeHealingTotal(validation.response, profile, effectiveSharedSong);
   const conMod = getAbilityModifier(readNumberField(profile, ['ability_con'], 10));
   const conContribution = conMod * healing.totalHitDiceUsed;
 
@@ -73,7 +77,7 @@ export default function ShortRestResponsePanel({ open, encounterId, state, playe
                 <label className="rest-modal-field"><span className="rest-modal-label">Total hit dice used</span><input className="rest-modal-input" type="number" min={0} inputMode="numeric" value={draft.totalHitDiceUsed} onChange={(e) => updateField('totalHitDiceUsed', e.target.value)} /></label>
               </div>
 
-              {validation.pools.length > 0 && (
+              {validation.pools.length > 1 && (
                 <div className="rest-modal-grid" style={{ marginTop: 8 }}>
                   {validation.pools.map(pool => (
                     <label key={`spend-d${pool.size}`} className="rest-modal-field">
@@ -81,6 +85,11 @@ export default function ShortRestResponsePanel({ open, encounterId, state, playe
                       <input className="rest-modal-input" type="number" min={0} max={pool.current} inputMode="numeric" value={draft.spendBySize?.[`d${pool.size}`] ?? ''} onChange={(e) => updateSpend(`d${pool.size}`, e.target.value)} />
                     </label>
                   ))}
+                </div>
+              )}
+              {singlePool && (
+                <div className="rest-modal-player-meta" style={{ marginTop: 8 }}>
+                  Hit dice spend inferred: {healing.totalHitDiceUsed}d{singlePool.size} (max {singlePool.current})
                 </div>
               )}
 
@@ -93,7 +102,7 @@ export default function ShortRestResponsePanel({ open, encounterId, state, playe
               {validation.errors.map(error => <div key={error} style={{ fontSize: 11, color: 'var(--accent-red)', marginTop: 6 }}>{error}</div>)}
 
               <div className="rest-modal-player-meta" style={{ marginTop: 8 }}>
-                Healing preview: {computedHealingTotal} HP (rolled {healing.rolledTotal} + CON {conMod >= 0 ? `+${conMod}` : conMod} × {healing.totalHitDiceUsed} = {conContribution} + Song {sharedSongOfRestTotal})
+                Healing preview: {computedHealingTotal} HP (rolled {healing.rolledTotal} + CON {conMod >= 0 ? `+${conMod}` : conMod} × {healing.totalHitDiceUsed} = {conContribution} + Song {effectiveSharedSong})
               </div>
             </div>
           </div>

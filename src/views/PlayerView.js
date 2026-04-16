@@ -14,7 +14,7 @@ import { inventoryGetPendingIncoming, inventoryRespondTransfer } from '../invent
 import PlayerWorldPanel from './player/PlayerWorldPanel';
 import ShortRestResponsePanel from '../components/ShortRestResponsePanel';
 import {
-  getSongOfRestOwnerStateId,
+  getSharedSongOfRestTotal,
 } from '../utils/shortRestWorkflow';
 
 export default function PlayerView() {
@@ -126,8 +126,7 @@ export default function PlayerView() {
   const prepActive = !!encounter?.long_rest_prep_active;
   const prepReady = !!state?.spell_prep_ready;
   const showPrepModal = prepActive && prepRequired && !prepReady && !!state?.profiles_players;
-  const shortRestSongOwnerId = getSongOfRestOwnerStateId(playerStates || []);
-  const sharedSongOfRestTotal = Math.max(0, parseInt(shortRestResponsesByStateId?.[shortRestSongOwnerId]?.response?.sections?.healing?.songOfRestTotal, 10) || 0);
+  const sharedSongOfRestTotal = getSharedSongOfRestTotal({ playerStates, responsesByStateId: shortRestResponsesByStateId });
 
   useEffect(() => {
     if (pendingConDc === null) setShowConPanel(false);
