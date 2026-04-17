@@ -1,4 +1,4 @@
-import { build5etoolsReviewReport, looksPhase1Compatible } from './fiveToolsReviewReport';
+import { build5etoolsReviewReport, looksPhase1Compatible, resolveRuntimeAttunementTruth } from './fiveToolsReviewReport';
 
 describe('build5etoolsReviewReport', () => {
   test('builds required pricing/shop/mechanics slices', () => {
@@ -83,27 +83,61 @@ describe('build5etoolsReviewReport', () => {
           mechanics: null,
         },
       },
+      {
+        external_key: 'k:nested-attune',
+        name: 'Nested Attune Item',
+        item_type: 'magic_item',
+        rarity: 'uncommon',
+        base_price_gp: 300,
+        suggested_price_gp: 300,
+        price_source: '5etools_fallback_policy_v1',
+        is_shop_eligible: false,
+        shop_bucket: 'manual_magic_review',
+        requires_attunement: false,
+        metadata_json: {
+          req_attune_raw: 'by a wizard',
+          mechanics_support: 'partial_supported',
+          mechanics: {
+            slot_family: 'main_hand',
+            activation_mode: 'equip',
+            requires_attunement: true,
+            passive_effects: [{ type: 'weapon_attack_bonus', value: 1 }],
+          },
+        },
+      },
     ];
 
     const report = build5etoolsReviewReport(rows);
 
-    expect(report.total_rows).toBe(4);
+    expect(report.total_rows).toBe(5);
     expect(report.counts.direct_source_priced).toBe(1);
     expect(report.counts.overlay_priced).toBe(1);
-    expect(report.counts.fallback_priced).toBe(1);
+    expect(report.counts.fallback_priced).toBe(2);
     expect(report.counts.unresolved_unpriced).toBe(2);
     expect(report.counts.overlay_excluded).toBe(1);
     expect(report.counts.should_be_priced_but_not_matched).toBe(1);
     expect(report.counts.shop_eligible).toBe(1);
-    expect(report.counts.non_shop).toBe(3);
-    expect(report.counts.rows_with_structured_mechanics).toBe(2);
-    expect(report.counts.rows_with_attunement_true).toBe(3);
+    expect(report.counts.non_shop).toBe(4);
+    expect(report.counts.rows_with_structured_mechanics).toBe(3);
+    expect(report.counts.rows_with_attunement_true).toBe(4);
+    expect(report.counts.rows_with_phase1_compatible_payload).toBe(3);
 
-    expect(report.mechanics.by_mechanics_support.partial_supported).toBe(2);
+    expect(report.mechanics.by_mechanics_support.partial_supported).toBe(3);
     expect(report.mechanics.by_mechanics_support.manual_required).toBe(2);
 
     expect(report.pricing.should_be_priced_but_not_matched[0].external_key).toBe('k:manual');
     expect(report.pricing.overlay_excluded[0].external_key).toBe('k:overlay-excluded');
+  });
+});
+
+describe('resolveRuntimeAttunementTruth', () => {
+  test('prefers mechanics attunement truth over stale top-level false', () => {
+    expect(resolveRuntimeAttunementTruth({
+      requires_attunement: false,
+      metadata_json: {
+        mechanics: { requires_attunement: true },
+      },
+    })).toBe(true);
   });
 });
 
@@ -129,6 +163,19 @@ describe('looksPhase1Compatible', () => {
           slot_family: 'inventory',
           activation_mode: 'equip',
           passive_effects: [{ type: 'summon_army', value: 1 }],
+        },
+      },
+    })).toBe(false);
+  });
+
+  test('rejects attunement payloads missing mechanics attunement truth', () => {
+    expect(looksPhase1Compatible({
+      requires_attunement: true,
+      metadata_json: {
+        mechanics: {
+          slot_family: 'neck',
+          activation_mode: 'equip',
+          passive_effects: [{ type: 'flat_bonus', target: 'spell_attack', value: 1 }],
         },
       },
     })).toBe(false);

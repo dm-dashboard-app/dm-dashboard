@@ -28,6 +28,36 @@ function normalize(value = '') {
   return String(value || '').trim().toLowerCase();
 }
 
+function parseAttunementFlag(value) {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    const normalized = normalize(value);
+    if (!normalized) return null;
+    if (normalized === 'false' || normalized === 'no' || normalized === 'none') return false;
+    return true;
+  }
+  return null;
+}
+
+function hasAttunementSignals(row = {}) {
+  const reqAttuneRaw = row?.metadata_json?.req_attune_raw;
+  const parsedRaw = parseAttunementFlag(reqAttuneRaw);
+  if (parsedRaw === true) return true;
+  if (Array.isArray(row?.metadata_json?.req_attune_tags) && row.metadata_json.req_attune_tags.length > 0) return true;
+  return false;
+}
+
+export function resolveRuntimeAttunementTruth(row = {}) {
+  const mechanicsAttunement = parseAttunementFlag(row?.metadata_json?.mechanics?.requires_attunement);
+  if (mechanicsAttunement !== null) return mechanicsAttunement;
+
+  const topLevel = parseAttunementFlag(row?.requires_attunement);
+  if (topLevel !== null) return topLevel;
+
+  if (hasAttunementSignals(row)) return true;
+  return false;
+}
+
 function compactRow(row = {}) {
   return {
     external_key: row.external_key,
@@ -36,7 +66,7 @@ function compactRow(row = {}) {
     category: row.category,
     subcategory: row.subcategory,
     rarity: row.rarity,
-    requires_attunement: !!row.requires_attunement,
+    requires_attunement: resolveRuntimeAttunementTruth(row),
     is_shop_eligible: !!row.is_shop_eligible,
     shop_bucket: row.shop_bucket || null,
     base_price_gp: row.base_price_gp,
@@ -65,12 +95,17 @@ function appearsMagical(row = {}) {
 export function looksPhase1Compatible(row = {}) {
   const mechanics = row?.metadata_json?.mechanics;
   if (!mechanics || typeof mechanics !== 'object') return false;
+  const runtimeRequiresAttunement = resolveRuntimeAttunementTruth(row);
 
   const slot = normalize(mechanics.slot_family);
-  if (slot && !PHASE1_ALLOWED_SLOTS.has(slot)) return false;
+  if (!slot || !PHASE1_ALLOWED_SLOTS.has(slot)) return false;
 
   const activation = normalize(mechanics.activation_mode || 'equip');
-  if (activation && !PHASE1_ALLOWED_ACTIVATION.has(activation)) return false;
+  if (!activation || !PHASE1_ALLOWED_ACTIVATION.has(activation)) return false;
+
+  const mechanicsRequiresAttunement = parseAttunementFlag(mechanics.requires_attunement);
+  if (runtimeRequiresAttunement && mechanicsRequiresAttunement !== true) return false;
+  if (!runtimeRequiresAttunement && mechanicsRequiresAttunement === true) return false;
 
   const passive = Array.isArray(mechanics.passive_effects) ? mechanics.passive_effects : [];
   for (const effect of passive) {
@@ -115,7 +150,7 @@ export function build5etoolsReviewReport(rows = []) {
 
   const rowsWithStructuredMechanics = rows.filter(row => !!row?.metadata_json?.mechanics);
   const rowsWithNullMechanics = rows.filter(row => !row?.metadata_json?.mechanics);
-  const rowsWithAttunement = rows.filter(row => !!row.requires_attunement);
+  const rowsWithAttunement = rows.filter(resolveRuntimeAttunementTruth);
   const rowsWithPhase1CompatiblePayload = rows.filter(looksPhase1Compatible);
 
   const shopEligibleRows = rows.filter(row => row.is_shop_eligible);
