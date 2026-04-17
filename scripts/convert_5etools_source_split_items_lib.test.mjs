@@ -11,6 +11,10 @@ function convert(item, ctx = {}) {
   });
 }
 
+function buildOverlayMap(...items) {
+  return new Map(items.map(item => [String(item.normalized_name), item]));
+}
+
 test('maps mundane equipment with value into import row shape', () => {
   const row = convert({ name: 'Abacus', source: 'PHB', type: 'G', rarity: 'none', value: 200, page: 150 });
   assert.equal(row.item_type, 'equipment');
@@ -18,6 +22,7 @@ test('maps mundane equipment with value into import row shape', () => {
   assert.equal(row.is_shop_eligible, true);
   assert.equal(row.shop_bucket, 'mundane');
   assert.equal(row.source_slug, 'tst-abacus');
+  assert.equal(row.price_source, '5etools_value_cp');
 });
 
 test('maps attunement magic item truthfully', () => {
@@ -59,11 +64,80 @@ test('flattens nested entries and keeps weird rows importable/manual', () => {
   assert.equal(row.is_shop_eligible, false);
 });
 
-test('does not treat null-priced rows as shop-eligible', () => {
+test('keeps attunement-gated magic rows non-shop-eligible even when fallback pricing exists', () => {
   const row = convert({ name: 'Moon Sickle +1', source: 'TCE', type: 'M', weaponCategory: 'martial', rarity: 'uncommon', reqAttune: true });
-  assert.equal(row.base_price_gp, null);
+  assert.equal(row.base_price_gp, 600);
   assert.equal(row.is_shop_eligible, false);
   assert.equal(row.shop_bucket, 'manual_magic_review');
+  assert.equal(row.price_source, '5etools_fallback_policy_v1');
+});
+
+test('uses curated pricing overlay match for trustworthy 5etools names', () => {
+  const row = convert(
+    { name: 'Wand of Magic Missiles', rarity: 'uncommon', wand: true },
+    {
+      pricingOverlayMap: buildOverlayMap({
+        normalized_name: 'wand-of-magic-missiles',
+        suggested_price_gp: 2000,
+        rarity: 'Uncommon',
+        shop_bucket: 'combat',
+        exclude_from_shop: false,
+      }),
+    },
+  );
+
+  assert.equal(row.base_price_gp, 2000);
+  assert.equal(row.price_source, 'shop_magic_pricing_2014_overlay');
+  assert.equal(row.is_shop_eligible, true);
+  assert.equal(row.shop_bucket, 'combat');
+});
+
+test('matches plus-ordering aliases against overlay pricing keys', () => {
+  const row = convert(
+    { name: 'Rod of the Pact Keeper, +1', rod: true, rarity: 'uncommon' },
+    {
+      pricingOverlayMap: buildOverlayMap({
+        normalized_name: 'rod-of-the-pact-keeper-plus-1',
+        suggested_price_gp: 3500,
+        rarity: 'Uncommon',
+        shop_bucket: 'combat',
+        exclude_from_shop: false,
+      }),
+    },
+  );
+
+  assert.equal(row.base_price_gp, 3500);
+  assert.equal(row.price_source, 'shop_magic_pricing_2014_overlay');
+  assert.equal(row.is_shop_eligible, true);
+});
+
+test('keeps overlay-excluded items non-shop-eligible', () => {
+  const row = convert(
+    { name: 'Deck of Many Things', rarity: 'legendary', wondrous: true },
+    {
+      pricingOverlayMap: buildOverlayMap({
+        normalized_name: 'deck-of-many-things',
+        suggested_price_gp: null,
+        rarity: 'Legendary',
+        shop_bucket: 'unpriced',
+        exclude_from_shop: true,
+        exclusion_reason: 'explicitly excluded',
+      }),
+    },
+  );
+
+  assert.equal(row.base_price_gp, null);
+  assert.equal(row.is_shop_eligible, false);
+  assert.equal(row.shop_bucket, 'unpriced');
+  assert.equal(row.price_source, 'shop_magic_pricing_2014_overlay');
+});
+
+test('uses constrained fallback pricing for straightforward enhancement items', () => {
+  const row = convert({ name: '+1 Weapon', type: 'M', weaponCategory: 'martial', rarity: 'uncommon', bonusWeapon: '+1' });
+  assert.equal(row.price_source, '5etools_fallback_policy_v1');
+  assert.equal(row.base_price_gp, 600);
+  assert.equal(row.is_shop_eligible, true);
+  assert.equal(row.shop_bucket, 'combat');
 });
 
 test('keeps mundane priced equipment shop-eligible', () => {

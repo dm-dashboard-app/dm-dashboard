@@ -9,6 +9,18 @@ const SOURCE_LAYER_LABEL = '5etools_items_by_source_curated';
 const WEAPON_TYPE_CODES = new Set(['M', 'R', 'A', 'AF']);
 const ARMOR_TYPE_CODES = new Set(['LA', 'MA', 'HA', 'S']);
 const TOOL_TYPE_CODES = new Set(['AT', 'INS', 'GS', 'T']);
+const OVERLAY_PRICE_SOURCE = 'shop_magic_pricing_2014_overlay';
+const FALLBACK_PRICE_SOURCE = '5etools_fallback_policy_v1';
+const MANUAL_MAGIC_BUCKET = 'manual_magic_review';
+const MANUAL_UNPRICED_BUCKET = 'manual_unpriced';
+
+const RARITY_FALLBACK_GP = {
+  common: 100,
+  uncommon: 500,
+  rare: 5000,
+  'very rare': 50000,
+  legendary: 200000,
+};
 
 export function slugify(value = '') {
   return String(value || '')
@@ -17,6 +29,18 @@ export function slugify(value = '') {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '') || 'item';
+}
+
+function normalizePricingKey(value = '') {
+  return String(value || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\+/g, ' plus ')
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+    .replace(/-{2,}/g, '-');
 }
 
 function sanitizeInlineTags(text = '') {
@@ -118,6 +142,10 @@ function parseRarity(item = {}) {
   return rarity;
 }
 
+function normalizeRarity(value = '') {
+  return String(value || '').trim().toLowerCase();
+}
+
 function deriveAttunement(item = {}, description = '') {
   if (typeof item.reqAttune === 'boolean') return item.reqAttune;
   if (typeof item.reqAttune === 'string' && item.reqAttune.trim()) return true;
@@ -196,9 +224,229 @@ function isClearlyMagicalItem(item = {}, row = {}) {
 
 function buildShopEligibility({ item = {}, row = {} } = {}) {
   const hasPrice = hasTrustworthyPrice(row.base_price_gp);
-  if (isClearlyMagicalItem(item, row)) return { eligible: false, bucket: 'manual_magic_review' };
-  if (!hasPrice) return { eligible: false, bucket: 'manual_unpriced' };
+  if (isClearlyMagicalItem(item, row)) return { eligible: false, bucket: MANUAL_MAGIC_BUCKET };
+  if (!hasPrice) return { eligible: false, bucket: MANUAL_UNPRICED_BUCKET };
   return { eligible: true, bucket: 'mundane' };
+}
+
+function buildPricingOverlayMap(pricingItems = []) {
+  const map = new Map();
+  const addKey = (key, item) => {
+    const normalized = normalizePricingKey(key);
+    if (!normalized) return;
+    if (!map.has(normalized)) map.set(normalized, item);
+  };
+
+  (pricingItems || []).forEach((item) => {
+    const name = String(item?.name || '').trim();
+    const normalized = String(item?.normalized_name || '').trim();
+    addKey(normalized, item);
+    addKey(name, item);
+  });
+
+  return map;
+}
+
+function buildNameAliasCandidates(name = '') {
+  const rawName = String(name || '').trim();
+  if (!rawName) return [];
+  const aliases = new Set([rawName]);
+
+  const commaPlusMatch = rawName.match(/^(.+?),\s*\+(\d+)$/i);
+  if (commaPlusMatch) {
+    const base = commaPlusMatch[1].trim();
+    const plus = commaPlusMatch[2].trim();
+    aliases.add(`${base} +${plus}`);
+    aliases.add(`${base} Plus ${plus}`);
+    aliases.add(`+${plus} ${base}`);
+    aliases.add(`Plus ${plus} ${base}`);
+  }
+
+  const leadingPlusMatch = rawName.match(/^\+(\d+)\s+(.+)$/i);
+  if (leadingPlusMatch) {
+    const plus = leadingPlusMatch[1].trim();
+    const base = leadingPlusMatch[2].trim();
+    aliases.add(`${base} +${plus}`);
+    aliases.add(`${base} Plus ${plus}`);
+    aliases.add(`${base}, +${plus}`);
+  }
+
+  const trailingPlusMatch = rawName.match(/^(.+?)\s+\+(\d+)$/i);
+  if (trailingPlusMatch) aliases.add(`${trailingPlusMatch[1].trim()}, +${trailingPlusMatch[2].trim()}`);
+
+  aliases.forEach((alias) => {
+    const normalized = String(alias || '').replace(/\(each\)/ig, '').trim();
+    if (normalized && normalized !== alias) aliases.add(normalized);
+  });
+
+  return Array.from(aliases);
+}
+
+function resolvePricingOverlayMatch(name = '', overlayMap = new Map()) {
+  const candidates = buildNameAliasCandidates(name);
+  for (const candidate of candidates) {
+    const found = overlayMap.get(normalizePricingKey(candidate));
+    if (found) return found;
+  }
+  return null;
+}
+
+function deriveEnhancementBonus(item = {}, row = {}) {
+  const parsedWeaponBonus = parseBonus(item?.bonusWeapon);
+  if (parsedWeaponBonus !== null && parsedWeaponBonus > 0) return parsedWeaponBonus;
+  const parsedAcBonus = parseBonus(item?.bonusAc);
+  if (parsedAcBonus !== null && parsedAcBonus > 0) return parsedAcBonus;
+  const name = String(row?.name || '').trim();
+  const nameMatch = name.match(/(?:^|[,\s])\+(\d+)(?:$|\s|\))/);
+  if (!nameMatch) return null;
+  const bonus = Number(nameMatch[1]);
+  return Number.isFinite(bonus) && bonus > 0 ? bonus : null;
+}
+
+function deriveFallbackPricing({ item = {}, row = {} } = {}) {
+  const rarity = normalizeRarity(row.rarity || item.rarity || '');
+  const bonus = deriveEnhancementBonus(item, row);
+  const isMagic = isClearlyMagicalItem(item, row);
+  if (!isMagic) return null;
+
+  if (row.item_type === 'weapon' && bonus && bonus <= 3) {
+    const priceByBonus = { 1: 600, 2: 6000, 3: 50000 };
+    return {
+      priceGp: priceByBonus[bonus] || null,
+      bucket: 'combat',
+      reason: `enhancement_weapon_plus_${bonus}`,
+      makeEligible: bonus <= 2 && !row.requires_attunement,
+    };
+  }
+
+  if ((row.item_type === 'armor' || row.item_type === 'shield') && bonus && bonus <= 3) {
+    const priceByBonus = { 1: 800, 2: 8000, 3: 60000 };
+    return {
+      priceGp: priceByBonus[bonus] || null,
+      bucket: 'combat',
+      reason: `enhancement_${row.item_type}_plus_${bonus}`,
+      makeEligible: bonus <= 2 && !row.requires_attunement,
+    };
+  }
+
+  const isConsumableFamily = !!(item.potion || item.poison || item.ammo || /potion|elixir|ammo|ammunition|arrow/i.test(String(row.name || '')));
+  if (isConsumableFamily && (rarity === 'common' || rarity === 'uncommon')) {
+    return {
+      priceGp: rarity === 'common' ? 75 : 300,
+      bucket: 'consumable',
+      reason: `consumable_${rarity || 'unspecified'}`,
+      makeEligible: true,
+    };
+  }
+
+  if (row.item_type === 'tool' && rarity === 'common') {
+    return {
+      priceGp: 150,
+      bucket: 'utility',
+      reason: 'common_magic_tool',
+      makeEligible: true,
+    };
+  }
+
+  if ((row.item_type === 'magic_item' || row.item_type === 'equipment') && (rarity === 'common' || rarity === 'uncommon')) {
+    const fallbackPrice = RARITY_FALLBACK_GP[rarity];
+    if (fallbackPrice) {
+      return {
+        priceGp: fallbackPrice,
+        bucket: 'utility',
+        reason: `rarity_band_${rarity}`,
+        makeEligible: rarity === 'common',
+      };
+    }
+  }
+
+  return null;
+}
+
+function applyPricingEnrichment({ item = {}, row = {}, pricingOverlayMap = new Map() } = {}) {
+  if (hasTrustworthyPrice(row.base_price_gp)) {
+    return {
+      ...row,
+      suggested_price_gp: row.base_price_gp,
+      price_source: '5etools_value_cp',
+      metadata_json: {
+        ...(row.metadata_json || {}),
+        pricing: {
+          strategy: 'direct_source_value_cp',
+          trusted: true,
+        },
+      },
+    };
+  }
+
+  const overlay = resolvePricingOverlayMatch(row.name, pricingOverlayMap);
+  if (overlay) {
+    const excluded = !!overlay.exclude_from_shop;
+    const rawOverlayPrice = overlay.suggested_price_gp;
+    const overlayPrice = rawOverlayPrice === null || rawOverlayPrice === undefined
+      ? null
+      : (Number.isFinite(Number(rawOverlayPrice)) ? Number(rawOverlayPrice) : null);
+    const makeEligible = !excluded && Number.isFinite(overlayPrice);
+    return {
+      ...row,
+      base_price_gp: overlayPrice,
+      suggested_price_gp: overlayPrice,
+      price_source: OVERLAY_PRICE_SOURCE,
+      rarity: overlay.rarity && String(overlay.rarity).toLowerCase() !== 'unspecified' ? overlay.rarity : row.rarity,
+      is_shop_eligible: makeEligible,
+      shop_bucket: excluded ? String(overlay.shop_bucket || MANUAL_MAGIC_BUCKET).trim() : (overlay.shop_bucket || 'manual_magic_review'),
+      metadata_json: {
+        ...(row.metadata_json || {}),
+        pricing_overlay: {
+          normalized_name: overlay.normalized_name || null,
+          exclude_from_shop: excluded,
+          exclusion_reason: overlay.exclusion_reason || '',
+          notes: overlay.notes || '',
+        },
+        pricing: {
+          strategy: 'curated_overlay_match',
+          trusted: Number.isFinite(overlayPrice),
+        },
+      },
+    };
+  }
+
+  const fallback = deriveFallbackPricing({ item, row });
+  if (fallback?.priceGp && Number.isFinite(Number(fallback.priceGp))) {
+    return {
+      ...row,
+      base_price_gp: Number(fallback.priceGp),
+      suggested_price_gp: Number(fallback.priceGp),
+      price_source: FALLBACK_PRICE_SOURCE,
+      is_shop_eligible: !!fallback.makeEligible,
+      shop_bucket: fallback.makeEligible ? fallback.bucket : MANUAL_MAGIC_BUCKET,
+      metadata_json: {
+        ...(row.metadata_json || {}),
+        pricing: {
+          strategy: 'fallback_policy',
+          trusted: false,
+          fallback_reason: fallback.reason || 'policy_default',
+          fallback_bucket: fallback.bucket,
+        },
+      },
+    };
+  }
+
+  return {
+    ...row,
+    base_price_gp: null,
+    suggested_price_gp: null,
+    price_source: null,
+    is_shop_eligible: false,
+    shop_bucket: isClearlyMagicalItem(item, row) ? MANUAL_MAGIC_BUCKET : MANUAL_UNPRICED_BUCKET,
+    metadata_json: {
+      ...(row.metadata_json || {}),
+      pricing: {
+        strategy: 'unresolved_manual_review',
+        trusted: false,
+      },
+    },
+  };
 }
 
 export function convert5etoolsItemToImportRow(item = {}, context = {}) {
@@ -214,20 +462,18 @@ export function convert5etoolsItemToImportRow(item = {}, context = {}) {
   const subcategory = deriveSubcategory(item, itemType);
   const rarity = parseRarity(item);
   const requiresAttunement = deriveAttunement(item, description);
-  const basePriceGp = toGpFromValueCp(item.value);
-  const suggestedPriceGp = basePriceGp;
   const mechanics = deriveMechanics(item, requiresAttunement);
+  const pricingOverlayMap = context.pricingOverlayMap instanceof Map ? context.pricingOverlayMap : new Map();
   const shop = buildShopEligibility({
     item,
     row: {
       item_type: itemType,
       rarity,
       requires_attunement: requiresAttunement,
-      base_price_gp: basePriceGp,
+      base_price_gp: toGpFromValueCp(item.value),
     },
   });
-
-  return {
+  const baseRow = {
     name,
     slug: `five-tools-${sourceItemSlug}`,
     item_type: itemType,
@@ -236,9 +482,9 @@ export function convert5etoolsItemToImportRow(item = {}, context = {}) {
     rarity,
     requires_attunement: requiresAttunement,
     description,
-    base_price_gp: basePriceGp,
-    suggested_price_gp: suggestedPriceGp,
-    price_source: basePriceGp !== null ? '5etools_value_cp' : null,
+    base_price_gp: toGpFromValueCp(item.value),
+    suggested_price_gp: toGpFromValueCp(item.value),
+    price_source: toGpFromValueCp(item.value) !== null ? '5etools_value_cp' : null,
     source_type: SOURCE_TYPE,
     source_book: `${sourceKey} (5etools curated source split)`,
     source_slug: sourceItemSlug,
@@ -259,6 +505,12 @@ export function convert5etoolsItemToImportRow(item = {}, context = {}) {
       mechanics,
     },
   };
+
+  return applyPricingEnrichment({
+    item,
+    row: baseRow,
+    pricingOverlayMap,
+  });
 }
 
 export async function loadSourceSplitItems({
@@ -293,6 +545,9 @@ export async function loadSourceSplitItems({
 }
 
 export async function buildConverted5etoolsDataset({ manifestPath }) {
+  const overlayPath = path.resolve(path.dirname(manifestPath), '../../docs/data/shop_magic_pricing_2014.json');
+  const overlayParsed = JSON.parse(await fs.readFile(overlayPath, 'utf8'));
+  const pricingOverlayMap = buildPricingOverlayMap(Array.isArray(overlayParsed?.items) ? overlayParsed.items : []);
   const { manifest, loaded } = await loadSourceSplitItems({ manifestPath });
   const dedupeCounter = new Map();
   const rows = [];
@@ -309,6 +564,7 @@ export async function buildConverted5etoolsDataset({ manifestPath }) {
         sourceSlug,
         duplicateIndex: nextCount,
         sourceFilename: fileBundle.filename,
+        pricingOverlayMap,
       }));
     });
   });
