@@ -1,9 +1,12 @@
 -- Stage 4 correction: in-app DM/admin item import RPC for shop catalog refresh.
 -- This keeps write authority server-mediated and removes terminal-only dependency.
 
+drop function if exists public.dm_import_item_master_rows(text, jsonb);
+
 create or replace function public.dm_import_item_master_rows(
   p_import_mode text,
-  p_rows jsonb
+  p_rows jsonb,
+  p_import_meta jsonb default '{}'::jsonb
 )
 returns table (
   import_mode text,
@@ -18,7 +21,10 @@ declare
   v_mode text := lower(coalesce(p_import_mode, ''));
   v_source_type text;
   v_rows jsonb := coalesce(p_rows, '[]'::jsonb);
+  v_import_meta jsonb := coalesce(p_import_meta, '{}'::jsonb);
   v_source_layer text;
+  v_five_tools_expected_count integer;
+  v_five_tools_valid_count integer;
 begin
   if auth.uid() is null then
     raise exception 'Authentication required.';
@@ -42,9 +48,52 @@ begin
   end;
 
   if v_mode = 'five_tools_2014' then
-    v_source_layer := '5etools_items_by_source_curated';
+    v_source_layer := trim(coalesce(v_import_meta->>'source_layer', ''));
+    if v_source_layer = '' then
+      v_source_layer := '5etools_items_by_source_curated';
+    end if;
+
+    if v_source_layer <> '5etools_items_by_source_curated' then
+      raise exception 'five_tools_2014 import_meta source_layer must be 5etools_items_by_source_curated.';
+    end if;
+
+    if coalesce(v_import_meta->>'expected_active_row_count', '') !~ '^[0-9]+$' then
+      raise exception 'five_tools_2014 import_meta expected_active_row_count must be a positive integer.';
+    end if;
+    v_five_tools_expected_count := (v_import_meta->>'expected_active_row_count')::integer;
+    if coalesce(v_five_tools_expected_count, 0) <= 0 then
+      raise exception 'five_tools_2014 expected_active_row_count must be > 0.';
+    end if;
+
+    with parsed as (
+      select
+        trim(coalesce(row_data->>'name', '')) as name,
+        trim(coalesce(row_data->>'source_type', v_source_type)) as source_type,
+        trim(coalesce(row_data->>'rules_era', '2014')) as rules_era,
+        coalesce(row_data->'metadata_json', '{}'::jsonb) as metadata_json,
+        trim(coalesce(row_data->>'external_key', '')) as external_key
+      from jsonb_array_elements(v_rows) as t(row_data)
+    ), valid as (
+      select *
+      from parsed
+      where name <> ''
+        and external_key <> ''
+        and rules_era = '2014'
+        and source_type = v_source_type
+        and coalesce(metadata_json->>'source_layer', '') = v_source_layer
+    )
+    select count(*)::integer
+    into v_five_tools_valid_count
+    from valid;
+
+    if coalesce(v_five_tools_valid_count, 0) <> v_five_tools_expected_count then
+      raise exception 'five_tools_2014 payload safety check failed: valid row count % does not match expected_active_row_count %.',
+        coalesce(v_five_tools_valid_count, 0), v_five_tools_expected_count;
+    end if;
   else
     v_source_layer := null;
+    v_five_tools_expected_count := null;
+    v_five_tools_valid_count := null;
   end if;
 
   with parsed as (
@@ -88,7 +137,7 @@ begin
       )
       and (
         v_mode <> 'five_tools_2014'
-        or coalesce(metadata_json->>'source_layer', '') = '5etools_items_by_source_curated'
+        or coalesce(metadata_json->>'source_layer', '') = v_source_layer
       )
   ), five_tools_payload_keys as (
     select distinct external_key
@@ -112,6 +161,7 @@ begin
         true
       )
     where v_mode = 'five_tools_2014'
+      and v_five_tools_valid_count = v_five_tools_expected_count
       and im.source_type = v_source_type
       and coalesce(im.metadata_json->>'source_layer', '') = coalesce(v_source_layer, '')
       and im.external_key not in (select external_key from five_tools_payload_keys)
@@ -236,5 +286,5 @@ begin
 end;
 $$;
 
-revoke all on function public.dm_import_item_master_rows(text, jsonb) from public;
-grant execute on function public.dm_import_item_master_rows(text, jsonb) to authenticated;
+revoke all on function public.dm_import_item_master_rows(text, jsonb, jsonb) from public;
+grant execute on function public.dm_import_item_master_rows(text, jsonb, jsonb) to authenticated;

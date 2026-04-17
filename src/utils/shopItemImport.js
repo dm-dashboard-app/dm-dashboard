@@ -581,11 +581,24 @@ export async function loadCustomSeedRows() {
   return applyMechanicsEnrichmentRows(items, mechanicsEnrichment);
 }
 
-export async function load5etoolsSourceSplitRows() {
+export async function load5etoolsSourceSplitRows(options = {}) {
   const response = await fetch('/data/shop_5etools_items_source_split_2014.json');
   if (!response.ok) throw new Error('Failed to load 5etools source-split seed JSON.');
   const parsed = await response.json();
   const items = Array.isArray(parsed?.items) ? parsed.items : [];
+  if (options?.withMeta === true) {
+    return {
+      rows: items,
+      importMeta: {
+        source_layer: String(parsed?.source_layer || '').trim() || '5etools_items_by_source_curated',
+        expected_active_row_count: Number.isFinite(Number(parsed?.total_items_converted))
+          ? Number(parsed.total_items_converted)
+          : items.length,
+        artifact_generated_at: parsed?.generated_at || null,
+        catalog_admission_policy_version: '5etools_shop_admission_v2',
+      },
+    };
+  }
   return items;
 }
 

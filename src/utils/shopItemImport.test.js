@@ -312,6 +312,30 @@ describe('load5etoolsSourceSplitRows', () => {
     expect(rows[0].external_key).toBe('5etools_items_by_source_curated:phb-abacus');
     expect(rows[0].source_type).toBe('custom_homebrew_private_seed');
   });
+
+  test('returns import metadata for five_tools_2014 payload safety checks', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        source_layer: '5etools_items_by_source_curated',
+        total_items_converted: 2,
+        generated_at: '2026-04-17T10:00:00.000Z',
+        items: [
+          { name: 'Abacus', external_key: '5etools_items_by_source_curated:phb-abacus' },
+          { name: 'Backpack', external_key: '5etools_items_by_source_curated:phb-backpack' },
+        ],
+      }),
+    });
+
+    const bundle = await load5etoolsSourceSplitRows({ withMeta: true });
+    expect(bundle.rows).toHaveLength(2);
+    expect(bundle.importMeta).toEqual({
+      source_layer: '5etools_items_by_source_curated',
+      expected_active_row_count: 2,
+      artifact_generated_at: '2026-04-17T10:00:00.000Z',
+      catalog_admission_policy_version: '5etools_shop_admission_v2',
+    });
+  });
 });
 
 describe('generated 5etools active-lane artifact policy', () => {
@@ -463,8 +487,13 @@ describe('dm_import_item_master_rows SQL downgrade protection', () => {
 
     expect(sql).toContain('on conflict (external_key)');
     expect(sql).toContain('do update set');
+    expect(sql).toContain('p_import_meta jsonb default');
     expect(sql).toContain("'five_tools_2014'");
-    expect(sql).toContain("v_source_layer := '5etools_items_by_source_curated'");
+    expect(sql).toContain("expected_active_row_count must be a positive integer");
+    expect(sql).toContain('payload safety check failed');
+    expect(sql).toContain('v_five_tools_valid_count');
+    expect(sql).toContain('v_five_tools_expected_count');
+    expect(sql).toContain('v_five_tools_valid_count = v_five_tools_expected_count');
     expect(sql).toContain('five_tools_stale_demoted as (');
     expect(sql).toContain("'excluded_stale_after_reimport'");
     expect(sql).toContain("'no_longer_present_in_active_generated_artifact'");

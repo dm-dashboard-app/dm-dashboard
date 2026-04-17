@@ -78,6 +78,14 @@ function build5etoolsImportSummary(rows = []) {
   });
 }
 
+export function buildItemImportRpcArgs({ isSrdMode = false, is5etoolsMode = false, rows = [], importMeta = null } = {}) {
+  return {
+    p_import_mode: isSrdMode ? 'srd_2014' : (is5etoolsMode ? 'five_tools_2014' : 'custom_seed_2014'),
+    p_rows: rows,
+    p_import_meta: is5etoolsMode ? (importMeta || null) : null,
+  };
+}
+
 export default function ItemImportPanel({ onImportComplete = null }) {
   const [importingMode, setImportingMode] = useState('');
   const [importStatus, setImportStatus] = useState('');
@@ -209,14 +217,18 @@ export default function ItemImportPanel({ onImportComplete = null }) {
       const repairedSrdResult = isSrdMode
         ? await applySrdRepairsToImportRows(srdResult?.rows || [])
         : null;
+      const fiveToolsImportBundle = is5etoolsMode
+        ? await load5etoolsSourceSplitRows({ withMeta: true })
+        : null;
       const rows = isSrdMode
         ? (repairedSrdResult?.rows || [])
-        : (is5etoolsMode ? await load5etoolsSourceSplitRows() : await loadCustomSeedRows());
+        : (is5etoolsMode ? (fiveToolsImportBundle?.rows || []) : await loadCustomSeedRows());
+      const importMeta = is5etoolsMode ? (fiveToolsImportBundle?.importMeta || null) : null;
 
-      const { data, error: importError } = await supabase.rpc('dm_import_item_master_rows', {
-        p_import_mode: isSrdMode ? 'srd_2014' : (is5etoolsMode ? 'five_tools_2014' : 'custom_seed_2014'),
-        p_rows: rows,
-      });
+      const { data, error: importError } = await supabase.rpc(
+        'dm_import_item_master_rows',
+        buildItemImportRpcArgs({ isSrdMode, is5etoolsMode, rows, importMeta }),
+      );
       if (importError) throw importError;
 
       const rpcResult = Array.isArray(data) ? (data[0] || {}) : (data || {});
