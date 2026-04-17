@@ -372,3 +372,15 @@ Landed baseline includes:
 Preservation rule:
 
 - keep manual profile bonus boxes and layer item automation on top rather than replacing those controls
+
+### 22) Raw items source + chunked inspection layer
+
+Landed baseline includes:
+
+- `resources/items.json` as untouched raw upstream source material for future item conversion/import work
+- `resources/items_chunks/` as a deterministic derived inspection/prep layer (chunked JSON + manifest) for easier GitHub/mobile review
+- explicit boundary that neither raw source nor chunked derivatives are the live runtime schema; runtime item truth remains the existing `item_master` import/runtime path
+
+Preservation rule:
+
+- keep converter/import work reading from these source materials and mapping into the existing app import/runtime shape without directly wiring runtime reads to the chunk files
