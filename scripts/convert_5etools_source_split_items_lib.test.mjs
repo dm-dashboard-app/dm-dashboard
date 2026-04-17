@@ -202,6 +202,34 @@ test('keeps mundane priced equipment shop-eligible', () => {
   assert.equal(row.shop_bucket, 'mundane');
 });
 
+
+
+test('excludes treasure/economy clutter families from active lane artifact policy', () => {
+  const gemRow = convert({ name: 'Alexandrite', source: 'DMG', type: '$G', value: 50000 });
+  const artRow = convert({ name: 'Fancy Chalice', source: 'DMG', type: '$A', value: 25000 });
+  const coinRow = convert({ name: 'Gold (gp)', source: 'PHB', type: '$C', value: 100 });
+  const shipRow = convert({ name: 'Airship', source: 'DMG', type: 'AIR|DMG', value: 2000000 });
+
+  for (const row of [gemRow, artRow, coinRow, shipRow]) {
+    assert.equal(row.metadata_json.catalog_admission.active_lane_decision, 'excluded');
+    assert.equal(row.metadata_json.catalog_admission.include_in_active_lane, false);
+    assert.equal(row.is_shop_eligible, false);
+    assert.equal(row.shop_bucket, 'catalog_noise_excluded');
+  }
+});
+
+test('demotes hazardous poisons/explosives to non-shop by default', () => {
+  const poisonRow = convert({ name: "Assassin's Blood", source: 'DMG', type: 'G', poison: true, value: 15000 });
+  const explosiveRow = convert({ name: 'Bomb', source: 'DMG', type: 'EXP|DMG', value: 15000 });
+
+  for (const row of [poisonRow, explosiveRow]) {
+    assert.equal(row.metadata_json.catalog_admission.active_lane_decision, 'demoted_non_shop');
+    assert.equal(row.metadata_json.catalog_admission.include_in_active_lane, true);
+    assert.equal(row.is_shop_eligible, false);
+    assert.equal(row.shop_bucket, 'hazardous_non_default');
+  }
+});
+
 test('marks magical armor and weapon examples non-shop-eligible by default', () => {
   const animatedShield = convert({ name: 'Animated Shield', source: 'DMG', type: 'S', rarity: 'very rare', reqAttune: true });
   const armorOfInvulnerability = convert({ name: 'Armor of Invulnerability', source: 'DMG', type: 'HA', rarity: 'legendary', reqAttune: true });

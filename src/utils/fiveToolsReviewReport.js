@@ -9,6 +9,9 @@ const MANUAL_BUCKETS = new Set([
   'fallback_quarantine',
 ]);
 
+const POLICY_DEMOTED_DECISIONS = new Set(['demoted_non_shop']);
+const CATALOG_NOISE_BUCKETS = new Set(['catalog_noise_excluded', 'hazardous_non_default']);
+
 const PHASE1_ALLOWED_SLOTS = new Set(['armor', 'shield', 'main_hand', 'off_hand', 'neck', 'ring', 'inventory']);
 const PHASE1_ALLOWED_ACTIVATION = new Set(['equip', 'attunement_only']);
 const PHASE1_ALLOWED_EFFECT_TYPES = new Set([
@@ -69,6 +72,8 @@ function compactRow(row = {}) {
     requires_attunement: resolveRuntimeAttunementTruth(row),
     is_shop_eligible: !!row.is_shop_eligible,
     shop_bucket: row.shop_bucket || null,
+    catalog_admission_decision: row?.metadata_json?.catalog_admission?.active_lane_decision || null,
+    catalog_admission_reason: row?.metadata_json?.catalog_admission?.reason || null,
     base_price_gp: row.base_price_gp,
     suggested_price_gp: row.suggested_price_gp,
     price_source: row.price_source || null,
@@ -142,6 +147,8 @@ export function build5etoolsReviewReport(rows = []) {
     const bucket = normalize(row.shop_bucket);
     return MANUAL_BUCKETS.has(bucket) || hasOverlayExclusion(row);
   });
+  const policyDemotedNonShop = rows.filter((row) => POLICY_DEMOTED_DECISIONS.has(normalize(row?.metadata_json?.catalog_admission?.active_lane_decision)));
+  const catalogNoiseNonShop = rows.filter((row) => CATALOG_NOISE_BUCKETS.has(normalize(row.shop_bucket)));
 
   const byMechanicsSupport = rows.reduce((acc, row) => {
     const key = row?.metadata_json?.mechanics_support || 'unknown';
@@ -168,6 +175,8 @@ export function build5etoolsReviewReport(rows = []) {
       overlay_excluded: overlayExcluded.length,
       should_be_priced_but_not_matched: shouldBePricedNotMatched.length,
       should_never_default_to_shop: shouldNeverDefaultToShop.length,
+      policy_demoted_non_shop: policyDemotedNonShop.length,
+      catalog_noise_non_shop: catalogNoiseNonShop.length,
       shop_eligible: shopEligibleRows.length,
       non_shop: nonShopRows.length,
       rows_with_structured_mechanics: rowsWithStructuredMechanics.length,
@@ -187,6 +196,8 @@ export function build5etoolsReviewReport(rows = []) {
     shop_admission: {
       shop_eligible_rows: buildBucket(shopEligibleRows),
       non_shop_rows: buildBucket(nonShopRows),
+      policy_demoted_non_shop_rows: buildBucket(policyDemotedNonShop),
+      catalog_noise_non_shop_rows: buildBucket(catalogNoiseNonShop),
     },
     mechanics: {
       by_mechanics_support: byMechanicsSupport,
