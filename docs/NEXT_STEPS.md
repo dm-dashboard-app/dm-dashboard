@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 17, 2026 (5etools shop-admission tightening landed)
+Last updated: April 17, 2026 (5etools pricing match-coverage and unresolved triage landed)
 
 Purpose: This file is the active roadmap only. It lists active next steps, intentionally parked/deferred work, and longer-range ideas.
 
@@ -44,6 +44,7 @@ Recent landing note (April 17, 2026 attunement/runtime truth fix): 5etools conve
 Recent landing note (April 17, 2026 mechanics family batch 1): converter mechanics derivation now promotes simple passive equip/attunement families (ability-score setters/bonuses, AC/saves passives, shield-specific AC handling, and passive spell attack/save bonuses) into truthful `phase1_supported` payloads when they map cleanly to existing runtime semantics.
 Recent landing note (April 17, 2026 shop-admission tightening): the 5etools converter now applies `5etools_shop_admission_v2` category-family policy so gem/art/coin/trade-good/ship-airship/large-vehicle clutter is excluded from the active import artifact, while poison/explosive rows are kept but hard-demoted to non-shop (`hazardous_non_default`) with explicit catalog-admission metadata and structured report visibility.
 Recent landing note (April 17, 2026 5etools stale-row runtime exclusion fix): the import RPC now uses a dedicated `five_tools_2014` mode and actively demotes stale previously-imported 5etools rows that are no longer present in the generated active-lane artifact, but only after server-side payload safety checks validate source-layer metadata and exact expected active-row count parity.
+Recent landing note (April 17, 2026 5etools pricing match-coverage + triage pass): converter pricing now extends high-confidence fallback coverage for plus-tier enhancement magic-item families, spell-scroll levels, and spellwrought tattoo levels (all with explicit fallback provenance + non-default shop posture), while the live review report now splits unresolved rows into overlay/match-miss candidates vs intentionally excluded/noise vs true manual residue.
 
 #### A) Durable item trail and source-of-truth model (required)
 

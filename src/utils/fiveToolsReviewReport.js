@@ -31,6 +31,19 @@ function normalize(value = '') {
   return String(value || '').trim().toLowerCase();
 }
 
+function normalizeFamilyKey(name = '') {
+  return String(name || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/^\+\d+\s+/, '')
+    .replace(/[,'’]/g, '')
+    .replace(/\((cantrip|\d+(st|nd|rd|th)\s+level|small|medium|large|air|earth|fire|water|chaotic|evil|good|lawful)\)/gi, '')
+    .replace(/\s+\+\d+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
 function parseAttunementFlag(value) {
   if (typeof value === 'boolean') return value;
   if (typeof value === 'string') {
@@ -139,6 +152,39 @@ export function build5etoolsReviewReport(rows = []) {
   const fallbackPriced = rows.filter(row => row.price_source === '5etools_fallback_policy_v1');
   const unresolvedUnpriced = rows.filter(row => row.base_price_gp == null || row.suggested_price_gp == null || !row.price_source);
   const overlayExcluded = rows.filter(row => hasOverlayExclusion(row));
+  const unresolvedOverlayExcluded = unresolvedUnpriced.filter(row => hasOverlayExclusion(row));
+  const unresolvedWithCatalogExclusion = unresolvedUnpriced.filter((row) => {
+    const decision = normalize(row?.metadata_json?.catalog_admission?.active_lane_decision);
+    return decision === 'excluded' || CATALOG_NOISE_BUCKETS.has(normalize(row.shop_bucket));
+  });
+
+  const familyPricedRows = new Set();
+  rows.forEach((row) => {
+    if (!row?.price_source) return;
+    const familyKey = normalizeFamilyKey(row.name);
+    if (familyKey) familyPricedRows.add(familyKey);
+  });
+
+  const unresolvedOverlayMatchMissCandidates = unresolvedUnpriced.filter((row) => {
+    const strategy = normalize(row?.metadata_json?.pricing?.strategy);
+    if (strategy !== 'unresolved_manual_review') return false;
+    if (!appearsMagical(row)) return false;
+    if (hasOverlayExclusion(row)) return false;
+    const familyKey = normalizeFamilyKey(row.name);
+    return !!familyKey && familyPricedRows.has(familyKey);
+  });
+
+  const unresolvedManualReview = unresolvedUnpriced.filter((row) => {
+    if (unresolvedOverlayMatchMissCandidates.includes(row)) return false;
+    if (unresolvedOverlayExcluded.includes(row)) return false;
+    if (unresolvedWithCatalogExclusion.includes(row)) return false;
+    return true;
+  });
+  const unresolvedIntentionallyExcludedOrNoise = Array.from(new Set([
+    ...unresolvedOverlayExcluded,
+    ...unresolvedWithCatalogExclusion,
+  ]));
+
   const shouldBePricedNotMatched = rows.filter((row) => {
     const strategy = normalize(row?.metadata_json?.pricing?.strategy);
     return strategy === 'unresolved_manual_review' && appearsMagical(row) && !hasOverlayExclusion(row);
@@ -174,6 +220,9 @@ export function build5etoolsReviewReport(rows = []) {
       unresolved_unpriced: unresolvedUnpriced.length,
       overlay_excluded: overlayExcluded.length,
       should_be_priced_but_not_matched: shouldBePricedNotMatched.length,
+      unresolved_overlay_match_miss_candidates: unresolvedOverlayMatchMissCandidates.length,
+      unresolved_intentionally_excluded_or_noise: unresolvedIntentionallyExcludedOrNoise.length,
+      unresolved_true_manual_review: unresolvedManualReview.length,
       should_never_default_to_shop: shouldNeverDefaultToShop.length,
       policy_demoted_non_shop: policyDemotedNonShop.length,
       catalog_noise_non_shop: catalogNoiseNonShop.length,
@@ -191,6 +240,9 @@ export function build5etoolsReviewReport(rows = []) {
       unresolved_unpriced: buildBucket(unresolvedUnpriced),
       overlay_excluded: buildBucket(overlayExcluded),
       should_be_priced_but_not_matched: buildBucket(shouldBePricedNotMatched),
+      unresolved_overlay_match_miss_candidates: buildBucket(unresolvedOverlayMatchMissCandidates),
+      unresolved_intentionally_excluded_or_noise: buildBucket(unresolvedIntentionallyExcludedOrNoise),
+      unresolved_true_manual_review: buildBucket(unresolvedManualReview),
       should_never_default_to_shop: buildBucket(shouldNeverDefaultToShop),
     },
     shop_admission: {

@@ -166,6 +166,24 @@ test('matches plus-ordering aliases against overlay pricing keys', () => {
   assert.equal(row.is_shop_eligible, true);
 });
 
+test('matches punctuation-normalized aliases against overlay pricing keys', () => {
+  const row = convert(
+    { name: "Rhythm-Maker's Drum, +1", rarity: 'uncommon', wondrous: true },
+    {
+      pricingOverlayMap: buildOverlayMap({
+        normalized_name: 'rhythm-makers-drum-plus-1',
+        suggested_price_gp: 700,
+        rarity: 'Uncommon',
+        shop_bucket: 'utility',
+        exclude_from_shop: false,
+      }),
+    },
+  );
+
+  assert.equal(row.base_price_gp, 700);
+  assert.equal(row.price_source, 'shop_magic_pricing_2014_overlay');
+});
+
 test('keeps overlay-excluded items non-shop-eligible', () => {
   const row = convert(
     { name: 'Deck of Many Things', rarity: 'legendary', wondrous: true },
@@ -193,6 +211,82 @@ test('uses constrained fallback pricing for straightforward enhancement items', 
   assert.equal(row.base_price_gp, 600);
   assert.equal(row.is_shop_eligible, true);
   assert.equal(row.shop_bucket, 'combat');
+});
+
+test('uses constrained fallback pricing for magic-item enhancement bonus families', () => {
+  const row = convert({
+    name: '+2 Arcane Grimoire',
+    rarity: 'rare',
+    reqAttune: 'by a wizard',
+    wondrous: true,
+    type: 'SCF',
+    bonusSpellAttack: '+2',
+    bonusSpellSaveDc: '+2',
+  });
+
+  assert.equal(row.price_source, '5etools_fallback_policy_v1');
+  assert.equal(row.base_price_gp, 5000);
+  assert.equal(row.is_shop_eligible, false);
+  assert.equal(row.metadata_json.pricing.fallback_reason, 'enhancement_magic_item_plus_2');
+});
+
+test('does not apply generic enhancement fallback to special/high-power outlier items', () => {
+  const badExamples = [
+    {
+      name: "Baba Yaga's Mortar and Pestle",
+      rarity: 'artifact',
+      bonusSpellAttack: '+3',
+      bonusSpellSaveDc: '+3',
+    },
+    {
+      name: 'Teeth of Dahlver-Nar',
+      rarity: 'legendary',
+      bonusSpellAttack: '+2',
+    },
+    {
+      name: 'Platinum Scarf',
+      rarity: 'uncommon',
+      bonusWeapon: '+1',
+    },
+    {
+      name: "Jester's Mask",
+      rarity: 'very rare',
+      bonusSpellAttack: '+3',
+    },
+  ];
+
+  for (const item of badExamples) {
+    const row = convert({
+      ...item,
+      reqAttune: true,
+      wondrous: true,
+      type: 'SCF',
+    });
+    assert.equal(row.price_source, null, `${item.name} should stay unresolved/manual`);
+    assert.equal(row.base_price_gp, null, `${item.name} should not receive generic +N fallback pricing`);
+    assert.equal(row.metadata_json.pricing.strategy, 'unresolved_manual_review');
+  }
+});
+
+test('uses deterministic fallback pricing for higher-level spell scroll families', () => {
+  const row = convert({ name: 'Spell Scroll (7th Level)', rarity: 'very rare', type: 'SC|DMG' });
+  assert.equal(row.price_source, '5etools_fallback_policy_v1');
+  assert.equal(row.base_price_gp, 25000);
+  assert.equal(row.is_shop_eligible, false);
+  assert.equal(row.metadata_json.pricing.fallback_reason, 'spell_scroll_7th_level');
+});
+
+test('uses deterministic fallback pricing for spellwrought tattoo level variants', () => {
+  const row = convert({
+    name: 'Spellwrought Tattoo (4th Level)',
+    rarity: 'rare',
+    wondrous: true,
+    tattoo: true,
+  });
+  assert.equal(row.price_source, '5etools_fallback_policy_v1');
+  assert.equal(row.base_price_gp, 5000);
+  assert.equal(row.is_shop_eligible, false);
+  assert.equal(row.metadata_json.pricing.fallback_reason, 'spellwrought_tattoo_4th_level');
 });
 
 test('keeps mundane priced equipment shop-eligible', () => {
