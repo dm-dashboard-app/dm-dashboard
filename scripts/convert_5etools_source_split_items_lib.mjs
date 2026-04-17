@@ -174,9 +174,29 @@ function deriveMechanics(item = {}, requiresAttunement = false) {
   };
 }
 
-function buildShopEligibility(row = {}) {
-  const hasPrice = Number.isFinite(Number(row.base_price_gp));
-  if (row.item_type === 'magic_item') return { eligible: false, bucket: 'manual_magic_review' };
+function hasTrustworthyPrice(value) {
+  if (value === null || value === undefined) return false;
+  const numeric = Number(value);
+  return Number.isFinite(numeric) && numeric >= 0;
+}
+
+function isClearlyMagicalItem(item = {}, row = {}) {
+  const rarity = String(row.rarity || item.rarity || '').trim().toLowerCase();
+  const itemType = String(row.item_type || '').trim();
+
+  if (itemType === 'magic_item') return true;
+  if (row.requires_attunement) return true;
+  if (rarity && rarity !== 'none' && rarity !== 'unknown') return true;
+  if (item.wondrous || item.staff || item.wand || item.rod || item.ring || item.potion || item.tattoo) return true;
+  if (item.charges || item.recharge || item.reqAttune) return true;
+  if (item.bonusWeapon || item.bonusAc || item.bonusSpellAttack || item.bonusSpellSaveDc) return true;
+
+  return false;
+}
+
+function buildShopEligibility({ item = {}, row = {} } = {}) {
+  const hasPrice = hasTrustworthyPrice(row.base_price_gp);
+  if (isClearlyMagicalItem(item, row)) return { eligible: false, bucket: 'manual_magic_review' };
   if (!hasPrice) return { eligible: false, bucket: 'manual_unpriced' };
   return { eligible: true, bucket: 'mundane' };
 }
@@ -197,7 +217,15 @@ export function convert5etoolsItemToImportRow(item = {}, context = {}) {
   const basePriceGp = toGpFromValueCp(item.value);
   const suggestedPriceGp = basePriceGp;
   const mechanics = deriveMechanics(item, requiresAttunement);
-  const shop = buildShopEligibility({ item_type: itemType, base_price_gp: basePriceGp });
+  const shop = buildShopEligibility({
+    item,
+    row: {
+      item_type: itemType,
+      rarity,
+      requires_attunement: requiresAttunement,
+      base_price_gp: basePriceGp,
+    },
+  });
 
   return {
     name,

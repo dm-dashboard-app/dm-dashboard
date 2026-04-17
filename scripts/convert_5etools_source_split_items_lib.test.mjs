@@ -58,3 +58,28 @@ test('flattens nested entries and keeps weird rows importable/manual', () => {
   assert.equal(row.metadata_json.mechanics_support, 'manual_required');
   assert.equal(row.is_shop_eligible, false);
 });
+
+test('does not treat null-priced rows as shop-eligible', () => {
+  const row = convert({ name: 'Moon Sickle +1', source: 'TCE', type: 'M', weaponCategory: 'martial', rarity: 'uncommon', reqAttune: true });
+  assert.equal(row.base_price_gp, null);
+  assert.equal(row.is_shop_eligible, false);
+  assert.equal(row.shop_bucket, 'manual_magic_review');
+});
+
+test('keeps mundane priced equipment shop-eligible', () => {
+  const row = convert({ name: 'Bedroll', source: 'PHB', type: 'G', rarity: 'none', value: 100 });
+  assert.equal(row.base_price_gp, 1);
+  assert.equal(row.is_shop_eligible, true);
+  assert.equal(row.shop_bucket, 'mundane');
+});
+
+test('marks magical armor and weapon examples non-shop-eligible by default', () => {
+  const animatedShield = convert({ name: 'Animated Shield', source: 'DMG', type: 'S', rarity: 'very rare', reqAttune: true });
+  const armorOfInvulnerability = convert({ name: 'Armor of Invulnerability', source: 'DMG', type: 'HA', rarity: 'legendary', reqAttune: true });
+  const blackrazor = convert({ name: 'Blackrazor', source: 'DMG', type: 'M', weaponCategory: 'martial', rarity: 'legendary', reqAttune: true });
+
+  assert.equal(animatedShield.is_shop_eligible, false);
+  assert.equal(animatedShield.shop_bucket, 'manual_magic_review');
+  assert.equal(armorOfInvulnerability.is_shop_eligible, false);
+  assert.equal(blackrazor.is_shop_eligible, false);
+});
