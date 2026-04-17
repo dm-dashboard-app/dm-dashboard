@@ -355,7 +355,7 @@ export default function ItemImportPanel({ onImportComplete = null }) {
             unresolved/unpriced: {fiveToolsReviewReport.counts.unresolved_unpriced} • overlay-excluded: {fiveToolsReviewReport.counts.overlay_excluded} • should-be-priced-not-matched: {fiveToolsReviewReport.counts.should_be_priced_but_not_matched}
           </div>
           <div>
-            should-never-default-to-shop: {fiveToolsReviewReport.counts.should_never_default_to_shop} • shop-eligible: {fiveToolsReviewReport.counts.shop_eligible} • non-shop: {fiveToolsReviewReport.counts.non_shop}
+            should-never-default-to-shop: {fiveToolsReviewReport.counts.should_never_default_to_shop} • policy-demoted non-shop: {fiveToolsReviewReport.counts.policy_demoted_non_shop} • shop-eligible: {fiveToolsReviewReport.counts.shop_eligible} • non-shop: {fiveToolsReviewReport.counts.non_shop}
           </div>
           <div>
             mechanics → structured: {fiveToolsReviewReport.counts.rows_with_structured_mechanics} • null: {fiveToolsReviewReport.counts.rows_with_null_mechanics} • attunement=true: {fiveToolsReviewReport.counts.rows_with_attunement_true} • phase1-compatible payload: {fiveToolsReviewReport.counts.rows_with_phase1_compatible_payload}

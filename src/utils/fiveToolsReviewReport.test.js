@@ -67,6 +67,27 @@ describe('build5etoolsReviewReport', () => {
         },
       },
       {
+        external_key: 'k:hazard',
+        name: "Assassin's Blood",
+        item_type: 'equipment',
+        rarity: null,
+        base_price_gp: 150,
+        suggested_price_gp: 150,
+        price_source: '5etools_value_cp',
+        is_shop_eligible: false,
+        shop_bucket: 'hazardous_non_default',
+        requires_attunement: false,
+        metadata_json: {
+          pricing: { strategy: 'direct_source_value_cp' },
+          mechanics_support: 'manual_required',
+          catalog_admission: {
+            active_lane_decision: 'demoted_non_shop',
+            reason: 'hazardous_poison_non_default_stock',
+          },
+          mechanics: null,
+        },
+      },
+      {
         external_key: 'k:manual',
         name: 'Mystery Relic',
         item_type: 'magic_item',
@@ -109,24 +130,27 @@ describe('build5etoolsReviewReport', () => {
 
     const report = build5etoolsReviewReport(rows);
 
-    expect(report.total_rows).toBe(5);
-    expect(report.counts.direct_source_priced).toBe(1);
+    expect(report.total_rows).toBe(6);
+    expect(report.counts.direct_source_priced).toBe(2);
     expect(report.counts.overlay_priced).toBe(1);
     expect(report.counts.fallback_priced).toBe(2);
     expect(report.counts.unresolved_unpriced).toBe(2);
     expect(report.counts.overlay_excluded).toBe(1);
     expect(report.counts.should_be_priced_but_not_matched).toBe(1);
+    expect(report.counts.policy_demoted_non_shop).toBe(1);
+    expect(report.counts.catalog_noise_non_shop).toBe(1);
     expect(report.counts.shop_eligible).toBe(1);
-    expect(report.counts.non_shop).toBe(4);
+    expect(report.counts.non_shop).toBe(5);
     expect(report.counts.rows_with_structured_mechanics).toBe(3);
     expect(report.counts.rows_with_attunement_true).toBe(4);
     expect(report.counts.rows_with_phase1_compatible_payload).toBe(3);
 
     expect(report.mechanics.by_mechanics_support.partial_supported).toBe(3);
-    expect(report.mechanics.by_mechanics_support.manual_required).toBe(2);
+    expect(report.mechanics.by_mechanics_support.manual_required).toBe(3);
 
     expect(report.pricing.should_be_priced_but_not_matched[0].external_key).toBe('k:manual');
     expect(report.pricing.overlay_excluded[0].external_key).toBe('k:overlay-excluded');
+    expect(report.shop_admission.policy_demoted_non_shop_rows[0].external_key).toBe('k:hazard');
   });
 });
 

@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 17, 2026 (5etools pricing overlay/fallback enrichment landed)
+Last updated: April 17, 2026 (5etools shop-admission tightening landed)
 
 Purpose: This file is the active roadmap only. It lists active next steps, intentionally parked/deferred work, and longer-range ideas.
 
@@ -42,6 +42,7 @@ Recent landing note (April 17, 2026 5etools pricing enrichment): converter outpu
 Recent landing note (April 17, 2026 5etools completion reporting scaffold): Manage → Imports now also exports a structured JSON review report (pricing source splits, unresolved/unpriced, overlay-excluded, shop-eligible/non-shop, mechanics-support + structured/null mechanics + attunement + Phase-1-compatible payload slices) so follow-up completion work can be driven from copy/paste data instead of screenshot/manual interpretation.
 Recent landing note (April 17, 2026 attunement/runtime truth fix): 5etools converter + report logic now promote attunement truth into runtime fields from direct/nested/raw attunement signals, and Phase 1 compatibility reporting now requires runtime-meaningful attunement/mechanics consistency (not structured payload presence alone).
 Recent landing note (April 17, 2026 mechanics family batch 1): converter mechanics derivation now promotes simple passive equip/attunement families (ability-score setters/bonuses, AC/saves passives, shield-specific AC handling, and passive spell attack/save bonuses) into truthful `phase1_supported` payloads when they map cleanly to existing runtime semantics.
+Recent landing note (April 17, 2026 shop-admission tightening): the 5etools converter now applies `5etools_shop_admission_v2` category-family policy so gem/art/coin/trade-good/ship-airship/large-vehicle clutter is excluded from the active import artifact, while poison/explosive rows are kept but hard-demoted to non-shop (`hazardous_non_default`) with explicit catalog-admission metadata and structured report visibility.
 
 #### A) Durable item trail and source-of-truth model (required)
 

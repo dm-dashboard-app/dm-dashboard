@@ -17,6 +17,17 @@ const OVERLAY_PRICE_SOURCE = 'shop_magic_pricing_2014_overlay';
 const FALLBACK_PRICE_SOURCE = '5etools_fallback_policy_v1';
 const MANUAL_MAGIC_BUCKET = 'manual_magic_review';
 const MANUAL_UNPRICED_BUCKET = 'manual_unpriced';
+const HAZARDOUS_NON_DEFAULT_BUCKET = 'hazardous_non_default';
+const CATALOG_ADMISSION_POLICY_VERSION = '5etools_shop_admission_v2';
+const EXCLUDED_TYPE_CODE_FAMILIES = new Map([
+  ['$G', 'gemstone_treasure_value_only'],
+  ['$A', 'art_object_treasure_value_only'],
+  ['$C', 'coin_denomination_economy_noise'],
+  ['TG', 'trade_goods_economy_noise'],
+  ['SHP', 'ships_not_default_catalog_stock'],
+  ['AIR', 'airships_not_default_catalog_stock'],
+  ['VEH', 'large_vehicles_not_default_catalog_stock'],
+]);
 const ABILITY_KEYS = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 const PHASE1_ALLOWED_SLOTS = new Set(['armor', 'shield', 'main_hand', 'off_hand', 'neck', 'ring', 'inventory']);
 const PHASE1_ALLOWED_ACTIVATION = new Set(['equip', 'attunement_only']);
@@ -329,6 +340,81 @@ function isClearlyMagicalItem(item = {}, row = {}) {
   return false;
 }
 
+
+function deriveCatalogAdmissionPolicy({ item = {}, row = {} } = {}) {
+  const typeCode = parseTypeCode(item);
+  const excludedFamily = EXCLUDED_TYPE_CODE_FAMILIES.get(typeCode);
+  if (excludedFamily) {
+    return {
+      includeInActiveLane: false,
+      policyDecision: 'excluded',
+      reason: excludedFamily,
+      bucket: 'catalog_noise_excluded',
+    };
+  }
+
+  if (item.poison) {
+    return {
+      includeInActiveLane: true,
+      policyDecision: 'demoted_non_shop',
+      reason: 'hazardous_poison_non_default_stock',
+      bucket: HAZARDOUS_NON_DEFAULT_BUCKET,
+    };
+  }
+
+  if (typeCode === 'EXP') {
+    return {
+      includeInActiveLane: true,
+      policyDecision: 'demoted_non_shop',
+      reason: 'hazardous_explosive_non_default_stock',
+      bucket: HAZARDOUS_NON_DEFAULT_BUCKET,
+    };
+  }
+
+  return {
+    includeInActiveLane: true,
+    policyDecision: 'included',
+    reason: 'default_adventuring_catalog_item',
+    bucket: null,
+  };
+}
+
+function applyCatalogAdmissionPolicy({ item = {}, row = {} } = {}) {
+  const policy = deriveCatalogAdmissionPolicy({ item, row });
+  const metadata = {
+    ...(row.metadata_json || {}),
+    catalog_admission: {
+      policy_version: CATALOG_ADMISSION_POLICY_VERSION,
+      active_lane_decision: policy.policyDecision,
+      reason: policy.reason,
+      include_in_active_lane: policy.includeInActiveLane,
+    },
+  };
+
+  if (policy.policyDecision === 'demoted_non_shop') {
+    return {
+      ...row,
+      is_shop_eligible: false,
+      shop_bucket: policy.bucket,
+      metadata_json: metadata,
+    };
+  }
+
+  if (policy.policyDecision === 'excluded') {
+    return {
+      ...row,
+      is_shop_eligible: false,
+      shop_bucket: policy.bucket,
+      metadata_json: metadata,
+    };
+  }
+
+  return {
+    ...row,
+    metadata_json: metadata,
+  };
+}
+
 function buildShopEligibility({ item = {}, row = {} } = {}) {
   const hasPrice = hasTrustworthyPrice(row.base_price_gp);
   if (isClearlyMagicalItem(item, row)) return { eligible: false, bucket: MANUAL_MAGIC_BUCKET };
@@ -616,10 +702,13 @@ export function convert5etoolsItemToImportRow(item = {}, context = {}) {
     },
   };
 
-  return applyPricingEnrichment({
+  return applyCatalogAdmissionPolicy({
     item,
-    row: baseRow,
-    pricingOverlayMap,
+    row: applyPricingEnrichment({
+      item,
+      row: baseRow,
+      pricingOverlayMap,
+    }),
   });
 }
 
@@ -661,21 +750,30 @@ export async function buildConverted5etoolsDataset({ manifestPath }) {
   const { manifest, loaded } = await loadSourceSplitItems({ manifestPath });
   const dedupeCounter = new Map();
   const rows = [];
+  const excludedRows = [];
+  let processedInputItems = 0;
 
   loaded.forEach((fileBundle) => {
     const sourceSlug = slugify(fileBundle.sourceKey);
     fileBundle.items.forEach((item) => {
+      processedInputItems += 1;
       const baseNameSlug = slugify(item?.name || 'item');
       const dedupeKey = `${sourceSlug}:${baseNameSlug}`;
       const nextCount = (dedupeCounter.get(dedupeKey) || 0) + 1;
       dedupeCounter.set(dedupeKey, nextCount);
-      rows.push(convert5etoolsItemToImportRow(item, {
+      const converted = convert5etoolsItemToImportRow(item, {
         sourceKey: fileBundle.sourceKey,
         sourceSlug,
         duplicateIndex: nextCount,
         sourceFilename: fileBundle.filename,
         pricingOverlayMap,
-      }));
+      });
+
+      if (converted?.metadata_json?.catalog_admission?.active_lane_decision === 'excluded') {
+        excludedRows.push(converted);
+      } else {
+        rows.push(converted);
+      }
     });
   });
 
@@ -684,9 +782,14 @@ export async function buildConverted5etoolsDataset({ manifestPath }) {
   if (manifestDeclaredFiles !== loaded.length) {
     throw new Error(`Manifest source count mismatch: expected ${manifestDeclaredFiles}, loaded ${loaded.length}.`);
   }
-  if (manifestDeclaredItems !== rows.length) {
-    throw new Error(`Manifest item count mismatch: expected ${manifestDeclaredItems}, converted ${rows.length}.`);
+  if (manifestDeclaredItems !== processedInputItems) {
+    throw new Error(`Manifest item count mismatch: expected ${manifestDeclaredItems}, processed ${processedInputItems}.`);
   }
+
+  const excludedSummaryByReason = excludedRows.reduce((acc, row) => {
+    const reason = String(row?.metadata_json?.catalog_admission?.reason || 'unspecified_exclusion').trim() || 'unspecified_exclusion';
+    return { ...acc, [reason]: Number(acc[reason] || 0) + 1 };
+  }, {});
 
   return {
     source_type: SOURCE_TYPE,
@@ -698,6 +801,9 @@ export async function buildConverted5etoolsDataset({ manifestPath }) {
     source_manifest_total_entries: Number(manifest?.total_source_file_count || 0),
     source_files_loaded: loaded.length,
     total_items_converted: rows.length,
+    total_items_processed_from_sources: processedInputItems,
+    total_items_excluded_from_active_lane: excludedRows.length,
+    excluded_from_active_lane_by_reason: excludedSummaryByReason,
     notes: [
       'Generated from resources/items_by_source/manifest.json and surviving source files only.',
       'Rows are mapped to DM Dashboard item import row shape for item_master pipeline import.',
