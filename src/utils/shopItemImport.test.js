@@ -355,6 +355,26 @@ describe('degraded SRD repair overlay coverage', () => {
   });
 });
 
+describe('item mechanics enrichment semantics', () => {
+  test('cloak of protection and wand of magic missiles have non-contradictory mechanics metadata', () => {
+    const mechanics = JSON.parse(fs.readFileSync('docs/data/item_mechanics_enrichment_2014.json', 'utf8'));
+    const items = Array.isArray(mechanics.items) ? mechanics.items : [];
+    const bySlug = new Map(items.map((row) => [row.source_slug, row]));
+
+    const cloak = bySlug.get('cloak-of-protection');
+    const wand = bySlug.get('wand-of-magic-missiles');
+
+    expect(cloak).toBeTruthy();
+    expect(cloak.slot_family).toBeNull();
+    expect(cloak.activation_mode).toBe('attunement_only');
+    expect(cloak.requires_attunement).toBe(true);
+
+    expect(wand).toBeTruthy();
+    expect(wand.activation_mode).toBe('attunement_only');
+    expect(wand.requires_attunement).toBe(true);
+  });
+});
+
 
 describe('dm_import_item_master_rows SQL downgrade protection', () => {
   test('enforces SQL upsert quality gate to block degraded downgrades', () => {
@@ -482,6 +502,164 @@ describe('buildSrdImportRows trust-boundary hardening', () => {
     expect(repaired.is_shop_eligible).toBe(true);
     expect(excluded.metadata_json.import_quality).toBe('excluded_on_purpose');
     expect(excluded.is_shop_eligible).toBe(false);
+  });
+
+  test('sets attunement truth from description text when title does not include requires attunement', async () => {
+    mockSrdFetch({
+      equipmentIndex: [],
+      magicIndex: [{ index: 'amulet-of-proof', name: 'Amulet of Proof', url: '/api/2014/magic-items/amulet-of-proof' }],
+      magicDetails: {
+        'https://www.dnd5eapi.co/api/2014/magic-items/amulet-of-proof': {
+          index: 'amulet-of-proof',
+          name: 'Amulet of Proof against Detection and Location',
+          rarity: { name: 'uncommon' },
+          desc: ['This amulet requires attunement by a creature.'],
+        },
+      },
+    });
+
+    const result = await buildSrdImportRows();
+    const amulet = result.rows.find((row) => row.source_slug === 'amulet-of-proof');
+
+    expect(amulet).toBeTruthy();
+    expect(amulet.requires_attunement).toBe(true);
+  });
+
+  test('concrete enhancement variants are generated and abstract generics are quarantined', async () => {
+    mockSrdFetch({
+      equipmentIndex: [
+        { index: 'leather-armor', name: 'Leather Armor', url: '/api/2014/equipment/leather-armor' },
+        { index: 'studded-leather-armor', name: 'Studded Leather Armor', url: '/api/2014/equipment/studded-leather-armor' },
+        { index: 'breastplate', name: 'Breastplate', url: '/api/2014/equipment/breastplate' },
+        { index: 'half-plate-armor', name: 'Half Plate Armor', url: '/api/2014/equipment/half-plate-armor' },
+        { index: 'plate-armor', name: 'Plate Armor', url: '/api/2014/equipment/plate-armor' },
+        { index: 'shield', name: 'Shield', url: '/api/2014/equipment/shield' },
+        { index: 'dagger', name: 'Dagger', url: '/api/2014/equipment/dagger' },
+        { index: 'shortsword', name: 'Shortsword', url: '/api/2014/equipment/shortsword' },
+        { index: 'longsword', name: 'Longsword', url: '/api/2014/equipment/longsword' },
+        { index: 'shortbow', name: 'Shortbow', url: '/api/2014/equipment/shortbow' },
+        { index: 'longbow', name: 'Longbow', url: '/api/2014/equipment/longbow' },
+        { index: 'light-crossbow', name: 'Light Crossbow', url: '/api/2014/equipment/light-crossbow' },
+      ],
+      magicIndex: [
+        { index: 'armor-1', name: 'Armor +1', url: '/api/2014/magic-items/armor-1' },
+        { index: 'weapon-1', name: 'Weapon +1', url: '/api/2014/magic-items/weapon-1' },
+        { index: 'shield-1', name: 'Shield +1', url: '/api/2014/magic-items/shield-1' },
+      ],
+      equipmentDetails: {
+        'https://www.dnd5eapi.co/api/2014/equipment/leather-armor': { index: 'leather-armor', name: 'Leather Armor', equipment_category: { name: 'Armor' }, armor_category: 'Light', cost: { quantity: 10, unit: 'gp' }, desc: ['Light armor.'] },
+        'https://www.dnd5eapi.co/api/2014/equipment/studded-leather-armor': { index: 'studded-leather-armor', name: 'Studded Leather Armor', equipment_category: { name: 'Armor' }, armor_category: 'Light', cost: { quantity: 45, unit: 'gp' }, desc: ['Light armor.'] },
+        'https://www.dnd5eapi.co/api/2014/equipment/breastplate': { index: 'breastplate', name: 'Breastplate', equipment_category: { name: 'Armor' }, armor_category: 'Medium', cost: { quantity: 400, unit: 'gp' }, desc: ['Medium armor.'] },
+        'https://www.dnd5eapi.co/api/2014/equipment/half-plate-armor': { index: 'half-plate-armor', name: 'Half Plate Armor', equipment_category: { name: 'Armor' }, armor_category: 'Medium', cost: { quantity: 750, unit: 'gp' }, desc: ['Medium armor.'] },
+        'https://www.dnd5eapi.co/api/2014/equipment/plate-armor': { index: 'plate-armor', name: 'Plate Armor', equipment_category: { name: 'Armor' }, armor_category: 'Heavy', cost: { quantity: 1500, unit: 'gp' }, desc: ['Heavy armor.'] },
+        'https://www.dnd5eapi.co/api/2014/equipment/shield': { index: 'shield', name: 'Shield', equipment_category: { name: 'Armor' }, armor_category: 'Shield', cost: { quantity: 10, unit: 'gp' }, desc: ['A shield.'] },
+        'https://www.dnd5eapi.co/api/2014/equipment/dagger': { index: 'dagger', name: 'Dagger', equipment_category: { name: 'Weapon' }, weapon_category: 'Simple', cost: { quantity: 2, unit: 'gp' }, desc: ['A dagger.'] },
+        'https://www.dnd5eapi.co/api/2014/equipment/shortsword': { index: 'shortsword', name: 'Shortsword', equipment_category: { name: 'Weapon' }, weapon_category: 'Martial', cost: { quantity: 10, unit: 'gp' }, desc: ['A shortsword.'] },
+        'https://www.dnd5eapi.co/api/2014/equipment/longsword': { index: 'longsword', name: 'Longsword', equipment_category: { name: 'Weapon' }, weapon_category: 'Martial', cost: { quantity: 15, unit: 'gp' }, desc: ['A longsword.'] },
+        'https://www.dnd5eapi.co/api/2014/equipment/shortbow': { index: 'shortbow', name: 'Shortbow', equipment_category: { name: 'Weapon' }, weapon_category: 'Simple', cost: { quantity: 25, unit: 'gp' }, desc: ['A shortbow.'] },
+        'https://www.dnd5eapi.co/api/2014/equipment/longbow': { index: 'longbow', name: 'Longbow', equipment_category: { name: 'Weapon' }, weapon_category: 'Martial', cost: { quantity: 50, unit: 'gp' }, desc: ['A longbow.'] },
+        'https://www.dnd5eapi.co/api/2014/equipment/light-crossbow': { index: 'light-crossbow', name: 'Light Crossbow', equipment_category: { name: 'Weapon' }, weapon_category: 'Simple', cost: { quantity: 25, unit: 'gp' }, desc: ['A crossbow.'] },
+      },
+      magicDetails: {
+        'https://www.dnd5eapi.co/api/2014/magic-items/armor-1': { index: 'armor-1', name: 'Armor +1', rarity: { name: 'rare' }, desc: ['Magical armor.'] },
+        'https://www.dnd5eapi.co/api/2014/magic-items/weapon-1': { index: 'weapon-1', name: 'Weapon +1', rarity: { name: 'uncommon' }, desc: ['Magical weapon.'] },
+        'https://www.dnd5eapi.co/api/2014/magic-items/shield-1': { index: 'shield-1', name: 'Shield +1', rarity: { name: 'uncommon' }, desc: ['Magical shield.'] },
+      },
+    });
+
+    global.fetch = jest.fn(async (url) => {
+      if (url === '/data/shop_magic_pricing_2014.json') {
+        return { ok: true, json: async () => ({ items: [
+          { normalized_name: '+1 armor', suggested_price_gp: 1500, shop_bucket: 'gamechanging' },
+          { normalized_name: '+1 weapon', suggested_price_gp: 1000, shop_bucket: 'combat' },
+          { normalized_name: '+1 shield', suggested_price_gp: 1500, shop_bucket: 'gamechanging' },
+        ] }) };
+      }
+      if (url === '/data/item_mechanics_enrichment_2014.json') {
+        return { ok: true, json: async () => ({ items: [
+          { external_key: 'official_srd_2014:leather-armor', source_slug: 'leather-armor', slot_family: 'armor', activation_mode: 'equip', requires_attunement: false, armor: { base_ac: 11, add_dex: true, dex_cap: null }, passive_effects: [], mechanics_support: 'phase1_supported' },
+          { external_key: 'official_srd_2014:studded-leather-armor', source_slug: 'studded-leather-armor', slot_family: 'armor', activation_mode: 'equip', requires_attunement: false, armor: { base_ac: 12, add_dex: true, dex_cap: null }, passive_effects: [], mechanics_support: 'phase1_supported' },
+          { external_key: 'official_srd_2014:breastplate', source_slug: 'breastplate', slot_family: 'armor', activation_mode: 'equip', requires_attunement: false, armor: { base_ac: 14, add_dex: true, dex_cap: 2 }, passive_effects: [], mechanics_support: 'phase1_supported' },
+          { external_key: 'official_srd_2014:half-plate-armor', source_slug: 'half-plate-armor', slot_family: 'armor', activation_mode: 'equip', requires_attunement: false, armor: { base_ac: 15, add_dex: true, dex_cap: 2 }, passive_effects: [], mechanics_support: 'phase1_supported' },
+          { external_key: 'official_srd_2014:plate-armor', source_slug: 'plate-armor', slot_family: 'armor', activation_mode: 'equip', requires_attunement: false, armor: { base_ac: 18, add_dex: false, dex_cap: null }, passive_effects: [], mechanics_support: 'phase1_supported' },
+          { external_key: 'official_srd_2014:shield', source_slug: 'shield', slot_family: 'shield', activation_mode: 'equip', requires_attunement: false, passive_effects: [{ type: 'shield_ac_bonus', value: 2 }], mechanics_support: 'phase1_supported' },
+        ] }) };
+      }
+      if (url === 'https://www.dnd5eapi.co/api/2014/equipment') {
+        return { ok: true, json: async () => ({ results: [
+          { index: 'leather-armor', name: 'Leather Armor', url: '/api/2014/equipment/leather-armor' },
+          { index: 'studded-leather-armor', name: 'Studded Leather Armor', url: '/api/2014/equipment/studded-leather-armor' },
+          { index: 'breastplate', name: 'Breastplate', url: '/api/2014/equipment/breastplate' },
+          { index: 'half-plate-armor', name: 'Half Plate Armor', url: '/api/2014/equipment/half-plate-armor' },
+          { index: 'plate-armor', name: 'Plate Armor', url: '/api/2014/equipment/plate-armor' },
+          { index: 'shield', name: 'Shield', url: '/api/2014/equipment/shield' },
+          { index: 'dagger', name: 'Dagger', url: '/api/2014/equipment/dagger' },
+          { index: 'shortsword', name: 'Shortsword', url: '/api/2014/equipment/shortsword' },
+          { index: 'longsword', name: 'Longsword', url: '/api/2014/equipment/longsword' },
+          { index: 'shortbow', name: 'Shortbow', url: '/api/2014/equipment/shortbow' },
+          { index: 'longbow', name: 'Longbow', url: '/api/2014/equipment/longbow' },
+          { index: 'light-crossbow', name: 'Light Crossbow', url: '/api/2014/equipment/light-crossbow' },
+        ] }) };
+      }
+      if (url === 'https://www.dnd5eapi.co/api/2014/magic-items') {
+        return { ok: true, json: async () => ({ results: [
+          { index: 'armor-1', name: 'Armor +1', url: '/api/2014/magic-items/armor-1' },
+          { index: 'weapon-1', name: 'Weapon +1', url: '/api/2014/magic-items/weapon-1' },
+          { index: 'shield-1', name: 'Shield +1', url: '/api/2014/magic-items/shield-1' },
+        ] }) };
+      }
+      const key = String(url);
+      const detailMap = {
+        '/api/2014/equipment/leather-armor': { index: 'leather-armor', name: 'Leather Armor', equipment_category: { name: 'Armor' }, armor_category: 'Light', cost: { quantity: 10, unit: 'gp' }, desc: ['Light armor.'] },
+        '/api/2014/equipment/studded-leather-armor': { index: 'studded-leather-armor', name: 'Studded Leather Armor', equipment_category: { name: 'Armor' }, armor_category: 'Light', cost: { quantity: 45, unit: 'gp' }, desc: ['Light armor.'] },
+        '/api/2014/equipment/breastplate': { index: 'breastplate', name: 'Breastplate', equipment_category: { name: 'Armor' }, armor_category: 'Medium', cost: { quantity: 400, unit: 'gp' }, desc: ['Medium armor.'] },
+        '/api/2014/equipment/half-plate-armor': { index: 'half-plate-armor', name: 'Half Plate Armor', equipment_category: { name: 'Armor' }, armor_category: 'Medium', cost: { quantity: 750, unit: 'gp' }, desc: ['Medium armor.'] },
+        '/api/2014/equipment/plate-armor': { index: 'plate-armor', name: 'Plate Armor', equipment_category: { name: 'Armor' }, armor_category: 'Heavy', cost: { quantity: 1500, unit: 'gp' }, desc: ['Heavy armor.'] },
+        '/api/2014/equipment/shield': { index: 'shield', name: 'Shield', equipment_category: { name: 'Armor' }, armor_category: 'Shield', cost: { quantity: 10, unit: 'gp' }, desc: ['A shield.'] },
+        '/api/2014/equipment/dagger': { index: 'dagger', name: 'Dagger', equipment_category: { name: 'Weapon' }, weapon_category: 'Simple', cost: { quantity: 2, unit: 'gp' }, desc: ['A dagger.'] },
+        '/api/2014/equipment/shortsword': { index: 'shortsword', name: 'Shortsword', equipment_category: { name: 'Weapon' }, weapon_category: 'Martial', cost: { quantity: 10, unit: 'gp' }, desc: ['A shortsword.'] },
+        '/api/2014/equipment/longsword': { index: 'longsword', name: 'Longsword', equipment_category: { name: 'Weapon' }, weapon_category: 'Martial', cost: { quantity: 15, unit: 'gp' }, desc: ['A longsword.'] },
+        '/api/2014/equipment/shortbow': { index: 'shortbow', name: 'Shortbow', equipment_category: { name: 'Weapon' }, weapon_category: 'Simple', cost: { quantity: 25, unit: 'gp' }, desc: ['A shortbow.'] },
+        '/api/2014/equipment/longbow': { index: 'longbow', name: 'Longbow', equipment_category: { name: 'Weapon' }, weapon_category: 'Martial', cost: { quantity: 50, unit: 'gp' }, desc: ['A longbow.'] },
+        '/api/2014/equipment/light-crossbow': { index: 'light-crossbow', name: 'Light Crossbow', equipment_category: { name: 'Weapon' }, weapon_category: 'Simple', cost: { quantity: 25, unit: 'gp' }, desc: ['A crossbow.'] },
+        '/api/2014/magic-items/armor-1': { index: 'armor-1', name: 'Armor +1', rarity: { name: 'rare' }, desc: ['Magic armor.'] },
+        '/api/2014/magic-items/weapon-1': { index: 'weapon-1', name: 'Weapon +1', rarity: { name: 'uncommon' }, desc: ['Magic weapon.'] },
+        '/api/2014/magic-items/shield-1': { index: 'shield-1', name: 'Shield +1', rarity: { name: 'uncommon' }, desc: ['Magic shield.'] },
+      };
+      if (key.startsWith('https://www.dnd5eapi.co/api/2014/')) {
+        const path = key.replace('https://www.dnd5eapi.co/api/2014', '/api/2014');
+        if (detailMap[path]) return { ok: true, json: async () => detailMap[path] };
+      }
+      if (detailMap[key]) return { ok: true, json: async () => detailMap[key] };
+      return { ok: false, status: 404 };
+    });
+
+    const result = await buildSrdImportRows();
+    const abstractArmor = result.rows.find((row) => row.source_slug === 'armor-1');
+    const leatherPlus = result.rows.find((row) => row.source_slug === 'leather-armor-plus-1');
+    const longswordPlus = result.rows.find((row) => row.source_slug === 'longsword-plus-1');
+
+    expect(abstractArmor).toBeTruthy();
+    expect(abstractArmor.is_shop_eligible).toBe(false);
+    expect(abstractArmor.shop_bucket).toBe('legacy_abstract_enhancement');
+    expect(abstractArmor.metadata_json.abstract_enhancement_row).toBe(true);
+
+    expect(leatherPlus).toBeTruthy();
+    expect(leatherPlus.is_shop_eligible).toBe(false);
+    expect(leatherPlus.shop_bucket).toBe('future_variant_prep');
+    expect(leatherPlus.metadata_json.mechanics_support).toBe('catalog_prepared');
+    expect(leatherPlus.metadata_json.mechanics.passive_effects).toEqual(
+      expect.arrayContaining([expect.objectContaining({ type: 'flat_bonus', target: 'ac', value: 1 })]),
+    );
+    expect(leatherPlus.metadata_json.shop_intent.blacksmith_high_affluence).toBe(true);
+    expect(leatherPlus.metadata_json.variant_live_ready).toBe(false);
+
+    expect(longswordPlus).toBeTruthy();
+    expect(longswordPlus.is_shop_eligible).toBe(false);
+    expect(longswordPlus.metadata_json.mechanics_support).toBe('catalog_prepared');
+    expect(longswordPlus.metadata_json.mechanics.passive_effects).toEqual(
+      expect.arrayContaining([expect.objectContaining({ type: 'weapon_attack_bonus', value: 1 })]),
+    );
   });
 
   test('phase1 supported rows retain mechanics enrichment after repair overlay merge', async () => {

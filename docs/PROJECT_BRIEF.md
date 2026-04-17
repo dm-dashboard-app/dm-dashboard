@@ -1,6 +1,6 @@
 # DM Dashboard — Project Brief
 
-Last updated: April 17, 2026 (inventory mobile + AC/profile + item mechanics detail follow-up landed)
+Last updated: April 17, 2026 (catalog semantics and concrete enhancement variants landed)
 
 Purpose: This document is the current-state/background brief for DM Dashboard. It describes what the app now is, what is materially landed, and what principles future work must preserve.
 
@@ -354,6 +354,10 @@ Landed baseline includes:
 
 - item mechanics enrichment overlay artifact (`docs/data/item_mechanics_enrichment_2014.json` + `public/data/item_mechanics_enrichment_2014.json`) merged into the existing SRD/custom import lane
 - explicit **Phase 1 curated coverage model**: only enrichment-listed items are treated as `phase1_supported`; non-listed items remain manual/unsupported for automation in this phase
+- import mapping now sets `requires_attunement` from trusted SRD detail text (`requires attunement`) in addition to name-shape detection so attunement truth does not rely on item-title formatting
+- curated mechanics semantics corrections landed: Cloak of Protection now uses attunement-only activation with no forced visible neck slot; Wand of Magic Missiles now correctly records `requires_attunement=true`
+- abstract generic enhancement rows (`+1/+2/+3 Armor`, `+1/+2/+3 Weapon`, `+1/+2/+3 Shield`) are now quarantined from mechanics/shop eligibility and no longer treated as concrete equipable definitions
+- SRD import now materializes explicit concrete enhanced variant rows as **catalog-prep groundwork only** (stable slugs + mechanics payload + shop-intent metadata), but these generated variants are intentionally non-live for current shop/equipment support (`is_shop_eligible=false`, non-`phase1_supported`)
 - inventory item instance-state support for `equipped`, `attuned`, and durable `current_charges`
 - RPC-backed equip/unequip/attune/unattune/recharge actions
 - player inventory organization into Items / Equipment / Attunement lanes with rest-context attunement gating
