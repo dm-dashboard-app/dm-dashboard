@@ -1,9 +1,21 @@
 -- Equipment + Attunement Phase 1: inventory instance state, equip/attune RPCs, and snapshot enrichment.
+-- Revised contract: mechanics-dependent automation is only allowed for item_master rows marked metadata_json.mechanics_support = 'phase1_supported'.
 
 alter table if exists public.player_inventory_items
   add column if not exists equipped boolean not null default false,
   add column if not exists attuned boolean not null default false,
   add column if not exists current_charges integer not null default 0 check (current_charges >= 0);
+
+create or replace function public.inventory_is_phase1_supported(p_item_master_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select coalesce(i.metadata_json->>'mechanics_support', 'unsupported') = 'phase1_supported'
+  from public.item_master i
+  where i.id = p_item_master_id;
+$$;
 
 create or replace function public.inventory_get_snapshot(
   p_player_profile_id uuid,
@@ -74,6 +86,8 @@ as $$
 declare
   v_slot text;
   v_existing uuid;
+  v_item_master_id uuid;
+  v_supported boolean := false;
 begin
   if public.inventory_is_dm() then
     null;
@@ -81,13 +95,36 @@ begin
     perform public.inventory_authorize_player(p_player_profile_id, p_join_code);
   end if;
 
-  select coalesce(i.metadata_json->'mechanics'->>'slot_family', null) into v_slot
+  select pi.item_master_id,
+         coalesce(im.metadata_json->'mechanics'->>'slot_family', null),
+         coalesce(im.metadata_json->>'mechanics_support', 'unsupported') = 'phase1_supported'
+  into v_item_master_id, v_slot, v_supported
   from public.player_inventory_items pi
-  join public.item_master i on i.id = pi.item_master_id
+  left join public.item_master im on im.id = pi.item_master_id
   where pi.id = p_item_row_id and pi.player_profile_id = p_player_profile_id;
 
+  if v_item_master_id is null then
+    update public.player_inventory_items
+    set equipped = true
+    where id = p_item_row_id and player_profile_id = p_player_profile_id;
+
+    return query select p_item_row_id, null::uuid;
+    return;
+  end if;
+
+  -- Unsupported/manual rows can still be toggled equipped for inventory bookkeeping,
+  -- but do not run mechanics slot automation or replacement semantics.
+  if not v_supported then
+    update public.player_inventory_items
+    set equipped = true
+    where id = p_item_row_id and player_profile_id = p_player_profile_id;
+
+    return query select p_item_row_id, null::uuid;
+    return;
+  end if;
+
   if v_slot is null then
-    raise exception 'This item has no equipment slot defined.';
+    raise exception 'Phase 1 supported item is missing slot_family mechanics data.';
   end if;
 
   if v_slot <> 'ring' then
@@ -97,6 +134,7 @@ begin
     where pi.player_profile_id = p_player_profile_id
       and pi.equipped = true
       and pi.id <> p_item_row_id
+      and coalesce(i.metadata_json->>'mechanics_support', 'unsupported') = 'phase1_supported'
       and coalesce(i.metadata_json->'mechanics'->>'slot_family', '') = v_slot
     limit 1;
 
@@ -159,6 +197,7 @@ declare
   v_requires_attunement boolean := false;
   v_is_attunement_only boolean := false;
   v_attuned_count integer := 0;
+  v_supported boolean := false;
 begin
   if v_is_dm then
     null;
@@ -169,19 +208,30 @@ begin
     end if;
   end if;
 
-  select coalesce(im.requires_attunement, false), coalesce(im.metadata_json->'mechanics'->>'activation_mode', '') = 'attunement_only'
-  into v_requires_attunement, v_is_attunement_only
+  select
+    coalesce(im.requires_attunement, false),
+    coalesce(im.metadata_json->'mechanics'->>'activation_mode', '') = 'attunement_only',
+    coalesce(im.metadata_json->>'mechanics_support', 'unsupported') = 'phase1_supported'
+  into v_requires_attunement, v_is_attunement_only, v_supported
   from public.player_inventory_items pi
   left join public.item_master im on im.id = pi.item_master_id
   where pi.id = p_item_row_id and pi.player_profile_id = p_player_profile_id;
 
+  if not v_supported then
+    raise exception 'Attunement automation is only supported for phase1_supported enriched items.';
+  end if;
+
   if not v_requires_attunement and not v_is_attunement_only then
-    raise exception 'This item does not support attunement.';
+    raise exception 'This phase1_supported item does not support attunement semantics.';
   end if;
 
   select count(*)::integer into v_attuned_count
-  from public.player_inventory_items
-  where player_profile_id = p_player_profile_id and attuned = true and id <> p_item_row_id;
+  from public.player_inventory_items pi
+  join public.item_master im on im.id = pi.item_master_id
+  where pi.player_profile_id = p_player_profile_id
+    and pi.attuned = true
+    and pi.id <> p_item_row_id
+    and coalesce(im.metadata_json->>'mechanics_support', 'unsupported') = 'phase1_supported';
 
   if v_attuned_count >= 3 then
     raise exception 'Attunement limit reached (3).';
@@ -243,6 +293,8 @@ declare
   v_max_charges integer := 0;
   v_current integer := 0;
   v_next integer := 0;
+  v_supported boolean := false;
+  v_has_recharge boolean := false;
 begin
   if public.inventory_is_dm() then
     null;
@@ -252,14 +304,24 @@ begin
 
   select
     greatest(0, coalesce((im.metadata_json->'mechanics'->'charges'->>'max')::integer, 0)),
-    greatest(0, coalesce(pi.current_charges, 0))
-  into v_max_charges, v_current
+    greatest(0, coalesce(pi.current_charges, 0)),
+    coalesce(im.metadata_json->>'mechanics_support', 'unsupported') = 'phase1_supported',
+    (im.metadata_json->'mechanics'->'recharge') is not null
+  into v_max_charges, v_current, v_supported, v_has_recharge
   from public.player_inventory_items pi
   left join public.item_master im on im.id = pi.item_master_id
   where pi.id = p_item_row_id and pi.player_profile_id = p_player_profile_id;
 
+  if not v_supported then
+    raise exception 'Charge recharge automation is only supported for phase1_supported enriched items.';
+  end if;
+
+  if not v_has_recharge then
+    raise exception 'This phase1_supported item has no recharge configuration.';
+  end if;
+
   if v_max_charges <= 0 then
-    raise exception 'This item has no charge track.';
+    raise exception 'This phase1_supported item has no charge track.';
   end if;
 
   v_next := least(v_max_charges, v_current + greatest(0, coalesce(p_restored_charges, 0)));
@@ -272,12 +334,14 @@ begin
 end;
 $$;
 
+revoke all on function public.inventory_is_phase1_supported(uuid) from public;
 revoke all on function public.inventory_equip_item(uuid, uuid, text, boolean) from public;
 revoke all on function public.inventory_unequip_item(uuid, uuid, text) from public;
 revoke all on function public.inventory_attune_item(uuid, uuid, text, boolean) from public;
 revoke all on function public.inventory_unattune_item(uuid, uuid, text, boolean) from public;
 revoke all on function public.inventory_recharge_item(uuid, uuid, text, integer) from public;
 
+grant execute on function public.inventory_is_phase1_supported(uuid) to anon, authenticated;
 grant execute on function public.inventory_equip_item(uuid, uuid, text, boolean) to anon, authenticated;
 grant execute on function public.inventory_unequip_item(uuid, uuid, text) to anon, authenticated;
 grant execute on function public.inventory_attune_item(uuid, uuid, text, boolean) to anon, authenticated;
