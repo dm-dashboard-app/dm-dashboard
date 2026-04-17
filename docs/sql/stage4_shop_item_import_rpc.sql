@@ -153,6 +153,9 @@ begin
         when lower(coalesce(excluded.metadata_json->>'import_quality', '')) = 'excluded_on_purpose'
           then 2
         when lower(coalesce(excluded.metadata_json->>'import_quality', '')) = 'detail_verified'
+          and coalesce(excluded.metadata_json->>'mechanics_support', '') = 'phase1_supported'
+          then 5
+        when lower(coalesce(excluded.metadata_json->>'import_quality', '')) = 'detail_verified'
           then 3
         when lower(coalesce(excluded.metadata_json->>'import_quality', '')) = 'repaired_overlay_verified'
           then 4
@@ -168,6 +171,9 @@ begin
           then 1
         when lower(coalesce(item_master.metadata_json->>'import_quality', '')) = 'excluded_on_purpose'
           then 2
+        when lower(coalesce(item_master.metadata_json->>'import_quality', '')) = 'detail_verified'
+          and coalesce(item_master.metadata_json->>'mechanics_support', '') = 'phase1_supported'
+          then 5
         when lower(coalesce(item_master.metadata_json->>'import_quality', '')) = 'detail_verified'
           then 3
         when lower(coalesce(item_master.metadata_json->>'import_quality', '')) = 'repaired_overlay_verified'

@@ -1,11 +1,37 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import { inventoryDmAwardCurrency, inventoryUpsertItem } from '../../inventory/inventoryClient';
+import { resolveItemDetailText } from '../../utils/itemDetailText';
+
+function RewardsItemPreviewModal({ item, onClose }) {
+  if (!item) return null;
+  const detail = resolveItemDetailText(item);
+
+  return (
+    <div className="world-shop-modal-backdrop" onClick={onClose}>
+      <div className="world-shop-modal" onClick={(event) => event.stopPropagation()}>
+        <div className="world-shop-modal-head">
+          <strong>{item.name}</strong>
+          <button type="button" className="btn btn-ghost" onClick={onClose}>Close</button>
+        </div>
+        <div className="world-shop-item-meta">
+          <span>{item.item_type || 'Unknown Type'}</span>
+          {item.category ? <span>• {item.category}</span> : null}
+          {item.rarity ? <span>• {item.rarity}</span> : null}
+        </div>
+        {detail.mode === 'structured_fallback'
+          ? <pre className="world-shop-item-description">{detail.text}</pre>
+          : <p className="world-shop-item-description">{detail.text}</p>}
+      </div>
+    </div>
+  );
+}
 
 export default function WorldRewardsPanel({ encounterId, playerStates = [], onInventoryChanged = null, onInventoryRefresh = null }) {
   const [query, setQuery] = useState('');
   const [catalog, setCatalog] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [previewItem, setPreviewItem] = useState(null);
   const [targetProfileId, setTargetProfileId] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState('');
@@ -146,6 +172,14 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
                 <span>{selectedItem.category || selectedItem.item_type || 'Unknown category'}{selectedItem.rarity ? ` • ${selectedItem.rarity}` : ''}</span>
                 <span>{selectedItem.description?.slice(0, 160) || 'No description available.'}</span>
               </button>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                style={{ width: '100%' }}
+                onClick={() => setPreviewItem(selectedItem)}
+              >
+                View Item Details
+              </button>
               <select className="form-input" value={targetProfileId} onChange={(event) => setTargetProfileId(event.target.value)}>
                 <option value="">Select player</option>
                 {players.map((player) => <option key={player.id} value={player.id}>{player.name}</option>)}
@@ -185,6 +219,7 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
         </div>
       </div>
       {status ? <div className="world-shops-import-status">{status}</div> : null}
+      <RewardsItemPreviewModal item={previewItem} onClose={() => setPreviewItem(null)} />
     </div>
   );
 }
