@@ -1,0 +1,337 @@
+[
+  {
+    "name": "Alchemy Jug (Blue)",
+    "source": "CM",
+    "page": 144,
+    "rarity": "uncommon",
+    "wondrous": true,
+    "weight": 12,
+    "entries": [
+      "This ceramic jug appears to be able to hold a gallon of liquid and weighs 12 pounds whether full or empty. Sloshing sounds can be heard from within the jug when it is shaken, even if the jug is empty.",
+      "You can use an action and name one liquid from the table below to cause the jug to produce the chosen liquid. Afterward, you can uncork the jug as an action and pour that liquid out, up to 2 gallons per minute. The maximum amount of liquid the jug can produce depends on the liquid you named.",
+      "Once the jug starts producing a liquid, it can't produce a different one, or more of one that has reached its maximum, until the next dawn.",
+      {
+        "type": "table",
+        "colStyles": [
+          "col-6 text-center",
+          "col-6 text-center"
+        ],
+        "colLabels": [
+          "Liquid",
+          "Max Amount"
+        ],
+        "rows": [
+          [
+            "Beer",
+            "4 gallons"
+          ],
+          [
+            "Boiling Hot Tea",
+            "1 quart"
+          ],
+          [
+            "Honey",
+            "1 gallon"
+          ],
+          [
+            "Mayonnaise",
+            "2 gallons"
+          ],
+          [
+            "Oil",
+            "quart"
+          ],
+          [
+            "Vinegar",
+            "2 gallons"
+          ],
+          [
+            "Water, fresh",
+            "8 gallons"
+          ],
+          [
+            "Water, salt",
+            "12 gallons"
+          ],
+          [
+            "Wine",
+            "1 gallon"
+          ]
+        ]
+      }
+    ],
+    "miscTags": [
+      "CF/W"
+    ]
+  },
+  {
+    "name": "Alchemy Jug (Orange)",
+    "source": "CM",
+    "page": 144,
+    "rarity": "uncommon",
+    "wondrous": true,
+    "weight": 12,
+    "entries": [
+      "This ceramic jug appears to be able to hold a gallon of liquid and weighs 12 pounds whether full or empty. Sloshing sounds can be heard from within the jug when it is shaken, even if the jug is empty.",
+      "You can use an action and name one liquid from the table below to cause the jug to produce the chosen liquid. Afterward, you can uncork the jug as an action and pour that liquid out, up to 2 gallons per minute. The maximum amount of liquid the jug can produce depends on the liquid you named.",
+      "Once the jug starts producing a liquid, it can't produce a different one, or more of one that has reached its maximum, until the next dawn.",
+      {
+        "type": "table",
+        "colStyles": [
+          "col-6 text-center",
+          "col-6 text-center"
+        ],
+        "colLabels": [
+          "Liquid",
+          "Max Amount"
+        ],
+        "rows": [
+          [
+            "Beer",
+            "4 gallons"
+          ],
+          [
+            "Honey",
+            "1 gallon"
+          ],
+          [
+            "Mayonnaise",
+            "2 gallons"
+          ],
+          [
+            "Oil",
+            "quart"
+          ],
+          [
+            "Soy Sauce",
+            "1 gallon"
+          ],
+          [
+            "Vinegar",
+            "2 gallons"
+          ],
+          [
+            "Water, fresh",
+            "8 gallons"
+          ],
+          [
+            "Water, salt",
+            "12 gallons"
+          ],
+          [
+            "Wine",
+            "1 gallon"
+          ]
+        ]
+      }
+    ],
+    "miscTags": [
+      "CF/W"
+    ]
+  },
+  {
+    "name": "Cracked Driftglobe",
+    "source": "CM",
+    "page": 110,
+    "referenceSources": [
+      "CRCotN"
+    ],
+    "rarity": "uncommon",
+    "wondrous": true,
+    "weight": 1,
+    "entries": [
+      "This small sphere of thick glass weighs 1 pound. If you are within 60 feet of it, you can speak its command word and cause it to emanate the {@spell light} spell."
+    ],
+    "attachedSpells": [
+      "light"
+    ]
+  },
+  {
+    "name": "Gloves of Soul Catching",
+    "source": "CM",
+    "page": 169,
+    "rarity": "legendary",
+    "reqAttune": true,
+    "wondrous": true,
+    "ability": {
+      "static": {
+        "con": 20
+      }
+    },
+    "entries": [
+      "Your Constitution score is 20 while you wear these gloves. This property of the gloves has no effect on you if your Constitution is already 20 or higher.",
+      "After making a successful unarmed strike while wearing these gloves, you can use the gloves to deal an extra {@damage 2d10} force damage to the target, and you regain a number of hit points equal to the force damage dealt. Alternatively, instead of regaining hit points in this way, you can choose to gain advantage on one attack roll, ability check, or saving throw you make before the end of your next turn."
+    ]
+  },
+  {
+    "name": "Nether Scroll of Azumar",
+    "source": "CM",
+    "page": 210,
+    "type": "SC|DMG",
+    "rarity": "legendary",
+    "entries": [
+      "Unlike most scrolls, a Nether Scroll of Azumar is not a consumable magic item. It takes 30 days of concentrated study—at least 8 hours per day—to attempt to understand this scroll. After completing this study, you must make a {@dc 25} Intelligence ({@skill Arcana}) check. If this check fails, you take {@damage 16d10} psychic damage, and you can attempt the check again after another 30 days of concentrated study.",
+      "When you succeed on the check, you gain the following benefits:",
+      {
+        "type": "list",
+        "items": [
+          "Your Intelligence score increases by 2, to a maximum of 22. Once you gain this benefit, you can't use this scroll to increase your Intelligence again.",
+          "You gain advantage on saving throws against spells and other magical effects."
+        ]
+      },
+      "When you gain the scroll's benefits, a {@creature stone golem} magically appears in an unoccupied space within 60 feet of you and acts as your ally. If you die, the golem turns to dust."
+    ]
+  },
+  {
+    "name": "Orcus Figurine",
+    "source": "CM",
+    "page": 44,
+    "rarity": "unknown (magic)",
+    "wondrous": true,
+    "entries": [
+      "Carved from an ogre's {@condition petrified} heart, the gray figurine depicts the Demon Prince of Undeath in ghastly detail, clutching his skull-topped wand in one hand and three severed heads by the hair in the other. The figurine smells like decaying flesh, and this scent is detectable out to a range of 5 feet.",
+      "The figurine is a Tiny object with AC 17, 3 hit points, and immunity to all types of damage except radiant damage. A {@spell detect evil and good} spell or similar magic reveals that the figurine has been desecrated. As long as it has at least 1 hit point, the figurine has the following magical properties:",
+      {
+        "type": "list",
+        "items": [
+          "Undead within 30 feet of the figurine can't be turned.",
+          "Dead creatures within 30 feet of the figurine can't be brought back to life.",
+          "A creature that holds the figurine while praying to Orcus for at least 1 hour has a {@chance 10} chance of summoning a smoky avatar of the demon lord. Once this avatar is summoned, it can't be summoned again for 30 days. Orcus's avatar has the statistics of a {@creature wraith} except that it's chaotic evil. It attacks all non-undead creatures it encounters, and it disappears after 1 hour or when reduced to 0 hit points."
+        ]
+      }
+    ],
+    "hasFluffImages": true
+  },
+  {
+    "name": "Radiance",
+    "source": "CM",
+    "page": 87,
+    "type": "WD|DMG",
+    "rarity": "unknown (magic)",
+    "reqAttune": "by a spellcaster",
+    "reqAttuneTags": [
+      {
+        "spellcasting": true
+      }
+    ],
+    "bonusSpellAttack": "+1",
+    "entries": [
+      "While holding this wand, you gain a +1 bonus to spell attack rolls. In addition, you ignore {@quickref Cover||3||half cover} when making a spell attack. Radiance is in the form of an exquisite golden hand mirror.",
+      "While surrounded by darkness, it sheds dim light in a 5-foot radius. A creature that is attuned to Radiance can use a bonus action while holding the mirror to cast the {@spell enhance ability} spell, choosing itself and no other creature as the spell's target. Once this property of the wand is used, it can't be used again until the next dawn."
+    ],
+    "light": [
+      {
+        "dim": 5
+      }
+    ],
+    "attachedSpells": {
+      "daily": {
+        "1e": [
+          "enhance ability"
+        ]
+      }
+    }
+  },
+  {
+    "name": "Serpent Scale Armor",
+    "source": "CM",
+    "page": 98,
+    "baseItem": "scale mail|PHB",
+    "type": "MA",
+    "rarity": "uncommon",
+    "weight": 45,
+    "ac": 14,
+    "dexterityMax": null,
+    "entries": [
+      "This suit of magic armor is made from shimmering scales. While wearing it, you can apply your full Dexterity modifier (instead of a maximum of +2) when determining your Armor Class. In addition, this armor does not impose disadvantage on your Dexterity ({@skill Stealth}) checks."
+    ]
+  },
+  {
+    "name": "Serpent's Fang",
+    "source": "CM",
+    "page": 98,
+    "baseItem": "longsword|PHB",
+    "type": "M",
+    "rarity": "rare",
+    "weight": 3,
+    "weaponCategory": "martial",
+    "property": [
+      "V"
+    ],
+    "dmg1": "1d8",
+    "dmgType": "S",
+    "dmg2": "1d10",
+    "entries": [
+      "This single-edged magic sword is made from the scrimshawed fang of a giant serpent. Its hilt changes shape to adjust to the grasp of any creature that picks it up. The weapon deals an extra {@damage 1d10} poison damage to any target it hits."
+    ]
+  },
+  {
+    "name": "Staff of Fate",
+    "source": "CM",
+    "page": 183,
+    "baseItem": "quarterstaff|PHB",
+    "type": "M",
+    "rarity": "very rare",
+    "reqAttune": true,
+    "weight": 4,
+    "weaponCategory": "simple",
+    "property": [
+      "V"
+    ],
+    "dmg1": "1d6",
+    "dmgType": "B",
+    "dmg2": "1d8",
+    "bonusWeapon": "+3",
+    "recharge": "special",
+    "charges": 6,
+    "staff": true,
+    "entries": [
+      "This transparent crystal staff can be wielded as a magic quarterstaff that grants a +3 bonus to attack and damage rolls made with it.",
+      {
+        "type": "entries",
+        "name": "Altered Outcome",
+        "entries": [
+          "The staff has 6 charges. As a bonus action, you can expend 1 of the staff's charges to give yourself or one other creature that you can see a {@dice d4}. The recipient can roll this {@dice d4} and add the number rolled to one ability check, attack roll, damage roll, or saving throw it makes before the start of your next turn. If this extra die is not used before then, it is lost.",
+          "If you expend the staff's last charge, roll a {@dice d20}. On a roll of 9 or lower, the staff becomes a nonmagical quarterstaff that breaks the first time it scores a hit and deals damage. On a roll of 10 or higher, the staff regains {@dice 1d6} of its expended charges."
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Stonky's ring",
+    "source": "CM",
+    "page": 132,
+    "type": "RG|DMG",
+    "rarity": "unknown (magic)",
+    "reqAttune": true,
+    "entries": [
+      "While wearing this ring, you can cast the {@spell telekinesis} spell at will, but you can target only objects that aren't being worn or carried.",
+      "Any character who attunes to the ring gains control of Stonky's creations, though the {@creature skitterwidget|cm|skitterwidgets} ignore commands spoken more than 30 feet away from them."
+    ],
+    "attachedSpells": {
+      "will": [
+        "telekinesis"
+      ]
+    }
+  },
+  {
+    "name": "Watchful Helm",
+    "source": "CM",
+    "page": 183,
+    "rarity": "very rare",
+    "reqAttune": true,
+    "wondrous": true,
+    "bonusAc": "+1",
+    "entries": [
+      "While you wear this helm, you gain a +1 bonus to AC and remain aware of your surroundings even while you're asleep, and you have advantage on Wisdom ({@skill Perception}) checks that rely on sight.",
+      "As a bonus action, you can cast the {@spell see invisibility} spell from the helm. Once this property of the helm is used, it can't be used again until the next dawn."
+    ],
+    "attachedSpells": {
+      "daily": {
+        "1e": [
+          "see invisibility"
+        ]
+      }
+    }
+  }
+]

@@ -1,0 +1,532 @@
+{
+  "source_file_path": "resources/items.json",
+  "derivation_strategy": "Grouped by item.source into one file per source key.",
+  "ordering_strategy": "Source files are listed by first appearance of source in resources/items.json; items within each source preserve original order from resources/items.json.",
+  "total_source_file_count": 65,
+  "total_item_count_represented": 1639,
+  "source_less_records_found": false,
+  "filename_sanitization_required": false,
+  "anomalies": [],
+  "files": [
+    {
+      "source_key": "TCE",
+      "filename": "TCE.json",
+      "item_count": 84,
+      "first_item_name": "+1 All-Purpose Tool",
+      "last_item_name": "Thunder Absorbing Tattoo",
+      "notes": null
+    },
+    {
+      "source_key": "FTD",
+      "filename": "FTD.json",
+      "item_count": 24,
+      "first_item_name": "+1 Dragonhide Belt",
+      "last_item_name": "Wakened Scaled Ornament",
+      "notes": null
+    },
+    {
+      "source_key": "BMT",
+      "filename": "BMT.json",
+      "item_count": 73,
+      "first_item_name": "+1 Fate Dealer's Deck",
+      "last_item_name": "Warrior's Passkey",
+      "notes": null
+    },
+    {
+      "source_key": "DMG",
+      "filename": "DMG.json",
+      "item_count": 500,
+      "first_item_name": "+1 Rod of the Pact Keeper",
+      "last_item_name": "Zircon",
+      "notes": null
+    },
+    {
+      "source_key": "PHB",
+      "filename": "PHB.json",
+      "item_count": 168,
+      "first_item_name": "Abacus",
+      "last_item_name": "Yew Wand",
+      "notes": null
+    },
+    {
+      "source_key": "IDRotF",
+      "filename": "IDRotF.json",
+      "item_count": 22,
+      "first_item_name": "Abracadabrus",
+      "last_item_name": "Ythryn Mythallar",
+      "notes": null
+    },
+    {
+      "source_key": "CoA",
+      "filename": "CoA.json",
+      "item_count": 24,
+      "first_item_name": "Accounting and Valuation of All Things",
+      "last_item_name": "Wrought-Iron Tower",
+      "notes": null
+    },
+    {
+      "source_key": "WDH",
+      "filename": "WDH.json",
+      "item_count": 28,
+      "first_item_name": "Adamantine Bar",
+      "last_item_name": "Teleporter Ring",
+      "notes": null
+    },
+    {
+      "source_key": "BGG",
+      "filename": "BGG.json",
+      "item_count": 31,
+      "first_item_name": "Adze of Annam",
+      "last_item_name": "Wyrmreaver Gauntlets",
+      "notes": null
+    },
+    {
+      "source_key": "ERLW",
+      "filename": "ERLW.json",
+      "item_count": 30,
+      "first_item_name": "Aerenal Trinket",
+      "last_item_name": "Xen'drik Trinket",
+      "notes": null
+    },
+    {
+      "source_key": "MOT",
+      "filename": "MOT.json",
+      "item_count": 12,
+      "first_item_name": "Akmon, Hammer of Purphoros",
+      "last_item_name": "Two-Birds Sling",
+      "notes": null
+    },
+    {
+      "source_key": "SCC",
+      "filename": "SCC.json",
+      "item_count": 18,
+      "first_item_name": "Alchemist's Doom",
+      "last_item_name": "Witherbloom Trinket",
+      "notes": null
+    },
+    {
+      "source_key": "CM",
+      "filename": "CM.json",
+      "item_count": 12,
+      "first_item_name": "Alchemy Jug (Blue)",
+      "last_item_name": "Watchful Helm",
+      "notes": null
+    },
+    {
+      "source_key": "NRH-TLT",
+      "filename": "NRH-TLT.json",
+      "item_count": 1,
+      "first_item_name": "Amber Runestone",
+      "last_item_name": "Amber Runestone",
+      "notes": null
+    },
+    {
+      "source_key": "PSX",
+      "filename": "PSX.json",
+      "item_count": 50,
+      "first_item_name": "Amulet of dinosaur feathers (Sun Empire)",
+      "last_item_name": "Velvet doublet with gold buttons (Legion of Dusk)",
+      "notes": null
+    },
+    {
+      "source_key": "NRH-AT",
+      "filename": "NRH-AT.json",
+      "item_count": 2,
+      "first_item_name": "Amulet of Harmony",
+      "last_item_name": "Prismatic Well",
+      "notes": null
+    },
+    {
+      "source_key": "TftYP",
+      "filename": "TftYP.json",
+      "item_count": 22,
+      "first_item_name": "Amulet of Protection from Turning",
+      "last_item_name": "White Dragon Cape",
+      "notes": null
+    },
+    {
+      "source_key": "ToA",
+      "filename": "ToA.json",
+      "item_count": 26,
+      "first_item_name": "Amulet of the Black Skull",
+      "last_item_name": "Zabou",
+      "notes": null
+    },
+    {
+      "source_key": "EGW",
+      "filename": "EGW.json",
+      "item_count": 85,
+      "first_item_name": "Amulet of the Drunkard",
+      "last_item_name": "Wreath of the Prism (Exalted)",
+      "notes": null
+    },
+    {
+      "source_key": "QftIS",
+      "filename": "QftIS.json",
+      "item_count": 11,
+      "first_item_name": "Antigravity Belt",
+      "last_item_name": "Staff of Ruling",
+      "notes": null
+    },
+    {
+      "source_key": "GGR",
+      "filename": "GGR.json",
+      "item_count": 41,
+      "first_item_name": "Azorius Guild Signet",
+      "last_item_name": "Voyager Staff",
+      "notes": null
+    },
+    {
+      "source_key": "PotA",
+      "filename": "PotA.json",
+      "item_count": 20,
+      "first_item_name": "Balloon Pack",
+      "last_item_name": "Wingwear",
+      "notes": null
+    },
+    {
+      "source_key": "SKT",
+      "filename": "SKT.json",
+      "item_count": 20,
+      "first_item_name": "Banner of the Krig Rune",
+      "last_item_name": "Wyrmskull Throne",
+      "notes": null
+    },
+    {
+      "source_key": "LLK",
+      "filename": "LLK.json",
+      "item_count": 13,
+      "first_item_name": "Barrier Peaks Trinket",
+      "last_item_name": "Powered Armor",
+      "notes": null
+    },
+    {
+      "source_key": "AAG",
+      "filename": "AAG.json",
+      "item_count": 20,
+      "first_item_name": "Basic Fishing Equipment",
+      "last_item_name": "Wildspace Orrery",
+      "notes": null
+    },
+    {
+      "source_key": "BGDIA",
+      "filename": "BGDIA.json",
+      "item_count": 13,
+      "first_item_name": "Battle Standard of Infernal Power",
+      "last_item_name": "Sword of Zariel",
+      "notes": null
+    },
+    {
+      "source_key": "XGE",
+      "filename": "XGE.json",
+      "item_count": 43,
+      "first_item_name": "Bead of Nourishment",
+      "last_item_name": "Wand of Smiles",
+      "notes": null
+    },
+    {
+      "source_key": "JttRC",
+      "filename": "JttRC.json",
+      "item_count": 5,
+      "first_item_name": "Biza's Breath",
+      "last_item_name": "White Ghost Orchid Seed",
+      "notes": null
+    },
+    {
+      "source_key": "WBtW",
+      "filename": "WBtW.json",
+      "item_count": 19,
+      "first_item_name": "Black Chromatic Rose",
+      "last_item_name": "Woodcutter's Axe",
+      "notes": null
+    },
+    {
+      "source_key": "WDMM",
+      "filename": "WDMM.json",
+      "item_count": 26,
+      "first_item_name": "Black Crystal Tablet",
+      "last_item_name": "Wyllow's Staff of Flowers",
+      "notes": null
+    },
+    {
+      "source_key": "HotDQ",
+      "filename": "HotDQ.json",
+      "item_count": 6,
+      "first_item_name": "Black Dragon Mask",
+      "last_item_name": "Wand of Winter",
+      "notes": null
+    },
+    {
+      "source_key": "IMR",
+      "filename": "IMR.json",
+      "item_count": 11,
+      "first_item_name": "Blood of the Lycanthrope",
+      "last_item_name": "Thessaltoxin Antidote",
+      "notes": null
+    },
+    {
+      "source_key": "CoS",
+      "filename": "CoS.json",
+      "item_count": 14,
+      "first_item_name": "Blood Spear",
+      "last_item_name": "Yester Hill Axe",
+      "notes": null
+    },
+    {
+      "source_key": "RoTOS",
+      "filename": "RoTOS.json",
+      "item_count": 4,
+      "first_item_name": "Blue Dragon Mask",
+      "last_item_name": "White Dragon Mask",
+      "notes": null
+    },
+    {
+      "source_key": "SDW",
+      "filename": "SDW.json",
+      "item_count": 1,
+      "first_item_name": "Bonecounter",
+      "last_item_name": "Bonecounter",
+      "notes": null
+    },
+    {
+      "source_key": "KftGV",
+      "filename": "KftGV.json",
+      "item_count": 8,
+      "first_item_name": "Book of Vile Darkness (Variant)",
+      "last_item_name": "Shard Solitaire (Ruby)",
+      "notes": null
+    },
+    {
+      "source_key": "PaBTSO",
+      "filename": "PaBTSO.json",
+      "item_count": 23,
+      "first_item_name": "Bracers of Celerity",
+      "last_item_name": "Statuette of Augury",
+      "notes": null
+    },
+    {
+      "source_key": "AI",
+      "filename": "AI.json",
+      "item_count": 23,
+      "first_item_name": "Cartographer's Map Case",
+      "last_item_name": "Whisper Jar",
+      "notes": null
+    },
+    {
+      "source_key": "GoS",
+      "filename": "GoS.json",
+      "item_count": 6,
+      "first_item_name": "Charm of Plant Command",
+      "last_item_name": "Sekolahian Worshiping Statuette",
+      "notes": null
+    },
+    {
+      "source_key": "VEoR",
+      "filename": "VEoR.json",
+      "item_count": 3,
+      "first_item_name": "Chime of Exile",
+      "last_item_name": "Rod of Seven Parts",
+      "notes": null
+    },
+    {
+      "source_key": "AitFR-AVT",
+      "filename": "AitFR-AVT.json",
+      "item_count": 3,
+      "first_item_name": "Chip of Creation",
+      "last_item_name": "Stone of Creation",
+      "notes": null
+    },
+    {
+      "source_key": "RMBRE",
+      "filename": "RMBRE.json",
+      "item_count": 1,
+      "first_item_name": "Concertina",
+      "last_item_name": "Concertina",
+      "notes": null
+    },
+    {
+      "source_key": "TTP",
+      "filename": "TTP.json",
+      "item_count": 1,
+      "first_item_name": "Conch of Safe Rest",
+      "last_item_name": "Conch of Safe Rest",
+      "notes": null
+    },
+    {
+      "source_key": "OotA",
+      "filename": "OotA.json",
+      "item_count": 16,
+      "first_item_name": "Dawnbringer",
+      "last_item_name": "Wand of Viscid Globs",
+      "notes": null
+    },
+    {
+      "source_key": "XMtS",
+      "filename": "XMtS.json",
+      "item_count": 6,
+      "first_item_name": "Dowsing Dagger",
+      "last_item_name": "Vanquisher's Banner",
+      "notes": null
+    },
+    {
+      "source_key": "RoT",
+      "filename": "RoT.json",
+      "item_count": 3,
+      "first_item_name": "Draakhorn",
+      "last_item_name": "Mask of the Dragon Queen",
+      "notes": null
+    },
+    {
+      "source_key": "LMoP",
+      "filename": "LMoP.json",
+      "item_count": 5,
+      "first_item_name": "Dragonguard",
+      "last_item_name": "Staff of Defense",
+      "notes": null
+    },
+    {
+      "source_key": "CRCotN",
+      "filename": "CRCotN.json",
+      "item_count": 14,
+      "first_item_name": "Earring of Message",
+      "last_item_name": "Teleportation Tablet",
+      "notes": null
+    },
+    {
+      "source_key": "MTF",
+      "filename": "MTF.json",
+      "item_count": 4,
+      "first_item_name": "Elven Trinket",
+      "last_item_name": "Silver Sword",
+      "notes": null
+    },
+    {
+      "source_key": "DSotDQ",
+      "filename": "DSotDQ.json",
+      "item_count": 5,
+      "first_item_name": "Fargab",
+      "last_item_name": "Narycrash",
+      "notes": null
+    },
+    {
+      "source_key": "VGM",
+      "filename": "VGM.json",
+      "item_count": 7,
+      "first_item_name": "Flensing Claws (Huge)",
+      "last_item_name": "Survival Mantle",
+      "notes": null
+    },
+    {
+      "source_key": "SatO",
+      "filename": "SatO.json",
+      "item_count": 5,
+      "first_item_name": "Gate Warden Trinket",
+      "last_item_name": "Sensory Stone",
+      "notes": null
+    },
+    {
+      "source_key": "DC",
+      "filename": "DC.json",
+      "item_count": 2,
+      "first_item_name": "Gnomengarde Grenade",
+      "last_item_name": "Ruinstone",
+      "notes": null
+    },
+    {
+      "source_key": "MM",
+      "filename": "MM.json",
+      "item_count": 4,
+      "first_item_name": "Hag Eye",
+      "last_item_name": "Soul Bag",
+      "notes": null
+    },
+    {
+      "source_key": "VRGR",
+      "filename": "VRGR.json",
+      "item_count": 5,
+      "first_item_name": "Harkon's Bite",
+      "last_item_name": "Nepenthe",
+      "notes": null
+    },
+    {
+      "source_key": "HAT-LMI",
+      "filename": "HAT-LMI.json",
+      "item_count": 5,
+      "first_item_name": "Helm of Disjunction",
+      "last_item_name": "Tablet of Reawakening",
+      "notes": null
+    },
+    {
+      "source_key": "DitLCoT",
+      "filename": "DitLCoT.json",
+      "item_count": 3,
+      "first_item_name": "Iggwilv's Horn",
+      "last_item_name": "Tasha's Creeping Keelboat",
+      "notes": null
+    },
+    {
+      "source_key": "LoX",
+      "filename": "LoX.json",
+      "item_count": 1,
+      "first_item_name": "Keg of Alchemist's Fire",
+      "last_item_name": "Keg of Alchemist's Fire",
+      "notes": null
+    },
+    {
+      "source_key": "MCV2DC",
+      "filename": "MCV2DC.json",
+      "item_count": 1,
+      "first_item_name": "Nightbringer",
+      "last_item_name": "Nightbringer",
+      "notes": null
+    },
+    {
+      "source_key": "AitFR-THP",
+      "filename": "AitFR-THP.json",
+      "item_count": 1,
+      "first_item_name": "Planar Key",
+      "last_item_name": "Planar Key",
+      "notes": null
+    },
+    {
+      "source_key": "BAM",
+      "filename": "BAM.json",
+      "item_count": 1,
+      "first_item_name": "Talarith",
+      "last_item_name": "Talarith",
+      "notes": null
+    },
+    {
+      "source_key": "EET",
+      "filename": "EET.json",
+      "item_count": 1,
+      "first_item_name": "Trinket",
+      "last_item_name": "Trinket",
+      "notes": null
+    },
+    {
+      "source_key": "AZfyT",
+      "filename": "AZfyT.json",
+      "item_count": 1,
+      "first_item_name": "Vial of Thought Capture",
+      "last_item_name": "Vial of Thought Capture",
+      "notes": null
+    },
+    {
+      "source_key": "OGA",
+      "filename": "OGA.json",
+      "item_count": 1,
+      "first_item_name": "Whistle-Stick",
+      "last_item_name": "Whistle-Stick",
+      "notes": null
+    },
+    {
+      "source_key": "HftT",
+      "filename": "HftT.json",
+      "item_count": 1,
+      "first_item_name": "Winter's Dark Bite",
+      "last_item_name": "Winter's Dark Bite",
+      "notes": null
+    }
+  ]
+}
