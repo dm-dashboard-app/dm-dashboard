@@ -1,0 +1,136 @@
+import { build5etoolsReviewReport, looksPhase1Compatible } from './fiveToolsReviewReport';
+
+describe('build5etoolsReviewReport', () => {
+  test('builds required pricing/shop/mechanics slices', () => {
+    const rows = [
+      {
+        external_key: 'k:direct',
+        name: 'Dagger +1',
+        item_type: 'weapon',
+        rarity: 'uncommon',
+        base_price_gp: 500,
+        suggested_price_gp: 500,
+        price_source: '5etools_value_cp',
+        is_shop_eligible: false,
+        shop_bucket: 'manual_magic_review',
+        requires_attunement: false,
+        metadata_json: {
+          source_key: 'DMG',
+          mechanics_support: 'partial_supported',
+          mechanics: {
+            slot_family: 'main_hand',
+            activation_mode: 'equip',
+            passive_effects: [{ type: 'weapon_attack_bonus', value: 1 }],
+          },
+        },
+      },
+      {
+        external_key: 'k:overlay-excluded',
+        name: 'Orb of Chaos',
+        item_type: 'magic_item',
+        rarity: 'rare',
+        base_price_gp: null,
+        suggested_price_gp: null,
+        price_source: 'shop_magic_pricing_2014_overlay',
+        is_shop_eligible: false,
+        shop_bucket: 'manual_magic_review',
+        requires_attunement: true,
+        metadata_json: {
+          pricing_overlay: {
+            exclude_from_shop: true,
+            exclusion_reason: 'campaign-warping',
+          },
+          mechanics_support: 'manual_required',
+          mechanics: null,
+        },
+      },
+      {
+        external_key: 'k:fallback',
+        name: 'Cloak of Utility',
+        item_type: 'magic_item',
+        rarity: 'common',
+        base_price_gp: 100,
+        suggested_price_gp: 100,
+        price_source: '5etools_fallback_policy_v1',
+        is_shop_eligible: true,
+        shop_bucket: 'utility',
+        requires_attunement: true,
+        metadata_json: {
+          pricing: { strategy: 'fallback_policy' },
+          mechanics_support: 'partial_supported',
+          mechanics: {
+            slot_family: 'neck',
+            activation_mode: 'equip',
+            requires_attunement: true,
+            passive_effects: [{ type: 'flat_bonus', target: 'spell_save_dc', value: 1 }],
+          },
+        },
+      },
+      {
+        external_key: 'k:manual',
+        name: 'Mystery Relic',
+        item_type: 'magic_item',
+        rarity: 'rare',
+        base_price_gp: null,
+        suggested_price_gp: null,
+        price_source: null,
+        is_shop_eligible: false,
+        shop_bucket: 'manual_magic_review',
+        requires_attunement: true,
+        metadata_json: {
+          pricing: { strategy: 'unresolved_manual_review' },
+          mechanics_support: 'manual_required',
+          mechanics: null,
+        },
+      },
+    ];
+
+    const report = build5etoolsReviewReport(rows);
+
+    expect(report.total_rows).toBe(4);
+    expect(report.counts.direct_source_priced).toBe(1);
+    expect(report.counts.overlay_priced).toBe(1);
+    expect(report.counts.fallback_priced).toBe(1);
+    expect(report.counts.unresolved_unpriced).toBe(2);
+    expect(report.counts.overlay_excluded).toBe(1);
+    expect(report.counts.should_be_priced_but_not_matched).toBe(1);
+    expect(report.counts.shop_eligible).toBe(1);
+    expect(report.counts.non_shop).toBe(3);
+    expect(report.counts.rows_with_structured_mechanics).toBe(2);
+    expect(report.counts.rows_with_attunement_true).toBe(3);
+
+    expect(report.mechanics.by_mechanics_support.partial_supported).toBe(2);
+    expect(report.mechanics.by_mechanics_support.manual_required).toBe(2);
+
+    expect(report.pricing.should_be_priced_but_not_matched[0].external_key).toBe('k:manual');
+    expect(report.pricing.overlay_excluded[0].external_key).toBe('k:overlay-excluded');
+  });
+});
+
+describe('looksPhase1Compatible', () => {
+  test('accepts current phase1-compatible payload shape', () => {
+    expect(looksPhase1Compatible({
+      metadata_json: {
+        mechanics: {
+          slot_family: 'armor',
+          activation_mode: 'equip',
+          armor: { base_ac: 14, add_dex: true, dex_cap: 2 },
+          passive_effects: [{ type: 'shield_ac_bonus', value: 2 }],
+          charges: { max: 3 },
+        },
+      },
+    })).toBe(true);
+  });
+
+  test('rejects unknown passive effect types', () => {
+    expect(looksPhase1Compatible({
+      metadata_json: {
+        mechanics: {
+          slot_family: 'inventory',
+          activation_mode: 'equip',
+          passive_effects: [{ type: 'summon_army', value: 1 }],
+        },
+      },
+    })).toBe(false);
+  });
+});
