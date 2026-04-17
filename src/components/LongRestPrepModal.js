@@ -1,9 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import SpellWorkflowPanel from './SpellWorkflowPanel';
+import InventoryModal from '../inventory/InventoryModal';
 import { getPreparedCapTotal, hasPreparationRequirement } from '../utils/spellWorkflow';
 
 export default function LongRestPrepModal({ open, playerStates = [], onClose, onComplete, onRefresh }) {
   const [selectedState, setSelectedState] = useState(null);
+  const [selectedInventoryState, setSelectedInventoryState] = useState(null);
 
   const requiredPlayers = useMemo(() => {
     return (playerStates || []).filter(state => hasPreparationRequirement(state?.profiles_players || {}));
@@ -37,6 +39,7 @@ export default function LongRestPrepModal({ open, playerStates = [], onClose, on
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <span style={{ fontSize: 11, color: state.spell_prep_ready ? 'var(--accent-green)' : 'var(--text-muted)', fontWeight: 700 }}>{state.spell_prep_ready ? 'READY' : 'PENDING'}</span>
                   <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => setSelectedState(state)}>Review</button>
+                  <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => setSelectedInventoryState(state)}>Items / Attunement</button>
                 </div>
               </div>
             );
@@ -61,6 +64,19 @@ export default function LongRestPrepModal({ open, playerStates = [], onClose, on
           onClose={() => setSelectedState(null)}
           title={`${selectedState.profiles_players?.name || 'Player'} Spells`}
           subtitle="Browse current spell lists and inspect spell details while long-rest preparation is in progress."
+        />
+      )}
+
+
+      {selectedInventoryState && (
+        <InventoryModal
+          open={!!selectedInventoryState}
+          onClose={() => setSelectedInventoryState(null)}
+          role="dm"
+          playerProfileId={selectedInventoryState.player_profile_id}
+          playerName={selectedInventoryState.profiles_players?.name || 'Player'}
+          attunementRestContext
+          allowChargeRecharge
         />
       )}
     </div>

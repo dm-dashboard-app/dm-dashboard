@@ -134,6 +134,52 @@ describe('buildSrdRepairRows', () => {
   });
 });
 
+
+  test('applies mechanics enrichment overlay into import rows metadata', async () => {
+    global.fetch = jest.fn((url) => {
+      const value = String(url);
+      if (value.includes('/data/item_mechanics_enrichment_2014.json')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            items: [{
+              external_key: 'official_srd_2014:shield',
+              source_slug: 'shield',
+              slot_family: 'shield',
+              activation_mode: 'equip',
+              requires_attunement: false,
+              passive_effects: [{ type: 'shield_ac_bonus', value: 2 }],
+            }],
+          }),
+        });
+      }
+      if (value.includes('/data/shop_magic_pricing_2014.json')) return Promise.resolve({ ok: true, json: async () => ({ items: [] }) });
+      if (value.endsWith('/equipment/shield')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            index: 'shield',
+            name: 'Shield',
+            equipment_category: { name: 'Armor' },
+            armor_category: 'Shield',
+            cost: { quantity: 10, unit: 'gp' },
+            desc: ['A shield.'],
+          }),
+        });
+      }
+      if (value.endsWith('/equipment')) return Promise.resolve({ ok: true, json: async () => ({ results: [{ index: 'shield', name: 'Shield', url: '/equipment/shield' }] }) });
+      if (value.endsWith('/magic-items')) return Promise.resolve({ ok: true, json: async () => ({ results: [] }) });
+      return Promise.resolve({ ok: true, json: async () => ({ results: [] }) });
+    });
+
+    const result = await buildSrdImportRows();
+    const shield = result.rows.find((row) => row.source_slug === 'shield');
+
+    expect(shield).toBeTruthy();
+    expect(shield.metadata_json.mechanics.slot_family).toBe('shield');
+    expect(shield.metadata_json.mechanics.passive_effects[0].type).toBe('shield_ac_bonus');
+  });
+
 describe('applySrdRepairsToImportRows', () => {
   test('replaces degraded rows with repaired overlay rows in SRD import payload', async () => {
     global.fetch = jest.fn().mockResolvedValue({

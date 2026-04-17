@@ -1,7 +1,7 @@
 import React from 'react';
 import PlayerCard from '../../components/PlayerCard';
 
-export default function DMPlayerCardsSection({ combatants, playerStates, encounterId, playerEditMode, onUpdate, inventoryRefreshTick = 0 }) {
+export default function DMPlayerCardsSection({ combatants, playerStates, encounterId, playerEditMode, onUpdate, inventoryRefreshTick = 0, attunementRestContext = false, longRestRechargeContext = false }) {
   return (
     <div className="dm-section-panel">
       <div className="dm-player-card-stack">
@@ -18,6 +18,8 @@ export default function DMPlayerCardsSection({ combatants, playerStates, encount
               encounterId={encounterId}
               onUpdate={onUpdate}
               inventoryRefreshTick={inventoryRefreshTick}
+              attunementRestContext={attunementRestContext}
+              longRestRechargeContext={longRestRechargeContext}
             />
           );
         })}

@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "external_key": "official_srd_2014:shield",
+      "source_slug": "shield",
+      "slot_family": "shield",
+      "activation_mode": "equip",
+      "requires_attunement": false,
+      "passive_effects": [{ "type": "shield_ac_bonus", "value": 2 }]
+    },
+    {
+      "external_key": "official_srd_2014:chain-mail",
+      "source_slug": "chain-mail",
+      "slot_family": "armor",
+      "activation_mode": "equip",
+      "requires_attunement": false,
+      "armor": { "base_ac": 16, "add_dex": false, "dex_cap": null },
+      "passive_effects": []
+    },
+    {
+      "external_key": "official_srd_2014:leather-armor",
+      "source_slug": "leather-armor",
+      "slot_family": "armor",
+      "activation_mode": "equip",
+      "requires_attunement": false,
+      "armor": { "base_ac": 11, "add_dex": true, "dex_cap": null },
+      "passive_effects": []
+    },
+    {
+      "external_key": "official_srd_2014:ring-of-protection",
+      "source_slug": "ring-of-protection",
+      "slot_family": "ring",
+      "activation_mode": "equip",
+      "requires_attunement": true,
+      "passive_effects": [
+        { "type": "ac_flat", "value": 1 },
+        { "type": "saving_throw_bonus", "save": "all", "value": 1 }
+      ]
+    },
+    {
+      "external_key": "official_srd_2014:wand-of-the-war-mage-1",
+      "source_slug": "wand-of-the-war-mage-1",
+      "slot_family": "main_hand",
+      "activation_mode": "equip",
+      "requires_attunement": true,
+      "passive_effects": [{ "type": "spell_attack_bonus", "value": 1 }]
+    },
+    {
+      "external_key": "official_srd_2014:rod-of-the-pact-keeper-1",
+      "source_slug": "rod-of-the-pact-keeper-1",
+      "slot_family": "main_hand",
+      "activation_mode": "equip",
+      "requires_attunement": true,
+      "passive_effects": [
+        { "type": "spell_attack_bonus", "value": 1 },
+        { "type": "spell_save_dc_bonus", "value": 1 }
+      ]
+    },
+    {
+      "external_key": "official_srd_2014:amulet-of-health",
+      "source_slug": "amulet-of-health",
+      "slot_family": "neck",
+      "activation_mode": "equip",
+      "requires_attunement": true,
+      "passive_effects": [{ "type": "ability_score_bonus", "ability": "con", "value": 4 }]
+    },
+    {
+      "external_key": "official_srd_2014:wand-of-magic-missiles",
+      "source_slug": "wand-of-magic-missiles",
+      "slot_family": null,
+      "activation_mode": "attunement_only",
+      "requires_attunement": false,
+      "charges": { "max": 7 },
+      "recharge": { "cadence": "long_rest", "allow_when_unattuned": true }
+    }
+  ]
+}

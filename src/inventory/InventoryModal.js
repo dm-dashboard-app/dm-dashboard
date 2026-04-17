@@ -9,7 +9,13 @@ import {
   inventorySearchCatalog,
   inventorySetCurrency,
   inventoryUpsertItem,
+  inventoryEquipItem,
+  inventoryUnequipItem,
+  inventoryAttuneItem,
+  inventoryUnattuneItem,
+  inventoryRechargeItem,
 } from './inventoryClient';
+import { classifyInventoryRows, getItemMaxCharges, itemRequiresAttunement, resolveItemSlot } from '../utils/itemEffects';
 import { formatInventorySummary, isClearlyUsableInventoryItem, normalizeInventoryItemPayload } from '../utils/inventoryUtils';
 import { compactItemMeta, resolveItemDetailText } from '../utils/itemDetailText';
 
@@ -55,6 +61,8 @@ export default function InventoryModal({
   joinCode = null,
   senderProfileId = null,
   inventoryRefreshTick = 0,
+  attunementRestContext = false,
+  allowChargeRecharge = false,
 }) {
   const isDm = role === 'dm';
   const isPlayer = role === 'player';
@@ -76,6 +84,7 @@ export default function InventoryModal({
   const [showLog, setShowLog] = useState(false);
   const [snapshotLoadError, setSnapshotLoadError] = useState('');
   const [removeItemState, setRemoveItemState] = useState(DEFAULT_REMOVE_STATE);
+  const [activeTab, setActiveTab] = useState('items');
 
   const loadAll = useCallback(async () => {
     if (!playerProfileId) return;
@@ -132,11 +141,18 @@ export default function InventoryModal({
     };
   }, [open, canManageItems, catalogQuery, playerProfileId, role, joinCode]);
 
+  const classified = useMemo(() => classifyInventoryRows(snapshot.items || []), [snapshot.items]);
+
   const filteredItems = useMemo(() => {
+    const sourceRows = activeTab === 'equipment'
+      ? classified.equipmentRows
+      : activeTab === 'attunement'
+        ? classified.attunementRows
+        : classified.itemRows;
     const q = itemFilter.trim().toLowerCase();
-    if (!q) return snapshot.items || [];
-    return (snapshot.items || []).filter((item) => String(item.name || '').toLowerCase().includes(q));
-  }, [snapshot.items, itemFilter]);
+    if (!q) return sourceRows;
+    return (sourceRows || []).filter((item) => String(item.name || '').toLowerCase().includes(q));
+  }, [classified, activeTab, itemFilter]);
 
   async function saveCurrency(nextCurrency) {
     await inventorySetCurrency({
@@ -257,10 +273,53 @@ export default function InventoryModal({
   const removeQuantity = Math.max(1, Math.min(selectedItemQuantity, parseInt(removeItemState.quantity || 1, 10) || 1));
   const canUseOne = isClearlyUsableInventoryItem({ inventoryItem: selectedItem, catalogItem: selectedItemCatalog });
 
-  useEffect(() => {
-    if (!selectedItem) return;
-    setRemoveItemState(DEFAULT_REMOVE_STATE);
-  }, [selectedItem]);
+
+  async function handleEquipSelected(confirmReplace = false) {
+    if (!selectedItem?.id) return;
+    try {
+      await inventoryEquipItem({ playerProfileId, role, joinCode, itemRowId: selectedItem.id, confirmReplace });
+      await loadAll();
+    } catch (error) {
+      if (String(error?.message || '').toLowerCase().includes('occupied') && !confirmReplace) {
+        const ok = window.confirm('That slot is already occupied. Replace the currently equipped item?');
+        if (ok) await handleEquipSelected(true);
+      } else {
+        setSnapshotLoadError(error?.message || 'Unable to equip item right now.');
+      }
+    }
+  }
+
+  async function handleUnequipSelected() {
+    if (!selectedItem?.id) return;
+    await inventoryUnequipItem({ playerProfileId, role, joinCode, itemRowId: selectedItem.id });
+    await loadAll();
+  }
+
+  async function handleAttuneSelected() {
+    if (!selectedItem?.id) return;
+    await inventoryAttuneItem({ playerProfileId, role, joinCode, itemRowId: selectedItem.id, restContext: attunementRestContext });
+    await loadAll();
+  }
+
+  async function handleUnattuneSelected() {
+    if (!selectedItem?.id) return;
+    await inventoryUnattuneItem({ playerProfileId, role, joinCode, itemRowId: selectedItem.id });
+    await loadAll();
+  }
+
+  async function handleRechargeSelected() {
+    if (!selectedItem?.id) return;
+    const entered = window.prompt('Restored charges:', '1');
+    if (entered === null) return;
+    await inventoryRechargeItem({
+      playerProfileId,
+      role,
+      joinCode,
+      itemRowId: selectedItem.id,
+      restoredCharges: Number(entered) || 0,
+    });
+    await loadAll();
+  }
 
   if (!open) return null;
 
@@ -392,7 +451,12 @@ export default function InventoryModal({
 
         <div className="panel" style={{ padding: 8, marginTop: 8 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-            <div className="panel-title">Items</div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <button className={`btn ${activeTab === 'items' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setActiveTab('items')}>Items</button>
+              <button className={`btn ${activeTab === 'equipment' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setActiveTab('equipment')}>Equipment</button>
+              <button className={`btn ${activeTab === 'attunement' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setActiveTab('attunement')}>Attunement</button>
+            </div>
+            <div className="panel-title">Inventory</div>
           </div>
           <input className="form-input" placeholder="Search items" value={itemFilter} onChange={(event) => setItemFilter(event.target.value)} />
           <div style={{ marginTop: 8, display: 'grid', gap: 6, maxHeight: '40vh', overflowY: 'auto', paddingRight: 2 }}>
@@ -467,6 +531,24 @@ export default function InventoryModal({
                 <p className="world-shop-item-description">{selectedItem.notes || 'No additional details available for this custom item.'}</p>
               )}
               {selectedItem.notes && selectedItemCatalog ? <p className="world-shop-item-description" style={{ opacity: 0.9 }}>Inventory notes: {selectedItem.notes}</p> : null}
+
+
+              <div style={{ marginTop: 8, borderTop: '1px solid var(--border)', paddingTop: 8, display: 'grid', gap: 6 }}>
+                <button className="btn btn-ghost" onClick={selectedItem?.equipped ? handleUnequipSelected : () => handleEquipSelected(false)}>
+                  {selectedItem?.equipped ? 'Unequip' : `Equip${resolveItemSlot(selectedItemCatalog || selectedItem) ? ` (${resolveItemSlot(selectedItemCatalog || selectedItem)})` : ''}`}
+                </button>
+                {itemRequiresAttunement(selectedItemCatalog || selectedItem) ? (
+                  <>
+                    <button className="btn btn-ghost" onClick={selectedItem?.attuned ? handleUnattuneSelected : handleAttuneSelected} disabled={!selectedItem?.attuned && !attunementRestContext}>
+                      {selectedItem?.attuned ? 'Unattune' : 'Attune'}
+                    </button>
+                    {!attunementRestContext && !selectedItem?.attuned ? <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Attuning new items is limited to short/long rest.</div> : null}
+                  </>
+                ) : null}
+                {allowChargeRecharge && getItemMaxCharges(selectedItemCatalog || selectedItem) > 0 ? (
+                  <button className="btn btn-ghost" onClick={handleRechargeSelected}>Recharge Charges</button>
+                ) : null}
+              </div>
 
               <div style={{ marginTop: 8, borderTop: '1px solid var(--border)', paddingTop: 8, display: 'grid', gap: 6 }}>
                 <button className="btn btn-primary" onClick={() => setSelectedItemTransferOpen((curr) => !curr)}>

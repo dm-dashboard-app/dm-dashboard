@@ -346,3 +346,20 @@ Landed baseline includes:
 Preservation rule:
 
 - keep portrait handling app-managed and mobile-friendly; avoid returning to raw external-hosting-only workflow
+
+
+### 21) Equipment + attunement Phase 1 baseline
+
+Landed baseline includes:
+
+- item mechanics enrichment overlay artifact (`docs/data/item_mechanics_enrichment_2014.json` + `public/data/item_mechanics_enrichment_2014.json`) merged into the existing SRD/custom import lane
+- inventory item instance-state support for `equipped`, `attuned`, and durable `current_charges`
+- RPC-backed equip/unequip/attune/unattune/recharge actions
+- player inventory organization into Items / Equipment / Attunement lanes with rest-context attunement gating
+- short-rest response attunement selection capture and DM confirmation application
+- long-rest prep item/attunement + recharge access via inventory modal
+- first-pass item effect activation for AC/shield/spell save/spell attack/saving throw/ability bonus effects while preserving manual profile bonus fields
+
+Preservation rule:
+
+- keep manual profile bonus boxes and layer item automation on top rather than replacing those controls

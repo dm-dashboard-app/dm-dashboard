@@ -172,3 +172,47 @@ export async function inventoryDmAssignGeneratedShopItem({ receiverProfileId, it
     p_source_context: sourceContext,
   });
 }
+
+
+export async function inventoryEquipItem({ playerProfileId, role, joinCode, itemRowId, confirmReplace = false }) {
+  return rpc('inventory_equip_item', {
+    p_player_profile_id: playerProfileId,
+    p_item_row_id: itemRowId,
+    p_join_code: playerJoinCode(role, joinCode),
+    p_confirm_replace: !!confirmReplace,
+  });
+}
+
+export async function inventoryUnequipItem({ playerProfileId, role, joinCode, itemRowId }) {
+  return rpc('inventory_unequip_item', {
+    p_player_profile_id: playerProfileId,
+    p_item_row_id: itemRowId,
+    p_join_code: playerJoinCode(role, joinCode),
+  });
+}
+
+export async function inventoryAttuneItem({ playerProfileId, role, joinCode, itemRowId, restContext = false }) {
+  return rpc('inventory_attune_item', {
+    p_player_profile_id: playerProfileId,
+    p_item_row_id: itemRowId,
+    p_join_code: playerJoinCode(role, joinCode),
+    p_rest_context: !!restContext,
+  });
+}
+
+export async function inventoryUnattuneItem({ playerProfileId, role, joinCode, itemRowId }) {
+  return rpc('inventory_unattune_item', {
+    p_player_profile_id: playerProfileId,
+    p_item_row_id: itemRowId,
+    p_join_code: playerJoinCode(role, joinCode),
+  });
+}
+
+export async function inventoryRechargeItem({ playerProfileId, role, joinCode, itemRowId, restoredCharges = 0 }) {
+  return rpc('inventory_recharge_item', {
+    p_player_profile_id: playerProfileId,
+    p_item_row_id: itemRowId,
+    p_join_code: playerJoinCode(role, joinCode),
+    p_restored_charges: restoredCharges,
+  });
+}
