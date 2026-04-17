@@ -214,7 +214,7 @@ export default function ItemImportPanel({ onImportComplete = null }) {
         : (is5etoolsMode ? await load5etoolsSourceSplitRows() : await loadCustomSeedRows());
 
       const { data, error: importError } = await supabase.rpc('dm_import_item_master_rows', {
-        p_import_mode: isSrdMode ? 'srd_2014' : 'custom_seed_2014',
+        p_import_mode: isSrdMode ? 'srd_2014' : (is5etoolsMode ? 'five_tools_2014' : 'custom_seed_2014'),
         p_rows: rows,
       });
       if (importError) throw importError;

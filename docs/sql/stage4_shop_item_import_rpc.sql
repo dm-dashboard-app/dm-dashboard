@@ -18,12 +18,13 @@ declare
   v_mode text := lower(coalesce(p_import_mode, ''));
   v_source_type text;
   v_rows jsonb := coalesce(p_rows, '[]'::jsonb);
+  v_source_layer text;
 begin
   if auth.uid() is null then
     raise exception 'Authentication required.';
   end if;
 
-  if v_mode not in ('srd_2014', 'custom_seed_2014') then
+  if v_mode not in ('srd_2014', 'custom_seed_2014', 'five_tools_2014') then
     raise exception 'Unsupported import mode: %', p_import_mode;
   end if;
 
@@ -39,6 +40,12 @@ begin
     when v_mode = 'srd_2014' then 'official_srd_2014'
     else 'custom_homebrew_private_seed'
   end;
+
+  if v_mode = 'five_tools_2014' then
+    v_source_layer := '5etools_items_by_source_curated';
+  else
+    v_source_layer := null;
+  end if;
 
   with parsed as (
     select
@@ -79,6 +86,41 @@ begin
           and coalesce(price_source, '') <> 'degraded_fallback_untrusted'
         )
       )
+      and (
+        v_mode <> 'five_tools_2014'
+        or coalesce(metadata_json->>'source_layer', '') = '5etools_items_by_source_curated'
+      )
+  ), five_tools_payload_keys as (
+    select distinct external_key
+    from valid
+    where v_mode = 'five_tools_2014'
+      and external_key <> ''
+  ), five_tools_stale_demoted as (
+    update public.item_master as im
+    set
+      is_shop_eligible = false,
+      shop_bucket = 'catalog_noise_excluded',
+      metadata_json = jsonb_set(
+        coalesce(im.metadata_json, '{}'::jsonb),
+        '{catalog_admission}',
+        jsonb_build_object(
+          'policy_version', '5etools_shop_admission_v2',
+          'active_lane_decision', 'excluded_stale_after_reimport',
+          'reason', 'no_longer_present_in_active_generated_artifact',
+          'include_in_active_lane', false
+        ),
+        true
+      )
+    where v_mode = 'five_tools_2014'
+      and im.source_type = v_source_type
+      and coalesce(im.metadata_json->>'source_layer', '') = coalesce(v_source_layer, '')
+      and im.external_key not in (select external_key from five_tools_payload_keys)
+      and (
+        im.is_shop_eligible = true
+        or coalesce(im.shop_bucket, '') <> 'catalog_noise_excluded'
+        or coalesce(im.metadata_json->'catalog_admission'->>'active_lane_decision', '') = ''
+      )
+    returning im.external_key
   ), upserted as (
     insert into public.item_master (
       external_key,

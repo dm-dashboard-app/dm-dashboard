@@ -214,6 +214,7 @@ Landed baseline includes:
 - DM Manage → Imports now hosts explicit one-action import controls for baseline SRD refresh and custom-seed import
 - DM Manage → Imports also hosts the SRD spell import control so import admin actions are centralized in one tab
 - import writes now run through a server-mediated RPC (`dm_import_item_master_rows`) instead of requiring terminal-only scripts for normal operator workflow
+- 5etools imports now use a dedicated RPC mode (`five_tools_2014`) so re-import can demote stale legacy 5etools rows that are no longer in the generated active artifact, preventing excluded catalog-noise families from lingering as ordinary shop rows in runtime review data
 - SRD refresh now treats upstream detail fetch failures as transient run-time failures (reported in UI) and no longer persists new degraded fallback rows from those failures into `item_master`
 - import RPC now hard-rejects degraded SRD payload rows (`degraded_import`, `degraded_fallback`, `fallback_quarantine`, `degraded_fallback_untrusted`) so client regressions cannot persist untrusted degraded SRD rows
 - custom seed defaults are now explicit and safe: `docs/data/shop_custom_items_seed_2014.json` is intentionally empty-by-default, while prior sample rows live in `docs/data/shop_custom_items_seed_2014.example.json` as example/demo content
