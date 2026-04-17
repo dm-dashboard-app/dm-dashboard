@@ -1232,6 +1232,34 @@
   font-weight: 600;
 }
 
+
+.world-rewards-catalog-help {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.world-rewards-modal-assign-section {
+  margin-top: 4px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+  display: grid;
+  gap: 6px;
+}
+
+.world-rewards-modal-assign-title {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.world-rewards-modal-assign-grid {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 6px;
+}
 @media (max-width: 900px) {
   .world-shops-layout {
     grid-template-columns: 1fr;
@@ -1246,6 +1274,10 @@
 
   .item-mechanics-summary__row {
     grid-template-columns: minmax(88px, 112px) minmax(0, 1fr);
+  }
+
+  .world-rewards-modal-assign-grid {
+    grid-template-columns: 1fr;
   }
 }
 
