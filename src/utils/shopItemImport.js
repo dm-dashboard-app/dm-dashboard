@@ -179,6 +179,48 @@ function mapApiItem(detail = {}, kind = 'equipment') {
   };
 }
 
+
+async function loadMechanicsEnrichmentOverlay() {
+  const response = await fetch('/data/item_mechanics_enrichment_2014.json');
+  if (!response.ok) return new Map();
+  const parsed = await response.json();
+  const items = Array.isArray(parsed?.items) ? parsed.items : [];
+  const map = new Map();
+  items.forEach((item) => {
+    const externalKey = String(item?.external_key || '').trim();
+    const sourceSlug = String(item?.source_slug || '').trim();
+    if (externalKey) map.set(externalKey, item);
+    if (sourceSlug) map.set(`${IMPORT_SOURCE_TYPE}:${sourceSlug}`, item);
+  });
+  return map;
+}
+
+function applyMechanicsEnrichment(row = {}, enrichmentMap = new Map()) {
+  const externalKey = String(row.external_key || '').trim();
+  const sourceSlug = String(row.source_slug || '').trim();
+  const overlay = enrichmentMap.get(externalKey) || enrichmentMap.get(`${IMPORT_SOURCE_TYPE}:${sourceSlug}`);
+  if (!overlay) return row;
+
+  return {
+    ...row,
+    requires_attunement: typeof overlay.requires_attunement === 'boolean' ? overlay.requires_attunement : row.requires_attunement,
+    metadata_json: {
+      ...(row.metadata_json || {}),
+      mechanics: {
+        slot_family: overlay.slot_family || null,
+        activation_mode: overlay.activation_mode || 'equip',
+        requires_attunement: typeof overlay.requires_attunement === 'boolean' ? overlay.requires_attunement : row.requires_attunement,
+        armor: overlay.armor || null,
+        passive_effects: Array.isArray(overlay.passive_effects) ? overlay.passive_effects : [],
+        charges: overlay.charges || null,
+        recharge: overlay.recharge || null,
+      },
+      mechanics_enrichment_source: 'repo_item_mechanics_enrichment_2014',
+      mechanics_support: overlay.mechanics_support || 'phase1_supported',
+    },
+  };
+}
+
 function applyPricingOverlay(row, overlayByName) {
   const importQuality = String(row?.metadata_json?.import_quality || '').toLowerCase();
   const isDegraded = row?.metadata_json?.degraded_import === true
@@ -353,6 +395,7 @@ function applyDegradedRepairOverlay(row = {}, overlay = {}) {
 
 export async function buildSrdImportRows(onProgress = null) {
   const overlayByName = await loadPricingOverlay();
+  const mechanicsEnrichment = await loadMechanicsEnrichmentOverlay();
   const [equipmentResult, magicResult] = await Promise.all([
     fetchAllDetails('/equipment', 'equipment', onProgress),
     fetchAllDetails('/magic-items', 'magic', onProgress),
@@ -363,7 +406,7 @@ export async function buildSrdImportRows(onProgress = null) {
   const imported = [
     ...equipmentDetails.map(detail => mapApiItem(detail, 'equipment')),
     ...magicDetails.map(detail => mapApiItem(detail, 'magic')),
-  ].map(item => applyPricingOverlay(item, overlayByName));
+  ].map(item => applyMechanicsEnrichment(applyPricingOverlay(item, overlayByName), mechanicsEnrichment));
 
   const rows = Array.from(new Map(imported.map(item => [item.external_key, item])).values());
   const fetchFailures = [...(equipmentResult.fetchFailures || []), ...(magicResult.fetchFailures || [])];
@@ -381,7 +424,8 @@ export async function loadCustomSeedRows() {
   if (!response.ok) throw new Error('Failed to load custom seed JSON.');
   const parsed = await response.json();
   const items = Array.isArray(parsed?.items) ? parsed.items : [];
-  return items;
+  const mechanicsEnrichment = await loadMechanicsEnrichmentOverlay();
+  return items.map((row) => applyMechanicsEnrichment(row, mechanicsEnrichment));
 }
 
 export async function loadSrdDegradedReportRows() {

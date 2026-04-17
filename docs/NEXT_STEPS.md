@@ -218,3 +218,9 @@ This roadmap is healthy when a new chat can quickly see:
 - intentionally parked/deferred work
 - longer-range optional ideas that are not current implementation scope
 - clear separation between landed baseline and true open roadmap work
+
+
+### Equipment enrichment follow-up (post-Phase-1 truthfulness)
+
+- Expand mechanics enrichment coverage from current `phase1_supported` curated set toward broader SRD item coverage without overclaiming unsupported rows.
+- Keep unsupported/non-enriched items explicitly manual until represented with truthful structured mechanics.

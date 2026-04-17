@@ -1,0 +1,383 @@
+{
+  "version": 2,
+  "notes": "Phase 1 curated mechanics coverage only. Items not listed remain unsupported/manual.",
+  "items": [
+    {
+      "external_key": "official_srd_2014:padded-armor",
+      "source_slug": "padded-armor",
+      "slot_family": "armor",
+      "activation_mode": "equip",
+      "requires_attunement": false,
+      "armor": {
+        "base_ac": 11,
+        "add_dex": true,
+        "dex_cap": null
+      },
+      "passive_effects": [],
+      "mechanics_support": "phase1_supported"
+    },
+    {
+      "external_key": "official_srd_2014:leather-armor",
+      "source_slug": "leather-armor",
+      "slot_family": "armor",
+      "activation_mode": "equip",
+      "requires_attunement": false,
+      "armor": {
+        "base_ac": 11,
+        "add_dex": true,
+        "dex_cap": null
+      },
+      "passive_effects": [],
+      "mechanics_support": "phase1_supported"
+    },
+    {
+      "external_key": "official_srd_2014:studded-leather-armor",
+      "source_slug": "studded-leather-armor",
+      "slot_family": "armor",
+      "activation_mode": "equip",
+      "requires_attunement": false,
+      "armor": {
+        "base_ac": 12,
+        "add_dex": true,
+        "dex_cap": null
+      },
+      "passive_effects": [],
+      "mechanics_support": "phase1_supported"
+    },
+    {
+      "external_key": "official_srd_2014:hide-armor",
+      "source_slug": "hide-armor",
+      "slot_family": "armor",
+      "activation_mode": "equip",
+      "requires_attunement": false,
+      "armor": {
+        "base_ac": 12,
+        "add_dex": true,
+        "dex_cap": 2
+      },
+      "passive_effects": [],
+      "mechanics_support": "phase1_supported"
+    },
+    {
+      "external_key": "official_srd_2014:chain-shirt",
+      "source_slug": "chain-shirt",
+      "slot_family": "armor",
+      "activation_mode": "equip",
+      "requires_attunement": false,
+      "armor": {
+        "base_ac": 13,
+        "add_dex": true,
+        "dex_cap": 2
+      },
+      "passive_effects": [],
+      "mechanics_support": "phase1_supported"
+    },
+    {
+      "external_key": "official_srd_2014:scale-mail",
+      "source_slug": "scale-mail",
+      "slot_family": "armor",
+      "activation_mode": "equip",
+      "requires_attunement": false,
+      "armor": {
+        "base_ac": 14,
+        "add_dex": true,
+        "dex_cap": 2
+      },
+      "passive_effects": [],
+      "mechanics_support": "phase1_supported"
+    },
+    {
+      "external_key": "official_srd_2014:breastplate",
+      "source_slug": "breastplate",
+      "slot_family": "armor",
+      "activation_mode": "equip",
+      "requires_attunement": false,
+      "armor": {
+        "base_ac": 14,
+        "add_dex": true,
+        "dex_cap": 2
+      },
+      "passive_effects": [],
+      "mechanics_support": "phase1_supported"
+    },
+    {
+      "external_key": "official_srd_2014:half-plate-armor",
+      "source_slug": "half-plate-armor",
+      "slot_family": "armor",
+      "activation_mode": "equip",
+      "requires_attunement": false,
+      "armor": {
+        "base_ac": 15,
+        "add_dex": true,
+        "dex_cap": 2
+      },
+      "passive_effects": [],
+      "mechanics_support": "phase1_supported"
+    },
+    {
+      "external_key": "official_srd_2014:ring-mail",
+      "source_slug": "ring-mail",
+      "slot_family": "armor",
+      "activation_mode": "equip",
+      "requires_attunement": false,
+      "armor": {
+        "base_ac": 14,
+        "add_dex": false,
+        "dex_cap": null
+      },
+      "passive_effects": [],
+      "mechanics_support": "phase1_supported"
+    },
+    {
+      "external_key": "official_srd_2014:chain-mail",
+      "source_slug": "chain-mail",
+      "slot_family": "armor",
+      "activation_mode": "equip",
+      "requires_attunement": false,
+      "armor": {
+        "base_ac": 16,
+        "add_dex": false,
+        "dex_cap": null
+      },
+      "passive_effects": [],
+      "mechanics_support": "phase1_supported"
+    },
+    {
+      "external_key": "official_srd_2014:splint-armor",
+      "source_slug": "splint-armor",
+      "slot_family": "armor",
+      "activation_mode": "equip",
+      "requires_attunement": false,
+      "armor": {
+        "base_ac": 17,
+        "add_dex": false,
+        "dex_cap": null
+      },
+      "passive_effects": [],
+      "mechanics_support": "phase1_supported"
+    },
+    {
+      "external_key": "official_srd_2014:plate-armor",
+      "source_slug": "plate-armor",
+      "slot_family": "armor",
+      "activation_mode": "equip",
+      "requires_attunement": false,
+      "armor": {
+        "base_ac": 18,
+        "add_dex": false,
+        "dex_cap": null
+      },
+      "passive_effects": [],
+      "mechanics_support": "phase1_supported"
+    },
+    {
+      "external_key": "official_srd_2014:shield",
+      "source_slug": "shield",
+      "slot_family": "shield",
+      "activation_mode": "equip",
+      "requires_attunement": false,
+      "passive_effects": [
+        {
+          "type": "shield_ac_bonus",
+          "value": 2
+        }
+      ],
+      "mechanics_support": "phase1_supported"
+    },
+    {
+      "external_key": "official_srd_2014:ring-of-protection",
+      "source_slug": "ring-of-protection",
+      "slot_family": "ring",
+      "activation_mode": "equip",
+      "requires_attunement": true,
+      "passive_effects": [
+        {
+          "type": "flat_bonus",
+          "target": "ac",
+          "value": 1
+        },
+        {
+          "type": "all_saves_bonus",
+          "value": 1
+        }
+      ],
+      "mechanics_support": "phase1_supported"
+    },
+    {
+      "external_key": "official_srd_2014:cloak-of-protection",
+      "source_slug": "cloak-of-protection",
+      "slot_family": "neck",
+      "activation_mode": "equip",
+      "requires_attunement": true,
+      "passive_effects": [
+        {
+          "type": "flat_bonus",
+          "target": "ac",
+          "value": 1
+        },
+        {
+          "type": "all_saves_bonus",
+          "value": 1
+        }
+      ],
+      "mechanics_support": "phase1_supported"
+    },
+    {
+      "external_key": "official_srd_2014:wand-of-the-war-mage-1",
+      "source_slug": "wand-of-the-war-mage-1",
+      "slot_family": "main_hand",
+      "activation_mode": "equip",
+      "requires_attunement": true,
+      "passive_effects": [
+        {
+          "type": "spell_attack_bonus",
+          "value": 1
+        }
+      ],
+      "mechanics_support": "phase1_supported"
+    },
+    {
+      "external_key": "official_srd_2014:wand-of-the-war-mage-2",
+      "source_slug": "wand-of-the-war-mage-2",
+      "slot_family": "main_hand",
+      "activation_mode": "equip",
+      "requires_attunement": true,
+      "passive_effects": [
+        {
+          "type": "spell_attack_bonus",
+          "value": 2
+        }
+      ],
+      "mechanics_support": "phase1_supported"
+    },
+    {
+      "external_key": "official_srd_2014:wand-of-the-war-mage-3",
+      "source_slug": "wand-of-the-war-mage-3",
+      "slot_family": "main_hand",
+      "activation_mode": "equip",
+      "requires_attunement": true,
+      "passive_effects": [
+        {
+          "type": "spell_attack_bonus",
+          "value": 3
+        }
+      ],
+      "mechanics_support": "phase1_supported"
+    },
+    {
+      "external_key": "official_srd_2014:rod-of-the-pact-keeper-1",
+      "source_slug": "rod-of-the-pact-keeper-1",
+      "slot_family": "main_hand",
+      "activation_mode": "equip",
+      "requires_attunement": true,
+      "passive_effects": [
+        {
+          "type": "spell_attack_bonus",
+          "value": 1
+        },
+        {
+          "type": "spell_save_dc_bonus",
+          "value": 1
+        }
+      ],
+      "mechanics_support": "phase1_supported"
+    },
+    {
+      "external_key": "official_srd_2014:rod-of-the-pact-keeper-2",
+      "source_slug": "rod-of-the-pact-keeper-2",
+      "slot_family": "main_hand",
+      "activation_mode": "equip",
+      "requires_attunement": true,
+      "passive_effects": [
+        {
+          "type": "spell_attack_bonus",
+          "value": 2
+        },
+        {
+          "type": "spell_save_dc_bonus",
+          "value": 2
+        }
+      ],
+      "mechanics_support": "phase1_supported"
+    },
+    {
+      "external_key": "official_srd_2014:rod-of-the-pact-keeper-3",
+      "source_slug": "rod-of-the-pact-keeper-3",
+      "slot_family": "main_hand",
+      "activation_mode": "equip",
+      "requires_attunement": true,
+      "passive_effects": [
+        {
+          "type": "spell_attack_bonus",
+          "value": 3
+        },
+        {
+          "type": "spell_save_dc_bonus",
+          "value": 3
+        }
+      ],
+      "mechanics_support": "phase1_supported"
+    },
+    {
+      "external_key": "official_srd_2014:amulet-of-health",
+      "source_slug": "amulet-of-health",
+      "slot_family": "neck",
+      "activation_mode": "equip",
+      "requires_attunement": true,
+      "passive_effects": [
+        {
+          "type": "ability_score_set_min",
+          "ability": "con",
+          "min": 19
+        }
+      ],
+      "mechanics_support": "phase1_supported"
+    },
+    {
+      "external_key": "official_srd_2014:ioun-stone-of-mastery",
+      "source_slug": "ioun-stone-of-mastery",
+      "slot_family": null,
+      "activation_mode": "attunement_only",
+      "requires_attunement": true,
+      "passive_effects": [
+        {
+          "type": "all_saves_bonus",
+          "value": 1
+        }
+      ],
+      "mechanics_support": "phase1_supported"
+    },
+    {
+      "external_key": "official_srd_2014:wand-of-magic-missiles",
+      "source_slug": "wand-of-magic-missiles",
+      "slot_family": null,
+      "activation_mode": "attunement_only",
+      "requires_attunement": false,
+      "charges": {
+        "max": 7
+      },
+      "recharge": {
+        "cadence": "long_rest",
+        "allow_when_unattuned": true
+      },
+      "passive_effects": [],
+      "mechanics_support": "phase1_supported"
+    },
+    {
+      "external_key": "official_srd_2014:staff-of-healing",
+      "source_slug": "staff-of-healing",
+      "slot_family": "main_hand",
+      "activation_mode": "equip",
+      "requires_attunement": true,
+      "charges": {
+        "max": 10
+      },
+      "recharge": {
+        "cadence": "long_rest",
+        "allow_when_unattuned": false
+      },
+      "passive_effects": [],
+      "mechanics_support": "phase1_supported"
+    }
+  ]
+}

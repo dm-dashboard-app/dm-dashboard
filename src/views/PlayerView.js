@@ -224,7 +224,7 @@ export default function PlayerView() {
 
       <div className="main-content">
         {showConPanel && pendingConDc !== null && <PlayerConCheckLog encounterId={encounterId} playerName={playerName} pendingDc={pendingConDc} onPass={handleConPass} onFail={handleConFail} />}
-        {topTab === 'char' && charTab === 'sheet' && combatant && state && <PlayerCard combatant={combatant} state={state} role="player" isEditMode={encounter?.player_edit_mode} encounterId={encounterId} onUpdate={refreshAll} />}
+        {topTab === 'char' && charTab === 'sheet' && combatant && state && <PlayerCard combatant={combatant} state={state} role="player" isEditMode={encounter?.player_edit_mode} encounterId={encounterId} onUpdate={refreshAll} attunementRestContext={shortRestActive || prepActive} longRestRechargeContext={prepActive} />}
         {topTab === 'char' && charTab === 'skills' && state?.profiles_players && <SkillsModal variant="panel" profile={state.profiles_players} title="Skills" />}
         {topTab === 'char' && charTab === 'spells' && state?.profiles_players && <SpellWorkflowPanel profile={state.profiles_players} state={state} encounterId={encounterId} onUpdate={refreshAll} role="player" mode="runtime" />}
         {topTab === 'combat' && (

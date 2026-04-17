@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../supabaseClient';
+import { inventoryGetSnapshot } from '../inventory/inventoryClient';
 import { getAbilityModifier, readNumberField } from '../utils/classResources';
 import {
   getSongOfRestDie,
@@ -22,6 +23,38 @@ export default function ShortRestResponsePanel({ open, encounterId, state, playe
     spendBySize: initialHealing.spendBySize || {},
   }));
   const [submitting, setSubmitting] = useState(false);
+  const [snapshotItems, setSnapshotItems] = useState([]);
+  const [selectedAttuneIds, setSelectedAttuneIds] = useState([]);
+
+
+  useEffect(() => {
+    let active = true;
+    async function loadInventory() {
+      if (!open || !state?.player_profile_id) return;
+      try {
+        const snapshot = await inventoryGetSnapshot({
+          playerProfileId: state.player_profile_id,
+          role: 'player',
+          joinCode: localStorage.getItem('player_join_code'),
+        });
+        if (!active) return;
+        const items = snapshot?.items || [];
+        setSnapshotItems(items);
+        setSelectedAttuneIds(items.filter((row) => row.attuned).map((row) => row.id));
+      } catch (_err) {
+        if (active) {
+          setSnapshotItems([]);
+          setSelectedAttuneIds([]);
+        }
+      }
+    }
+    loadInventory();
+    return () => {
+      active = false;
+    };
+  }, [open, state?.id, state?.player_profile_id]);
+
+  const attunableItems = useMemo(() => (snapshotItems || []).filter((row) => row.requires_attunement), [snapshotItems]);
 
   const validation = useMemo(() => validateShortRestResponse({ input: draft, state, profile, isSongOfRestOwner: isSongOwner }), [draft, state, profile, isSongOwner]);
   const healing = validation.response.sections.healing;
@@ -47,7 +80,7 @@ export default function ShortRestResponsePanel({ open, encounterId, state, playe
         detail: JSON.stringify({
           player_state_id: state.id,
           player_profile_id: state.player_profile_id,
-          response: validation.response,
+          response: { ...validation.response, sections: { ...(validation.response.sections || {}), attunement: { item_ids: selectedAttuneIds } } },
         }),
       });
       onSubmitted?.(validation.response);
@@ -98,6 +131,33 @@ export default function ShortRestResponsePanel({ open, encounterId, state, playe
                   <label className="rest-modal-field"><span className="rest-modal-label">Song of Rest shared total ({songDie})</span><input className="rest-modal-input" type="number" min={0} inputMode="numeric" value={draft.songOfRestTotal} onChange={(e) => updateField('songOfRestTotal', e.target.value)} /></label>
                 </div>
               )}
+
+
+              <div style={{ marginTop: 10, borderTop: '1px solid var(--border)', paddingTop: 8 }}>
+                <div className="rest-modal-label" style={{ marginBottom: 4 }}>Attunement (short rest)</div>
+                {attunableItems.length === 0 ? (
+                  <div className="rest-modal-player-meta">No attunement-eligible items in your inventory.</div>
+                ) : (
+                  <div style={{ display: 'grid', gap: 4 }}>
+                    {attunableItems.map((item) => {
+                      const checked = selectedAttuneIds.includes(item.id);
+                      return (
+                        <label key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => {
+                              setSelectedAttuneIds((curr) => checked ? curr.filter((id) => id !== item.id) : [...curr, item.id].slice(0, 3));
+                            }}
+                          />
+                          <span>{item.name}</span>
+                        </label>
+                      );
+                    })}
+                    <div className="rest-modal-player-meta">Selected: {selectedAttuneIds.length} / 3</div>
+                  </div>
+                )}
+              </div>
 
               {validation.errors.map(error => <div key={error} style={{ fontSize: 11, color: 'var(--accent-red)', marginTop: 6 }}>{error}</div>)}
 

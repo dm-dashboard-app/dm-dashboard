@@ -73,6 +73,26 @@ export default function ShortRestModal({
           spendBySize: row.spendBySize,
         });
         await supabase.from('player_encounter_state').update(patch).eq('id', row.state.id);
+
+        const attuneIds = row.response?.sections?.attunement?.item_ids || [];
+        if (Array.isArray(attuneIds)) {
+          const { data: inventoryRows } = await supabase
+            .from('player_inventory_items')
+            .select('id, attuned')
+            .eq('player_profile_id', row.state.player_profile_id);
+          const currentRows = inventoryRows || [];
+          for (const entry of currentRows) {
+            const shouldBeAttuned = attuneIds.includes(entry.id);
+            if (shouldBeAttuned === !!entry.attuned) continue;
+            await supabase.rpc(shouldBeAttuned ? 'inventory_attune_item' : 'inventory_unattune_item', {
+              p_player_profile_id: row.state.player_profile_id,
+              p_item_row_id: entry.id,
+              p_join_code: null,
+              p_rest_context: shouldBeAttuned,
+            });
+          }
+        }
+
         const fromHp = readNumberField(row.state, ['current_hp'], 0);
         const toHp = patch.current_hp ?? fromHp;
         const spends = spentSummary(row.spendBySize);
