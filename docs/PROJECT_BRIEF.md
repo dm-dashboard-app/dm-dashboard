@@ -1,6 +1,6 @@
 # DM Dashboard — Project Brief
 
-Last updated: April 16, 2026 (short-rest player visibility + DM cancel reliability fix landed)
+Last updated: April 17, 2026 (inventory mobile + AC/profile + item mechanics detail follow-up landed)
 
 Purpose: This document is the current-state/background brief for DM Dashboard. It describes what the app now is, what is materially landed, and what principles future work must preserve.
 
@@ -360,6 +360,10 @@ Landed baseline includes:
 - short-rest response attunement selection capture and DM confirmation application
 - long-rest prep now includes a first-class Attunement + Recharge section in the long-rest flow (not inventory-modal side detour)
 - shared derived-player-stats helper path now applies supported item effects (armor formula, AC flat/shield, all-saves/specific saves, spell attack/DC bonuses, ability-score floor/bonus) while preserving manual profile bonus fields
+- inventory modal mobile polish follow-up: Items / Equipment / Attunement tabs now sit in one balanced row with search-first scanning (wasteful heading/explanatory copy removed)
+- short-rest dock action label now fits cleanly on mobile while preserving active-state clarity
+- profile Derived Combat Maths now again exposes AC with a dedicated custom AC modifier field
+- item detail modals (inventory/world/rewards/locale shop) now include a distinct Mechanics & Stat Bonuses block so supported mechanics are testable independent of prose description
 
 Preservation rule:
 

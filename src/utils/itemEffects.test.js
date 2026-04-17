@@ -22,6 +22,17 @@ describe('itemEffects', () => {
     expect(isItemActive({ ...gated, attuned: true })).toBe(true);
   });
 
+  test('equipping an already-attuned gated item preserves active state', () => {
+    const itemRow = item({
+      equipped: false,
+      attuned: true,
+      requires_attunement: true,
+      metadata_json: { mechanics_support: 'phase1_supported', mechanics: { activation_mode: 'equip', passive_effects: [] } },
+    });
+    expect(isItemActive(itemRow)).toBe(false);
+    expect(isItemActive({ ...itemRow, equipped: true })).toBe(true);
+  });
+
   test('applies armor, shield, and spell bonuses from active item effects', () => {
     const result = applyItemEffectsToProfile(
       { ac: 10, ability_dex: 14 },

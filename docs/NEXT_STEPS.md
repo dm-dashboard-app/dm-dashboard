@@ -34,6 +34,8 @@ Current landed baseline to preserve (already true on `main`):
 
 Phase 1 work now being scoped in detail (not yet landed):
 
+Recent landing note (April 17, 2026 follow-up polish/fix batch): mobile inventory tab density, short-rest active-button fit, AC/custom-AC profile visibility, and structured item mechanics detail display were tightened without changing the Phase 1 architecture boundaries.
+
 #### A) Durable item trail and source-of-truth model (required)
 
 - Preserve this durable provenance chain end-to-end: **shop/locales/world shop -> owned inventory item -> equipped/attuned state -> stat influence**.

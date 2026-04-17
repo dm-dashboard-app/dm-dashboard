@@ -3,6 +3,14 @@ function textValue(value) {
   return normalized || null;
 }
 
+function titleCase(value) {
+  return String(value || '')
+    .split(/[_\s-]+/)
+    .filter(Boolean)
+    .map((entry) => entry.charAt(0).toUpperCase() + entry.slice(1))
+    .join(' ');
+}
+
 function listFromMetadata(value) {
   if (!Array.isArray(value)) return [];
   return value
@@ -67,4 +75,71 @@ export function compactItemMeta(item = {}) {
     textValue(item.subcategory),
     textValue(item.rarity),
   ].filter(Boolean);
+}
+
+export function getItemMechanicsSummary(item = {}) {
+  const metadata = item?.metadata_json || {};
+  const mechanics = metadata.mechanics || {};
+  const support = String(metadata.mechanics_support || 'unsupported');
+  const lines = [];
+
+  if (support !== 'unsupported') {
+    lines.push({ label: 'Support', value: titleCase(support) });
+  }
+
+  if (typeof mechanics.requires_attunement === 'boolean' || typeof item?.requires_attunement === 'boolean') {
+    const requiresAttunement = typeof mechanics.requires_attunement === 'boolean'
+      ? mechanics.requires_attunement
+      : !!item.requires_attunement;
+    lines.push({ label: 'Requires Attunement', value: requiresAttunement ? 'Yes' : 'No' });
+  }
+
+  if (mechanics.slot_family) {
+    lines.push({ label: 'Slot', value: titleCase(mechanics.slot_family) });
+  }
+
+  if (mechanics.activation_mode) {
+    lines.push({ label: 'Activation', value: titleCase(mechanics.activation_mode) });
+  }
+
+  const armor = mechanics.armor || null;
+  if (armor && typeof armor.base_ac !== 'undefined') {
+    const parts = [`Base AC ${Number(armor.base_ac) || 0}`];
+    if (armor.add_dex === false) parts.push('No DEX');
+    else if (typeof armor.dex_cap === 'number') parts.push(`DEX cap ${armor.dex_cap}`);
+    else parts.push('Add DEX');
+    lines.push({ label: 'Armor Formula', value: parts.join(' • ') });
+  }
+
+  const passiveEffects = Array.isArray(mechanics.passive_effects) ? mechanics.passive_effects : [];
+  passiveEffects.forEach((effect) => {
+    const type = String(effect?.type || '').toLowerCase();
+    const value = Number(effect?.value) || 0;
+    if (!type) return;
+    if (type === 'ac_flat') lines.push({ label: 'AC Bonus', value: `${value >= 0 ? '+' : ''}${value}` });
+    else if (type === 'shield_ac_bonus') lines.push({ label: 'Shield AC Bonus', value: `${value >= 0 ? '+' : ''}${value}` });
+    else if (type === 'spell_attack_bonus') lines.push({ label: 'Spell Attack Bonus', value: `${value >= 0 ? '+' : ''}${value}` });
+    else if (type === 'spell_save_dc_bonus') lines.push({ label: 'Spell Save DC Bonus', value: `${value >= 0 ? '+' : ''}${value}` });
+    else if (type === 'all_saves_bonus') lines.push({ label: 'Saving Throws', value: `${value >= 0 ? '+' : ''}${value} to all saves` });
+    else if (type === 'saving_throw_bonus') lines.push({ label: 'Saving Throws', value: `${titleCase(effect?.save || 'save')} ${value >= 0 ? '+' : ''}${value}` });
+    else if (type === 'ability_score_bonus') lines.push({ label: 'Ability Bonus', value: `${String(effect?.ability || '').toUpperCase()} ${value >= 0 ? '+' : ''}${value}` });
+    else if (type === 'ability_score_set_min') lines.push({ label: 'Ability Floor', value: `Set ${String(effect?.ability || '').toUpperCase()} minimum ${Number(effect?.min) || 0}` });
+    else if (type === 'flat_bonus') {
+      const target = String(effect?.target || '').toLowerCase();
+      if (target === 'ac') lines.push({ label: 'AC Bonus', value: `${value >= 0 ? '+' : ''}${value}` });
+      if (target === 'spell_attack') lines.push({ label: 'Spell Attack Bonus', value: `${value >= 0 ? '+' : ''}${value}` });
+      if (target === 'spell_save_dc') lines.push({ label: 'Spell Save DC Bonus', value: `${value >= 0 ? '+' : ''}${value}` });
+    }
+  });
+
+  const charges = mechanics.charges || null;
+  if (charges && typeof charges.max !== 'undefined') {
+    lines.push({ label: 'Charges', value: `Max ${Number(charges.max) || 0}` });
+    if (charges.recharge) lines.push({ label: 'Recharge', value: titleCase(charges.recharge) });
+    if (typeof charges.allow_when_unattuned === 'boolean') {
+      lines.push({ label: 'Recharge While Unattuned', value: charges.allow_when_unattuned ? 'Yes' : 'No' });
+    }
+  }
+
+  return lines;
 }

@@ -4,6 +4,7 @@ import {
   getFinalArmorClass,
   getFinalSpellAttackBonus,
   getFinalSpellSaveDC,
+  readNumberField,
   getSavingThrowTotals,
 } from './classResources';
 import { applyItemEffectsToProfile } from './itemEffects';
@@ -11,6 +12,8 @@ import { applyItemEffectsToProfile } from './itemEffects';
 export function buildDerivedPlayerStats({ profile = {}, state = {}, inventoryItems = [] } = {}) {
   const baseAbilityScores = getAbilityScores(profile || {});
   const itemEffects = applyItemEffectsToProfile(profile || {}, inventoryItems || []);
+  const baseProfileAc = readNumberField(profile || {}, ['ac'], 10);
+  const itemAcDelta = (itemEffects.acFromItems || baseProfileAc) - baseProfileAc;
   const abilityScores = Object.fromEntries(
     Object.entries(baseAbilityScores).map(([key, value]) => [key, value + (itemEffects.abilityBonus?.[key] || 0)]),
   );
@@ -37,7 +40,7 @@ export function buildDerivedPlayerStats({ profile = {}, state = {}, inventoryIte
     saveTotals,
     spellSaveDc: (profile?.spell_save_dc || getFinalSpellSaveDC(profile || {})) + (itemEffects.spellSaveDcBonus || 0),
     spellAttackBonus: (profile?.spell_attack_bonus || getFinalSpellAttackBonus(profile || {})) + (itemEffects.spellAttackBonus || 0),
-    armorClass: Math.max(getFinalArmorClass(profile || {}, state || {}), itemEffects.acFromItems || 0),
+    armorClass: getFinalArmorClass(profile || {}, state || {}) + itemAcDelta,
     itemEffects,
   };
 }

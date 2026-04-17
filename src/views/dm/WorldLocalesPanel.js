@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import { generateShopRows } from '../../utils/shopGenerator';
 import { inventoryDmLocaleShopAssignItem } from '../../inventory/inventoryClient';
-import { resolveItemDetailText } from '../../utils/itemDetailText';
+import { getItemMechanicsSummary, resolveItemDetailText } from '../../utils/itemDetailText';
 
 const LOCALE_TYPES = ['City', 'Town', 'Village', 'District', 'Outpost', 'Port', 'Stronghold', 'Hamlet'];
 const SHOP_TYPES = [
@@ -173,6 +173,7 @@ function LocaleShopItemModal({ item, players = [], onClose, onAssignmentSuccess 
 
   if (!item) return null;
   const detail = resolveItemDetailText(item);
+  const mechanicsSummary = getItemMechanicsSummary(item);
 
   async function handleAssignToPlayer() {
     if (!receiverProfileId) return;
@@ -220,6 +221,19 @@ function LocaleShopItemModal({ item, players = [], onClose, onAssignmentSuccess 
           <span>DC {item.barter_dc}</span>
         </div>
         {detail.mode === 'structured_fallback' ? <pre className="world-card-body">{detail.text}</pre> : <div className="world-card-body" style={{ whiteSpace: 'pre-wrap' }}>{detail.text}</div>}
+        {mechanicsSummary.length > 0 ? (
+          <div className="item-mechanics-summary">
+            <div className="item-mechanics-summary__title">Mechanics &amp; Stat Bonuses</div>
+            <div className="item-mechanics-summary__rows">
+              {mechanicsSummary.map((entry, index) => (
+                <div key={`${entry.label}-${entry.value}-${index}`} className="item-mechanics-summary__row">
+                  <span className="item-mechanics-summary__label">{entry.label}</span>
+                  <span className="item-mechanics-summary__value">{entry.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         <div className="world-card" style={{ padding: 8 }}>
           <div className="world-card-head"><strong>Assign / Sell to Player</strong></div>

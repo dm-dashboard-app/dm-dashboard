@@ -10,6 +10,7 @@ describe('buildDerivedPlayerStats', () => {
         spell_save_bonus: 1,
         spell_attack_bonus_mod: 1,
         ac: 12,
+        ac_bonus: 2,
       },
       state: {},
       inventoryItems: [
@@ -23,6 +24,7 @@ describe('buildDerivedPlayerStats', () => {
               passive_effects: [
                 { type: 'spell_save_dc_bonus', value: 1 },
                 { type: 'spell_attack_bonus', value: 1 },
+                { type: 'ac_flat', value: 1 },
               ],
             },
           },
@@ -32,5 +34,6 @@ describe('buildDerivedPlayerStats', () => {
 
     expect(result.spellSaveDc).toBeGreaterThan(0);
     expect(result.spellAttackBonus).toBeGreaterThan(0);
+    expect(result.armorClass).toBe(15);
   });
 });
