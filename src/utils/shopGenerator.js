@@ -38,6 +38,20 @@ const SHOP_KEYWORDS = {
 const APOTHECARY_ALLOWED_TERMS = ['potion', 'poison', 'healing', 'herbal', 'alchem', 'antitoxin', 'healer', 'vial', 'flask'];
 const BLACKSMITH_ALLOWED_TERMS = ['weapon', 'armor', 'shield', 'ammo', 'smith', 'metal', 'martial'];
 const GENERAL_STORE_BLOCKLIST = ['vehicle', 'mount', 'ship', 'siege'];
+const NON_MAGIC_SHOP_SURFACES = new Set(['general_store', 'blacksmith', 'apothecary']);
+const MANUAL_REVIEW_BUCKETS = new Set(['manual', 'manual_magic_review', 'manual_unpriced', 'unpriced', 'gamechanging', 'special', 'artifact', 'catalog_noise_excluded', 'hazardous_non_default']);
+const SHOP_SURFACE_ALLOWED_BUCKETS = {
+  general_store: new Set(['mundane']),
+  blacksmith: new Set(['mundane']),
+  apothecary: new Set(['mundane', 'consumable', 'healing']),
+  magic_shop: new Set(['consumable', 'utility', 'noncombat', 'healing', 'combat', 'magic', 'manual_magic_review']),
+};
+const MAGIC_SHOP_AFFLUENCE_GUARDRAILS = {
+  poor: { allowedRarities: new Set(['common', 'uncommon']), maxPriceGp: 1200, allowCombat: false },
+  modest: { allowedRarities: new Set(['common', 'uncommon', 'rare']), maxPriceGp: 10000, allowCombat: true },
+  middle_class: { allowedRarities: new Set(['common', 'uncommon', 'rare', 'very rare']), maxPriceGp: 35000, allowCombat: true },
+  wealthy: { allowedRarities: new Set(['common', 'uncommon', 'rare', 'very rare', 'legendary']), maxPriceGp: 125000, allowCombat: true },
+};
 
 const EXCLUDED_BUCKETS = new Set(['excluded', 'manual', 'unpriced', 'gamechanging', 'fallback_quarantine']);
 const SPECIAL_BUCKETS = new Set(['special', 'artifact']);
@@ -133,6 +147,18 @@ function normalizeRarity(rarity = '') {
 function isMagicItem(item = {}) {
   const type = String(item.item_type || '').toLowerCase();
   return type === 'magic' || type === 'magic_item';
+}
+
+function isMagicalCandidate(item = {}) {
+  if (!item) return false;
+  if (item?.metadata_json?.spell_scroll === true) return true;
+  if (isMagicItem(item)) return true;
+  if (item.requires_attunement === true) return true;
+  const normalizedRarity = normalizeRarity(item.rarity);
+  if (normalizedRarity && normalizedRarity !== 'common') return true;
+  const bucket = normalizeBucket(item.shop_bucket);
+  if (bucket && bucket !== 'mundane') return true;
+  return false;
 }
 
 function numericPrice(item = {}) {
@@ -267,22 +293,33 @@ function isShopTypeMundaneMatch(item = {}, shopType) {
   return true;
 }
 
-function isEligible(item = {}, shopType) {
+function isEligible(item = {}, shopType, affluence = 'modest') {
   if (!item || item.rules_era !== '2014') return false;
   if (item.is_shop_eligible === false) return false;
   if (isDegradedFallback(item)) return false;
 
   const overlayState = getOverlayState(item);
   if (overlayState.excluded) return false;
+  if (MANUAL_REVIEW_BUCKETS.has(overlayState.bucket)) return false;
+  const allowedBuckets = SHOP_SURFACE_ALLOWED_BUCKETS[shopType] || new Set(['mundane']);
+  const itemBucket = overlayState.bucket || 'mundane';
+  if (!allowedBuckets.has(itemBucket)) return false;
 
-  const isMagic = isMagicItem(item);
+  const isMagic = isMagicalCandidate(item);
   if (shopType === 'magic_shop') {
     if (!isMagic) return false;
+    if (item.metadata_json?.spell_scroll === true) return true;
+    const guardrails = MAGIC_SHOP_AFFLUENCE_GUARDRAILS[affluence] || MAGIC_SHOP_AFFLUENCE_GUARDRAILS.modest;
+    const rarity = normalizeRarity(item.rarity);
+    if (!guardrails.allowedRarities.has(rarity)) return false;
+    const price = numericPrice(item);
+    if (price > guardrails.maxPriceGp) return false;
+    if (!guardrails.allowCombat && itemBucket === 'combat') return false;
     if (!overlayState.hasSuggestedPrice && normalizeRarity(item.rarity) !== 'common') return false;
     return true;
   }
 
-  if (isMagic) {
+  if (isMagic && NON_MAGIC_SHOP_SURFACES.has(shopType)) {
     if (shopType !== 'apothecary') return false;
     const rarity = normalizeRarity(item.rarity);
     const name = String(item.name || '').toLowerCase();
@@ -504,7 +541,19 @@ export function generateShopRows(items = [], { shopType = 'general_store', afflu
   const targetRows = targetRowCount(shopType, affluence);
   const rarityWeights = (shopType === 'magic_shop' ? MAGIC_RARITY_WEIGHT_BY_AFFLUENCE : RARITY_WEIGHT_BY_AFFLUENCE)[affluence]
     || RARITY_WEIGHT_BY_AFFLUENCE.modest;
-  const baseCandidates = items.filter(item => isEligible(item, shopType));
+  const baseCandidates = items.filter(item => {
+    if (!isEligible(item, shopType, affluence)) return false;
+    if (shopType !== 'magic_shop') return true;
+
+    if (item.metadata_json?.spell_scroll === true) return true;
+    const guardrails = MAGIC_SHOP_AFFLUENCE_GUARDRAILS[affluence] || MAGIC_SHOP_AFFLUENCE_GUARDRAILS.modest;
+    const rarity = normalizeRarity(item.rarity);
+    if (!guardrails.allowedRarities.has(rarity)) return false;
+    const price = numericPrice(item);
+    if (price > guardrails.maxPriceGp) return false;
+    if (!guardrails.allowCombat && normalizeBucket(item.shop_bucket) === 'combat') return false;
+    return true;
+  });
   const spellContext = Object.assign([], spells, { catalogItems: items });
   const rotatingSpellCandidates = shopType === 'magic_shop' ? buildMagicRotatingScrollCandidates(spellContext) : [];
   const candidates = [...baseCandidates, ...rotatingSpellCandidates];
