@@ -39,6 +39,7 @@ Recent landing note (April 17, 2026 source-split item conversion batch): curated
 Recent landing note (April 17, 2026 manifest truthfulness follow-up): `resources/items_by_source/manifest.json` now reflects only surviving curated in-repo source files and current totals; converter/generator now treat this manifest as the required truthful source index (no silent missing-file skips).
 Recent landing note (April 17, 2026 5etools import review/export panel): Manage → Imports now exposes a DM-side live `item_master` review surface for the 5etools source-split lane (counts by eligibility/type/mechanics/pricing, plus copy/export JSON), so post-import validation no longer requires ad hoc DB inspection.
 Recent landing note (April 17, 2026 5etools pricing enrichment): converter output now reuses the existing curated `shop_magic_pricing_2014` overlay, includes plus-order alias matching for common naming variants, and applies a constrained fallback policy with explicit provenance (`5etools_fallback_policy_v1`) when raw value and overlay match are both unavailable.
+Recent landing note (April 17, 2026 5etools completion reporting scaffold): Manage → Imports now also exports a structured JSON review report (pricing source splits, unresolved/unpriced, overlay-excluded, shop-eligible/non-shop, mechanics-support + structured/null mechanics + attunement + Phase-1-compatible payload slices) so follow-up completion work can be driven from copy/paste data instead of screenshot/manual interpretation.
 
 #### A) Durable item trail and source-of-truth model (required)
 
@@ -227,6 +228,8 @@ This roadmap is healthy when a new chat can quickly see:
 
 
 ### Equipment enrichment follow-up (post-Phase-1 truthfulness)
+
+Execution artifact: use `docs/5ETOOLS_IMPORT_COMPLETION_PLAN.md` as the canonical completion-plan breakdown for pricing truthfulness + shop admission tightening + mechanics family rollout.
 
 - Expand mechanics enrichment coverage from current `phase1_supported` curated set toward broader SRD item coverage without overclaiming unsupported rows.
 - Keep unsupported/non-enriched items explicitly manual until represented with truthful structured mechanics.

@@ -1,0 +1,164 @@
+const MANUAL_BUCKETS = new Set([
+  'manual_magic_review',
+  'manual_unpriced',
+  'unpriced',
+  'excluded',
+  'gamechanging',
+  'special',
+  'artifact',
+  'fallback_quarantine',
+]);
+
+const PHASE1_ALLOWED_SLOTS = new Set(['armor', 'shield', 'main_hand', 'off_hand', 'neck', 'ring', 'inventory']);
+const PHASE1_ALLOWED_ACTIVATION = new Set(['equip', 'attunement_only']);
+const PHASE1_ALLOWED_EFFECT_TYPES = new Set([
+  'flat_bonus',
+  'ac_flat',
+  'shield_ac_bonus',
+  'spell_save_dc_bonus',
+  'spell_attack_bonus',
+  'ability_score_bonus',
+  'ability_score_set_min',
+  'all_saves_bonus',
+  'saving_throw_bonus',
+  'weapon_attack_bonus',
+]);
+
+function normalize(value = '') {
+  return String(value || '').trim().toLowerCase();
+}
+
+function compactRow(row = {}) {
+  return {
+    external_key: row.external_key,
+    name: row.name,
+    item_type: row.item_type,
+    category: row.category,
+    subcategory: row.subcategory,
+    rarity: row.rarity,
+    requires_attunement: !!row.requires_attunement,
+    is_shop_eligible: !!row.is_shop_eligible,
+    shop_bucket: row.shop_bucket || null,
+    base_price_gp: row.base_price_gp,
+    suggested_price_gp: row.suggested_price_gp,
+    price_source: row.price_source || null,
+    source_key: row?.metadata_json?.source_key || null,
+    source_filename: row?.metadata_json?.source_filename || null,
+    source_page: row?.metadata_json?.source_page ?? null,
+    mechanics_support: row?.metadata_json?.mechanics_support || 'unknown',
+    has_structured_mechanics: !!row?.metadata_json?.mechanics,
+  };
+}
+
+function hasOverlayExclusion(row = {}) {
+  const pricingOverlay = row?.metadata_json?.pricing_overlay || {};
+  return !!pricingOverlay.exclude_from_shop || !!String(pricingOverlay.exclusion_reason || '').trim();
+}
+
+function appearsMagical(row = {}) {
+  if (normalize(row.item_type) === 'magic_item') return true;
+  if (row.requires_attunement) return true;
+  if (row.rarity && normalize(row.rarity) !== 'none') return true;
+  return false;
+}
+
+export function looksPhase1Compatible(row = {}) {
+  const mechanics = row?.metadata_json?.mechanics;
+  if (!mechanics || typeof mechanics !== 'object') return false;
+
+  const slot = normalize(mechanics.slot_family);
+  if (slot && !PHASE1_ALLOWED_SLOTS.has(slot)) return false;
+
+  const activation = normalize(mechanics.activation_mode || 'equip');
+  if (activation && !PHASE1_ALLOWED_ACTIVATION.has(activation)) return false;
+
+  const passive = Array.isArray(mechanics.passive_effects) ? mechanics.passive_effects : [];
+  for (const effect of passive) {
+    const type = normalize(effect?.type);
+    if (!type || !PHASE1_ALLOWED_EFFECT_TYPES.has(type)) return false;
+  }
+
+  const armor = mechanics.armor;
+  if (armor) {
+    if (!Number.isFinite(Number(armor.base_ac))) return false;
+    if (armor.dex_cap !== null && armor.dex_cap !== undefined && !Number.isFinite(Number(armor.dex_cap))) return false;
+  }
+
+  if (mechanics.charges && !Number.isFinite(Number(mechanics.charges.max))) return false;
+
+  return true;
+}
+
+function buildBucket(rows = []) {
+  return rows.map(compactRow);
+}
+
+export function build5etoolsReviewReport(rows = []) {
+  const directSourcePriced = rows.filter(row => row.price_source === '5etools_value_cp');
+  const overlayPriced = rows.filter(row => row.price_source === 'shop_magic_pricing_2014_overlay');
+  const fallbackPriced = rows.filter(row => row.price_source === '5etools_fallback_policy_v1');
+  const unresolvedUnpriced = rows.filter(row => row.base_price_gp == null || row.suggested_price_gp == null || !row.price_source);
+  const overlayExcluded = rows.filter(row => hasOverlayExclusion(row));
+  const shouldBePricedNotMatched = rows.filter((row) => {
+    const strategy = normalize(row?.metadata_json?.pricing?.strategy);
+    return strategy === 'unresolved_manual_review' && appearsMagical(row) && !hasOverlayExclusion(row);
+  });
+  const shouldNeverDefaultToShop = rows.filter((row) => {
+    const bucket = normalize(row.shop_bucket);
+    return MANUAL_BUCKETS.has(bucket) || hasOverlayExclusion(row);
+  });
+
+  const byMechanicsSupport = rows.reduce((acc, row) => {
+    const key = row?.metadata_json?.mechanics_support || 'unknown';
+    return { ...acc, [key]: Number(acc[key] || 0) + 1 };
+  }, {});
+
+  const rowsWithStructuredMechanics = rows.filter(row => !!row?.metadata_json?.mechanics);
+  const rowsWithNullMechanics = rows.filter(row => !row?.metadata_json?.mechanics);
+  const rowsWithAttunement = rows.filter(row => !!row.requires_attunement);
+  const rowsWithPhase1CompatiblePayload = rows.filter(looksPhase1Compatible);
+
+  const shopEligibleRows = rows.filter(row => row.is_shop_eligible);
+  const nonShopRows = rows.filter(row => !row.is_shop_eligible);
+
+  return {
+    generated_at: new Date().toISOString(),
+    source_layer: '5etools_items_by_source_curated',
+    total_rows: rows.length,
+    counts: {
+      direct_source_priced: directSourcePriced.length,
+      overlay_priced: overlayPriced.length,
+      fallback_priced: fallbackPriced.length,
+      unresolved_unpriced: unresolvedUnpriced.length,
+      overlay_excluded: overlayExcluded.length,
+      should_be_priced_but_not_matched: shouldBePricedNotMatched.length,
+      should_never_default_to_shop: shouldNeverDefaultToShop.length,
+      shop_eligible: shopEligibleRows.length,
+      non_shop: nonShopRows.length,
+      rows_with_structured_mechanics: rowsWithStructuredMechanics.length,
+      rows_with_null_mechanics: rowsWithNullMechanics.length,
+      rows_with_attunement_true: rowsWithAttunement.length,
+      rows_with_phase1_compatible_payload: rowsWithPhase1CompatiblePayload.length,
+    },
+    pricing: {
+      direct_source_value_cp: buildBucket(directSourcePriced),
+      curated_overlay_match: buildBucket(overlayPriced),
+      fallback_policy_priced: buildBucket(fallbackPriced),
+      unresolved_unpriced: buildBucket(unresolvedUnpriced),
+      overlay_excluded: buildBucket(overlayExcluded),
+      should_be_priced_but_not_matched: buildBucket(shouldBePricedNotMatched),
+      should_never_default_to_shop: buildBucket(shouldNeverDefaultToShop),
+    },
+    shop_admission: {
+      shop_eligible_rows: buildBucket(shopEligibleRows),
+      non_shop_rows: buildBucket(nonShopRows),
+    },
+    mechanics: {
+      by_mechanics_support: byMechanicsSupport,
+      rows_with_structured_mechanics: buildBucket(rowsWithStructuredMechanics),
+      rows_with_null_mechanics: buildBucket(rowsWithNullMechanics),
+      rows_with_attunement_true: buildBucket(rowsWithAttunement),
+      rows_with_phase1_compatible_payload: buildBucket(rowsWithPhase1CompatiblePayload),
+    },
+  };
+}

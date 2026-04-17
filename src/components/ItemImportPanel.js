@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { applySrdRepairsToImportRows, buildSrdImportRows, load5etoolsSourceSplitRows, loadCustomSeedRows } from '../utils/shopItemImport';
+import { build5etoolsReviewReport } from '../utils/fiveToolsReviewReport';
 
 async function loadLiveDegradedRows() {
   const { data, error } = await supabase
@@ -92,7 +93,9 @@ export default function ItemImportPanel({ onImportComplete = null }) {
   const degradedSummary = useMemo(() => buildLiveDegradedSummary(degradedRows), [degradedRows]);
   const degradedRowsExportJson = useMemo(() => JSON.stringify(degradedRows, null, 2), [degradedRows]);
   const fiveToolsSummary = useMemo(() => build5etoolsImportSummary(fiveToolsRows), [fiveToolsRows]);
+  const fiveToolsReviewReport = useMemo(() => build5etoolsReviewReport(fiveToolsRows), [fiveToolsRows]);
   const fiveToolsRowsExportJson = useMemo(() => JSON.stringify(fiveToolsRows, null, 2), [fiveToolsRows]);
+  const fiveToolsReportExportJson = useMemo(() => JSON.stringify(fiveToolsReviewReport, null, 2), [fiveToolsReviewReport]);
 
   async function refreshDegradedRows() {
     setLoadingDegradedRows(true);
@@ -144,6 +147,18 @@ export default function ItemImportPanel({ onImportComplete = null }) {
     URL.revokeObjectURL(objectUrl);
   }
 
+  function download5etoolsReportJson() {
+    const blob = new Blob([fiveToolsReportExportJson], { type: 'application/json' });
+    const objectUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = objectUrl;
+    anchor.download = 'imported-5etools-review-report.json';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(objectUrl);
+  }
+
   async function copyDegradedRowsJson() {
     try {
       await navigator.clipboard.writeText(degradedRowsExportJson);
@@ -157,6 +172,14 @@ export default function ItemImportPanel({ onImportComplete = null }) {
       await navigator.clipboard.writeText(fiveToolsRowsExportJson);
     } catch (_) {
       window.prompt('Copy imported 5etools rows JSON:', fiveToolsRowsExportJson);
+    }
+  }
+
+  async function copy5etoolsReportJson() {
+    try {
+      await navigator.clipboard.writeText(fiveToolsReportExportJson);
+    } catch (_) {
+      window.prompt('Copy imported 5etools review report JSON:', fiveToolsReportExportJson);
     }
   }
 
@@ -305,10 +328,16 @@ export default function ItemImportPanel({ onImportComplete = null }) {
             {loadingFiveToolsRows ? 'Loading…' : 'View imported 5etools rows'}
           </button>
           <button type="button" className="btn btn-ghost" onClick={copy5etoolsRowsJson} disabled={fiveToolsRows.length === 0}>
-            Copy JSON
+            Copy Rows JSON
           </button>
           <button type="button" className="btn btn-ghost" onClick={download5etoolsRowsJson} disabled={fiveToolsRows.length === 0}>
-            Export JSON
+            Export Rows JSON
+          </button>
+          <button type="button" className="btn btn-ghost" onClick={copy5etoolsReportJson} disabled={fiveToolsRows.length === 0}>
+            Copy Structured Report
+          </button>
+          <button type="button" className="btn btn-ghost" onClick={download5etoolsReportJson} disabled={fiveToolsRows.length === 0}>
+            Export Structured Report
           </button>
         </div>
         <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 8, display: 'grid', gap: 4 }}>
@@ -317,6 +346,22 @@ export default function ItemImportPanel({ onImportComplete = null }) {
           <div>{fiveToolsSummary.nullBasePriceCount} with null base_price_gp • {fiveToolsSummary.nullSuggestedPriceCount} with null suggested_price_gp.</div>
           <div>{fiveToolsSummary.weakPricingCount} flagged as weak pricing.</div>
         </div>
+        <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 8, display: 'grid', gap: 4 }}>
+          <div>structured report slices (for ChatGPT follow-up):</div>
+          <div>
+            priced by source → direct: {fiveToolsReviewReport.counts.direct_source_priced} • overlay: {fiveToolsReviewReport.counts.overlay_priced} • fallback: {fiveToolsReviewReport.counts.fallback_priced}
+          </div>
+          <div>
+            unresolved/unpriced: {fiveToolsReviewReport.counts.unresolved_unpriced} • overlay-excluded: {fiveToolsReviewReport.counts.overlay_excluded} • should-be-priced-not-matched: {fiveToolsReviewReport.counts.should_be_priced_but_not_matched}
+          </div>
+          <div>
+            should-never-default-to-shop: {fiveToolsReviewReport.counts.should_never_default_to_shop} • shop-eligible: {fiveToolsReviewReport.counts.shop_eligible} • non-shop: {fiveToolsReviewReport.counts.non_shop}
+          </div>
+          <div>
+            mechanics → structured: {fiveToolsReviewReport.counts.rows_with_structured_mechanics} • null: {fiveToolsReviewReport.counts.rows_with_null_mechanics} • attunement=true: {fiveToolsReviewReport.counts.rows_with_attunement_true} • phase1-compatible payload: {fiveToolsReviewReport.counts.rows_with_phase1_compatible_payload}
+          </div>
+        </div>
+
         <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8, display: 'grid', gap: 4 }}>
           <div>
             by item_type:{' '}
