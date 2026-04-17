@@ -3,7 +3,19 @@ import { supabase } from '../../supabaseClient';
 import { inventoryDmAwardCurrency, inventoryUpsertItem } from '../../inventory/inventoryClient';
 import { getItemMechanicsSummary, resolveItemDetailText } from '../../utils/itemDetailText';
 
-function RewardsItemPreviewModal({ item, onClose }) {
+function RewardsItemPreviewModal({
+  item,
+  players,
+  targetProfileId,
+  quantity,
+  notes,
+  loading,
+  onClose,
+  onAssign,
+  onTargetProfileChange,
+  onQuantityChange,
+  onNotesChange,
+}) {
   if (!item) return null;
   const detail = resolveItemDetailText(item);
   const mechanicsSummary = getItemMechanicsSummary(item);
@@ -36,6 +48,21 @@ function RewardsItemPreviewModal({ item, onClose }) {
             </div>
           </div>
         ) : null}
+
+        <div className="world-rewards-modal-assign-section">
+          <div className="world-rewards-modal-assign-title">Assign Item</div>
+          <select className="form-input" value={targetProfileId} onChange={(event) => onTargetProfileChange(event.target.value)}>
+            <option value="">Select player</option>
+            {players.map((player) => <option key={player.id} value={player.id}>{player.name}</option>)}
+          </select>
+          <div className="world-rewards-modal-assign-grid">
+            <input className="form-input" type="number" min={1} value={quantity} onChange={(event) => onQuantityChange(event.target.value)} />
+            <input className="form-input" value={notes} onChange={(event) => onNotesChange(event.target.value)} placeholder="Optional notes" />
+          </div>
+          <button className="btn btn-primary" disabled={!targetProfileId || loading} onClick={() => onAssign(item)}>
+            {loading ? 'Assigning…' : 'Assign Item'}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -44,7 +71,6 @@ function RewardsItemPreviewModal({ item, onClose }) {
 export default function WorldRewardsPanel({ encounterId, playerStates = [], onInventoryChanged = null, onInventoryRefresh = null }) {
   const [query, setQuery] = useState('');
   const [catalog, setCatalog] = useState([]);
-  const [selectedItem, setSelectedItem] = useState(null);
   const [previewItem, setPreviewItem] = useState(null);
   const [targetProfileId, setTargetProfileId] = useState('');
   const [quantity, setQuantity] = useState(1);
@@ -106,23 +132,25 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
     if (typeof onInventoryRefresh === 'function') onInventoryRefresh();
   }
 
-
-  async function handleAssignItem() {
-    if (!selectedItem || !targetProfileId || loading) return;
+  async function handleAssignItem(item) {
+    if (!item || !targetProfileId || loading) return;
     setLoading(true);
     setStatus('');
     try {
       await inventoryUpsertItem({
         playerProfileId: targetProfileId,
         role: 'dm',
-        itemMasterId: selectedItem.id,
+        itemMasterId: item.id,
         quantity: Number(quantity) || 1,
         notes: notes || null,
       });
       const grantedQuantity = Number(quantity) || 1;
       const targetName = getPlayerName(targetProfileId);
-      setStatus(`${targetName} received ${selectedItem.name} x${grantedQuantity}.`);
+      setStatus(`${targetName} received ${item.name} x${grantedQuantity}.`);
       await notifyInventoryRefresh();
+      setPreviewItem(null);
+      setQuantity(1);
+      setNotes('');
     } catch (error) {
       setStatus(`Item grant failed: ${error?.message || 'Unknown error'}`);
     } finally {
@@ -167,48 +195,20 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
         <div className="world-shops-saved-list">
           <div className="world-shops-panel-title">Rewards Catalog</div>
           <input className="form-input" placeholder="Search item catalog" value={query} onChange={(event) => setQuery(event.target.value)} />
+          <div className="world-rewards-catalog-help">Tap an item to open details and assign it.</div>
           <div style={{ display: 'grid', gap: 6, marginTop: 6, maxHeight: 360, overflow: 'auto' }}>
             {catalog.map((item) => (
-              <button key={item.id} className="world-shops-saved-item" data-active={selectedItem?.id === item.id} onClick={() => setSelectedItem(item)}>
+              <button key={item.id} className="world-shops-saved-item" onClick={() => setPreviewItem(item)}>
                 <strong>{item.name}</strong>
                 <span>{item.item_type || 'Unknown'}{item.rarity ? ` • ${item.rarity}` : ''}</span>
               </button>
             ))}
+            {catalog.length === 0 ? <div className="empty-state">No catalog matches your search.</div> : null}
           </div>
         </div>
 
         <div className="world-shops-stock-panel">
-          <div className="world-shops-panel-title">Assign Item</div>
-          {selectedItem ? (
-            <>
-              <button className="world-shops-saved-item" style={{ textAlign: 'left' }} onClick={() => setSelectedItem(selectedItem)}>
-                <strong>{selectedItem.name}</strong>
-                <span>{selectedItem.category || selectedItem.item_type || 'Unknown category'}{selectedItem.rarity ? ` • ${selectedItem.rarity}` : ''}</span>
-                <span>{selectedItem.description?.slice(0, 160) || 'No description available.'}</span>
-              </button>
-              <button
-                type="button"
-                className="btn btn-ghost"
-                style={{ width: '100%' }}
-                onClick={() => setPreviewItem(selectedItem)}
-              >
-                View Item Details
-              </button>
-              <select className="form-input" value={targetProfileId} onChange={(event) => setTargetProfileId(event.target.value)}>
-                <option value="">Select player</option>
-                {players.map((player) => <option key={player.id} value={player.id}>{player.name}</option>)}
-              </select>
-              <div style={{ display: 'grid', gridTemplateColumns: '86px 1fr', gap: 6 }}>
-                <input className="form-input" type="number" min={1} value={quantity} onChange={(event) => setQuantity(event.target.value)} />
-                <input className="form-input" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Optional notes" />
-              </div>
-              <button className="btn btn-primary" disabled={!targetProfileId || loading} onClick={handleAssignItem}>Assign Item</button>
-            </>
-          ) : (
-            <div className="empty-state">Search and pick an item to assign.</div>
-          )}
-
-          <div className="world-shops-panel-title" style={{ marginTop: 8 }}>Currency Reward</div>
+          <div className="world-shops-panel-title">Currency Reward</div>
           <select className="form-input" value={currencyTarget} onChange={(event) => setCurrencyTarget(event.target.value)}>
             <option value="single">One player</option>
             <option value="all">All active players (equal split)</option>
@@ -233,7 +233,19 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
         </div>
       </div>
       {status ? <div className="world-shops-import-status">{status}</div> : null}
-      <RewardsItemPreviewModal item={previewItem} onClose={() => setPreviewItem(null)} />
+      <RewardsItemPreviewModal
+        item={previewItem}
+        players={players}
+        targetProfileId={targetProfileId}
+        quantity={quantity}
+        notes={notes}
+        loading={loading}
+        onClose={() => setPreviewItem(null)}
+        onAssign={handleAssignItem}
+        onTargetProfileChange={setTargetProfileId}
+        onQuantityChange={setQuantity}
+        onNotesChange={setNotes}
+      />
     </div>
   );
 }
