@@ -284,12 +284,8 @@ export default function InventoryModal({
   async function handleEquipSelected(confirmReplace = false) {
     if (!selectedItem?.id) return;
     try {
-      const wasAttuned = !!selectedItem?.attuned;
       await inventoryEquipItem({ playerProfileId, role, joinCode, itemRowId: selectedItem.id, confirmReplace });
       await loadAll();
-      if (wasAttuned) {
-        setSelectedItem((curr) => (curr ? { ...curr, equipped: true, attuned: true } : curr));
-      }
     } catch (error) {
       if (String(error?.message || '').toLowerCase().includes('occupied') && !confirmReplace) {
         const ok = window.confirm('That slot is already occupied. Replace the currently equipped item?');
