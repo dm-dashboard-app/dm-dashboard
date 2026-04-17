@@ -221,6 +221,10 @@ function applyMechanicsEnrichment(row = {}, enrichmentMap = new Map()) {
   };
 }
 
+function applyMechanicsEnrichmentRows(rows = [], enrichmentMap = new Map()) {
+  return (rows || []).map(row => applyMechanicsEnrichment(row, enrichmentMap));
+}
+
 function applyPricingOverlay(row, overlayByName) {
   const importQuality = String(row?.metadata_json?.import_quality || '').toLowerCase();
   const isDegraded = row?.metadata_json?.degraded_import === true
@@ -406,9 +410,10 @@ export async function buildSrdImportRows(onProgress = null) {
   const imported = [
     ...equipmentDetails.map(detail => mapApiItem(detail, 'equipment')),
     ...magicDetails.map(detail => mapApiItem(detail, 'magic')),
-  ].map(item => applyMechanicsEnrichment(applyPricingOverlay(item, overlayByName), mechanicsEnrichment));
+  ].map(item => applyPricingOverlay(item, overlayByName));
+  const enrichedImported = applyMechanicsEnrichmentRows(imported, mechanicsEnrichment);
 
-  const rows = Array.from(new Map(imported.map(item => [item.external_key, item])).values());
+  const rows = Array.from(new Map(enrichedImported.map(item => [item.external_key, item])).values());
   const fetchFailures = [...(equipmentResult.fetchFailures || []), ...(magicResult.fetchFailures || [])];
   return {
     rows,
@@ -425,7 +430,7 @@ export async function loadCustomSeedRows() {
   const parsed = await response.json();
   const items = Array.isArray(parsed?.items) ? parsed.items : [];
   const mechanicsEnrichment = await loadMechanicsEnrichmentOverlay();
-  return items.map((row) => applyMechanicsEnrichment(row, mechanicsEnrichment));
+  return applyMechanicsEnrichmentRows(items, mechanicsEnrichment);
 }
 
 export async function loadSrdDegradedReportRows() {
@@ -485,10 +490,12 @@ export async function buildSrdRepairRows(existingRows = []) {
 }
 
 export async function applySrdRepairsToImportRows(existingRows = []) {
+  const mechanicsEnrichment = await loadMechanicsEnrichmentOverlay();
   const repairResult = await buildSrdRepairRows(existingRows);
+  const enrichedExistingRows = applyMechanicsEnrichmentRows(existingRows, mechanicsEnrichment);
   if (!repairResult.repairedCount) {
     return {
-      rows: existingRows,
+      rows: enrichedExistingRows,
       degradedCount: repairResult.degradedCount,
       repairedCount: 0,
       skippedCount: repairResult.skippedCount,
@@ -497,9 +504,10 @@ export async function applySrdRepairsToImportRows(existingRows = []) {
   }
 
   const repairedByKey = new Map(repairResult.rows.map(row => [String(row.external_key || '').trim(), row]));
-  const mergedRows = (existingRows || []).map(row => {
+  const mergedRows = enrichedExistingRows.map(row => {
     const externalKey = String(row?.external_key || '').trim();
-    return repairedByKey.get(externalKey) || row;
+    const repaired = repairedByKey.get(externalKey) || row;
+    return applyMechanicsEnrichment(repaired, mechanicsEnrichment);
   });
 
   return {

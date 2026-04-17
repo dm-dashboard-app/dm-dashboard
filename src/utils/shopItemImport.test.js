@@ -370,6 +370,7 @@ describe('dm_import_item_master_rows SQL downgrade protection', () => {
     expect(sql).toContain("item_master.metadata_json->>'degraded_import'");
     expect(sql).toContain("= 'degraded_fallback'");
     expect(sql).toContain("= 'repaired_overlay_verified'");
+    expect(sql).toContain("= 'phase1_supported'");
     expect(sql).toContain("= 'excluded_on_purpose'");
     expect(sql).toContain('degraded_fallback_untrusted');
     expect(sql).toContain(') >= (');
@@ -481,5 +482,123 @@ describe('buildSrdImportRows trust-boundary hardening', () => {
     expect(repaired.is_shop_eligible).toBe(true);
     expect(excluded.metadata_json.import_quality).toBe('excluded_on_purpose');
     expect(excluded.is_shop_eligible).toBe(false);
+  });
+
+  test('phase1 supported rows retain mechanics enrichment after repair overlay merge', async () => {
+    global.fetch = jest.fn(async (url) => {
+      const value = String(url);
+      if (value.includes('/data/shop_srd_degraded_repairs_2014.json')) {
+        return {
+          ok: true,
+          json: async () => ({
+            items: [
+              {
+                external_key: 'official_srd_2014:shield',
+                source_slug: 'shield',
+                item_type: 'armor',
+                category: 'Armor',
+                subcategory: 'Shield',
+                base_price_gp: 10,
+                suggested_price_gp: 10,
+                shop_bucket: 'mundane',
+              },
+              {
+                external_key: 'official_srd_2014:ring-of-protection',
+                source_slug: 'ring-of-protection',
+                item_type: 'ring',
+                category: 'Ring',
+                subcategory: 'standard',
+                base_price_gp: 3500,
+                suggested_price_gp: 3500,
+                shop_bucket: 'magic',
+              },
+              {
+                external_key: 'official_srd_2014:cloak-of-protection',
+                source_slug: 'cloak-of-protection',
+                item_type: 'wondrous_item',
+                category: 'Wondrous Item',
+                subcategory: 'standard',
+                base_price_gp: 3500,
+                suggested_price_gp: 3500,
+                shop_bucket: 'magic',
+              },
+            ],
+          }),
+        };
+      }
+      if (value.includes('/data/item_mechanics_enrichment_2014.json')) {
+        return {
+          ok: true,
+          json: async () => ({
+            items: [
+              {
+                external_key: 'official_srd_2014:shield',
+                source_slug: 'shield',
+                slot_family: 'shield',
+                activation_mode: 'equip',
+                passive_effects: [{ type: 'shield_ac_bonus', value: 2 }],
+              },
+              {
+                external_key: 'official_srd_2014:ring-of-protection',
+                source_slug: 'ring-of-protection',
+                slot_family: 'ring',
+                activation_mode: 'equip',
+                requires_attunement: true,
+                passive_effects: [{ type: 'ac_bonus', value: 1 }],
+              },
+              {
+                external_key: 'official_srd_2014:cloak-of-protection',
+                source_slug: 'cloak-of-protection',
+                slot_family: 'wondrous',
+                activation_mode: 'equip',
+                requires_attunement: true,
+                passive_effects: [{ type: 'ac_bonus', value: 1 }],
+              },
+            ],
+          }),
+        };
+      }
+      return { ok: true, json: async () => ({ items: [] }) };
+    });
+
+    const repairedCandidate = (externalKey, sourceSlug, name, itemType, category, subcategory) => degradedRow({
+      external_key: externalKey,
+      source_slug: sourceSlug,
+      name,
+      item_type: itemType,
+      category,
+      subcategory,
+      metadata_json: { degraded_import: true, import_quality: 'degraded_fallback' },
+    });
+    const untouchedCandidate = (externalKey, sourceSlug, name, itemType, category, subcategory) => ({
+      ...degradedRow({
+        external_key: externalKey,
+        source_slug: sourceSlug,
+        name,
+        item_type: itemType,
+        category,
+        subcategory,
+      }),
+      metadata_json: { degraded_import: false, import_quality: 'detail_verified' },
+    });
+
+    const result = await applySrdRepairsToImportRows([
+      repairedCandidate('official_srd_2014:shield', 'shield', 'Shield', 'armor', 'Armor', 'Shield'),
+      repairedCandidate('official_srd_2014:ring-of-protection', 'ring-of-protection', 'Ring of Protection', 'ring', 'Ring', 'standard'),
+      untouchedCandidate('official_srd_2014:cloak-of-protection', 'cloak-of-protection', 'Cloak of Protection', 'wondrous_item', 'Wondrous Item', 'standard'),
+    ]);
+
+    const shield = result.rows.find(row => row.source_slug === 'shield');
+    const ring = result.rows.find(row => row.source_slug === 'ring-of-protection');
+    const cloak = result.rows.find(row => row.source_slug === 'cloak-of-protection');
+
+    [shield, ring, cloak].forEach((row) => {
+      expect(row?.metadata_json?.mechanics_support).toBe('phase1_supported');
+      expect(row?.metadata_json?.mechanics).toBeTruthy();
+    });
+
+    expect(shield.metadata_json.mechanics.passive_effects[0].type).toBe('shield_ac_bonus');
+    expect(ring.metadata_json.mechanics.passive_effects[0].type).toBe('ac_bonus');
+    expect(cloak.metadata_json.mechanics.passive_effects[0].type).toBe('ac_bonus');
   });
 });
