@@ -14,12 +14,67 @@ async function loadLiveDegradedRows() {
   return data || [];
 }
 
+async function loadLive5etoolsImportedRows() {
+  const { data, error } = await supabase
+    .from('item_master')
+    .select('external_key, source_type, source_book, source_slug, name, item_type, category, subcategory, is_shop_eligible, shop_bucket, price_source, base_price_gp, suggested_price_gp, metadata_json')
+    .eq('rules_era', '2014')
+    .eq('source_type', 'custom_homebrew_private_seed')
+    .eq('metadata_json->>source_layer', '5etools_items_by_source_curated')
+    .ilike('external_key', '5etools_items_by_source_curated:%')
+    .order('name');
+  if (error) throw error;
+  return data || [];
+}
+
 function buildLiveDegradedSummary(rows = []) {
   const unresolved = rows.filter(row => !row?.metadata_json?.repaired_from_overlay).length;
   return {
     count: rows.length,
     unresolvedCount: unresolved,
   };
+}
+
+function incrementCount(counter, key) {
+  const normalized = String(key || 'unknown').trim() || 'unknown';
+  return {
+    ...counter,
+    [normalized]: Number(counter[normalized] || 0) + 1,
+  };
+}
+
+function isWeakPricingRow(row = {}) {
+  const shopBucket = String(row?.shop_bucket || '').toLowerCase();
+  const priceSource = String(row?.price_source || '').toLowerCase();
+  return (
+    row?.base_price_gp == null
+    || row?.suggested_price_gp == null
+    || !priceSource
+    || shopBucket === 'unpriced'
+    || shopBucket === 'manual_magic_review'
+  );
+}
+
+function build5etoolsImportSummary(rows = []) {
+  return rows.reduce((summary, row) => ({
+    count: summary.count + 1,
+    shopEligibleCount: summary.shopEligibleCount + (row?.is_shop_eligible ? 1 : 0),
+    nullBasePriceCount: summary.nullBasePriceCount + (row?.base_price_gp == null ? 1 : 0),
+    nullSuggestedPriceCount: summary.nullSuggestedPriceCount + (row?.suggested_price_gp == null ? 1 : 0),
+    weakPricingCount: summary.weakPricingCount + (isWeakPricingRow(row) ? 1 : 0),
+    byItemType: incrementCount(summary.byItemType, row?.item_type),
+    byMechanicsSupport: incrementCount(summary.byMechanicsSupport, row?.metadata_json?.mechanics_support),
+    byShopBucket: incrementCount(summary.byShopBucket, row?.shop_bucket),
+  }), {
+    count: 0,
+    shopEligibleCount: 0,
+    nullBasePriceCount: 0,
+    nullSuggestedPriceCount: 0,
+    weakPricingCount: 0,
+    byItemType: {},
+    byMechanicsSupport: {},
+    byShopBucket: {},
+  });
 }
 
 export default function ItemImportPanel({ onImportComplete = null }) {
@@ -30,9 +85,14 @@ export default function ItemImportPanel({ onImportComplete = null }) {
   const [loadingDegradedRows, setLoadingDegradedRows] = useState(false);
   const [degradedRowsError, setDegradedRowsError] = useState('');
   const [lastFetchFailures, setLastFetchFailures] = useState([]);
+  const [fiveToolsRows, setFiveToolsRows] = useState([]);
+  const [loadingFiveToolsRows, setLoadingFiveToolsRows] = useState(false);
+  const [fiveToolsRowsError, setFiveToolsRowsError] = useState('');
 
   const degradedSummary = useMemo(() => buildLiveDegradedSummary(degradedRows), [degradedRows]);
   const degradedRowsExportJson = useMemo(() => JSON.stringify(degradedRows, null, 2), [degradedRows]);
+  const fiveToolsSummary = useMemo(() => build5etoolsImportSummary(fiveToolsRows), [fiveToolsRows]);
+  const fiveToolsRowsExportJson = useMemo(() => JSON.stringify(fiveToolsRows, null, 2), [fiveToolsRows]);
 
   async function refreshDegradedRows() {
     setLoadingDegradedRows(true);
@@ -44,6 +104,19 @@ export default function ItemImportPanel({ onImportComplete = null }) {
       setDegradedRowsError(refreshError.message || 'Failed to load live degraded SRD rows.');
     } finally {
       setLoadingDegradedRows(false);
+    }
+  }
+
+  async function refresh5etoolsRows() {
+    setLoadingFiveToolsRows(true);
+    setFiveToolsRowsError('');
+    try {
+      const rows = await loadLive5etoolsImportedRows();
+      setFiveToolsRows(rows);
+    } catch (refreshError) {
+      setFiveToolsRowsError(refreshError.message || 'Failed to load live imported 5etools rows.');
+    } finally {
+      setLoadingFiveToolsRows(false);
     }
   }
 
@@ -59,11 +132,31 @@ export default function ItemImportPanel({ onImportComplete = null }) {
     URL.revokeObjectURL(objectUrl);
   }
 
+  function download5etoolsRowsJson() {
+    const blob = new Blob([fiveToolsRowsExportJson], { type: 'application/json' });
+    const objectUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = objectUrl;
+    anchor.download = 'imported-5etools-item-master-rows.json';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(objectUrl);
+  }
+
   async function copyDegradedRowsJson() {
     try {
       await navigator.clipboard.writeText(degradedRowsExportJson);
     } catch (_) {
       window.prompt('Copy degraded SRD rows JSON:', degradedRowsExportJson);
+    }
+  }
+
+  async function copy5etoolsRowsJson() {
+    try {
+      await navigator.clipboard.writeText(fiveToolsRowsExportJson);
+    } catch (_) {
+      window.prompt('Copy imported 5etools rows JSON:', fiveToolsRowsExportJson);
     }
   }
 
@@ -198,6 +291,74 @@ export default function ItemImportPanel({ onImportComplete = null }) {
         ) : (
           <div className="empty-state" style={{ marginTop: 0 }}>
             No transient detail fetch failures recorded in this session yet.
+          </div>
+        )}
+      </div>
+
+      <div className="panel session-subpanel" style={{ marginTop: 10 }}>
+        <div className="panel-title">Live Imported 5etools Rows</div>
+        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
+          Source-of-truth list from current item_master rows imported via the curated 5etools lane (source_layer 5etools_items_by_source_curated).
+        </div>
+        <div className="form-row" style={{ flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+          <button type="button" className="btn btn-ghost" onClick={refresh5etoolsRows} disabled={loadingFiveToolsRows}>
+            {loadingFiveToolsRows ? 'Loading…' : 'View imported 5etools rows'}
+          </button>
+          <button type="button" className="btn btn-ghost" onClick={copy5etoolsRowsJson} disabled={fiveToolsRows.length === 0}>
+            Copy JSON
+          </button>
+          <button type="button" className="btn btn-ghost" onClick={download5etoolsRowsJson} disabled={fiveToolsRows.length === 0}>
+            Export JSON
+          </button>
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 8, display: 'grid', gap: 4 }}>
+          <div>{fiveToolsSummary.count} imported row{fiveToolsSummary.count === 1 ? '' : 's'} total.</div>
+          <div>{fiveToolsSummary.shopEligibleCount} shop-eligible.</div>
+          <div>{fiveToolsSummary.nullBasePriceCount} with null base_price_gp • {fiveToolsSummary.nullSuggestedPriceCount} with null suggested_price_gp.</div>
+          <div>{fiveToolsSummary.weakPricingCount} flagged as weak pricing.</div>
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8, display: 'grid', gap: 4 }}>
+          <div>
+            by item_type:{' '}
+            {Object.entries(fiveToolsSummary.byItemType).map(([key, count]) => `${key}: ${count}`).join(' • ') || '—'}
+          </div>
+          <div>
+            by mechanics_support:{' '}
+            {Object.entries(fiveToolsSummary.byMechanicsSupport).map(([key, count]) => `${key}: ${count}`).join(' • ') || '—'}
+          </div>
+          <div>
+            by shop_bucket:{' '}
+            {Object.entries(fiveToolsSummary.byShopBucket).map(([key, count]) => `${key}: ${count}`).join(' • ') || '—'}
+          </div>
+        </div>
+        {fiveToolsRowsError ? <div className="world-shops-error">{fiveToolsRowsError}</div> : null}
+        {fiveToolsRows.length > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {fiveToolsRows.map(row => (
+              <div key={row.external_key} style={{ border: '1px solid var(--border)', borderRadius: 8, padding: 10, background: 'var(--bg-panel-2)', display: 'grid', gap: 4 }}>
+                <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{row.external_key}</div>
+                <div style={{ fontSize: 14, fontWeight: 700 }}>{row.name || 'Unnamed row'}</div>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                  item_type: {row.item_type || '—'} • category: {row.category || '—'} • subcategory: {row.subcategory || '—'}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                  shop_eligible: {row.is_shop_eligible ? 'true' : 'false'} • shop_bucket: {row.shop_bucket || '—'} • mechanics_support: {row?.metadata_json?.mechanics_support || '—'}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                  base_price_gp: {row.base_price_gp ?? '—'} • suggested_price_gp: {row.suggested_price_gp ?? '—'} • price_source: {row.price_source || '—'}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                  source_type: {row.source_type || '—'} • source_book: {row.source_book || '—'} • source_slug: {row.source_slug || '—'}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                  source_key: {row?.metadata_json?.source_key || '—'} • source_filename: {row?.metadata_json?.source_filename || '—'} • source_page: {row?.metadata_json?.source_page ?? '—'}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state" style={{ marginTop: 0 }}>
+            No live imported 5etools rows loaded yet. Use “View imported 5etools rows”.
           </div>
         )}
       </div>

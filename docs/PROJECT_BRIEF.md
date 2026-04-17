@@ -379,6 +379,7 @@ Landed baseline includes:
 
 - `resources/items_by_source/` as the upstream in-repo source layer for item conversion/import work (manifest + curated surviving per-source JSON files)
 - deterministic converter output artifacts at `docs/data/shop_5etools_items_source_split_2014.json` and `public/data/shop_5etools_items_source_split_2014.json`, mapped into the existing app import row shape
+- Manage → Imports now includes a DM-only live review/export panel for imported 5etools-lane `item_master` rows (lane-scoped counts + compact row list + copy/export JSON) for truthfulness validation directly in app flow
 - explicit boundary that neither raw source nor source-split derivatives are the live runtime schema; runtime item truth remains the existing `item_master` import/runtime path
 
 Preservation rule:
