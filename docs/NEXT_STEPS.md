@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 16, 2026 (short-rest player visibility + DM cancel reliability fix landed)
+Last updated: April 17, 2026 (equipment/attunement/import roadmap detail pass)
 
 Purpose: This file is the active roadmap only. It lists active next steps, intentionally parked/deferred work, and longer-range ideas.
 
@@ -20,73 +20,135 @@ This roadmap should focus on what to build next, not re-open already-landed base
 
 ## Active Next Steps (current roadmap)
 
-### 1) Rest procedure architecture expansion — attunement section insertion (active)
+### 1) Equipment + Attunement + Import Enrichment (Phase 1 baseline; active)
 
-Goal: extend the newly landed short-rest player-response/DM-confirm procedure shape with additional sections (starting with attunement) without regressing current healing/resource behavior.
+Goal: deliver the first fully playable equipment/attunement baseline by preserving the existing durable item trail, expanding item-definition imports so real mechanics can be represented, and proving the full trail through real stat influence (not just flags).
 
-- Keep short rest as a sectional player-response + DM-confirm procedure.
-- Preserve newly landed short-rest reliability behavior:
-  - player active-cycle detection should stay tied to encounter-level short-rest active markers (not player combat-log reads)
-  - DM cancel should remain a true procedure cancel event that clears active-cycle state without applying rest effects
-- Preserve landed short-rest healing response behavior:
-  - player-entered rolled total + total hit dice + per-die-size spend accounting
-  - shared Song of Rest source input and group application
-  - concise DM review summary and confirm step
-- Add attunement as the next section inside this shared rest procedure shape (not as a disconnected workflow).
-- Keep mobile-first response and review ergonomics.
+Current landed baseline to preserve (already true on `main`):
 
-### 2) Shared rest-procedure architecture direction (active)
+- `item_master` is the canonical reusable item-definition layer.
+- world/locale/shop inventory rows already reference `item_master` identity.
+- inventory rows are already the owned-item durable layer for player possession.
+- short rest already runs as a player-response + DM-confirm procedure with encounter-level active markers.
+- long rest already has a preparation flow.
 
-Goal: build practical reusable rest flow structure now so future rest work does not fork into isolated one-off forms.
+Phase 1 work now being scoped in detail (not yet landed):
 
-- Implement short rest as a shared player-submission / DM-confirm procedure shape, not a one-off short-rest healing form.
-- Keep short-rest response payloads sectional and future-extensible.
-- Do not implement attunement in this batch, but structure the flow so attunement sections can plug in later.
-- Keep healing inputs and hit-dice accounting separate from future equipment/attunement effect logic.
-- Prioritize practical product flow reuse for short rest + long rest, not abstract architecture for its own sake.
+#### A) Durable item trail and source-of-truth model (required)
 
-### 3) Inventory / Equipment / Abilities — phased expansion track
+- Preserve this durable provenance chain end-to-end: **shop/locales/world shop -> owned inventory item -> equipped/attuned state -> stat influence**.
+- Keep `item_master` as canonical reusable item definitions.
+- Keep owned inventory rows as durable player-owned item instances.
+- Do not create a disconnected parallel equipment store that breaks provenance from acquisition source.
 
-Goal: continue from landed Inventory Phase 1 into phased character-capability expansion, with attunement explicitly planned inside shared rest procedures.
+#### B) Import/data-enrichment lane is first-class scope (required)
 
-#### Phase 2 — equipment / attunement state + rest integration design
+This is part of the same equipment/attunement track, not an optional side note.
 
-- add equipped / unequipped and attuned / unattuned state
-- support practical item categories (armor / weapon / shield / wondrous)
-- keep initial implementation state-driven (avoid broad derived-math rewrites in this phase)
-- design attunement as a rest-embedded procedure, not a standalone unrelated workflow
+- Extend import/custom-seed lanes so item definitions can be enriched in one repeatable pass with minimal manual cleanup.
+- Enriched item-definition model must support:
+  - equip slot / activation mode
+  - attunement requirement
+  - armor formulas
+  - passive effect payloads
+  - charges / recharge metadata
+- Make this reliable and re-runnable as an import/update lane, explicitly avoiding hand-maintained patchwork that repeats prior import pain.
+- Reason for inclusion: equipment/attunement implementation is not useful unless item definitions can actually express mechanical behavior.
 
-#### Phase 3 — shared mechanical effect engine (high-risk; architecture-first)
+#### C) Player-facing organization model (Items / Equipment / Attunement)
 
-- implement one shared modifier pipeline (no per-component math patches)
-- target future derived influence areas through that shared path (AC, saves, stats, spell DC/attack, initiative)
-- keep this as a contained architecture batch before any wide UI/rules fan-out
+- Evolve player inventory UX into three functional views: **Items**, **Equipment**, **Attunement**.
+- Do not duplicate the same owned item across containers.
+- Each owned item should sit in one functional state/container at a time instead of appearing redundantly in multiple lists.
+- Attunement-focused views must surface relevant attunement candidates directly and avoid forcing players through giant undifferentiated inventories.
 
-#### Sibling track — abilities / boons
+#### D) Phase 1 equipment slot model (explicit)
 
-- model passive/descriptive abilities separately from limited-use resources
-- support class/background/species/feat-style boons as a sibling system (not “resource system 2”)
-- start tracked/descriptive first; only connect to modifier automation through the shared engine when ready
+- armor: 1
+- shield: 1
+- main hand: 1
+- off hand: 1
+- neck: 1
+- rings: unlimited
+- wondrous/no-visible-slot items may activate through attunement without inventing fake visible wear slots.
 
-#### Explicit delivery guardrails
+Phase 1 weapon handling is intentionally limited to main hand + off hand only. Wider weapon nuance (for example two-handed/versatile restrictions) stays out of this phase.
 
-- do not combine equipment, attunement, full mechanical effects, and abilities into one leap
-- preserve profile-first durable state plus encounter-runtime overlay model
-- centralize shared modifier logic; avoid duplicated surface-level formulas
+#### E) Equip / unequip / attune / unattune rules (explicit)
 
-### 4) Attunement inside rest procedures — upcoming design track (not yet in-flight)
+- Players can equip at any time.
+- Players can unequip at any time.
+- Players can unattune at any time.
+- Players can attune only during short rest or long rest.
+- Equipping into an occupied slot must prompt for confirmation; confirm auto-unequips the old item, cancel keeps current state.
+- Unequipping an attuned item auto-unattunes it.
 
-Goal: lock the future product direction so attunement work lands coherently across rest flows.
+#### F) Activation gates (explicit)
 
-- Attunement belongs inside rest procedures, not as a separate unrelated workflow.
-- Attunement must later sit inside short rest.
-- Attunement must also sit inside long rest.
-- Long rest should use the same attunement procedure/UI pattern as short rest where practical.
-- In long rest, attunement will live alongside spell preparation rather than replacing it.
-- Shared rest-procedure UI/flow should be reused across short rest and long rest where practical.
-- This is active roadmap/design direction, but it is not yet landed and not currently in-flight implementation.
+- Non-attunement items with passive effects: **equipped = active**.
+- Attunement-required items: **equipped + attuned = active**.
+- Wondrous items without visible equipment slots: **attuned = active**.
+- Unattuning or unequipping removes active effects as appropriate.
 
-### 5) Spell architecture follow-up — subclass-granted spell modeling
+#### G) Rest integration points (explicit)
+
+- Short rest must gain an attunement section inside the existing player-response / DM-confirm procedure.
+- Long rest must gain an attunement section inside the existing preparation flow.
+- Long rest must also gain charge-recharge entry for applicable items.
+- Phase 1 recharge handling is table-scoped to long rest only.
+- Rest attunement views should show:
+  - currently attuned items first
+  - eligible unattuned attunement items from bag/inventory below
+  - no giant unfiltered inventory dumps
+
+#### H) Charges / recharge model (Phase 1)
+
+- Charges live on the owned inventory item instance (durable item-instance state), not only encounter-runtime overlays.
+- During long rest, player enters restored charges for items that recharge at dawn/long-rest cadence.
+- System enforces max-charge caps.
+- Recharge entry still applies where rules allow recharge independent of current attuned state.
+
+#### I) Armor/stat influence baseline that must be proven in Phase 1
+
+Phase 1 is not complete if it only stores equipment/attunement flags. It must prove full trail into real derived outcomes.
+
+Minimum Phase 1 influence targets:
+
+- armor-specific AC formulas per item
+- shield AC bonuses
+- flat AC bonuses
+- simple passive stat effects where practical
+- spell save DC bonuses
+- spell attack bonuses
+- saving throw bonuses
+- ability score bonuses where practical
+
+Armor handling must allow per-item AC behavior/formula and must not collapse to one blanket light/medium/heavy shortcut.
+
+#### J) Manual profile bonus boxes stay in place (explicit preservation)
+
+Moving AC and other derived effects toward item/ability-driven calculation must **not** remove existing manual profile bonus boxes / manual-override-style additions.
+
+- Keep manual profile bonuses for AC and other existing derived bonus fields.
+- Manual overrides remain necessary for story/adjudication edge cases outside item/ability automation.
+- Item/effect automation must layer with and respect manual profile bonuses rather than replacing operator override capability.
+
+#### K) Shared future effect hook (items + attunement + abilities/boons)
+
+Phase 1 must leave a clean hook point for future player abilities/boons/features that also modify stats.
+
+- Do not build equipment effects as an isolated bespoke math path.
+- Design toward one shared modifier path that can later accept:
+  - item effects
+  - attunement-gated item effects
+  - player ability/boon/feature effects
+- The broader shared mechanical effect engine remains a later/higher-risk phase, but Phase 1 must avoid painting the repo into a corner.
+
+#### L) Scope truthfulness guardrail
+
+This section is active roadmap scope and direction. It is not yet landed implementation.
+
+### 2) Spell architecture follow-up — subclass-granted spell modeling
 
 Goal: close known modeling gaps for subclass spell access while preserving current role/runtime correctness.
 
@@ -94,7 +156,7 @@ Goal: close known modeling gaps for subclass spell access while preserving curre
 - support always-prepared subclass spells without consuming ordinary prep slots
 - avoid fragile per-view exceptions across DM/player/runtime spell surfaces
 
-### 6) Conservative code-health batches (after product track slices)
+### 3) Conservative code-health batches (after product track slices)
 
 - legacy initiative path decision (`src/components/InitiativePanel.js`)
 - DMView de-densify/extraction (`src/views/DMView.js`) as isolated maintenance
