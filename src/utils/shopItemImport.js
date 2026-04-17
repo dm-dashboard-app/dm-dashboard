@@ -27,6 +27,11 @@ function parseAttunementFromName(name = '') {
   return /\brequires attunement\b/i.test(String(name || ''));
 }
 
+function parseAttunementFromDescription(desc = []) {
+  if (!Array.isArray(desc) || !desc.length) return false;
+  return desc.some(line => /\brequires attunement\b/i.test(String(line || '')));
+}
+
 function parseCostGp(cost) {
   if (!cost || !Number.isFinite(cost.quantity)) return null;
   const quantity = Number(cost.quantity);
@@ -142,7 +147,7 @@ function mapApiItem(detail = {}, kind = 'equipment') {
   const name = String(detail.name || '').trim();
   const sourceSlug = String(detail.index || '').trim() || slugify(name);
   const slug = slugify(`${IMPORT_SOURCE_TYPE}-${sourceSlug}`);
-  const requiresAttunement = parseAttunementFromName(name);
+  const requiresAttunement = parseAttunementFromName(name) || parseAttunementFromDescription(detail.desc);
   const isDegradedFallback = !!detail.metadata_fallback;
   const sourceBasePrice = kind === 'equipment' ? parseCostGp(detail.cost) : null;
   const trustedBasePrice = !isDegradedFallback && Number.isFinite(sourceBasePrice) ? sourceBasePrice : null;
@@ -177,6 +182,145 @@ function mapApiItem(detail = {}, kind = 'equipment') {
       degraded_reason: isDegradedFallback ? String(detail.metadata_fallback_reason || 'detail_endpoint_unavailable') : null,
     },
   };
+}
+
+const ENHANCEMENT_VARIANT_BASES = {
+  armor: [
+    { source_slug: 'leather-armor', name: 'Leather Armor' },
+    { source_slug: 'studded-leather-armor', name: 'Studded Leather Armor' },
+    { source_slug: 'breastplate', name: 'Breastplate' },
+    { source_slug: 'half-plate-armor', name: 'Half Plate Armor' },
+    { source_slug: 'plate-armor', name: 'Plate Armor' },
+  ],
+  weapon: [
+    { source_slug: 'dagger', name: 'Dagger' },
+    { source_slug: 'shortsword', name: 'Shortsword' },
+    { source_slug: 'longsword', name: 'Longsword' },
+    { source_slug: 'shortbow', name: 'Shortbow' },
+    { source_slug: 'longbow', name: 'Longbow' },
+    { source_slug: 'light-crossbow', name: 'Light Crossbow' },
+  ],
+  shield: [
+    { source_slug: 'shield', name: 'Shield' },
+  ],
+};
+
+const ABSTRACT_ENHANCEMENT_SPECS = [
+  { source_slug: 'armor-1', family: 'armor', bonus: 1 },
+  { source_slug: 'armor-2', family: 'armor', bonus: 2 },
+  { source_slug: 'armor-3', family: 'armor', bonus: 3 },
+  { source_slug: 'weapon-1', family: 'weapon', bonus: 1 },
+  { source_slug: 'weapon-2', family: 'weapon', bonus: 2 },
+  { source_slug: 'weapon-3', family: 'weapon', bonus: 3 },
+  { source_slug: 'shield-1', family: 'shield', bonus: 1 },
+  { source_slug: 'shield-2', family: 'shield', bonus: 2 },
+  { source_slug: 'shield-3', family: 'shield', bonus: 3 },
+];
+
+const ABSTRACT_ENHANCEMENT_SOURCE_SLUGS = new Set(ABSTRACT_ENHANCEMENT_SPECS.map(spec => spec.source_slug));
+
+function deriveEnhancedVariantMechanics(baseRow = {}, family = 'armor', bonus = 1) {
+  const baseMechanics = baseRow?.metadata_json?.mechanics || null;
+  const fallbackSlotFamily = family === 'weapon' ? 'main_hand' : family;
+  const slotFamily = String(baseMechanics?.slot_family || fallbackSlotFamily);
+  const activationMode = String(baseMechanics?.activation_mode || 'equip');
+  const requiresAttunement = false;
+  const passiveEffects = Array.isArray(baseMechanics?.passive_effects) ? [...baseMechanics.passive_effects] : [];
+
+  if (family === 'armor' || family === 'shield') {
+    passiveEffects.push({
+      type: 'flat_bonus',
+      target: 'ac',
+      value: bonus,
+    });
+  } else if (family === 'weapon') {
+    passiveEffects.push({
+      type: 'weapon_attack_bonus',
+      value: bonus,
+    });
+  }
+
+  return {
+    slot_family: slotFamily,
+    activation_mode: activationMode,
+    requires_attunement: requiresAttunement,
+    armor: baseMechanics?.armor || null,
+    passive_effects: passiveEffects,
+    charges: null,
+    recharge: null,
+  };
+}
+
+function buildEnhancedVariantRows(rows = []) {
+  const bySourceSlug = new Map((rows || []).map(row => [String(row.source_slug || '').trim(), row]));
+  const variants = [];
+
+  ABSTRACT_ENHANCEMENT_SPECS.forEach((spec) => {
+    const abstractRow = bySourceSlug.get(spec.source_slug);
+    if (!abstractRow) return;
+
+    const baseTemplates = ENHANCEMENT_VARIANT_BASES[spec.family] || [];
+    baseTemplates.forEach((template) => {
+      const baseRow = bySourceSlug.get(template.source_slug);
+      if (!baseRow) return;
+
+      const variantSlug = `${template.source_slug}-plus-${spec.bonus}`;
+      const metadata = abstractRow.metadata_json || {};
+      const mechanics = deriveEnhancedVariantMechanics(baseRow, spec.family, spec.bonus);
+      const mechanicsSupport = spec.family === 'weapon' ? 'phase1_structured' : 'phase1_supported';
+
+      variants.push({
+        ...baseRow,
+        name: `${template.name} +${spec.bonus}`,
+        slug: slugify(`${IMPORT_SOURCE_TYPE}-${variantSlug}`),
+        rarity: abstractRow.rarity || baseRow.rarity || null,
+        requires_attunement: false,
+        description: `${template.name} enhanced with a +${spec.bonus} magical bonus.`,
+        base_price_gp: abstractRow.base_price_gp,
+        suggested_price_gp: abstractRow.suggested_price_gp,
+        price_source: abstractRow.price_source || baseRow.price_source,
+        source_slug: variantSlug,
+        external_key: `${IMPORT_SOURCE_TYPE}:${variantSlug}`,
+        is_shop_eligible: true,
+        shop_bucket: spec.family === 'weapon' ? 'combat' : 'magic',
+        metadata_json: {
+          ...metadata,
+          mechanics,
+          mechanics_support: mechanicsSupport,
+          mechanics_enrichment_source: 'repo_item_mechanics_enrichment_2014',
+          variant_kind: 'concrete_enhanced_item',
+          variant_bonus: spec.bonus,
+          variant_family: spec.family,
+          variant_base_source_slug: template.source_slug,
+          variant_from_abstract_source_slug: spec.source_slug,
+          shop_intent: {
+            magic_shop: true,
+            blacksmith_high_affluence: true,
+          },
+        },
+      });
+    });
+  });
+
+  return variants;
+}
+
+function quarantineAbstractEnhancementRows(rows = []) {
+  return (rows || []).map((row) => {
+    const sourceSlug = String(row.source_slug || '').trim();
+    if (!ABSTRACT_ENHANCEMENT_SOURCE_SLUGS.has(sourceSlug)) return row;
+    return {
+      ...row,
+      is_shop_eligible: false,
+      shop_bucket: 'legacy_abstract_enhancement',
+      metadata_json: {
+        ...(row.metadata_json || {}),
+        mechanics_support: 'abstract_generic_legacy',
+        abstract_enhancement_row: true,
+        abstract_enhancement_handling: 'quarantined_from_mechanics_and_shop_generation',
+      },
+    };
+  });
 }
 
 
@@ -413,7 +557,9 @@ export async function buildSrdImportRows(onProgress = null) {
   ].map(item => applyPricingOverlay(item, overlayByName));
   const enrichedImported = applyMechanicsEnrichmentRows(imported, mechanicsEnrichment);
 
-  const rows = Array.from(new Map(enrichedImported.map(item => [item.external_key, item])).values());
+  const concretizedRows = quarantineAbstractEnhancementRows(enrichedImported);
+  const enhancedVariantRows = buildEnhancedVariantRows(concretizedRows);
+  const rows = Array.from(new Map([...concretizedRows, ...enhancedVariantRows].map(item => [item.external_key, item])).values());
   const fetchFailures = [...(equipmentResult.fetchFailures || []), ...(magicResult.fetchFailures || [])];
   return {
     rows,

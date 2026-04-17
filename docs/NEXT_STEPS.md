@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 17, 2026 (equipment/attunement/import roadmap detail pass)
+Last updated: April 17, 2026 (catalog semantics + concrete enhancement variant follow-up)
 
 Purpose: This file is the active roadmap only. It lists active next steps, intentionally parked/deferred work, and longer-range ideas.
 
@@ -226,3 +226,4 @@ This roadmap is healthy when a new chat can quickly see:
 
 - Expand mechanics enrichment coverage from current `phase1_supported` curated set toward broader SRD item coverage without overclaiming unsupported rows.
 - Keep unsupported/non-enriched items explicitly manual until represented with truthful structured mechanics.
+- Follow-up shop generator tuning: concrete enhanced armor/weapon/shield variants now carry forward-compatibility metadata for later higher-affluence blacksmith eligibility. Keep this as a focused generator-rule pass (not a broad economy rebalance).

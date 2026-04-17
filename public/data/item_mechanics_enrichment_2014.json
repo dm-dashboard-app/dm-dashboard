@@ -206,8 +206,8 @@
     {
       "external_key": "official_srd_2014:cloak-of-protection",
       "source_slug": "cloak-of-protection",
-      "slot_family": "neck",
-      "activation_mode": "equip",
+      "slot_family": null,
+      "activation_mode": "attunement_only",
       "requires_attunement": true,
       "passive_effects": [
         {
@@ -352,7 +352,7 @@
       "source_slug": "wand-of-magic-missiles",
       "slot_family": null,
       "activation_mode": "attunement_only",
-      "requires_attunement": false,
+      "requires_attunement": true,
       "charges": {
         "max": 7
       },
