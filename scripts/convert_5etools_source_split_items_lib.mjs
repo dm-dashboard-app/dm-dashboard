@@ -146,9 +146,34 @@ function normalizeRarity(value = '') {
   return String(value || '').trim().toLowerCase();
 }
 
+function parseAttunementFlag(value) {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (!normalized) return null;
+    if (normalized === 'false' || normalized === 'no' || normalized === 'none') return false;
+    return true;
+  }
+  return null;
+}
+
 function deriveAttunement(item = {}, description = '') {
-  if (typeof item.reqAttune === 'boolean') return item.reqAttune;
-  if (typeof item.reqAttune === 'string' && item.reqAttune.trim()) return true;
+  const directSignals = [
+    item.reqAttune,
+    item.requiresAttunement,
+    item.requires_attunement,
+    item?.mechanics?.requires_attunement,
+    item?.metadata_json?.mechanics?.requires_attunement,
+  ];
+
+  for (const signal of directSignals) {
+    const parsed = parseAttunementFlag(signal);
+    if (parsed !== null) return parsed;
+  }
+
+  if (Array.isArray(item.reqAttuneTags) && item.reqAttuneTags.length > 0) return true;
+  if (Array.isArray(item?.metadata_json?.req_attune_tags) && item.metadata_json.req_attune_tags.length > 0) return true;
+
   return /requires attunement/i.test(description);
 }
 
@@ -502,6 +527,7 @@ export function convert5etoolsItemToImportRow(item = {}, context = {}) {
       source_record_hash_key: `${sourceKey}:${nameSlug}`,
       has_structured_entries: Array.isArray(item.entries),
       req_attune_raw: item.reqAttune ?? null,
+      req_attune_tags: Array.isArray(item.reqAttuneTags) ? item.reqAttuneTags : [],
       mechanics,
     },
   };

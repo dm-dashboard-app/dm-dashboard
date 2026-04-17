@@ -33,6 +33,24 @@ test('maps attunement magic item truthfully', () => {
   assert.equal(row.metadata_json.mechanics_support, 'manual_required');
 });
 
+test('derives top-level attunement from nested mechanics/runtime signals', () => {
+  const row = convert({
+    name: 'Nested Signal Wand',
+    rarity: 'rare',
+    metadata_json: {
+      mechanics: {
+        requires_attunement: true,
+      },
+    },
+  });
+  assert.equal(row.requires_attunement, true);
+});
+
+test('keeps explicit non-attunement false when present', () => {
+  const row = convert({ name: 'Plain Buckler', type: 'S', reqAttune: false, entries: ['No attunement required.'] });
+  assert.equal(row.requires_attunement, false);
+});
+
 test('maps weapon-like bonus fields into mechanics support', () => {
   const row = convert({ name: 'Blade of +1', rarity: 'rare', type: 'M', weaponCategory: 'martial', bonusWeapon: '+1' });
   assert.equal(row.item_type, 'weapon');
