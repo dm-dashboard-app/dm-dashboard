@@ -17,7 +17,7 @@ import {
 } from './inventoryClient';
 import { classifyInventoryRows, getItemMaxCharges, itemRequiresAttunement, resolveItemSlot } from '../utils/itemEffects';
 import { formatInventorySummary, isClearlyUsableInventoryItem, normalizeInventoryItemPayload } from '../utils/inventoryUtils';
-import { compactItemMeta, resolveItemDetailText } from '../utils/itemDetailText';
+import { compactItemMeta, getItemMechanicsSummary, resolveItemDetailText } from '../utils/itemDetailText';
 
 const EMPTY_SNAPSHOT = {
   items: [],
@@ -140,6 +140,12 @@ export default function InventoryModal({
       clearTimeout(timer);
     };
   }, [open, canManageItems, catalogQuery, playerProfileId, role, joinCode]);
+
+  useEffect(() => {
+    if (!selectedItem?.id) return;
+    const refreshed = (snapshot.items || []).find((row) => row.id === selectedItem.id);
+    if (refreshed) setSelectedItem(refreshed);
+  }, [snapshot.items, selectedItem?.id]);
 
   const classified = useMemo(() => classifyInventoryRows(snapshot.items || []), [snapshot.items]);
 
@@ -269,6 +275,7 @@ export default function InventoryModal({
   }, [selectedItem?.id, selectedItem?.item_master_id]);
 
   const selectedItemDetail = selectedItemCatalog ? resolveItemDetailText(selectedItemCatalog) : null;
+  const selectedItemMechanics = selectedItemCatalog ? getItemMechanicsSummary(selectedItemCatalog) : [];
   const selectedItemQuantity = Math.max(1, parseInt(selectedItem?.quantity || 1, 10) || 1);
   const removeQuantity = Math.max(1, Math.min(selectedItemQuantity, parseInt(removeItemState.quantity || 1, 10) || 1));
   const canUseOne = isClearlyUsableInventoryItem({ inventoryItem: selectedItem, catalogItem: selectedItemCatalog });
@@ -277,8 +284,12 @@ export default function InventoryModal({
   async function handleEquipSelected(confirmReplace = false) {
     if (!selectedItem?.id) return;
     try {
+      const wasAttuned = !!selectedItem?.attuned;
       await inventoryEquipItem({ playerProfileId, role, joinCode, itemRowId: selectedItem.id, confirmReplace });
       await loadAll();
+      if (wasAttuned) {
+        setSelectedItem((curr) => (curr ? { ...curr, equipped: true, attuned: true } : curr));
+      }
     } catch (error) {
       if (String(error?.message || '').toLowerCase().includes('occupied') && !confirmReplace) {
         const ok = window.confirm('That slot is already occupied. Replace the currently equipped item?');
@@ -450,15 +461,11 @@ export default function InventoryModal({
         )}
 
         <div className="panel" style={{ padding: 8, marginTop: 8 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              <button className={`btn ${activeTab === 'items' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setActiveTab('items')}>Items</button>
-              <button className={`btn ${activeTab === 'equipment' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setActiveTab('equipment')}>Equipment</button>
-              <button className={`btn ${activeTab === 'attunement' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setActiveTab('attunement')}>Attunement</button>
-            </div>
-            <div className="panel-title">Inventory</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 6, marginBottom: 6 }}>
+            <button className={`btn ${activeTab === 'items' ? 'btn-primary' : 'btn-ghost'}`} style={{ width: '100%', minWidth: 0 }} onClick={() => setActiveTab('items')}>Items</button>
+            <button className={`btn ${activeTab === 'equipment' ? 'btn-primary' : 'btn-ghost'}`} style={{ width: '100%', minWidth: 0 }} onClick={() => setActiveTab('equipment')}>Equipment</button>
+            <button className={`btn ${activeTab === 'attunement' ? 'btn-primary' : 'btn-ghost'}`} style={{ width: '100%', minWidth: 0 }} onClick={() => setActiveTab('attunement')}>Attunement</button>
           </div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>Item automation applies to curated phase1-supported enrichment rows; unsupported items remain manual.</div>
           <input className="form-input" placeholder="Search items" value={itemFilter} onChange={(event) => setItemFilter(event.target.value)} />
           <div style={{ marginTop: 8, display: 'grid', gap: 6, maxHeight: '40vh', overflowY: 'auto', paddingRight: 2 }}>
             {filteredItems.length === 0 ? <div className="empty-state" style={{ padding: 8 }}>No items yet.</div> : null}
@@ -531,6 +538,21 @@ export default function InventoryModal({
               ) : (
                 <p className="world-shop-item-description">{selectedItem.notes || 'No additional details available for this custom item.'}</p>
               )}
+              {selectedItemMechanics.length > 0 ? (
+                <div style={{ marginTop: 8, border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', background: 'rgba(255,255,255,0.02)' }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>
+                    Mechanics & Stat Bonuses
+                  </div>
+                  <div style={{ display: 'grid', gap: 4 }}>
+                    {selectedItemMechanics.map((entry, index) => (
+                      <div key={`${entry.label}-${entry.value}-${index}`} style={{ display: 'grid', gridTemplateColumns: '130px 1fr', gap: 6, fontSize: 12 }}>
+                        <span style={{ color: 'var(--text-muted)' }}>{entry.label}</span>
+                        <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{entry.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
               {selectedItem.notes && selectedItemCatalog ? <p className="world-shop-item-description" style={{ opacity: 0.9 }}>Inventory notes: {selectedItem.notes}</p> : null}
 
 

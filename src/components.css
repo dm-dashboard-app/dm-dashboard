@@ -1195,6 +1195,43 @@
   font-family: inherit;
 }
 
+.item-mechanics-summary {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 8px 10px;
+}
+
+.item-mechanics-summary__title {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.item-mechanics-summary__rows {
+  display: grid;
+  gap: 4px;
+}
+
+.item-mechanics-summary__row {
+  display: grid;
+  grid-template-columns: minmax(96px, 128px) minmax(0, 1fr);
+  gap: 6px;
+  font-size: 12px;
+}
+
+.item-mechanics-summary__label {
+  color: var(--text-muted);
+}
+
+.item-mechanics-summary__value {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
 @media (max-width: 900px) {
   .world-shops-layout {
     grid-template-columns: 1fr;
@@ -1205,6 +1242,10 @@
     grid-template-columns: minmax(0, 1fr) 28px 56px 56px 32px;
     font-size: 11px;
     gap: 4px;
+  }
+
+  .item-mechanics-summary__row {
+    grid-template-columns: minmax(88px, 112px) minmax(0, 1fr);
   }
 }
 

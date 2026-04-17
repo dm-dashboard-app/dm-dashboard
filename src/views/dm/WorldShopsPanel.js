@@ -5,7 +5,7 @@ import { applyPersistedStockLanes, buildGenerationSeedWithCoreCount, countCoreRo
 import ItemImportPanel from '../../components/ItemImportPanel';
 import { generateSpellScrollBatch } from '../../utils/spellScrolls';
 import { inventoryDmAssignGeneratedShopItem, inventoryDmShopAssignItem } from '../../inventory/inventoryClient';
-import { resolveItemDetailText } from '../../utils/itemDetailText';
+import { getItemMechanicsSummary, resolveItemDetailText } from '../../utils/itemDetailText';
 
 const SHOP_TYPES = [
   { value: 'blacksmith', label: 'Blacksmith' },
@@ -47,6 +47,7 @@ function ItemDetailModal({ item, onClose, players = [], onAssignmentSuccess }) {
 
   if (!item) return null;
   const detail = resolveItemDetailText(item);
+  const mechanicsSummary = getItemMechanicsSummary(item);
 
   async function handleAssignToPlayer() {
     if (!receiverProfileId) return;
@@ -108,6 +109,19 @@ function ItemDetailModal({ item, onClose, players = [], onAssignmentSuccess }) {
         </div>
         {item.price_source ? <div className="world-shop-pricing-meta"><span>Pricing Basis: {item.price_source}</span></div> : null}
         {detail.mode === 'structured_fallback' ? <pre className="world-shop-item-description">{detail.text}</pre> : <p className="world-shop-item-description">{detail.text}</p>}
+        {mechanicsSummary.length > 0 ? (
+          <div className="item-mechanics-summary">
+            <div className="item-mechanics-summary__title">Mechanics &amp; Stat Bonuses</div>
+            <div className="item-mechanics-summary__rows">
+              {mechanicsSummary.map((entry, index) => (
+                <div key={`${entry.label}-${entry.value}-${index}`} className="item-mechanics-summary__row">
+                  <span className="item-mechanics-summary__label">{entry.label}</span>
+                  <span className="item-mechanics-summary__value">{entry.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         <div className="panel" style={{ padding: 8 }}>
           <div className="panel-title" style={{ marginBottom: 6 }}>Assign / Sell to Player</div>

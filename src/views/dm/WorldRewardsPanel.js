@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import { inventoryDmAwardCurrency, inventoryUpsertItem } from '../../inventory/inventoryClient';
-import { resolveItemDetailText } from '../../utils/itemDetailText';
+import { getItemMechanicsSummary, resolveItemDetailText } from '../../utils/itemDetailText';
 
 function RewardsItemPreviewModal({ item, onClose }) {
   if (!item) return null;
   const detail = resolveItemDetailText(item);
+  const mechanicsSummary = getItemMechanicsSummary(item);
 
   return (
     <div className="world-shop-modal-backdrop" onClick={onClose}>
@@ -22,6 +23,19 @@ function RewardsItemPreviewModal({ item, onClose }) {
         {detail.mode === 'structured_fallback'
           ? <pre className="world-shop-item-description">{detail.text}</pre>
           : <p className="world-shop-item-description">{detail.text}</p>}
+        {mechanicsSummary.length > 0 ? (
+          <div className="item-mechanics-summary">
+            <div className="item-mechanics-summary__title">Mechanics &amp; Stat Bonuses</div>
+            <div className="item-mechanics-summary__rows">
+              {mechanicsSummary.map((entry, index) => (
+                <div key={`${entry.label}-${entry.value}-${index}`} className="item-mechanics-summary__row">
+                  <span className="item-mechanics-summary__label">{entry.label}</span>
+                  <span className="item-mechanics-summary__value">{entry.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );

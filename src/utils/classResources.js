@@ -41,6 +41,7 @@ export function getSpellcastingAbilityKey(source = {}) { return SPELLCASTING_ABI
 export function getSpellcastingAbilityModifier(source = {}) { const abilityKey = getSpellcastingAbilityKey(source); return abilityKey ? (getAbilityModifiers(source)[abilityKey] ?? 0) : 0; }
 export function getDerivedInitiativeModifier(source = {}) { return getAbilityModifiers(source).dex ?? 0; }
 export function getManualInitiativeBonus(source = {}) { return toInt(source.initiative_bonus, 0); }
+export function getManualArmorClassBonus(source = {}) { return toInt(source.ac_bonus, 0); }
 export function getManualSpellSaveBonus(source = {}) { return toInt(source.spell_save_bonus, 0); }
 export function getManualSpellAttackBonus(source = {}) { return toInt(source.spell_attack_bonus_mod, 0); }
 export function getFinalInitiativeModifier(source = {}) { return getDerivedInitiativeModifier(source) + getManualInitiativeBonus(source); }
@@ -50,7 +51,10 @@ export function getDerivedSpellAttackBonus(source = {}) { return getSpellcasting
 export function getFinalSpellAttackBonus(source = {}) { const base = getDerivedSpellAttackBonus(source); return base > 0 ? base + getManualSpellAttackBonus(source) : 0; }
 export function getBaseArmorClass(source = {}) { return readNumberField(source, ['ac'], 10) ?? 10; }
 export function getMageArmourArmorClass(source = {}) { return 13 + (getAbilityModifiers(source).dex ?? 0); }
-export function getFinalArmorClass(profile = {}, state = {}) { return readBooleanField(state, ['mage_armour_active'], false) ? getMageArmourArmorClass(profile) : getBaseArmorClass(profile); }
+export function getFinalArmorClass(profile = {}, state = {}) {
+  const base = readBooleanField(state, ['mage_armour_active'], false) ? getMageArmourArmorClass(profile) : getBaseArmorClass(profile);
+  return base + getManualArmorClassBonus(profile);
+}
 export function getHighestHitDie(source = {}, fallback = 8) { const dice = getClassEntries(source).map(entry => CLASS_HIT_DIE[entry.className] || 0).filter(Boolean); return dice.length ? Math.max(...dice) : fallback; }
 export function getHitDiePools(source = {}) { const pools = { 6:0, 8:0, 10:0, 12:0 }; getClassEntries(source).forEach(entry => { const size = CLASS_HIT_DIE[entry.className]; if (size) pools[size] += entry.level || 0; }); return pools; }
 export function formatHitDiceSummary(source = {}) { const pools = getHitDiePools(source); return HIT_DIE_SIZES.filter(size => pools[size] > 0).map(size => `${pools[size]} × d${size}`).join(' • '); }

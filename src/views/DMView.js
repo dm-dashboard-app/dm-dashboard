@@ -342,7 +342,7 @@ export default function DMView() {
           </div>
           <div className="dm-bottom-action-row">
             <button className="btn btn-ghost" onClick={beginLongRest}>Long Rest</button>
-            <button className="btn btn-ghost" onClick={beginShortRest}>{shortRestProcedureActive ? 'Short Rest (Active)' : 'Short Rest'}</button>
+            <button className="btn btn-ghost" onClick={beginShortRest}>{shortRestProcedureActive ? 'Short Rest • Active' : 'Short Rest'}</button>
             <button className="btn btn-ghost" onClick={handleRollEnemyInitiative} disabled={rollingInit}>{rollingInit ? 'Rolling…' : 'Initiative'}</button>
             <button className="btn btn-primary dm-bottom-action-next" onClick={handleNextTurn}>Next</button>
           </div>
