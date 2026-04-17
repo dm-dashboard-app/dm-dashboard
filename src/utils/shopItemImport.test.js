@@ -312,6 +312,87 @@ describe('load5etoolsSourceSplitRows', () => {
     expect(rows[0].external_key).toBe('5etools_items_by_source_curated:phb-abacus');
     expect(rows[0].source_type).toBe('custom_homebrew_private_seed');
   });
+
+  test('returns import metadata for five_tools_2014 payload safety checks', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        source_layer: '5etools_items_by_source_curated',
+        total_items_converted: 2,
+        generated_at: '2026-04-17T10:00:00.000Z',
+        items: [
+          { name: 'Abacus', external_key: '5etools_items_by_source_curated:phb-abacus' },
+          { name: 'Backpack', external_key: '5etools_items_by_source_curated:phb-backpack' },
+        ],
+      }),
+    });
+
+    const bundle = await load5etoolsSourceSplitRows({ withMeta: true });
+    expect(bundle.rows).toHaveLength(2);
+    expect(bundle.importMeta).toEqual({
+      source_layer: '5etools_items_by_source_curated',
+      expected_active_row_count: 2,
+      artifact_generated_at: '2026-04-17T10:00:00.000Z',
+      catalog_admission_policy_version: '5etools_shop_admission_v2',
+    });
+  });
+});
+
+describe('generated 5etools active-lane artifact policy', () => {
+  test('excludes catalog-noise families and preserves hazardous demotion rows', () => {
+    const parsed = JSON.parse(fs.readFileSync('docs/data/shop_5etools_items_source_split_2014.json', 'utf8'));
+    const rows = Array.isArray(parsed?.items) ? parsed.items : [];
+    const byName = new Map(rows.map(row => [row.name, row]));
+
+    const excludedTargets = [
+      'Airship',
+      'Alexandrite',
+      'Amber',
+      'Amethyst',
+      'Aquamarine',
+      'Diamond',
+      'Ruby',
+      'Carriage',
+      'Cart',
+      'Chariot',
+      'Galley',
+      'Longship',
+      'Rowboat',
+      'Sailing Ship',
+      'Gold (gp)',
+      'Silver (sp)',
+      'Copper (cp)',
+      'Platinum (pp)',
+      'Canvas (1 sq. yd.)',
+      'Chicken',
+      'Cinnamon',
+      'Flour',
+      'Ginger',
+      'Salt',
+      'Silk (1 sq. yd.)',
+    ];
+    excludedTargets.forEach((name) => {
+      expect(byName.has(name)).toBe(false);
+    });
+
+    const hazardousNames = [
+      "Assassin's Blood",
+      'Bomb',
+      'Burnt Othur Fumes',
+      'Gunpowder Horn',
+      'Gunpowder Keg',
+      'Purple Worm Poison',
+    ];
+    hazardousNames.forEach((name) => {
+      const row = byName.get(name);
+      expect(row).toBeTruthy();
+      expect(row.is_shop_eligible).toBe(false);
+      expect(row.shop_bucket).toBe('hazardous_non_default');
+      expect(row?.metadata_json?.catalog_admission?.active_lane_decision).toBe('demoted_non_shop');
+    });
+
+    expect(rows.length).toBe(752);
+  });
 });
 
 describe('loadSrdDegradedReportRows', () => {
@@ -406,6 +487,17 @@ describe('dm_import_item_master_rows SQL downgrade protection', () => {
 
     expect(sql).toContain('on conflict (external_key)');
     expect(sql).toContain('do update set');
+    expect(sql).toContain('p_import_meta jsonb default');
+    expect(sql).toContain("'five_tools_2014'");
+    expect(sql).toContain("expected_active_row_count must be a positive integer");
+    expect(sql).toContain('payload safety check failed');
+    expect(sql).toContain('v_five_tools_valid_count');
+    expect(sql).toContain('v_five_tools_expected_count');
+    expect(sql).toContain('v_five_tools_valid_count = v_five_tools_expected_count');
+    expect(sql).toContain('five_tools_stale_demoted as (');
+    expect(sql).toContain("'excluded_stale_after_reimport'");
+    expect(sql).toContain("'no_longer_present_in_active_generated_artifact'");
+    expect(sql).toContain("metadata_json->>'source_layer'");
     expect(sql).toContain('where (');
     expect(sql).toContain("excluded.metadata_json->>'degraded_import'");
     expect(sql).toContain("v_mode <> 'srd_2014'");

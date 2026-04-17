@@ -1,9 +1,12 @@
 -- Stage 4 correction: in-app DM/admin item import RPC for shop catalog refresh.
 -- This keeps write authority server-mediated and removes terminal-only dependency.
 
+drop function if exists public.dm_import_item_master_rows(text, jsonb);
+
 create or replace function public.dm_import_item_master_rows(
   p_import_mode text,
-  p_rows jsonb
+  p_rows jsonb,
+  p_import_meta jsonb default '{}'::jsonb
 )
 returns table (
   import_mode text,
@@ -18,12 +21,16 @@ declare
   v_mode text := lower(coalesce(p_import_mode, ''));
   v_source_type text;
   v_rows jsonb := coalesce(p_rows, '[]'::jsonb);
+  v_import_meta jsonb := coalesce(p_import_meta, '{}'::jsonb);
+  v_source_layer text;
+  v_five_tools_expected_count integer;
+  v_five_tools_valid_count integer;
 begin
   if auth.uid() is null then
     raise exception 'Authentication required.';
   end if;
 
-  if v_mode not in ('srd_2014', 'custom_seed_2014') then
+  if v_mode not in ('srd_2014', 'custom_seed_2014', 'five_tools_2014') then
     raise exception 'Unsupported import mode: %', p_import_mode;
   end if;
 
@@ -39,6 +46,55 @@ begin
     when v_mode = 'srd_2014' then 'official_srd_2014'
     else 'custom_homebrew_private_seed'
   end;
+
+  if v_mode = 'five_tools_2014' then
+    v_source_layer := trim(coalesce(v_import_meta->>'source_layer', ''));
+    if v_source_layer = '' then
+      v_source_layer := '5etools_items_by_source_curated';
+    end if;
+
+    if v_source_layer <> '5etools_items_by_source_curated' then
+      raise exception 'five_tools_2014 import_meta source_layer must be 5etools_items_by_source_curated.';
+    end if;
+
+    if coalesce(v_import_meta->>'expected_active_row_count', '') !~ '^[0-9]+$' then
+      raise exception 'five_tools_2014 import_meta expected_active_row_count must be a positive integer.';
+    end if;
+    v_five_tools_expected_count := (v_import_meta->>'expected_active_row_count')::integer;
+    if coalesce(v_five_tools_expected_count, 0) <= 0 then
+      raise exception 'five_tools_2014 expected_active_row_count must be > 0.';
+    end if;
+
+    with parsed as (
+      select
+        trim(coalesce(row_data->>'name', '')) as name,
+        trim(coalesce(row_data->>'source_type', v_source_type)) as source_type,
+        trim(coalesce(row_data->>'rules_era', '2014')) as rules_era,
+        coalesce(row_data->'metadata_json', '{}'::jsonb) as metadata_json,
+        trim(coalesce(row_data->>'external_key', '')) as external_key
+      from jsonb_array_elements(v_rows) as t(row_data)
+    ), valid as (
+      select *
+      from parsed
+      where name <> ''
+        and external_key <> ''
+        and rules_era = '2014'
+        and source_type = v_source_type
+        and coalesce(metadata_json->>'source_layer', '') = v_source_layer
+    )
+    select count(*)::integer
+    into v_five_tools_valid_count
+    from valid;
+
+    if coalesce(v_five_tools_valid_count, 0) <> v_five_tools_expected_count then
+      raise exception 'five_tools_2014 payload safety check failed: valid row count % does not match expected_active_row_count %.',
+        coalesce(v_five_tools_valid_count, 0), v_five_tools_expected_count;
+    end if;
+  else
+    v_source_layer := null;
+    v_five_tools_expected_count := null;
+    v_five_tools_valid_count := null;
+  end if;
 
   with parsed as (
     select
@@ -79,6 +135,42 @@ begin
           and coalesce(price_source, '') <> 'degraded_fallback_untrusted'
         )
       )
+      and (
+        v_mode <> 'five_tools_2014'
+        or coalesce(metadata_json->>'source_layer', '') = v_source_layer
+      )
+  ), five_tools_payload_keys as (
+    select distinct external_key
+    from valid
+    where v_mode = 'five_tools_2014'
+      and external_key <> ''
+  ), five_tools_stale_demoted as (
+    update public.item_master as im
+    set
+      is_shop_eligible = false,
+      shop_bucket = 'catalog_noise_excluded',
+      metadata_json = jsonb_set(
+        coalesce(im.metadata_json, '{}'::jsonb),
+        '{catalog_admission}',
+        jsonb_build_object(
+          'policy_version', '5etools_shop_admission_v2',
+          'active_lane_decision', 'excluded_stale_after_reimport',
+          'reason', 'no_longer_present_in_active_generated_artifact',
+          'include_in_active_lane', false
+        ),
+        true
+      )
+    where v_mode = 'five_tools_2014'
+      and v_five_tools_valid_count = v_five_tools_expected_count
+      and im.source_type = v_source_type
+      and coalesce(im.metadata_json->>'source_layer', '') = coalesce(v_source_layer, '')
+      and im.external_key not in (select external_key from five_tools_payload_keys)
+      and (
+        im.is_shop_eligible = true
+        or coalesce(im.shop_bucket, '') <> 'catalog_noise_excluded'
+        or coalesce(im.metadata_json->'catalog_admission'->>'active_lane_decision', '') = ''
+      )
+    returning im.external_key
   ), upserted as (
     insert into public.item_master (
       external_key,
@@ -194,5 +286,5 @@ begin
 end;
 $$;
 
-revoke all on function public.dm_import_item_master_rows(text, jsonb) from public;
-grant execute on function public.dm_import_item_master_rows(text, jsonb) to authenticated;
+revoke all on function public.dm_import_item_master_rows(text, jsonb, jsonb) from public;
+grant execute on function public.dm_import_item_master_rows(text, jsonb, jsonb) to authenticated;
