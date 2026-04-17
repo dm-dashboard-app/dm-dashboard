@@ -81,7 +81,7 @@
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
-          "fallback_reason": "rarity_band_uncommon",
+          "fallback_reason": "enhancement_magic_item_plus_1",
           "fallback_bucket": "utility"
         },
         "catalog_admission": {
@@ -151,7 +151,7 @@
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
-          "fallback_reason": "rarity_band_uncommon",
+          "fallback_reason": "enhancement_magic_item_plus_1",
           "fallback_bucket": "utility"
         },
         "catalog_admission": {
@@ -218,7 +218,7 @@
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
-          "fallback_reason": "rarity_band_uncommon",
+          "fallback_reason": "enhancement_magic_item_plus_1",
           "fallback_bucket": "utility"
         },
         "catalog_admission": {
@@ -285,7 +285,7 @@
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
-          "fallback_reason": "rarity_band_uncommon",
+          "fallback_reason": "enhancement_magic_item_plus_1",
           "fallback_bucket": "utility"
         },
         "catalog_admission": {
@@ -426,7 +426,7 @@
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
-          "fallback_reason": "rarity_band_uncommon",
+          "fallback_reason": "enhancement_magic_item_plus_1",
           "fallback_bucket": "utility"
         },
         "catalog_admission": {
@@ -446,9 +446,9 @@
       "rarity": "rare",
       "requires_attunement": true,
       "description": "This simple screwdriver can transform into a variety of tools; as an action, you can touch the item and transform it into any type of artisan's tool of your choice (see the \"Equipment\" chapter in the Player's Handbook for a list of artisan's tools). Whatever form the tool takes, you are proficient with it.\nWhile holding this tool, you gain a +2 bonus to the spell attack rolls and the saving throw DCs of your artificer spells.\nAs an action, you can focus on the tool to channel your creative forces. Choose a cantrip that you don't know from any class list. For 8 hours, you can cast that cantrip, and it counts as an artificer cantrip for you. Once this property is used, it can't be used again until the next dawn.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-2-all-purpose-tool",
@@ -491,8 +491,10 @@
           "recharge": null
         },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "enhancement_magic_item_plus_2",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -511,9 +513,9 @@
       "rarity": "rare",
       "requires_attunement": true,
       "description": "This amulet bears the symbol of a deity inlaid with precious stones or metals. While you wear the holy symbol, you gain a +2 bonus to spell attack rolls and the saving throw DCs of your spells.\nWhile you wear this amulet, you can use your Channel Divinity feature without expending one of the feature's uses. Once this property is used, it can't be used again until the next dawn.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-2-amulet-of-the-devout",
@@ -559,8 +561,10 @@
           "recharge": null
         },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "enhancement_magic_item_plus_2",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -579,9 +583,9 @@
       "rarity": "rare",
       "requires_attunement": true,
       "description": "While you are holding this leather-bound book, you can use it as a spellcasting focus for your wizard spells, and you gain a +2 bonus to spell attack rolls and to the saving throw DCs of your wizard spells.\nYou can use this book as a spellbook. In addition, when you use your Arcane Recovery feature, you can increase the number of spell slot levels you regain by 1.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-2-arcane-grimoire",
@@ -624,8 +628,10 @@
           "recharge": null
         },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "enhancement_magic_item_plus_2",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -644,9 +650,9 @@
       "rarity": "rare",
       "requires_attunement": true,
       "description": "To attune to this vial, you must place a few drops of your blood into it. The vial can't be opened while your attunement to it lasts. If your attunement to the vial ends, the contained blood turns to ash. You can use the vial as a spellcasting focus for your spells while wearing or holding it, and you gain a +2 bonus to spell attack rolls and to the saving throw DCs of your sorcerer spells.\nIn addition, when you roll any Hit Dice to recover hit points while you are carrying the vial, you can regain 5 sorcery points. This property of the vial can't be used again until the next dawn.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-2-bloodwell-vial",
@@ -689,8 +695,10 @@
           "recharge": null
         },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "enhancement_magic_item_plus_2",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -783,9 +791,9 @@
       "rarity": "rare",
       "requires_attunement": true,
       "description": "While holding this drum, you gain a +2 bonus to spell attack rolls and to the saving throw DCs of your bard spells.\nAs an action, you can play the drum to regain one use of your Bardic Inspiration feature. This property of the drum can't be used again until the next dawn.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-2-rhythm-maker-s-drum",
@@ -828,8 +836,10 @@
           "recharge": null
         },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "enhancement_magic_item_plus_2",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -848,9 +858,9 @@
       "rarity": "very rare",
       "requires_attunement": true,
       "description": "This simple screwdriver can transform into a variety of tools; as an action, you can touch the item and transform it into any type of artisan's tool of your choice (see the \"Equipment\" chapter in the Player's Handbook for a list of artisan's tools). Whatever form the tool takes, you are proficient with it.\nWhile holding this tool, you gain a +3 bonus to the spell attack rolls and the saving throw DCs of your artificer spells.\nAs an action, you can focus on the tool to channel your creative forces. Choose a cantrip that you don't know from any class list. For 8 hours, you can cast that cantrip, and it counts as an artificer cantrip for you. Once this property is used, it can't be used again until the next dawn.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 50000,
+      "suggested_price_gp": 50000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-3-all-purpose-tool",
@@ -893,8 +903,10 @@
           "recharge": null
         },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "enhancement_magic_item_plus_3",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -913,9 +925,9 @@
       "rarity": "very rare",
       "requires_attunement": true,
       "description": "This amulet bears the symbol of a deity inlaid with precious stones or metals. While you wear the holy symbol, you gain a +3 bonus to spell attack rolls and the saving throw DCs of your spells.\nWhile you wear this amulet, you can use your Channel Divinity feature without expending one of the feature's uses. Once this property is used, it can't be used again until the next dawn.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 50000,
+      "suggested_price_gp": 50000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-3-amulet-of-the-devout",
@@ -961,8 +973,10 @@
           "recharge": null
         },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "enhancement_magic_item_plus_3",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -981,9 +995,9 @@
       "rarity": "very rare",
       "requires_attunement": true,
       "description": "While you are holding this leather-bound book, you can use it as a spellcasting focus for your wizard spells, and you gain a +3 bonus to spell attack rolls and to the saving throw DCs of your wizard spells.\nYou can use this book as a spellbook. In addition, when you use your Arcane Recovery feature, you can increase the number of spell slot levels you regain by 1.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 50000,
+      "suggested_price_gp": 50000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-3-arcane-grimoire",
@@ -1026,8 +1040,10 @@
           "recharge": null
         },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "enhancement_magic_item_plus_3",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -1046,9 +1062,9 @@
       "rarity": "very rare",
       "requires_attunement": true,
       "description": "To attune to this vial, you must place a few drops of your blood into it. The vial can't be opened while your attunement to it lasts. If your attunement to the vial ends, the contained blood turns to ash. You can use the vial as a spellcasting focus for your spells while wearing or holding it, and you gain a +3 bonus to spell attack rolls and to the saving throw DCs of your sorcerer spells.\nIn addition, when you roll any Hit Dice to recover hit points while you are carrying the vial, you can regain 5 sorcery points. This property of the vial can't be used again until the next dawn.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 50000,
+      "suggested_price_gp": 50000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-3-bloodwell-vial",
@@ -1091,8 +1107,10 @@
           "recharge": null
         },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "enhancement_magic_item_plus_3",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -1185,9 +1203,9 @@
       "rarity": "very rare",
       "requires_attunement": true,
       "description": "While holding this drum, you gain a +3 bonus to spell attack rolls and to the saving throw DCs of your bard spells.\nAs an action, you can play the drum to regain one use of your Bardic Inspiration feature. This property of the drum can't be used again until the next dawn.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 50000,
+      "suggested_price_gp": 50000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-3-rhythm-maker-s-drum",
@@ -1230,8 +1248,10 @@
           "recharge": null
         },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "enhancement_magic_item_plus_3",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -1517,9 +1537,9 @@
       "rarity": "artifact",
       "requires_attunement": true,
       "description": "The creations of the immortal hag Baba Yaga defy the laws of mortal magic. Among the notorious implements that cement her legend on countless worlds are the artifacts that propel her through the planes: Baba Yaga's Mortar and Pestle. These signature tools of Baba Yaga are a single artifact for purposes of attunement. Should the two objects become separated, the pestle appears next to the mortar at the next dawn.\nRandom Properties:\nThis artifact has the following random properties, which you can determine by rolling on the tables in the \"Artifacts\" section of the Dungeon Master's Guide:\n- 2 Artifact Properties; Minor Beneficial Properties properties\n- 1 Artifact Properties; Major Beneficial Properties property\n- 1 Artifact Properties; Minor Detrimental Properties property\nProperties of the Mortar:\nThe mortar is a Tiny wooden bowl. However, the mortar increases in size to accommodate anything you place inside, expanding-if there's enough space-up to Large size, meaning it can hold even a Large creature.\nProperties of the Pestle:\nThe pestle is a 6-inch-long, worn wooden tool. Once during your turn while you are holding the pestle, you can extend it into a quarterstaff or shrink it back into a pestle (no action required). As a quarterstaff, the pestle is a magic weapon that grants a +3 bonus to attack and damage rolls made with it.\nThe pestle has 12 charges. When you hit with a melee attack using the pestle, you can expend up to 3 of its charges to deal an extra 1d8 damage force damage for each charge expended. The pestle regains all expended charges daily at dawn.\nPerfect Tools:\nWhile holding the mortar and pestle, you can use your action to say the name of any nonmagical plant, mineral, or fluid and an amount of the material worth 10 gp or less. The mortar instantly fills with the desired amount of that material. Once you use this action, you can't do so again until you finish a short or long rest.\nYou can also use the artifact as alchemist's supplies, brewer's supplies, cook's utensils, an herbalism kit, and a poisoner's kit. You have advantage on any check you make using the artifact as one of these tools.\nPrimal Parts:\nAs an action while the pestle and the mortar is within 5 feet of you, you can command the pestle to grind. For the next minute, or until you use your action to verbally command it to stop, the pestle moves on its own, grinding the contents of the mortar into a mush or fine powder that's equally useful for cooking or alchemy. At the start of each of your turns, whatever is in the mortar takes 4d10 damage force damage. If this reduces the target's hit points to 0, the target is reduced to powder, pulp, or paste, as appropriate. Only magic items are unaffected. If you wish, when the pestle stops, you can have the mortar separate its contents-like powdered bone, crushed herbs, pulped organs-into separate piles.\nTraverse the Night:\nIf you are holding the pestle while you are inside the mortar, you can use your action to verbally command the mortar to travel to a specific place or creature.\nYou don't need to know where your destination is, but it must be a specific destination-not just the nearest river or a red dragon's lair. If the stated destination is within 1,000 miles of you, the mortar lifts into the air and vanishes. You and any creatures in the mortar travel through a dreamlike sky, with hazy reflections of the world passing by below. Creatures might see images of you streaking through the sky between your point of origin and the destination. You arrive at the location 1 hour later or, if it is night, 1 minute later.\nBones Know Their Home:\nWhen you command the mortar to travel, you can instead throw out the dust or paste of something ground by the mortar and name a location on a different plane of existence or a different world on the Material Plane. If that material came from a creature native to the named plane or world, the mortar travels through an empty night sky to an unoccupied space at that destination, arriving in 1 minute.\nDestroying the Mortar and Pestle:\nThe mortar and pestle are destroyed if they are crushed underfoot by the Dancing Hut of Baba Yaga or by Baba Yaga herself.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 50000,
+      "suggested_price_gp": 50000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-baba-yaga-s-mortar-and-pestle",
@@ -1557,8 +1577,10 @@
           }
         },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "enhancement_magic_item_plus_3",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -2340,7 +2362,7 @@
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
-          "fallback_reason": "rarity_band_uncommon",
+          "fallback_reason": "enhancement_magic_item_plus_1",
           "fallback_bucket": "utility"
         },
         "catalog_admission": {
@@ -4004,9 +4026,9 @@
       "rarity": "rare",
       "requires_attunement": true,
       "description": "While holding this concertina, you gain a +2 bonus to the saving throw DC of your bard spells.\nAs an action, you can use the concertina to cast Otto's irresistible dance from the item. This property of the concertina can't be used again until the next dawn.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-reveler-s-concertina",
@@ -4044,8 +4066,10 @@
           "recharge": null
         },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "enhancement_magic_item_plus_2",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -4154,16 +4178,16 @@
       "rarity": "common",
       "requires_attunement": false,
       "description": "Produced by a special needle, this magic tattoo contains a single 1st level spell, wrought on your skin by a magic needle. To use the tattoo, you must hold the needle against your skin and speak the command word. The needle turns into ink that becomes the tattoo, which appears on the skin in whatever design you like. Once the tattoo is there, you can cast its spell, requiring no material components. The tattoo glows faintly while you cast the spell and for the spell's duration. Once the spell ends, the tattoo vanishes from your skin.\nThe Ability modifier for this spell is +3; the Save DC is 13 and the attack bonus is +5.",
-      "base_price_gp": 100,
-      "suggested_price_gp": 100,
+      "base_price_gp": 150,
+      "suggested_price_gp": 150,
       "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-spellwrought-tattoo-1st-level",
       "external_key": "5etools_items_by_source_curated:tce-spellwrought-tattoo-1st-level",
       "rules_era": "2014",
-      "is_shop_eligible": true,
-      "shop_bucket": "utility",
+      "is_shop_eligible": false,
+      "shop_bucket": "manual_magic_review",
       "metadata_json": {
         "import_quality": "detail_verified_manual",
         "mechanics_support": "manual_required",
@@ -4179,8 +4203,8 @@
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
-          "fallback_reason": "rarity_band_common",
-          "fallback_bucket": "utility"
+          "fallback_reason": "spellwrought_tattoo_1st_level",
+          "fallback_bucket": "consumable"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -4199,8 +4223,8 @@
       "rarity": "uncommon",
       "requires_attunement": false,
       "description": "Produced by a special needle, this magic tattoo contains a single 2nd level spell, wrought on your skin by a magic needle. To use the tattoo, you must hold the needle against your skin and speak the command word. The needle turns into ink that becomes the tattoo, which appears on the skin in whatever design you like. Once the tattoo is there, you can cast its spell, requiring no material components. The tattoo glows faintly while you cast the spell and for the spell's duration. Once the spell ends, the tattoo vanishes from your skin.\nThe Ability modifier for this spell is +3; the Save DC is 13 and the attack bonus is +5.",
-      "base_price_gp": 500,
-      "suggested_price_gp": 500,
+      "base_price_gp": 350,
+      "suggested_price_gp": 350,
       "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
@@ -4224,8 +4248,8 @@
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
-          "fallback_reason": "rarity_band_uncommon",
-          "fallback_bucket": "utility"
+          "fallback_reason": "spellwrought_tattoo_2nd_level",
+          "fallback_bucket": "consumable"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -4244,8 +4268,8 @@
       "rarity": "uncommon",
       "requires_attunement": false,
       "description": "Produced by a special needle, this magic tattoo contains a single 3rd level spell, wrought on your skin by a magic needle. To use the tattoo, you must hold the needle against your skin and speak the command word. The needle turns into ink that becomes the tattoo, which appears on the skin in whatever design you like. Once the tattoo is there, you can cast its spell, requiring no material components. The tattoo glows faintly while you cast the spell and for the spell's duration. Once the spell ends, the tattoo vanishes from your skin.\nThe Ability modifier for this spell is +4; the Save DC is 15 and the attack bonus is +7.",
-      "base_price_gp": 500,
-      "suggested_price_gp": 500,
+      "base_price_gp": 700,
+      "suggested_price_gp": 700,
       "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
@@ -4269,8 +4293,8 @@
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
-          "fallback_reason": "rarity_band_uncommon",
-          "fallback_bucket": "utility"
+          "fallback_reason": "spellwrought_tattoo_3rd_level",
+          "fallback_bucket": "consumable"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -4289,9 +4313,9 @@
       "rarity": "rare",
       "requires_attunement": false,
       "description": "Produced by a special needle, this magic tattoo contains a single 4th level spell, wrought on your skin by a magic needle. To use the tattoo, you must hold the needle against your skin and speak the command word. The needle turns into ink that becomes the tattoo, which appears on the skin in whatever design you like. Once the tattoo is there, you can cast its spell, requiring no material components. The tattoo glows faintly while you cast the spell and for the spell's duration. Once the spell ends, the tattoo vanishes from your skin.\nThe Ability modifier for this spell is +4; the Save DC is 15 and the attack bonus is +7.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-spellwrought-tattoo-4th-level",
@@ -4312,8 +4336,10 @@
         "req_attune_tags": [],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "spellwrought_tattoo_4th_level",
+          "fallback_bucket": "consumable"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -4332,9 +4358,9 @@
       "rarity": "rare",
       "requires_attunement": false,
       "description": "Produced by a special needle, this magic tattoo contains a single 5th level spell, wrought on your skin by a magic needle. To use the tattoo, you must hold the needle against your skin and speak the command word. The needle turns into ink that becomes the tattoo, which appears on the skin in whatever design you like. Once the tattoo is there, you can cast its spell, requiring no material components. The tattoo glows faintly while you cast the spell and for the spell's duration. Once the spell ends, the tattoo vanishes from your skin.\nThe Ability modifier for this spell is +5; the Save DC is 17 and the attack bonus is +9.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-spellwrought-tattoo-5th-level",
@@ -4355,8 +4381,10 @@
         "req_attune_tags": [],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "spellwrought_tattoo_5th_level",
+          "fallback_bucket": "consumable"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -4375,16 +4403,16 @@
       "rarity": "common",
       "requires_attunement": false,
       "description": "Produced by a special needle, this magic tattoo contains a single cantrip, wrought on your skin by a magic needle. To use the tattoo, you must hold the needle against your skin and speak the command word. The needle turns into ink that becomes the tattoo, which appears on the skin in whatever design you like. Once the tattoo is there, you can cast its spell, requiring no material components. The tattoo glows faintly while you cast the spell and for the spell's duration. Once the spell ends, the tattoo vanishes from your skin.\nThe Ability modifier for this spell is +3; the Save DC is 13 and the attack bonus is +5.",
-      "base_price_gp": 100,
-      "suggested_price_gp": 100,
+      "base_price_gp": 75,
+      "suggested_price_gp": 75,
       "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-spellwrought-tattoo-cantrip",
       "external_key": "5etools_items_by_source_curated:tce-spellwrought-tattoo-cantrip",
       "rules_era": "2014",
-      "is_shop_eligible": true,
-      "shop_bucket": "utility",
+      "is_shop_eligible": false,
+      "shop_bucket": "manual_magic_review",
       "metadata_json": {
         "import_quality": "detail_verified_manual",
         "mechanics_support": "manual_required",
@@ -4400,8 +4428,8 @@
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
-          "fallback_reason": "rarity_band_common",
-          "fallback_bucket": "utility"
+          "fallback_reason": "spellwrought_tattoo_cantrip",
+          "fallback_bucket": "consumable"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -4420,9 +4448,9 @@
       "rarity": "artifact",
       "requires_attunement": true,
       "description": "The Teeth of Dahlver-Nar are stories given form. They are a collection of teeth, each suggestive of wildly different origins and made from various materials. The collection rests within a leather pouch, stitched with images of heroes and whimsical creatures. Where the teeth fall, they bring legends to life.\nUsing the Teeth:\nWhile you are holding the pouch, you can use an action to draw one tooth. Roll on the Teeth of Dahlver-Nar table to determine which tooth you draw, and you can either sow the tooth or implant it (both of which are described later).\nIf you don't sow or implant the tooth, roll a die at the end of your turn. On an even number, the tooth vanishes, and creatures appear as if you sowed the tooth, but they are hostile to you and your allies. On an odd number, the tooth replaces one of your teeth as if you implanted it (potentially replacing another implanted tooth, see below).\nEach tooth can only be used once. Track which teeth have been used. If a tooth's result is rolled after it's been used, you draw the next lowest unused tooth on the table.\nTable: d20 | Tale and Tooth | Creatures Summoned | Implanted Effect\n- 1 | The Staring Cats of Uldun-dar (ivory cat molar) | 9 cat | The tooth has 8 charges. As an action, you can expend 1 charge to cast the revivify spell from the tooth. If you are dead at the start of your turn, the tooth expends 1 charge and casts revivify on you.\n- 2 | Duggle's Surprising Day (human molar) | 1 commoner | When you finish a long rest, the tooth casts sanctuary (DC 18) on you, and the spell lasts for 24 hours or until you break it.\n- 3 | The Golden Age of Dhakaan (golden goblin bicuspid) | 10 goblin, 1 goblin boss | When you are hit by an attack and an ally is within 5 feet of you, you can use your reaction to cause them to be hit instead. You can't use this reaction again until you finish a short or long rest.\n- 4 | The Mill Road Murders (halfling canine) | 3 green hag in a coven | When you damage a target that hasn't taken a turn in this combat, the target takes an extra 3d10 damage slashing damage from ghostly blades.\n- 5 | Dooms of the Malpheggi (emerald lizardfolk fang) | 1 lizard queen and 4 lizardfolk | You gain reptilian scales, granting you a +2 bonus to your AC. Additionally, when you finish a long rest, you must succeed on a DC 15 Constitution saving throw or gain 1 level of exhaustion.\n- 6 | The Stable Hand's Secret (sweet-tasting human canine) | 2 Incubus | When you make a Charisma check against a humanoid, you can roll a d10 and add the number rolled as a bonus to the result. The creature then becomes hostile to you at the next dawn.\n- 7 | The Donkey's Dream (rainbow-colored donkey molar) | 1 unicorn | The tooth has 3 charges. As an action, you can expend 1 charge to touch a creature. The target regains 2d8 + 2 hit points, and all diseases and poisons affecting it are removed. When you use this action, a shimmering image of a unicorn's horn appears until the end of your turn, sprouting from your forehead. The tooth regains all expended charges daily at dawn. You gain the following flaw: \"When I see wickedness in action, I must oppose it.\"\n- 8 | Beyond the Rock of Bral (silver mind flayer tooth) | 2 mind flayer | You gain telepathy out to 120 feet as described in the Monster Manual, and you can cast the detect thoughts spell at will, requiring no components. You also have disadvantage on Wisdom (Insight) and Wisdom (Perception) checks from constant whispers of memories and nearby minds.\n- 9 | The Disappearances of Half Hollow (vomerine tooth of a Large toad) | 4 giant toad | Your long jump is up to 30 feet and your high jump is up to 15 feet, with or without a running start.\n- 10 | Legendry of Phantoms and Ghosts (obsidian human molar) | 1 giant octopus, 1 mage, 1 specter | As an action, you can use the tooth to cast the Evard's black tentacles spell (DC 18). Once this property is used, it can't be used again until the next dawn.\n- 11 | The Thousand Deaths of Jander Sunstar (yellowed vampire fang) | 1 vampire | You can make a bite attack as an unarmed strike. On a hit, it deals 1d6 damage piercing damage plus 3d6 damage necrotic damage. You regain a number of hit points equal to the necrotic damage dealt. While you are in sunlight, you can't regain hit points.\n- 12 | Nightmares of Kaggash (twisted beholder tooth) | 1 beholder | As an action, you can cast the eyebite spell from the tooth. Once you use this action, it can't be used again until the next dawn. Whenever you finish a long rest, roll a d20. On a 20, an aberration chosen by the DM appears within 30 feet of you and attacks.\n- 13 | Three Bridges to the Sky (lapis lazuli oni fang) | 3 oni | You gain a flying speed of 30 feet, and you can use the tooth to cast the detect magic spell at will. While you are attuned to fewer than 3 magic items, you gain 1 level of exhaustion that can't be removed until you are attuned to three or more magic items.\n- 14 | The Claws of Dragotha (broken translucent fang) | 1 adult red dracolich | You can use the tooth to cast the create undead spell. Once this property is used, it can't be used again until the next dawn. Each time you create an undead creature using the tooth, a skeleton, zombie, or ghoul also appears at a random location within 5 miles of you, searching for the living to kill. A humanoid killed by these undead rises as the same type of undead at the next midnight.\n- 15 | Ashes of the Ages and Eternal Fire (jade humanoid bicuspid) | 1 dao, 1 djinni, 1 efreeti, 1 marid | You can use the tooth to cast counterspell at 9th level. Once you use this property, it can't be used again until the next dawn. Whenever you finish a long rest, if you haven't used the tooth to counter a spell since your last long rest, your hit point maximum is reduced by 2d10. If this reduces your hit point maximum to 0, you die.\n- 16 | Daughters of Bel (green steel pit fiend fang) | 1 pit fiend | You can use the tooth to cast dominate monster (DC 18). Once you use this property, it can't be used again until the next dawn. You smell strongly of burning sulfur.\n- 17 | Why the Sky Screams (blue dragon fang) | 1 ancient blue dragon | You gain immunity to lightning damage and vulnerability to thunder damage.\n- 18 | The Last Tarrasque (jagged sliver of tarrasque tooth) | 1 tarrasque (ignores you and your commands appears for 1d4 rounds then vanishes) | You deal double damage to objects and structures. If you take 20 or more damage in one turn, you must succeed on a DC 18 Wisdom saving throw or spend your next turn in a murderous fury. During this rage, you must use your action to make an unarmed strike against a creature that damaged you, or a random creature you can see if you weren't damaged by a creature, moving as close as you can to the target if necessary.\n- 19 | Incendax's Tooth (ruby-veined red dragon fang) | 1 ancient red dragon | You gain immunity to fire damage, and as an action, you can exhale fire in a 90-foot cone. Each creature in that area must make a DC 24 Dexterity saving throw, taking 26d6 damage fire damage on a failed save, or half as much damage on a successful one. After using the breath weapon, you gain 2 levels of exhaustion.\n- 20 | Dahlver-Nar's Tooth (dusty human molar) | 1 priest | As an action you can call on a divine force to come to your aid. Describe the assistance you seek, and the DM decides the nature of the intervention (the effect of any cleric spell would be appropriate). Once this property is used, it can't be used again for 7 days.\nSowing Teeth:\nTo sow the tooth, you place it on the ground in an unoccupied space within your reach, or you throw it into an unoccupied space within 10 feet of you in a body of water that is at least 50 feet wide and 50 feet long. Upon doing so, the tooth burrows into the ground and vanishes, leaving no hole behind, or it vanishes into the water. The creatures noted in the Creatures Summoned column appear in an unoccupied space as close to where the tooth was sown as possible. The creatures are allies to you, speak all languages you speak, and linger for 10 minutes before disappearing, unless otherwise noted.\nImplanting Teeth:\nTo implant the tooth, you place it in your mouth, whereupon one of your own teeth falls out, and the drawn tooth takes its place, resizing to fit in your mouth. Once the tooth is implanted, you gain the effect noted in the Implanted Effect column. The tooth can't be removed while you are attuned to the teeth, and you can't voluntarily end your attunement to them. If removed after your death, the tooth vanishes. You can have a maximum number of the teeth implanted at one time equal to 1 + your Constitution modifier (minimum of 2 teeth total). If you try to implant more teeth, the newly implanted tooth replaces one of the previous teeth, determined randomly. The replaced tooth vanishes, and you lose the implanted effect.\nRecovering Teeth:\nOnce all the teeth have vanished, their pouch also vanishes. The pouch with all the teeth then appears in a random destination, which could be on a different world of the Material Plane.\nDestroying the Teeth:\nEach tooth must be destroyed individually by sowing it in the area where the tooth's story originated, with the intention to destroy it. When planted in this way, creatures summoned are not friendly to you and do not vanish. Some of the creatures summoned merely head off in search of home, while others act as their tales dictate. In either case, the tooth is gone forever.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-teeth-of-dahlver-nar",
@@ -4461,8 +4489,10 @@
           }
         },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "enhancement_magic_item_plus_2",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -4553,7 +4583,7 @@
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
-          "fallback_reason": "rarity_band_uncommon",
+          "fallback_reason": "enhancement_magic_item_plus_1",
           "fallback_bucket": "utility"
         },
         "catalog_admission": {
@@ -4573,9 +4603,9 @@
       "rarity": "rare",
       "requires_attunement": true,
       "description": "This finely detailed belt is made of dragonhide. While wearing it, you gain a +2 bonus to the saving throw DCs of your ki features. In addition, you can use an action to regain ki points equal to a roll of your Martial Arts die. You can't use this action again until the next dawn.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "FTD (5etools curated source split)",
       "source_slug": "ftd-2-dragonhide-belt",
@@ -4600,8 +4630,10 @@
         ],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "enhancement_magic_item_plus_2",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -4620,9 +4652,9 @@
       "rarity": "very rare",
       "requires_attunement": true,
       "description": "This finely detailed belt is made of dragonhide. While wearing it, you gain a +3 bonus to the saving throw DCs of your ki features. In addition, you can use an action to regain ki points equal to a roll of your Martial Arts die. You can't use this action again until the next dawn.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 50000,
+      "suggested_price_gp": 50000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "FTD (5etools curated source split)",
       "source_slug": "ftd-3-dragonhide-belt",
@@ -4647,8 +4679,10 @@
         ],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "enhancement_magic_item_plus_3",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -4996,9 +5030,9 @@
       "rarity": "legendary",
       "requires_attunement": true,
       "description": "This scarf is made of sturdy cloth and covered in platinum-colored scales.\nAs an action, you can pull a scale from the scarf and speak a command word. When you do so, choose one of the following effects:\nBreath of Life:\nThe scale disappears, and you or a creature you touch regains 10d4 hit points.\nPlatinum Shield:\nFor 1 hour or until you dismiss it (no action required), the scale becomes a +1 shield, which you or another creature can use. A creature wielding the shield has immunity to radiant damage.\nRadiant Hammer:\nFor 1 hour or until you dismiss it (no action required), the scale becomes a magic light hammer, which you or another creature can use. The weapon deals 2d4 damage radiant damage, instead of the bludgeoning damage normal for a light hammer. It deals an extra 2d4 damage radiant damage to chromatic dragons.\nOnce three scales have been pulled from the scarf, no more scales can be removed until the next dawn, when all the missing scales grow back. If you pull off a scale but don't speak a command word, it disappears after 1 minute.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 500,
+      "suggested_price_gp": 500,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "FTD (5etools curated source split)",
       "source_slug": "ftd-platinum-scarf",
@@ -5032,8 +5066,10 @@
           "recharge": null
         },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "enhancement_magic_item_plus_1",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -5422,9 +5458,9 @@
       "rarity": "rare",
       "requires_attunement": false,
       "description": "This ornament can be jewelry, a cloak, or another wearable accessory. It appears to be fashioned from a dragon's scale, tooth, or claw, or it incorporates images in those shapes.\nYou gain a +1 bonus to AC, and you can't be charmed or frightened. Moreover, each creature of your choice within 30 feet of you has advantage on saving throws it makes to avoid being charmed or frightened or to end those conditions on itself.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 500,
+      "suggested_price_gp": 500,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "FTD (5etools curated source split)",
       "source_slug": "ftd-stirring-scaled-ornament",
@@ -5458,8 +5494,10 @@
           "recharge": null
         },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "enhancement_magic_item_plus_1",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -5650,9 +5688,9 @@
       "rarity": "rare",
       "requires_attunement": true,
       "description": "The backs of these cards are inscribed with glyphs representing the Inner Planes, the Outer Planes, or the holy symbols of various deities. While holding this deck, you can use it as a spellcasting focus, and you gain a +1 bonus to spell attack rolls and to your spell save DC.\nIn addition, while you're holding the deck, you can draw a card as an action to expend and roll one of your Hit Dice and add the deck's bonus to the number rolled. One creature you can see within 30 feet of you either takes radiant damage or regains hit points (your choice) equal to the total.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 500,
+      "suggested_price_gp": 500,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "BMT (5etools curated source split)",
       "source_slug": "bmt-1-fate-dealer-s-deck",
@@ -5698,8 +5736,10 @@
           "recharge": null
         },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "enhancement_magic_item_plus_1",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -5755,7 +5795,7 @@
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
-          "fallback_reason": "rarity_band_uncommon",
+          "fallback_reason": "enhancement_magic_item_plus_1",
           "fallback_bucket": "utility"
         },
         "catalog_admission": {
@@ -5775,9 +5815,9 @@
       "rarity": "very rare",
       "requires_attunement": true,
       "description": "The backs of these cards are inscribed with glyphs representing the Inner Planes, the Outer Planes, or the holy symbols of various deities. While holding this deck, you can use it as a spellcasting focus, and you gain a +2 bonus to spell attack rolls and to your spell save DC.\nIn addition, while you're holding the deck, you can draw a card as an action to expend and roll one of your Hit Dice and add the deck's bonus to the number rolled. One creature you can see within 30 feet of you either takes radiant damage or regains hit points (your choice) equal to the total.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "BMT (5etools curated source split)",
       "source_slug": "bmt-2-fate-dealer-s-deck",
@@ -5823,8 +5863,10 @@
           "recharge": null
         },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "enhancement_magic_item_plus_2",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -5843,9 +5885,9 @@
       "rarity": "rare",
       "requires_attunement": false,
       "description": "While you're wearing these cloth wraps, your unarmed strikes are considered magical for the purpose of overcoming immunity and resistance to nonmagical attacks and damage, and you gain a +2 bonus to the attack and damage rolls of your unarmed strikes.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "BMT (5etools curated source split)",
       "source_slug": "bmt-2-wraps-of-unarmed-prowess",
@@ -5878,8 +5920,10 @@
           "recharge": null
         },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "enhancement_magic_item_plus_2",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -5898,9 +5942,9 @@
       "rarity": "legendary",
       "requires_attunement": true,
       "description": "The backs of these cards are inscribed with glyphs representing the Inner Planes, the Outer Planes, or the holy symbols of various deities. While holding this deck, you can use it as a spellcasting focus, and you gain a +3 bonus to spell attack rolls and to your spell save DC.\nIn addition, while you're holding the deck, you can draw a card as an action to expend and roll one of your Hit Dice and add the deck's bonus to the number rolled. One creature you can see within 30 feet of you either takes radiant damage or regains hit points (your choice) equal to the total.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 50000,
+      "suggested_price_gp": 50000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "BMT (5etools curated source split)",
       "source_slug": "bmt-3-fate-dealer-s-deck",
@@ -5946,8 +5990,10 @@
           "recharge": null
         },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "enhancement_magic_item_plus_3",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -5966,9 +6012,9 @@
       "rarity": "very rare",
       "requires_attunement": false,
       "description": "While you're wearing these cloth wraps, your unarmed strikes are considered magical for the purpose of overcoming immunity and resistance to nonmagical attacks and damage, and you gain a +3 bonus to the attack and damage rolls of your unarmed strikes.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 50000,
+      "suggested_price_gp": 50000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "BMT (5etools curated source split)",
       "source_slug": "bmt-3-wraps-of-unarmed-prowess",
@@ -6001,8 +6047,10 @@
           "recharge": null
         },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "enhancement_magic_item_plus_3",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -6813,7 +6861,7 @@
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
-          "fallback_reason": "rarity_band_uncommon",
+          "fallback_reason": "enhancement_magic_item_plus_1",
           "fallback_bucket": "utility"
         },
         "catalog_admission": {
@@ -6885,9 +6933,9 @@
       "rarity": "rare",
       "requires_attunement": true,
       "description": "This marble-size crystal sphere glows with extraplanar energy.\nAs part of attuning to this item, you press the crystal sphere to the hilt of a nonmagical melee weapon of your choice, magically attaching the sphere to the weapon. The weapon becomes a magic weapon with a +1 bonus to attack and damage rolls. While wielding this weapon, you gain the following benefits:\n- Dimensional Anchor:\nYou have advantage on saving throws against spells or effects that would send you to an extradimensional space, a demiplane, or another plane of existence against your will.\n- Isolating Smite:\nWhen you hit a creature with this weapon, you can force the creature to make a DC 16 Charisma saving throw. On a failed save, the creature is banished to a harmless demiplane until the end of its next turn. When the banished creature returns, it reappears in the space it left or the nearest unoccupied space if that space is occupied. Once this property is used, it can't be used again until the next dawn.\nWhen you end your attunement to the sphere, the sphere harmlessly detaches from the weapon, and the weapon reverts to a nonmagical piece of equipment.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 500,
+      "suggested_price_gp": 500,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "BMT (5etools curated source split)",
       "source_slug": "bmt-donjon-s-sundering-sphere",
@@ -6920,8 +6968,10 @@
           "recharge": null
         },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "enhancement_magic_item_plus_1",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -7547,9 +7597,9 @@
       "rarity": "legendary",
       "requires_attunement": true,
       "description": "This colorful, harlequin domino mask is edged with pearls. While wearing this mask, you gain the following benefits:\n- Charismatic Focus:\nYou can use the mask as a spellcasting focus. You gain a +3 bonus to any spell attack rolls and spell saving throw DCs that use Charisma as the spellcasting ability.\n- Marvelous Escape:\nWhen a creature hits you with an attack roll, you can use your reaction to disappear in a puff of smoke and colorful sparkles. You take no damage and instead teleport, along with anything you are wearing or carrying, to an unoccupied space you can see within 30 feet of yourself. Once this reaction is used, it can't be used again until the next dawn.\n- Topsy-Turvy:\nWhen you roll a 1 on a d20, you can treat the roll as if you rolled a 20 instead. Once this property is used, it can't be used again until the next dawn.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 50000,
+      "suggested_price_gp": 50000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "BMT (5etools curated source split)",
       "source_slug": "bmt-jester-s-mask",
@@ -7598,8 +7648,10 @@
           "recharge": null
         },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "enhancement_magic_item_plus_3",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -9394,9 +9446,9 @@
       "rarity": "rare",
       "requires_attunement": true,
       "description": "This silver skeleton key is warm to the touch. While holding the key in its key form, you can use an action to cast the Knock spell from the key.\nTransforming the Key:\nWhile holding the key, you can use a bonus action to transform it into a magic longsword. You are considered proficient with the sword, and you have a +1 bonus to attack and damage rolls made with it. On a hit, the sword deals 1d10 damage force damage. The item remains in its sword form until it leaves your grasp or you use another bonus action to revert it to its key form.\nIf you end your attunement to the item while it's in its sword form, it automatically reverts to its key form.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 500,
+      "suggested_price_gp": 500,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "BMT (5etools curated source split)",
       "source_slug": "bmt-warrior-s-passkey",
@@ -9429,8 +9481,10 @@
           "recharge": null
         },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "enhancement_magic_item_plus_1",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -25900,8 +25954,8 @@
       "source_slug": "dmg-spell-scroll-1st-level",
       "external_key": "5etools_items_by_source_curated:dmg-spell-scroll-1st-level",
       "rules_era": "2014",
-      "is_shop_eligible": true,
-      "shop_bucket": "utility",
+      "is_shop_eligible": false,
+      "shop_bucket": "manual_magic_review",
       "metadata_json": {
         "import_quality": "detail_verified_manual",
         "mechanics_support": "manual_required",
@@ -25917,8 +25971,8 @@
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
-          "fallback_reason": "rarity_band_common",
-          "fallback_bucket": "utility"
+          "fallback_reason": "spell_scroll_1st_level",
+          "fallback_bucket": "consumable"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -25937,8 +25991,8 @@
       "rarity": "uncommon",
       "requires_attunement": false,
       "description": "A spell scroll bears the words of a single spell, written as a mystical cipher. If the spell is on your class's spell list, you can read the scroll and cast its spell without providing any material components. Otherwise, the scroll is unintelligible. Casting the spell by reading the scroll requires the spell's normal casting time. Once the spell is cast, the words on the scroll fade, and it crumbles to dust. If the casting is interrupted, the scroll is not lost.\nIf the spell is on your class's spell list but of a higher level than you can normally cast, you must make an ability check using your spellcasting ability to determine whether you cast it successfully. The DC is 12. On a failed check, the spell disappears from the scroll with no other effect.\nOnce the spell is cast, the words on the scroll fade, and the scroll itself crumbles to dust.\nA spell cast from this scroll has a save DC of 13 and an attack bonus of 5.\nA wizard spell on a spell scroll can be copied just as spells in spellbooks can be copied. When a spell is copied from a spell scroll, the copier must succeed on a DC 12 Intelligence (Arcana) check. If the check succeeds, the spell is successfully copied. Whether the check succeeds or fails, the spell scroll is destroyed.",
-      "base_price_gp": 500,
-      "suggested_price_gp": 500,
+      "base_price_gp": 250,
+      "suggested_price_gp": 250,
       "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "DMG (5etools curated source split)",
@@ -25962,8 +26016,8 @@
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
-          "fallback_reason": "rarity_band_uncommon",
-          "fallback_bucket": "utility"
+          "fallback_reason": "spell_scroll_2nd_level",
+          "fallback_bucket": "consumable"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -26007,8 +26061,8 @@
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
-          "fallback_reason": "rarity_band_uncommon",
-          "fallback_bucket": "utility"
+          "fallback_reason": "spell_scroll_3rd_level",
+          "fallback_bucket": "consumable"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -26027,9 +26081,9 @@
       "rarity": "rare",
       "requires_attunement": false,
       "description": "A spell scroll bears the words of a single spell, written as a mystical cipher. If the spell is on your class's spell list, you can read the scroll and cast its spell without providing any material components. Otherwise, the scroll is unintelligible. Casting the spell by reading the scroll requires the spell's normal casting time. Once the spell is cast, the words on the scroll fade, and it crumbles to dust. If the casting is interrupted, the scroll is not lost.\nIf the spell is on your class's spell list but of a higher level than you can normally cast, you must make an ability check using your spellcasting ability to determine whether you cast it successfully. The DC is 14. On a failed check, the spell disappears from the scroll with no other effect.\nOnce the spell is cast, the words on the scroll fade, and the scroll itself crumbles to dust.\nA spell cast from this scroll has a save DC of 15 and an attack bonus of 7.\nA wizard spell on a spell scroll can be copied just as spells in spellbooks can be copied. When a spell is copied from a spell scroll, the copier must succeed on a DC 14 Intelligence (Arcana) check. If the check succeeds, the spell is successfully copied. Whether the check succeeds or fails, the spell scroll is destroyed.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 2500,
+      "suggested_price_gp": 2500,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "DMG (5etools curated source split)",
       "source_slug": "dmg-spell-scroll-4th-level",
@@ -26050,8 +26104,10 @@
         "req_attune_tags": [],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "spell_scroll_4th_level",
+          "fallback_bucket": "consumable"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -26070,9 +26126,9 @@
       "rarity": "rare",
       "requires_attunement": false,
       "description": "A spell scroll bears the words of a single spell, written as a mystical cipher. If the spell is on your class's spell list, you can read the scroll and cast its spell without providing any material components. Otherwise, the scroll is unintelligible. Casting the spell by reading the scroll requires the spell's normal casting time. Once the spell is cast, the words on the scroll fade, and it crumbles to dust. If the casting is interrupted, the scroll is not lost.\nIf the spell is on your class's spell list but of a higher level than you can normally cast, you must make an ability check using your spellcasting ability to determine whether you cast it successfully. The DC is 15. On a failed check, the spell disappears from the scroll with no other effect.\nOnce the spell is cast, the words on the scroll fade, and the scroll itself crumbles to dust.\nA spell cast from this scroll has a save DC of 17 and an attack bonus of 9.\nA wizard spell on a spell scroll can be copied just as spells in spellbooks can be copied. When a spell is copied from a spell scroll, the copier must succeed on a DC 15 Intelligence (Arcana) check. If the check succeeds, the spell is successfully copied. Whether the check succeeds or fails, the spell scroll is destroyed.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "DMG (5etools curated source split)",
       "source_slug": "dmg-spell-scroll-5th-level",
@@ -26093,8 +26149,10 @@
         "req_attune_tags": [],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "spell_scroll_5th_level",
+          "fallback_bucket": "consumable"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -26113,9 +26171,9 @@
       "rarity": "very rare",
       "requires_attunement": false,
       "description": "A spell scroll bears the words of a single spell, written as a mystical cipher. If the spell is on your class's spell list, you can read the scroll and cast its spell without providing any material components. Otherwise, the scroll is unintelligible. Casting the spell by reading the scroll requires the spell's normal casting time. Once the spell is cast, the words on the scroll fade, and it crumbles to dust. If the casting is interrupted, the scroll is not lost.\nIf the spell is on your class's spell list but of a higher level than you can normally cast, you must make an ability check using your spellcasting ability to determine whether you cast it successfully. The DC is 16. On a failed check, the spell disappears from the scroll with no other effect.\nOnce the spell is cast, the words on the scroll fade, and the scroll itself crumbles to dust.\nA spell cast from this scroll has a save DC of 17 and an attack bonus of 9.\nA wizard spell on a spell scroll can be copied just as spells in spellbooks can be copied. When a spell is copied from a spell scroll, the copier must succeed on a DC 16 Intelligence (Arcana) check. If the check succeeds, the spell is successfully copied. Whether the check succeeds or fails, the spell scroll is destroyed.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 15000,
+      "suggested_price_gp": 15000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "DMG (5etools curated source split)",
       "source_slug": "dmg-spell-scroll-6th-level",
@@ -26136,8 +26194,10 @@
         "req_attune_tags": [],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "spell_scroll_6th_level",
+          "fallback_bucket": "consumable"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -26156,9 +26216,9 @@
       "rarity": "very rare",
       "requires_attunement": false,
       "description": "A spell scroll bears the words of a single spell, written as a mystical cipher. If the spell is on your class's spell list, you can read the scroll and cast its spell without providing any material components. Otherwise, the scroll is unintelligible. Casting the spell by reading the scroll requires the spell's normal casting time. Once the spell is cast, the words on the scroll fade, and it crumbles to dust. If the casting is interrupted, the scroll is not lost.\nIf the spell is on your class's spell list but of a higher level than you can normally cast, you must make an ability check using your spellcasting ability to determine whether you cast it successfully. The DC is 17. On a failed check, the spell disappears from the scroll with no other effect.\nOnce the spell is cast, the words on the scroll fade, and the scroll itself crumbles to dust.\nA spell cast from this scroll has a save DC of 18 and an attack bonus of 10.\nA wizard spell on a spell scroll can be copied just as spells in spellbooks can be copied. When a spell is copied from a spell scroll, the copier must succeed on a DC 17 Intelligence (Arcana) check. If the check succeeds, the spell is successfully copied. Whether the check succeeds or fails, the spell scroll is destroyed.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 25000,
+      "suggested_price_gp": 25000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "DMG (5etools curated source split)",
       "source_slug": "dmg-spell-scroll-7th-level",
@@ -26179,8 +26239,10 @@
         "req_attune_tags": [],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "spell_scroll_7th_level",
+          "fallback_bucket": "consumable"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -26199,9 +26261,9 @@
       "rarity": "very rare",
       "requires_attunement": false,
       "description": "A spell scroll bears the words of a single spell, written as a mystical cipher. If the spell is on your class's spell list, you can read the scroll and cast its spell without providing any material components. Otherwise, the scroll is unintelligible. Casting the spell by reading the scroll requires the spell's normal casting time. Once the spell is cast, the words on the scroll fade, and it crumbles to dust. If the casting is interrupted, the scroll is not lost.\nIf the spell is on your class's spell list but of a higher level than you can normally cast, you must make an ability check using your spellcasting ability to determine whether you cast it successfully. The DC is 18. On a failed check, the spell disappears from the scroll with no other effect.\nOnce the spell is cast, the words on the scroll fade, and the scroll itself crumbles to dust.\nA spell cast from this scroll has a save DC of 18 and an attack bonus of 10.\nA wizard spell on a spell scroll can be copied just as spells in spellbooks can be copied. When a spell is copied from a spell scroll, the copier must succeed on a DC 18 Intelligence (Arcana) check. If the check succeeds, the spell is successfully copied. Whether the check succeeds or fails, the spell scroll is destroyed.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 50000,
+      "suggested_price_gp": 50000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "DMG (5etools curated source split)",
       "source_slug": "dmg-spell-scroll-8th-level",
@@ -26222,8 +26284,10 @@
         "req_attune_tags": [],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "spell_scroll_8th_level",
+          "fallback_bucket": "consumable"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -26242,9 +26306,9 @@
       "rarity": "legendary",
       "requires_attunement": false,
       "description": "A spell scroll bears the words of a single spell, written as a mystical cipher. If the spell is on your class's spell list, you can read the scroll and cast its spell without providing any material components. Otherwise, the scroll is unintelligible. Casting the spell by reading the scroll requires the spell's normal casting time. Once the spell is cast, the words on the scroll fade, and it crumbles to dust. If the casting is interrupted, the scroll is not lost.\nIf the spell is on your class's spell list but of a higher level than you can normally cast, you must make an ability check using your spellcasting ability to determine whether you cast it successfully. The DC is 19. On a failed check, the spell disappears from the scroll with no other effect.\nOnce the spell is cast, the words on the scroll fade, and the scroll itself crumbles to dust.\nA spell cast from this scroll has a save DC of 19 and an attack bonus of 11.\nA wizard spell on a spell scroll can be copied just as spells in spellbooks can be copied. When a spell is copied from a spell scroll, the copier must succeed on a DC 19 Intelligence (Arcana) check. If the check succeeds, the spell is successfully copied. Whether the check succeeds or fails, the spell scroll is destroyed.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 250000,
+      "suggested_price_gp": 250000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "DMG (5etools curated source split)",
       "source_slug": "dmg-spell-scroll-9th-level",
@@ -26265,8 +26329,10 @@
         "req_attune_tags": [],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "spell_scroll_9th_level",
+          "fallback_bucket": "consumable"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -26285,16 +26351,16 @@
       "rarity": "common",
       "requires_attunement": false,
       "description": "A spell scroll bears the words of a single spell, written as a mystical cipher. If the spell is on your class's spell list, you can read the scroll and cast its spell without providing any material components. Otherwise, the scroll is unintelligible. Casting the spell by reading the scroll requires the spell's normal casting time. Once the spell is cast, the words on the scroll fade, and it crumbles to dust. If the casting is interrupted, the scroll is not lost.\nIf the spell is on your class's spell list but of a higher level than you can normally cast, you must make an ability check using your spellcasting ability to determine whether you cast it successfully. The DC is 10. On a failed check, the spell disappears from the scroll with no other effect.\nOnce the spell is cast, the words on the scroll fade, and the scroll itself crumbles to dust.\nA spell cast from this scroll has a save DC of 13 and an attack bonus of 5.",
-      "base_price_gp": 100,
-      "suggested_price_gp": 100,
+      "base_price_gp": 50,
+      "suggested_price_gp": 50,
       "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "DMG (5etools curated source split)",
       "source_slug": "dmg-spell-scroll-cantrip",
       "external_key": "5etools_items_by_source_curated:dmg-spell-scroll-cantrip",
       "rules_era": "2014",
-      "is_shop_eligible": true,
-      "shop_bucket": "utility",
+      "is_shop_eligible": false,
+      "shop_bucket": "manual_magic_review",
       "metadata_json": {
         "import_quality": "detail_verified_manual",
         "mechanics_support": "manual_required",
@@ -26310,8 +26376,8 @@
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
-          "fallback_reason": "rarity_band_common",
-          "fallback_bucket": "utility"
+          "fallback_reason": "spell_scroll_cantrip",
+          "fallback_bucket": "consumable"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",

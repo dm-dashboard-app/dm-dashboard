@@ -472,6 +472,13 @@ function buildNameAliasCandidates(name = '') {
     if (normalized && normalized !== alias) aliases.add(normalized);
   });
 
+  aliases.forEach((alias) => {
+    const withoutParens = String(alias || '').replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim();
+    if (withoutParens && withoutParens !== alias) aliases.add(withoutParens);
+    const dePunctuated = String(alias || '').replace(/['’]/g, '').replace(/-/g, ' ').replace(/\s+/g, ' ').trim();
+    if (dePunctuated && dePunctuated !== alias) aliases.add(dePunctuated);
+  });
+
   return Array.from(aliases);
 }
 
@@ -487,6 +494,10 @@ function resolvePricingOverlayMatch(name = '', overlayMap = new Map()) {
 function deriveEnhancementBonus(item = {}, row = {}) {
   const parsedWeaponBonus = parseBonus(item?.bonusWeapon);
   if (parsedWeaponBonus !== null && parsedWeaponBonus > 0) return parsedWeaponBonus;
+  const parsedSpellAttackBonus = parseBonus(item?.bonusSpellAttack);
+  if (parsedSpellAttackBonus !== null && parsedSpellAttackBonus > 0) return parsedSpellAttackBonus;
+  const parsedSpellSaveBonus = parseBonus(item?.bonusSpellSaveDc);
+  if (parsedSpellSaveBonus !== null && parsedSpellSaveBonus > 0) return parsedSpellSaveBonus;
   const parsedAcBonus = parseBonus(item?.bonusAc);
   if (parsedAcBonus !== null && parsedAcBonus > 0) return parsedAcBonus;
   const name = String(row?.name || '').trim();
@@ -500,6 +511,7 @@ function deriveFallbackPricing({ item = {}, row = {} } = {}) {
   const rarity = normalizeRarity(row.rarity || item.rarity || '');
   const bonus = deriveEnhancementBonus(item, row);
   const isMagic = isClearlyMagicalItem(item, row);
+  const name = String(row?.name || '').trim();
   if (!isMagic) return null;
 
   if (row.item_type === 'weapon' && bonus && bonus <= 3) {
@@ -520,6 +532,64 @@ function deriveFallbackPricing({ item = {}, row = {} } = {}) {
       reason: `enhancement_${row.item_type}_plus_${bonus}`,
       makeEligible: bonus <= 2 && !row.requires_attunement,
     };
+  }
+
+  if (row.item_type === 'magic_item' && bonus && bonus <= 3) {
+    const priceByBonus = { 1: 500, 2: 5000, 3: 50000 };
+    return {
+      priceGp: priceByBonus[bonus] || null,
+      bucket: 'utility',
+      reason: `enhancement_magic_item_plus_${bonus}`,
+      makeEligible: false,
+    };
+  }
+
+  const spellScrollLevelMatch = name.match(/^Spell Scroll \((Cantrip|\d+(?:st|nd|rd|th) Level)\)$/i);
+  if (spellScrollLevelMatch) {
+    const levelLabel = spellScrollLevelMatch[1].toLowerCase();
+    const priceByLevel = {
+      cantrip: 50,
+      '1st level': 100,
+      '2nd level': 250,
+      '3rd level': 500,
+      '4th level': 2500,
+      '5th level': 5000,
+      '6th level': 15000,
+      '7th level': 25000,
+      '8th level': 50000,
+      '9th level': 250000,
+    };
+    const priceGp = priceByLevel[levelLabel];
+    if (priceGp) {
+      return {
+        priceGp,
+        bucket: 'consumable',
+        reason: `spell_scroll_${levelLabel.replace(/\s+/g, '_')}`,
+        makeEligible: false,
+      };
+    }
+  }
+
+  const spellwroughtLevelMatch = name.match(/^Spellwrought Tattoo \((Cantrip|\d+(?:st|nd|rd|th) Level)\)$/i);
+  if (spellwroughtLevelMatch) {
+    const levelLabel = spellwroughtLevelMatch[1].toLowerCase();
+    const priceByLevel = {
+      cantrip: 75,
+      '1st level': 150,
+      '2nd level': 350,
+      '3rd level': 700,
+      '4th level': 5000,
+      '5th level': 5000,
+    };
+    const priceGp = priceByLevel[levelLabel];
+    if (priceGp) {
+      return {
+        priceGp,
+        bucket: 'consumable',
+        reason: `spellwrought_tattoo_${levelLabel.replace(/\s+/g, '_')}`,
+        makeEligible: false,
+      };
+    }
   }
 
   const isConsumableFamily = !!(item.potion || item.poison || item.ammo || /potion|elixir|ammo|ammunition|arrow/i.test(String(row.name || '')));

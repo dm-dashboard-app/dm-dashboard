@@ -1,6 +1,6 @@
 # DM Dashboard — Project Brief
 
-Last updated: April 17, 2026 (catalog semantics and concrete enhancement variants landed)
+Last updated: April 17, 2026 (5etools pricing match-coverage + unresolved triage landed)
 
 Purpose: This document is the current-state/background brief for DM Dashboard. It describes what the app now is, what is materially landed, and what principles future work must preserve.
 
@@ -215,6 +215,8 @@ Landed baseline includes:
 - DM Manage → Imports also hosts the SRD spell import control so import admin actions are centralized in one tab
 - import writes now run through a server-mediated RPC (`dm_import_item_master_rows`) instead of requiring terminal-only scripts for normal operator workflow
 - 5etools imports now use a dedicated RPC mode (`five_tools_2014`) so re-import can demote stale legacy 5etools rows that are no longer in the generated active artifact, with server-side payload safety guards requiring validated source-layer metadata and exact expected-row-count parity before stale demotion runs
+- 5etools converter pricing now includes expanded high-confidence fallback coverage for unresolved plus-tier enhancement families (`+2/+3` style magic-item upgrades), higher spell-scroll levels, and spellwrought tattoo level variants, while keeping those fallback-priced rows explicit non-default stock unless separately curated
+- 5etools review reporting now includes unresolved triage splits that separate likely overlay/match misses from intentionally excluded/noise rows and true manual unresolved residue (instead of one blurred unresolved bucket)
 - SRD refresh now treats upstream detail fetch failures as transient run-time failures (reported in UI) and no longer persists new degraded fallback rows from those failures into `item_master`
 - import RPC now hard-rejects degraded SRD payload rows (`degraded_import`, `degraded_fallback`, `fallback_quarantine`, `degraded_fallback_untrusted`) so client regressions cannot persist untrusted degraded SRD rows
 - custom seed defaults are now explicit and safe: `docs/data/shop_custom_items_seed_2014.json` is intentionally empty-by-default, while prior sample rows live in `docs/data/shop_custom_items_seed_2014.example.json` as example/demo content

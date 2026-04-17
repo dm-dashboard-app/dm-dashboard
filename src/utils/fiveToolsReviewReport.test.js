@@ -88,6 +88,40 @@ describe('build5etoolsReviewReport', () => {
         },
       },
       {
+        external_key: 'k:family-priced',
+        name: '+1 Arcane Grimoire',
+        item_type: 'magic_item',
+        rarity: 'uncommon',
+        base_price_gp: 500,
+        suggested_price_gp: 500,
+        price_source: '5etools_fallback_policy_v1',
+        is_shop_eligible: false,
+        shop_bucket: 'manual_magic_review',
+        requires_attunement: true,
+        metadata_json: {
+          pricing: { strategy: 'fallback_policy' },
+          mechanics_support: 'partial_supported',
+          mechanics: null,
+        },
+      },
+      {
+        external_key: 'k:family-miss',
+        name: '+2 Arcane Grimoire',
+        item_type: 'magic_item',
+        rarity: 'rare',
+        base_price_gp: null,
+        suggested_price_gp: null,
+        price_source: null,
+        is_shop_eligible: false,
+        shop_bucket: 'manual_magic_review',
+        requires_attunement: true,
+        metadata_json: {
+          pricing: { strategy: 'unresolved_manual_review' },
+          mechanics_support: 'manual_required',
+          mechanics: null,
+        },
+      },
+      {
         external_key: 'k:manual',
         name: 'Mystery Relic',
         item_type: 'magic_item',
@@ -130,25 +164,30 @@ describe('build5etoolsReviewReport', () => {
 
     const report = build5etoolsReviewReport(rows);
 
-    expect(report.total_rows).toBe(6);
+    expect(report.total_rows).toBe(8);
     expect(report.counts.direct_source_priced).toBe(2);
     expect(report.counts.overlay_priced).toBe(1);
-    expect(report.counts.fallback_priced).toBe(2);
-    expect(report.counts.unresolved_unpriced).toBe(2);
+    expect(report.counts.fallback_priced).toBe(3);
+    expect(report.counts.unresolved_unpriced).toBe(3);
     expect(report.counts.overlay_excluded).toBe(1);
-    expect(report.counts.should_be_priced_but_not_matched).toBe(1);
+    expect(report.counts.should_be_priced_but_not_matched).toBe(2);
+    expect(report.counts.unresolved_overlay_match_miss_candidates).toBe(1);
+    expect(report.counts.unresolved_intentionally_excluded_or_noise).toBe(1);
+    expect(report.counts.unresolved_true_manual_review).toBe(1);
     expect(report.counts.policy_demoted_non_shop).toBe(1);
     expect(report.counts.catalog_noise_non_shop).toBe(1);
     expect(report.counts.shop_eligible).toBe(1);
-    expect(report.counts.non_shop).toBe(5);
+    expect(report.counts.non_shop).toBe(7);
     expect(report.counts.rows_with_structured_mechanics).toBe(3);
-    expect(report.counts.rows_with_attunement_true).toBe(4);
+    expect(report.counts.rows_with_attunement_true).toBe(6);
     expect(report.counts.rows_with_phase1_compatible_payload).toBe(3);
 
-    expect(report.mechanics.by_mechanics_support.partial_supported).toBe(3);
-    expect(report.mechanics.by_mechanics_support.manual_required).toBe(3);
+    expect(report.mechanics.by_mechanics_support.partial_supported).toBe(4);
+    expect(report.mechanics.by_mechanics_support.manual_required).toBe(4);
 
-    expect(report.pricing.should_be_priced_but_not_matched[0].external_key).toBe('k:manual');
+    expect(report.pricing.should_be_priced_but_not_matched.map((row) => row.external_key)).toEqual(['k:family-miss', 'k:manual']);
+    expect(report.pricing.unresolved_overlay_match_miss_candidates[0].external_key).toBe('k:family-miss');
+    expect(report.pricing.unresolved_true_manual_review[0].external_key).toBe('k:manual');
     expect(report.pricing.overlay_excluded[0].external_key).toBe('k:overlay-excluded');
     expect(report.shop_admission.policy_demoted_non_shop_rows[0].external_key).toBe('k:hazard');
   });
