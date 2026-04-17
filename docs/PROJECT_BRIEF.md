@@ -357,7 +357,7 @@ Landed baseline includes:
 - import mapping now sets `requires_attunement` from trusted SRD detail text (`requires attunement`) in addition to name-shape detection so attunement truth does not rely on item-title formatting
 - curated mechanics semantics corrections landed: Cloak of Protection now uses attunement-only activation with no forced visible neck slot; Wand of Magic Missiles now correctly records `requires_attunement=true`
 - abstract generic enhancement rows (`+1/+2/+3 Armor`, `+1/+2/+3 Weapon`, `+1/+2/+3 Shield`) are now quarantined from mechanics/shop eligibility and no longer treated as concrete equipable definitions
-- SRD import now materializes explicit concrete enhanced variants for a constrained practical set of armor/weapon/shield bases with stable slugs, concrete mechanics payloads, and forward-compatible shop-intent metadata (`magic_shop` + `blacksmith_high_affluence`)
+- SRD import now materializes explicit concrete enhanced variant rows as **catalog-prep groundwork only** (stable slugs + mechanics payload + shop-intent metadata), but these generated variants are intentionally non-live for current shop/equipment support (`is_shop_eligible=false`, non-`phase1_supported`)
 - inventory item instance-state support for `equipped`, `attuned`, and durable `current_charges`
 - RPC-backed equip/unequip/attune/unattune/recharge actions
 - player inventory organization into Items / Equipment / Attunement lanes with rest-context attunement gating

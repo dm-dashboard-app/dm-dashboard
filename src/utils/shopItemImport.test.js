@@ -645,14 +645,18 @@ describe('buildSrdImportRows trust-boundary hardening', () => {
     expect(abstractArmor.metadata_json.abstract_enhancement_row).toBe(true);
 
     expect(leatherPlus).toBeTruthy();
-    expect(leatherPlus.metadata_json.mechanics_support).toBe('phase1_supported');
+    expect(leatherPlus.is_shop_eligible).toBe(false);
+    expect(leatherPlus.shop_bucket).toBe('future_variant_prep');
+    expect(leatherPlus.metadata_json.mechanics_support).toBe('catalog_prepared');
     expect(leatherPlus.metadata_json.mechanics.passive_effects).toEqual(
       expect.arrayContaining([expect.objectContaining({ type: 'flat_bonus', target: 'ac', value: 1 })]),
     );
     expect(leatherPlus.metadata_json.shop_intent.blacksmith_high_affluence).toBe(true);
+    expect(leatherPlus.metadata_json.variant_live_ready).toBe(false);
 
     expect(longswordPlus).toBeTruthy();
-    expect(longswordPlus.metadata_json.mechanics_support).toBe('phase1_structured');
+    expect(longswordPlus.is_shop_eligible).toBe(false);
+    expect(longswordPlus.metadata_json.mechanics_support).toBe('catalog_prepared');
     expect(longswordPlus.metadata_json.mechanics.passive_effects).toEqual(
       expect.arrayContaining([expect.objectContaining({ type: 'weapon_attack_bonus', value: 1 })]),
     );

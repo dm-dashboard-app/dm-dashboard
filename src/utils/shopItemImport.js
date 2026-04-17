@@ -267,7 +267,7 @@ function buildEnhancedVariantRows(rows = []) {
       const variantSlug = `${template.source_slug}-plus-${spec.bonus}`;
       const metadata = abstractRow.metadata_json || {};
       const mechanics = deriveEnhancedVariantMechanics(baseRow, spec.family, spec.bonus);
-      const mechanicsSupport = spec.family === 'weapon' ? 'phase1_structured' : 'phase1_supported';
+      const mechanicsSupport = 'catalog_prepared';
 
       variants.push({
         ...baseRow,
@@ -281,8 +281,8 @@ function buildEnhancedVariantRows(rows = []) {
         price_source: abstractRow.price_source || baseRow.price_source,
         source_slug: variantSlug,
         external_key: `${IMPORT_SOURCE_TYPE}:${variantSlug}`,
-        is_shop_eligible: true,
-        shop_bucket: spec.family === 'weapon' ? 'combat' : 'magic',
+        is_shop_eligible: false,
+        shop_bucket: 'future_variant_prep',
         metadata_json: {
           ...metadata,
           mechanics,
@@ -297,6 +297,8 @@ function buildEnhancedVariantRows(rows = []) {
             magic_shop: true,
             blacksmith_high_affluence: true,
           },
+          availability_state: 'future_prep_not_live',
+          variant_live_ready: false,
         },
       });
     });

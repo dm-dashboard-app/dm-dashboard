@@ -226,4 +226,4 @@ This roadmap is healthy when a new chat can quickly see:
 
 - Expand mechanics enrichment coverage from current `phase1_supported` curated set toward broader SRD item coverage without overclaiming unsupported rows.
 - Keep unsupported/non-enriched items explicitly manual until represented with truthful structured mechanics.
-- Follow-up shop generator tuning: concrete enhanced armor/weapon/shield variants now carry forward-compatibility metadata for later higher-affluence blacksmith eligibility. Keep this as a focused generator-rule pass (not a broad economy rebalance).
+- Follow-up shop generator tuning: concrete enhanced armor/weapon/shield variants currently exist only in a future-prep catalog state (not live shop-eligible / not `phase1_supported`). A later focused pass must decide exactly which subset becomes live for higher-affluence blacksmith and magic-shop generation.
