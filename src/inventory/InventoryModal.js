@@ -458,6 +458,7 @@ export default function InventoryModal({
             </div>
             <div className="panel-title">Inventory</div>
           </div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>Item automation applies to curated phase1-supported enrichment rows; unsupported items remain manual.</div>
           <input className="form-input" placeholder="Search items" value={itemFilter} onChange={(event) => setItemFilter(event.target.value)} />
           <div style={{ marginTop: 8, display: 'grid', gap: 6, maxHeight: '40vh', overflowY: 'auto', paddingRight: 2 }}>
             {filteredItems.length === 0 ? <div className="empty-state" style={{ padding: 8 }}>No items yet.</div> : null}

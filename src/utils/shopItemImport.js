@@ -216,6 +216,7 @@ function applyMechanicsEnrichment(row = {}, enrichmentMap = new Map()) {
         recharge: overlay.recharge || null,
       },
       mechanics_enrichment_source: 'repo_item_mechanics_enrichment_2014',
+      mechanics_support: overlay.mechanics_support || 'phase1_supported',
     },
   };
 }

@@ -21,6 +21,14 @@ export function extractItemMechanics(item = {}) {
   return metadata.mechanics || item.mechanics || null;
 }
 
+export function mechanicsSupportLevel(item = {}) {
+  return String(item?.metadata_json?.mechanics_support || 'unsupported');
+}
+
+export function isMechanicsSupported(item = {}) {
+  return mechanicsSupportLevel(item) === 'phase1_supported';
+}
+
 export function resolveItemSlot(item = {}) {
   const mechanics = extractItemMechanics(item);
   const raw = String(mechanics?.slot_family || '').trim().toLowerCase();
@@ -59,6 +67,7 @@ export function isItemActive(item = {}) {
 
 export function applyItemEffectsToProfile(profile = {}, inventoryItems = []) {
   const abilityBonus = { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 };
+  const abilitySetMin = {};
   const saveBonus = { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 };
   const bonuses = {
     acFlat: 0,
@@ -70,6 +79,7 @@ export function applyItemEffectsToProfile(profile = {}, inventoryItems = []) {
   let armorFormula = null;
 
   (inventoryItems || []).forEach((item) => {
+    if (!isMechanicsSupported(item)) return;
     if (!isItemActive(item)) return;
     const mechanics = extractItemMechanics(item);
     if (mechanics?.armor?.base_ac) {
@@ -83,7 +93,16 @@ export function applyItemEffectsToProfile(profile = {}, inventoryItems = []) {
     getItemPassiveEffects(item).forEach((effect) => {
       const type = String(effect?.type || '').toLowerCase();
       const value = toNumber(effect?.value, 0);
-      if (!value) return;
+
+      if (type === 'flat_bonus') {
+        const target = String(effect?.target || '').toLowerCase();
+        if (target === 'ac') bonuses.acFlat += value;
+        if (target === 'spell_attack') bonuses.spellAttack += value;
+        if (target === 'spell_save_dc') bonuses.spellSaveDc += value;
+        return;
+      }
+
+      if (!value && type !== 'ability_score_set_min') return;
 
       if (type === 'ac_flat') bonuses.acFlat += value;
       else if (type === 'shield_ac_bonus') bonuses.shieldAc += value;
@@ -92,6 +111,16 @@ export function applyItemEffectsToProfile(profile = {}, inventoryItems = []) {
       else if (type === 'ability_score_bonus') {
         const key = String(effect?.ability || '').toLowerCase();
         if (Object.prototype.hasOwnProperty.call(abilityBonus, key)) abilityBonus[key] += value;
+      } else if (type === 'ability_score_set_min') {
+        const key = String(effect?.ability || '').toLowerCase();
+        const minValue = Math.max(1, toNumber(effect?.min, 0));
+        if (Object.prototype.hasOwnProperty.call(abilityBonus, key) && minValue > 0) {
+          abilitySetMin[key] = Math.max(abilitySetMin[key] || 0, minValue);
+        }
+      } else if (type === 'all_saves_bonus') {
+        Object.keys(saveBonus).forEach((saveKey) => {
+          saveBonus[saveKey] += value;
+        });
       } else if (type === 'saving_throw_bonus') {
         const key = String(effect?.save || '').toLowerCase();
         if (key === 'all') {
@@ -106,6 +135,15 @@ export function applyItemEffectsToProfile(profile = {}, inventoryItems = []) {
   });
 
   const nextAbilities = { ...abilityBonus };
+  Object.keys(nextAbilities).forEach((abilityKey) => {
+    const baseScore = readNumberField(profile, [`ability_${abilityKey}`], 10);
+    const adjusted = baseScore + nextAbilities[abilityKey];
+    const floor = abilitySetMin[abilityKey] || 0;
+    if (floor > adjusted) {
+      nextAbilities[abilityKey] += floor - adjusted;
+    }
+  });
+
   const dexScore = readNumberField(profile, ['ability_dex'], 10) + nextAbilities.dex;
   const dexMod = getAbilityModifier(dexScore);
   let armorAc = readNumberField(profile, ['ac'], 10);
@@ -120,6 +158,7 @@ export function applyItemEffectsToProfile(profile = {}, inventoryItems = []) {
     acFromItems: armorAc + bonuses.shieldAc + bonuses.acFlat,
     spellSaveDcBonus: bonuses.spellSaveDc,
     spellAttackBonus: bonuses.spellAttack,
+    supportCoverage: (inventoryItems || []).filter((row) => isMechanicsSupported(row)).length,
   };
 }
 

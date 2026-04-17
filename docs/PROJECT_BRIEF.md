@@ -353,12 +353,13 @@ Preservation rule:
 Landed baseline includes:
 
 - item mechanics enrichment overlay artifact (`docs/data/item_mechanics_enrichment_2014.json` + `public/data/item_mechanics_enrichment_2014.json`) merged into the existing SRD/custom import lane
+- explicit **Phase 1 curated coverage model**: only enrichment-listed items are treated as `phase1_supported`; non-listed items remain manual/unsupported for automation in this phase
 - inventory item instance-state support for `equipped`, `attuned`, and durable `current_charges`
 - RPC-backed equip/unequip/attune/unattune/recharge actions
 - player inventory organization into Items / Equipment / Attunement lanes with rest-context attunement gating
 - short-rest response attunement selection capture and DM confirmation application
-- long-rest prep item/attunement + recharge access via inventory modal
-- first-pass item effect activation for AC/shield/spell save/spell attack/saving throw/ability bonus effects while preserving manual profile bonus fields
+- long-rest prep now includes a first-class Attunement + Recharge section in the long-rest flow (not inventory-modal side detour)
+- shared derived-player-stats helper path now applies supported item effects (armor formula, AC flat/shield, all-saves/specific saves, spell attack/DC bonuses, ability-score floor/bonus) while preserving manual profile bonus fields
 
 Preservation rule:
 
