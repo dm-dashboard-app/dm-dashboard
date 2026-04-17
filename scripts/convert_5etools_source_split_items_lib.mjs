@@ -78,6 +78,78 @@ const CURATED_FALLBACK_EXPLICIT_OVERRIDES = new Map([
   ['tome of leadership and influence', { mode: 'manual_only', reason: 'ability_score_permanent_boost_requires_manual_pricing' }],
   ['tome of understanding', { mode: 'manual_only', reason: 'ability_score_permanent_boost_requires_manual_pricing' }],
 ]);
+const CURATED_FALLBACK_FAMILY_MATRIX = [
+  {
+    pattern: /^elemental essence shard(?: \((?:air|earth|fire|water)\))?$/i,
+    priceGp: 5000,
+    bucket: 'utility',
+    reason: 'curated_family_elemental_essence_shard_rare',
+    makeEligible: false,
+  },
+  {
+    pattern: /^outer essence shard(?: \((?:chaotic|evil|good|lawful)\))?$/i,
+    priceGp: 5000,
+    bucket: 'utility',
+    reason: 'curated_family_outer_essence_shard_rare',
+    makeEligible: false,
+  },
+  {
+    pattern: /^(astral|far realm|shadowfell) shard$/i,
+    priceGp: 5000,
+    bucket: 'utility',
+    reason: 'curated_family_planar_shard_rare',
+    makeEligible: false,
+  },
+  {
+    pattern: /^\w+ absorbing tattoo$/i,
+    priceGp: 50000,
+    bucket: 'utility',
+    reason: 'curated_family_absorbing_tattoo_very_rare',
+    makeEligible: false,
+  },
+  {
+    pattern: /^stirring dragon vessel$/i,
+    priceGp: 5000,
+    bucket: 'utility',
+    reason: 'curated_family_dragon_vessel_stirring',
+    makeEligible: false,
+  },
+  {
+    pattern: /^wakened dragon vessel$/i,
+    priceGp: 50000,
+    bucket: 'utility',
+    reason: 'curated_family_dragon_vessel_wakened',
+    makeEligible: false,
+  },
+  {
+    pattern: /^ascendant dragon vessel$/i,
+    priceGp: 200000,
+    bucket: 'special',
+    reason: 'curated_family_dragon_vessel_ascendant',
+    makeEligible: false,
+  },
+  {
+    pattern: /^stirring dragon-touched focus$/i,
+    priceGp: 5000,
+    bucket: 'utility',
+    reason: 'curated_family_dragon_touched_focus_stirring',
+    makeEligible: false,
+  },
+  {
+    pattern: /^wakened dragon-touched focus$/i,
+    priceGp: 50000,
+    bucket: 'utility',
+    reason: 'curated_family_dragon_touched_focus_wakened',
+    makeEligible: false,
+  },
+  {
+    pattern: /^ascendant dragon-touched focus$/i,
+    priceGp: 200000,
+    bucket: 'special',
+    reason: 'curated_family_dragon_touched_focus_ascendant',
+    makeEligible: false,
+  },
+];
 
 export function slugify(value = '') {
   return String(value || '')
@@ -248,6 +320,13 @@ function parseBonus(raw) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function parseNameEnhancementBonus(name = '') {
+  const match = String(name || '').trim().match(/(?:^|[,\s])\+(\d+)(?:$|\s|\))/);
+  if (!match) return null;
+  const bonus = Number(match[1]);
+  return Number.isFinite(bonus) && bonus > 0 ? bonus : null;
+}
+
 function deriveSlotFamily(item = {}, name = '') {
   const typeCode = parseTypeCode(item);
   const loweredName = String(name || '').toLowerCase();
@@ -305,11 +384,15 @@ function isMechanicsPhase1Compatible(mechanics = {}, requiresAttunement = false)
 function deriveMechanics(item = {}, requiresAttunement = false) {
   const passiveEffects = [];
   const slotFamily = deriveSlotFamily(item, item?.name);
+  const derivedItemType = deriveItemType(item);
+  const nameBonus = parseNameEnhancementBonus(item?.name);
 
-  const weaponBonus = parseBonus(item.bonusWeapon);
+  const weaponBonus = parseBonus(item.bonusWeapon)
+    ?? ((derivedItemType === 'weapon' && nameBonus && nameBonus <= 3) ? nameBonus : null);
   if (weaponBonus !== null) passiveEffects.push({ type: 'weapon_attack_bonus', value: weaponBonus });
 
-  const acBonus = parseBonus(item.bonusAc);
+  const acBonus = parseBonus(item.bonusAc)
+    ?? ((['armor', 'shield'].includes(derivedItemType) && nameBonus && nameBonus <= 3) ? nameBonus : null);
   if (acBonus !== null) {
     if (slotFamily === 'shield') passiveEffects.push({ type: 'shield_ac_bonus', value: acBonus });
     else passiveEffects.push({ type: 'flat_bonus', target: 'ac', value: acBonus });
@@ -320,6 +403,23 @@ function deriveMechanics(item = {}, requiresAttunement = false) {
 
   const spellSaveBonus = parseBonus(item.bonusSpellSaveDc);
   if (spellSaveBonus !== null) passiveEffects.push({ type: 'flat_bonus', target: 'spell_save_dc', value: spellSaveBonus });
+
+  const focusTierBonusMatch = String(item?.name || '').trim().match(/^(Stirring|Wakened|Ascendant) Dragon-Touched Focus$/i);
+  if (focusTierBonusMatch && spellAttackBonus === null && spellSaveBonus === null) {
+    const bonusByTier = { stirring: 1, wakened: 2, ascendant: 3 };
+    const bonus = bonusByTier[String(focusTierBonusMatch[1] || '').toLowerCase()] || null;
+    if (bonus) {
+      passiveEffects.push({ type: 'flat_bonus', target: 'spell_attack', value: bonus });
+      passiveEffects.push({ type: 'flat_bonus', target: 'spell_save_dc', value: bonus });
+    }
+  }
+
+  const ornamentTierBonusMatch = String(item?.name || '').trim().match(/^(Stirring|Wakened|Ascendant) Scaled Ornament$/i);
+  if (ornamentTierBonusMatch && acBonus === null) {
+    const bonusByTier = { stirring: 1, wakened: 2, ascendant: 3 };
+    const bonus = bonusByTier[String(ornamentTierBonusMatch[1] || '').toLowerCase()] || null;
+    if (bonus) passiveEffects.push({ type: 'flat_bonus', target: 'ac', value: bonus });
+  }
 
   const allSavesBonus = parseBonus(item.bonusSavingThrow);
   if (allSavesBonus !== null) passiveEffects.push({ type: 'all_saves_bonus', value: allSavesBonus });
@@ -589,6 +689,16 @@ function deriveFallbackPricing({ item = {}, row = {} } = {}) {
       reason: explicitOverride.reason || 'explicit_manual_override',
       makeEligible: false,
       manualOnly: true,
+    };
+  }
+
+  for (const policy of CURATED_FALLBACK_FAMILY_MATRIX) {
+    if (!policy?.pattern?.test(name)) continue;
+    return {
+      priceGp: policy.priceGp,
+      bucket: policy.bucket || 'utility',
+      reason: policy.reason || 'curated_family_matrix',
+      makeEligible: !!policy.makeEligible,
     };
   }
 

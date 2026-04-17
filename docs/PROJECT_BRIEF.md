@@ -1,6 +1,6 @@
 # DM Dashboard — Project Brief
 
-Last updated: April 17, 2026 (5etools pricing match-coverage + unresolved triage landed)
+Last updated: April 17, 2026 (5etools final completion batch landed)
 
 Purpose: This document is the current-state/background brief for DM Dashboard. It describes what the app now is, what is materially landed, and what principles future work must preserve.
 
@@ -220,6 +220,8 @@ Landed baseline includes:
 - 5etools converter pricing now includes expanded high-confidence fallback coverage for unresolved plus-tier enhancement families (`+2/+3` style magic-item upgrades), higher spell-scroll levels, and spellwrought tattoo level variants, while keeping those fallback-priced rows explicit non-default stock unless separately curated
 - 5etools fallback pricing now also carries a durable curated override policy for known campaign-warping manual/tome families (manual-only; no synthetic price) and expanded alias normalization for tiny overlay match-miss cleanup, preserving explicit unresolved provenance instead of over-broad generic auto-pricing
 - 5etools review reporting now includes unresolved triage splits that separate likely overlay/match misses from intentionally excluded/noise rows and true manual unresolved residue (instead of one blurred unresolved bucket)
+- 5etools fallback policy now includes a durable curated family matrix for high-repeat unresolved families (essence shards, absorbing tattoos, dragon vessel/focus tiers) while preserving explicit manual-only handling for campaign-warping/bespoke outliers
+- mechanics derivation now also supports safe name-derived +N weapon/armor/shield variants and explicit dragon-touched focus + scaled ornament tier passive mappings when they fit existing phase-1 runtime semantics
 - SRD refresh now treats upstream detail fetch failures as transient run-time failures (reported in UI) and no longer persists new degraded fallback rows from those failures into `item_master`
 - import RPC now hard-rejects degraded SRD payload rows (`degraded_import`, `degraded_fallback`, `fallback_quarantine`, `degraded_fallback_untrusted`) so client regressions cannot persist untrusted degraded SRD rows
 - custom seed defaults are now explicit and safe: `docs/data/shop_custom_items_seed_2014.json` is intentionally empty-by-default, while prior sample rows live in `docs/data/shop_custom_items_seed_2014.example.json` as example/demo content
@@ -393,7 +395,8 @@ Landed baseline includes:
 - durable execution plan for completion work is now tracked in `docs/5ETOOLS_IMPORT_COMPLETION_PLAN.md`
 - 5etools conversion now reuses the same curated magic-pricing overlay artifact (`shop_magic_pricing_2014.json`) already used by SRD import paths, including alias-aware name matching for common plus-order variant naming differences
 - 5etools conversion now applies a constrained fallback pricing policy only when direct source value and curated overlay matching are both unavailable, with explicit provenance markers (`5etools_fallback_policy_v1`) and non-default/manual behavior preserved for excluded/high-risk rows
-- latest regenerated 5etools artifact state after shop-admission tightening (`5etools_shop_admission_v2`): 892 source rows processed with 140 clutter-family rows excluded from the active artifact (gem/art/coin/trade-good/ship-airship/large-vehicle families), leaving 752 active-lane rows; active-lane pricing provenance now splits to direct source value (152), curated overlay (251), fallback policy (129), and unresolved manual (235), with shop split at 429 shop-eligible / 323 non-shop and 21 hazard-demoted non-shop rows (`hazardous_non_default`) while structured mechanics + Phase-1-compatible payload coverage remains 238
+- latest regenerated 5etools artifact state after final completion batch (`5etools_shop_admission_v2`): 892 source rows processed with 140 clutter-family rows excluded from the active artifact (gem/art/coin/trade-good/ship-airship/large-vehicle families), leaving 752 active-lane rows; active-lane pricing provenance now splits to direct source value (152), curated overlay (251), fallback policy (180), and unresolved manual (184), with unresolved triage now at 2 overlay-match-miss candidates + 18 intentionally excluded/noise + 164 true manual residues, shop split at 425 shop-eligible / 327 non-shop, and structured mechanics + Phase-1-compatible payload coverage raised to 243
+- practical lane status: 5etools import lane is now considered ready to replace the old SRD-source import lane for day-to-day item catalog operation, while legacy SRD refresh controls remain temporarily available as explicitly deprecated fallback tooling
 - explicit boundary that neither raw source nor source-split derivatives are the live runtime schema; runtime item truth remains the existing `item_master` import/runtime path
 
 Preservation rule:

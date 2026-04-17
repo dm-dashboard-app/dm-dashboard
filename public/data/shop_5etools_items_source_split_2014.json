@@ -1270,9 +1270,9 @@
       "rarity": "very rare",
       "requires_attunement": true,
       "description": "{#itemEntry Absorbing Tattoo|TCE}",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 50000,
+      "suggested_price_gp": 50000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-acid-absorbing-tattoo",
@@ -1293,8 +1293,10 @@
         "req_attune_tags": [],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_absorbing_tattoo_very_rare",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -1372,9 +1374,9 @@
       "rarity": "rare",
       "requires_attunement": true,
       "description": "This crystal is a solidified shard of the Astral Plane, swirling with silver mist. As an action, you can attach the shard to a Tiny object (such as a weapon or a piece of jewelry) or detach it. It falls off if your attunement to it ends. You can use the shard as a spellcasting focus while you hold or wear it.\nWhen you use a Metamagic option on a spell while you are holding or wearing the shard, immediately after casting the spell you can teleport to an unoccupied space you can see within 30 feet of you.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-astral-shard",
@@ -1399,8 +1401,10 @@
         ],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_planar_shard_rare",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -2002,9 +2006,9 @@
       "rarity": "very rare",
       "requires_attunement": true,
       "description": "{#itemEntry Absorbing Tattoo|TCE}",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 50000,
+      "suggested_price_gp": 50000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-cold-absorbing-tattoo",
@@ -2025,8 +2029,10 @@
         "req_attune_tags": [],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_absorbing_tattoo_very_rare",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -2380,9 +2386,9 @@
       "rarity": "rare",
       "requires_attunement": true,
       "description": "This crackling crystal contains the essence of an elemental plane. As an action, you can attach the shard to a Tiny object (such as a weapon or a piece of jewelry) or detach it. It falls off if your attunement to it ends. You can use the shard as a spellcasting focus while you hold or wear it.\nRoll a d4 and consult the Elemental Essence Shards table to determine the shard's essence and property. When you use a Metamagic option on a spell while you are holding or wearing the shard, you can use that property.\nTable: d4 | Element | Shard\n- 1 | Air | Elemental Essence Shard (Air)\n- 2 | Earth | Elemental Essence Shard (Earth)\n- 3 | Fire | Elemental Essence Shard (Fire)\n- 4 | Water | Elemental Essence Shard (Water)",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-elemental-essence-shard",
@@ -2407,8 +2413,10 @@
         ],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_elemental_essence_shard_rare",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -2427,9 +2435,9 @@
       "rarity": "rare",
       "requires_attunement": true,
       "description": "This crackling crystal contains the essence of an elemental plane. As an action, you can attach the shard to a Tiny object (such as a weapon or a piece of jewelry) or detach it. It falls off if your attunement to it ends. You can use the shard as a spellcasting focus while you hold or wear it.\nWhen you use a Metamagic option on a spell while you are holding or wearing the shard, you can use the following property:\nProperty:\nYou can immediately fly up to 60 feet without provoking opportunity attacks.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-elemental-essence-shard-air",
@@ -2454,8 +2462,10 @@
         ],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_elemental_essence_shard_rare",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -2474,9 +2484,9 @@
       "rarity": "rare",
       "requires_attunement": true,
       "description": "This crackling crystal contains the essence of an elemental plane. As an action, you can attach the shard to a Tiny object (such as a weapon or a piece of jewelry) or detach it. It falls off if your attunement to it ends. You can use the shard as a spellcasting focus while you hold or wear it.\nWhen you use a Metamagic option on a spell while you are holding or wearing the shard, you can use the following property:\nProperty:\nYou gain resistance to a damage type of your choice until the start of your next turn.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-elemental-essence-shard-earth",
@@ -2501,8 +2511,10 @@
         ],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_elemental_essence_shard_rare",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -2521,9 +2533,9 @@
       "rarity": "rare",
       "requires_attunement": true,
       "description": "This crackling crystal contains the essence of an elemental plane. As an action, you can attach the shard to a Tiny object (such as a weapon or a piece of jewelry) or detach it. It falls off if your attunement to it ends. You can use the shard as a spellcasting focus while you hold or wear it.\nWhen you use a Metamagic option on a spell while you are holding or wearing the shard, you can use the following property:\nProperty:\nOne target of the spell that you can see catches fire. The burning target takes 2d10 damage fire damage at the start of its next turn, and then the flames go out.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-elemental-essence-shard-fire",
@@ -2548,8 +2560,10 @@
         ],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_elemental_essence_shard_rare",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -2568,9 +2582,9 @@
       "rarity": "rare",
       "requires_attunement": true,
       "description": "This crackling crystal contains the essence of an elemental plane. As an action, you can attach the shard to a Tiny object (such as a weapon or a piece of jewelry) or detach it. It falls off if your attunement to it ends. You can use the shard as a spellcasting focus while you hold or wear it.\nWhen you use a Metamagic option on a spell while you are holding or wearing the shard, you can use the following property:\nProperty:\nYou create a wave of water that bursts out from you in a 10-foot radius. Each creature of your choice that you can see in that area takes 2d6 damage cold damage and must succeed on a Strength saving throw against your spell save DC or be pushed 10 feet away from you and fall prone.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-elemental-essence-shard-water",
@@ -2595,8 +2609,10 @@
         ],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_elemental_essence_shard_rare",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -2615,9 +2631,9 @@
       "rarity": "rare",
       "requires_attunement": true,
       "description": "This writhing crystal is steeped in the warped essence of the Far Realm. As an action, you can attach the shard to a Tiny object (such as a weapon or a piece of jewelry) or detach it. It falls off if your attunement to it ends. You can use the shard as a spellcasting focus while you hold or wear it.\nWhen you use a Metamagic option on a spell while you are holding or wearing the shard, you can cause a slimy tentacle to rip through the fabric of reality and strike one creature you can see within 30 feet of you. The creature must succeed on a Charisma saving throw against your spell save DC or take 3d6 damage psychic damage and become frightened of you until the start of your next turn.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-far-realm-shard",
@@ -2642,8 +2658,10 @@
         ],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_planar_shard_rare",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -2711,9 +2729,9 @@
       "rarity": "very rare",
       "requires_attunement": true,
       "description": "{#itemEntry Absorbing Tattoo|TCE}",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 50000,
+      "suggested_price_gp": 50000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-fire-absorbing-tattoo",
@@ -2734,8 +2752,10 @@
         "req_attune_tags": [],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_absorbing_tattoo_very_rare",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -2754,9 +2774,9 @@
       "rarity": "very rare",
       "requires_attunement": true,
       "description": "{#itemEntry Absorbing Tattoo|TCE}",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 50000,
+      "suggested_price_gp": 50000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-force-absorbing-tattoo",
@@ -2777,8 +2797,10 @@
         "req_attune_tags": [],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_absorbing_tattoo_very_rare",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -3181,9 +3203,9 @@
       "rarity": "very rare",
       "requires_attunement": true,
       "description": "{#itemEntry Absorbing Tattoo|TCE}",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 50000,
+      "suggested_price_gp": 50000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-lightning-absorbing-tattoo",
@@ -3204,8 +3226,10 @@
         "req_attune_tags": [],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_absorbing_tattoo_very_rare",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -3454,9 +3478,9 @@
       "rarity": "very rare",
       "requires_attunement": true,
       "description": "{#itemEntry Absorbing Tattoo|TCE}",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 50000,
+      "suggested_price_gp": 50000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-necrotic-absorbing-tattoo",
@@ -3477,8 +3501,10 @@
         "req_attune_tags": [],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_absorbing_tattoo_very_rare",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -3497,9 +3523,9 @@
       "rarity": "rare",
       "requires_attunement": true,
       "description": "This flickering crystal holds the essence of an Outer Plane. As an action, you can attach the shard to a Tiny object (such as a weapon or a piece of jewelry) or detach it. It falls off if your attunement to it ends. You can use the shard as a spellcasting focus while you hold or wear it.\nRoll a d4 and consult the Outer Essence Shards table to determine the shard's essence and property. When you use a Metamagic option on a spell while you are holding or wearing the shard, you can use that property.\nTable: d4 | Property | Shard\n- 1 | Lawful | Outer Essence Shard (Lawful)\n- 2 | Chaotic | Outer Essence Shard (Chaotic)\n- 3 | Good | Outer Essence Shard (Good)\n- 4 | Evil | Outer Essence Shard (Evil)",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-outer-essence-shard",
@@ -3524,8 +3550,10 @@
         ],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_outer_essence_shard_rare",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -3544,9 +3572,9 @@
       "rarity": "rare",
       "requires_attunement": true,
       "description": "This flickering crystal holds the essence of an Outer Plane. As an action, you can attach the shard to a Tiny object (such as a weapon or a piece of jewelry) or detach it. It falls off if your attunement to it ends. You can use the shard as a spellcasting focus while you hold or wear it.\nWhen you use a Metamagic option on a spell while you are holding or wearing the shard, you can use that property.\nProperty:\nChoose one creature who takes damage from the spell. That target has disadvantage on attack rolls and ability checks made before the start of your next turn.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-outer-essence-shard-chaotic",
@@ -3571,8 +3599,10 @@
         ],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_outer_essence_shard_rare",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -3591,9 +3621,9 @@
       "rarity": "rare",
       "requires_attunement": true,
       "description": "This flickering crystal holds the essence of an Outer Plane. As an action, you can attach the shard to a Tiny object (such as a weapon or a piece of jewelry) or detach it. It falls off if your attunement to it ends. You can use the shard as a spellcasting focus while you hold or wear it.\nWhen you use a Metamagic option on a spell while you are holding or wearing the shard, you can use that property.\nProperty:\nChoose one creature who takes damage from the spell. That target takes an extra 3d6 damage necrotic damage.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-outer-essence-shard-evil",
@@ -3618,8 +3648,10 @@
         ],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_outer_essence_shard_rare",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -3638,9 +3670,9 @@
       "rarity": "rare",
       "requires_attunement": true,
       "description": "This flickering crystal holds the essence of an Outer Plane. As an action, you can attach the shard to a Tiny object (such as a weapon or a piece of jewelry) or detach it. It falls off if your attunement to it ends. You can use the shard as a spellcasting focus while you hold or wear it.\nWhen you use a Metamagic option on a spell while you are holding or wearing the shard, you can use that property.\nProperty:\nYou or one creature of your choice that you can see within 30 feet of you gains 3d6 temporary hit points.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-outer-essence-shard-good",
@@ -3665,8 +3697,10 @@
         ],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_outer_essence_shard_rare",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -3685,9 +3719,9 @@
       "rarity": "rare",
       "requires_attunement": true,
       "description": "This flickering crystal holds the essence of an Outer Plane. As an action, you can attach the shard to a Tiny object (such as a weapon or a piece of jewelry) or detach it. It falls off if your attunement to it ends. You can use the shard as a spellcasting focus while you hold or wear it.\nWhen you use a Metamagic option on a spell while you are holding or wearing the shard, you can use that property.\nProperty:\nYou can end one of the following conditions affecting yourself or one creature you can see within 30 feet of you: charmed, blinded, deafened, frightened, poisoned, or stunned.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-outer-essence-shard-lawful",
@@ -3712,8 +3746,10 @@
         ],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_outer_essence_shard_rare",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -3791,9 +3827,9 @@
       "rarity": "very rare",
       "requires_attunement": true,
       "description": "{#itemEntry Absorbing Tattoo|TCE}",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 50000,
+      "suggested_price_gp": 50000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-poison-absorbing-tattoo",
@@ -3814,8 +3850,10 @@
         "req_attune_tags": [],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_absorbing_tattoo_very_rare",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -3938,9 +3976,9 @@
       "rarity": "very rare",
       "requires_attunement": true,
       "description": "{#itemEntry Absorbing Tattoo|TCE}",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 50000,
+      "suggested_price_gp": 50000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-psychic-absorbing-tattoo",
@@ -3961,8 +3999,10 @@
         "req_attune_tags": [],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_absorbing_tattoo_very_rare",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -3981,9 +4021,9 @@
       "rarity": "very rare",
       "requires_attunement": true,
       "description": "{#itemEntry Absorbing Tattoo|TCE}",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 50000,
+      "suggested_price_gp": 50000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-radiant-absorbing-tattoo",
@@ -4004,8 +4044,10 @@
         "req_attune_tags": [],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_absorbing_tattoo_very_rare",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -4127,9 +4169,9 @@
       "rarity": "rare",
       "requires_attunement": true,
       "description": "This dull, cold crystal sits heavy and leaden, saturated by the Shadowfell's despair. As an action, you can attach the shard to a Tiny object (such as a weapon or a piece of jewelry) or detach it. It falls off if your attunement to it ends. You can use the shard as a spellcasting focus while you hold or wear it.\nWhen you use a Metamagic option on a spell while you are holding or wearing the shard, you can momentarily curse one creature targeted by the spell; choose one ability score, and until the end of your next turn, the creature has disadvantage on ability checks and saving throws that use that ability.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-shadowfell-shard",
@@ -4154,8 +4196,10 @@
         ],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_planar_shard_rare",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -4505,9 +4549,9 @@
       "rarity": "very rare",
       "requires_attunement": true,
       "description": "{#itemEntry Absorbing Tattoo|TCE}",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 50000,
+      "suggested_price_gp": 50000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "TCE (5etools curated source split)",
       "source_slug": "tce-thunder-absorbing-tattoo",
@@ -4528,8 +4572,10 @@
         "req_attune_tags": [],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_absorbing_tattoo_very_rare",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -4750,9 +4796,9 @@
       "rarity": "legendary",
       "requires_attunement": false,
       "description": "This vessel can be a potion bottle, drinking horn, or other container meant to hold a liquid.\nAs a bonus action, if the vessel is empty, you can speak the command word to fill the vessel with one of the following (your choice): ale, olive oil, mead, wine, whiskey, a potion of healing, a potion of greater healing, a potion of superior healing, a potion of supreme healing, a potion of climbing, a potion of fire breath, a potion of flying, or a potion of dragon's majesty. Once this property is used, it can't be used until the next dawn. A potion you create in this way loses its magical properties if it isn't imbibed within 24 hours.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 200000,
+      "suggested_price_gp": 200000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "FTD (5etools curated source split)",
       "source_slug": "ftd-ascendant-dragon-vessel",
@@ -4773,8 +4819,10 @@
         "req_attune_tags": [],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_dragon_vessel_ascendant",
+          "fallback_bucket": "special"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -4793,9 +4841,9 @@
       "rarity": "legendary",
       "requires_attunement": false,
       "description": "This wondrous item can be a scepter, an orb, an amulet, a crystal, or another finely crafted object. It typically incorporates imagery of dragons' wings, claws, teeth, or scales.\nYou have advantage on initiative rolls. While you are holding the focus, it can function as a spellcasting focus for all your spells.\nThe focus gains an additional property determined by the family of the dragon in whose hoard it became Stirring:\n- Chromatic:\nWhenever you use a spell slot to cast a spell that deals acid, cold, fire, lightning, or poison damage, roll a d6, and you gain a bonus equal to the number rolled to one of the spell's damage rolls.\n- Gem:\nWhenever you use a spell slot to cast a spell, you can immediately teleport to an unoccupied space you can see within 15 feet of you.\n- Metallic:\nWhen a creature you can see within 30 feet of you makes a saving throw, you can use your reaction to give that creature advantage on the saving throw.\nWhile you are holding a Wakened focus, you can use it to cast certain spells. Once the item is used to cast a given spell, it can't be used to cast that spell again until the next dawn. The spells are determined by the family of the dragon in whose hoard it became Wakened.\n- Chromatic:\nHold monster, Rime's binding ice\n- Gem:\nRary's telepathic bond, Raulothim's psychic lance\n- Metallic:\nFizban's platinum shield, legend lore\nWhen you cast a spell of 1st level or higher while holding this focus, you can treat the spell as if it were cast using a 9th-level spell slot. Once this property is used, it can't be used again until the next dawn.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 200000,
+      "suggested_price_gp": 200000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "FTD (5etools curated source split)",
       "source_slug": "ftd-ascendant-dragon-touched-focus",
@@ -4804,8 +4852,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "manual_magic_review",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "FTD",
         "source_filename": "FTD.json",
@@ -4814,10 +4862,30 @@
         "has_structured_entries": true,
         "req_attune_raw": null,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": false,
+          "passive_effects": [
+            {
+              "type": "flat_bonus",
+              "target": "spell_attack",
+              "value": 3
+            },
+            {
+              "type": "flat_bonus",
+              "target": "spell_save_dc",
+              "value": 3
+            }
+          ],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_dragon_touched_focus_ascendant",
+          "fallback_bucket": "special"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -4847,8 +4915,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "manual_magic_review",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "FTD",
         "source_filename": "FTD.json",
@@ -4857,7 +4925,20 @@
         "has_structured_entries": true,
         "req_attune_raw": null,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "equip",
+          "requires_attunement": false,
+          "passive_effects": [
+            {
+              "type": "flat_bonus",
+              "target": "ac",
+              "value": 3
+            }
+          ],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "unresolved_manual_review",
           "trusted": false
@@ -5364,9 +5445,9 @@
       "rarity": "rare",
       "requires_attunement": false,
       "description": "This vessel can be a potion bottle, drinking horn, or other container meant to hold a liquid.\nAs a bonus action, if the vessel is empty, you can speak the command word to fill the vessel with one of the following (your choice): ale, olive oil, mead, a potion of healing, a potion of greater healing, a potion of climbing, or a potion of fire breath. Once this property is used, it can't be used until the next dawn. A potion you create in this way loses its magical properties if it isn't imbibed within 24 hours.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "FTD (5etools curated source split)",
       "source_slug": "ftd-stirring-dragon-vessel",
@@ -5387,8 +5468,10 @@
         "req_attune_tags": [],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_dragon_vessel_stirring",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -5407,9 +5490,9 @@
       "rarity": "rare",
       "requires_attunement": false,
       "description": "This wondrous item can be a scepter, an orb, an amulet, a crystal, or another finely crafted object. It typically incorporates imagery of dragons' wings, claws, teeth, or scales.\nYou have advantage on initiative rolls. While you are holding the focus, it can function as a spellcasting focus for all your spells.\nThe focus gains an additional property determined by the family of the dragon in whose hoard it became Stirring:\n- Chromatic:\nWhenever you use a spell slot to cast a spell that deals acid, cold, fire, lightning, or poison damage, roll a d6, and you gain a bonus equal to the number rolled to one of the spell's damage rolls.\n- Gem:\nWhenever you use a spell slot to cast a spell, you can immediately teleport to an unoccupied space you can see within 15 feet of you.\n- Metallic:\nWhen a creature you can see within 30 feet of you makes a saving throw, you can use your reaction to give that creature advantage on the saving throw.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 5000,
+      "suggested_price_gp": 5000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "FTD (5etools curated source split)",
       "source_slug": "ftd-stirring-dragon-touched-focus",
@@ -5418,8 +5501,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "manual_magic_review",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "FTD",
         "source_filename": "FTD.json",
@@ -5428,10 +5511,30 @@
         "has_structured_entries": true,
         "req_attune_raw": null,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": false,
+          "passive_effects": [
+            {
+              "type": "flat_bonus",
+              "target": "spell_attack",
+              "value": 1
+            },
+            {
+              "type": "flat_bonus",
+              "target": "spell_save_dc",
+              "value": 1
+            }
+          ],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_dragon_touched_focus_stirring",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -5549,9 +5652,9 @@
       "rarity": "very rare",
       "requires_attunement": false,
       "description": "This vessel can be a potion bottle, drinking horn, or other container meant to hold a liquid.\nAs a bonus action, if the vessel is empty, you can speak the command word to fill the vessel with one of the following (your choice): ale, olive oil, mead, wine, a potion of healing, a potion of greater healing, a potion of superior healing, a potion of climbing, a potion of fire breath, or a potion of flying. Once this property is used, it can't be used until the next dawn. A potion you create in this way loses its magical properties if it isn't imbibed within 24 hours.",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 50000,
+      "suggested_price_gp": 50000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "FTD (5etools curated source split)",
       "source_slug": "ftd-wakened-dragon-vessel",
@@ -5572,8 +5675,10 @@
         "req_attune_tags": [],
         "mechanics": null,
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_dragon_vessel_wakened",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -5592,9 +5697,9 @@
       "rarity": "very rare",
       "requires_attunement": false,
       "description": "This wondrous item can be a scepter, an orb, an amulet, a crystal, or another finely crafted object. It typically incorporates imagery of dragons' wings, claws, teeth, or scales.\nYou have advantage on initiative rolls. While you are holding the focus, it can function as a spellcasting focus for all your spells.\nThe focus gains an additional property determined by the family of the dragon in whose hoard it became Stirring:\n- Chromatic:\nWhenever you use a spell slot to cast a spell that deals acid, cold, fire, lightning, or poison damage, roll a d6, and you gain a bonus equal to the number rolled to one of the spell's damage rolls.\n- Gem:\nWhenever you use a spell slot to cast a spell, you can immediately teleport to an unoccupied space you can see within 15 feet of you.\n- Metallic:\nWhen a creature you can see within 30 feet of you makes a saving throw, you can use your reaction to give that creature advantage on the saving throw.\nWhile you are holding a Wakened focus, you can use it to cast certain spells. Once the item is used to cast a given spell, it can't be used to cast that spell again until the next dawn. The spells are determined by the family of the dragon in whose hoard it became Wakened.\n- Chromatic:\nHold monster, Rime's binding ice\n- Gem:\nRary's telepathic bond, Raulothim's psychic lance\n- Metallic:\nFizban's platinum shield, legend lore",
-      "base_price_gp": null,
-      "suggested_price_gp": null,
-      "price_source": null,
+      "base_price_gp": 50000,
+      "suggested_price_gp": 50000,
+      "price_source": "5etools_fallback_policy_v1",
       "source_type": "custom_homebrew_private_seed",
       "source_book": "FTD (5etools curated source split)",
       "source_slug": "ftd-wakened-dragon-touched-focus",
@@ -5603,8 +5708,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "manual_magic_review",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "FTD",
         "source_filename": "FTD.json",
@@ -5613,10 +5718,30 @@
         "has_structured_entries": true,
         "req_attune_raw": null,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": false,
+          "passive_effects": [
+            {
+              "type": "flat_bonus",
+              "target": "spell_attack",
+              "value": 2
+            },
+            {
+              "type": "flat_bonus",
+              "target": "spell_save_dc",
+              "value": 2
+            }
+          ],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
-          "strategy": "unresolved_manual_review",
-          "trusted": false
+          "strategy": "fallback_policy",
+          "trusted": false,
+          "fallback_reason": "curated_family_dragon_touched_focus_wakened",
+          "fallback_bucket": "utility"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -5646,8 +5771,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "manual_magic_review",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "FTD",
         "source_filename": "FTD.json",
@@ -5656,7 +5781,20 @@
         "has_structured_entries": true,
         "req_attune_raw": null,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "equip",
+          "requires_attunement": false,
+          "passive_effects": [
+            {
+              "type": "flat_bonus",
+              "target": "ac",
+              "value": 2
+            }
+          ],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "unresolved_manual_review",
           "trusted": false

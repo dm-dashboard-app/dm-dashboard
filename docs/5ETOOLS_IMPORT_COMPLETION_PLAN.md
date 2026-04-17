@@ -1,6 +1,6 @@
 # 5etools Import Completion Plan (Pricing Truth + Phase 1 Mechanics)
 
-Last updated: April 17, 2026
+Last updated: April 17, 2026 (final completion batch)
 
 Purpose: durable repo-grounded execution plan to finish the curated 5etools `item_master` lane for truthful pricing and practical Phase 1 equipment/attunement usefulness.
 
@@ -28,6 +28,18 @@ Purpose: durable repo-grounded execution plan to finish the curated 5etools `ite
    - `manual_required` / `partial_supported` counts existed, but no export slice for “structured mechanics present”, attunement subset, and “payload appears Phase-1-compatible”.
 4. **No durable completion plan artifact for this lane**
    - Prior work landed incrementally; repo needed one implementation-oriented plan that maps remaining work into clear follow-up batches.
+
+## Final completion batch outcome (April 17, 2026)
+
+- Regenerated active-lane artifact now reports:
+  - fallback priced: **180** (up from 151 in the prior structured report)
+  - unresolved unpriced: **184**
+  - unresolved true manual review: **164** (down from 193)
+  - rows with structured mechanics: **243** (up from 238)
+  - rows with Phase-1-compatible payload: **243** (up from 238)
+- Pricing closure in this batch came from a durable curated family matrix plus explicit manual-only guardrails, not broad unconstrained rarity pricing.
+- Mechanics closure in this batch came from supportable passive families only (name-derived +N weapon/armor/shield and explicit dragon-focus/ornament tier mappings); bespoke activated/encounter-warping families remain intentionally manual.
+- Operational readiness verdict: the 5etools lane is practically ready to replace the old SRD-source lane for normal catalog operation; legacy SRD refresh control remains as a deprecated fallback surface until final UI removal timing is chosen.
 
 ## What this batch adds (operator/reporting scaffolding)
 
