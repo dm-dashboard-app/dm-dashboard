@@ -380,6 +380,9 @@ Landed baseline includes:
 - `resources/items_by_source/` as the upstream in-repo source layer for item conversion/import work (manifest + curated surviving per-source JSON files)
 - deterministic converter output artifacts at `docs/data/shop_5etools_items_source_split_2014.json` and `public/data/shop_5etools_items_source_split_2014.json`, mapped into the existing app import row shape
 - Manage → Imports now includes a DM-only live review/export panel for imported 5etools-lane `item_master` rows (lane-scoped counts + compact row list + copy/export JSON) for truthfulness validation directly in app flow
+- 5etools conversion now reuses the same curated magic-pricing overlay artifact (`shop_magic_pricing_2014.json`) already used by SRD import paths, including alias-aware name matching for common plus-order variant naming differences
+- 5etools conversion now applies a constrained fallback pricing policy only when direct source value and curated overlay matching are both unavailable, with explicit provenance markers (`5etools_fallback_policy_v1`) and non-default/manual behavior preserved for excluded/high-risk rows
+- latest regenerated 5etools artifact state after pricing enrichment: 892 rows total, 587 shop-eligible, 235 null-priced, and pricing provenance split across direct source value (292), curated overlay (251), fallback policy (129), and unresolved manual (220)
 - explicit boundary that neither raw source nor source-split derivatives are the live runtime schema; runtime item truth remains the existing `item_master` import/runtime path
 
 Preservation rule:

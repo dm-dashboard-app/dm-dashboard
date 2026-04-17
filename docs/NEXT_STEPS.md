@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 17, 2026 (catalog semantics + concrete enhancement variant follow-up)
+Last updated: April 17, 2026 (5etools pricing overlay/fallback enrichment landed)
 
 Purpose: This file is the active roadmap only. It lists active next steps, intentionally parked/deferred work, and longer-range ideas.
 
@@ -38,6 +38,7 @@ Recent landing note (April 17, 2026 follow-up polish/fix batch): mobile inventor
 Recent landing note (April 17, 2026 source-split item conversion batch): curated `resources/items_by_source/*.json` inputs now have a deterministic converter + generated app-shaped seed artifact + in-app Manage → Imports action, without changing runtime `item_master` trust boundaries.
 Recent landing note (April 17, 2026 manifest truthfulness follow-up): `resources/items_by_source/manifest.json` now reflects only surviving curated in-repo source files and current totals; converter/generator now treat this manifest as the required truthful source index (no silent missing-file skips).
 Recent landing note (April 17, 2026 5etools import review/export panel): Manage → Imports now exposes a DM-side live `item_master` review surface for the 5etools source-split lane (counts by eligibility/type/mechanics/pricing, plus copy/export JSON), so post-import validation no longer requires ad hoc DB inspection.
+Recent landing note (April 17, 2026 5etools pricing enrichment): converter output now reuses the existing curated `shop_magic_pricing_2014` overlay, includes plus-order alias matching for common naming variants, and applies a constrained fallback policy with explicit provenance (`5etools_fallback_policy_v1`) when raw value and overlay match are both unavailable.
 
 #### A) Durable item trail and source-of-truth model (required)
 
