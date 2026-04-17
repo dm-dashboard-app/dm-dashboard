@@ -54,7 +54,7 @@ test('keeps explicit non-attunement false when present', () => {
 test('maps weapon-like bonus fields into mechanics support', () => {
   const row = convert({ name: 'Blade of +1', rarity: 'rare', type: 'M', weaponCategory: 'martial', bonusWeapon: '+1' });
   assert.equal(row.item_type, 'weapon');
-  assert.equal(row.metadata_json.mechanics_support, 'partial_supported');
+  assert.equal(row.metadata_json.mechanics_support, 'phase1_supported');
   assert.deepEqual(row.metadata_json.mechanics.passive_effects[0], { type: 'weapon_attack_bonus', value: 1 });
 });
 
@@ -62,6 +62,43 @@ test('maps charge/recharge fields into mechanics metadata', () => {
   const row = convert({ name: 'Wand of Charges', rarity: 'rare', charges: 7, recharge: 'dawn', rechargeAmount: 1 });
   assert.equal(row.metadata_json.mechanics.charges.max, 7);
   assert.equal(row.metadata_json.mechanics.recharge.text, 'dawn');
+});
+
+test('maps ability score floor items into supported mechanics payloads', () => {
+  const row = convert({
+    name: 'Amulet of Health',
+    rarity: 'rare',
+    reqAttune: true,
+    ability: {
+      static: { con: 19 },
+    },
+    wondrous: true,
+  });
+  assert.equal(row.requires_attunement, true);
+  assert.equal(row.metadata_json.mechanics_support, 'phase1_supported');
+  assert.equal(row.metadata_json.mechanics.activation_mode, 'equip');
+  assert.equal(row.metadata_json.mechanics.slot_family, 'neck');
+  assert.deepEqual(row.metadata_json.mechanics.passive_effects, [{ type: 'ability_score_set_min', ability: 'con', min: 19 }]);
+});
+
+test('maps all-saves passive bonus families', () => {
+  const row = convert({
+    name: 'Cloak of Protection',
+    rarity: 'uncommon',
+    reqAttune: true,
+    bonusAc: '+1',
+    bonusSavingThrow: '+1',
+    wondrous: true,
+  });
+  assert.equal(row.metadata_json.mechanics_support, 'phase1_supported');
+  assert.equal(row.metadata_json.mechanics.activation_mode, 'attunement_only');
+  assert.ok(row.metadata_json.mechanics.passive_effects.some((effect) => effect.type === 'all_saves_bonus' && effect.value === 1));
+});
+
+test('maps shield ac bonuses to shield-specific effect type', () => {
+  const row = convert({ name: 'Arrow-Catching Shield', type: 'S', rarity: 'rare', reqAttune: true, bonusAc: '+2' });
+  assert.equal(row.metadata_json.mechanics.slot_family, 'shield');
+  assert.ok(row.metadata_json.mechanics.passive_effects.some((effect) => effect.type === 'shield_ac_bonus' && effect.value === 2));
 });
 
 test('flattens nested entries and keeps weird rows importable/manual', () => {

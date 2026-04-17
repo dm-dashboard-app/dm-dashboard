@@ -9,10 +9,29 @@ const SOURCE_LAYER_LABEL = '5etools_items_by_source_curated';
 const WEAPON_TYPE_CODES = new Set(['M', 'R', 'A', 'AF']);
 const ARMOR_TYPE_CODES = new Set(['LA', 'MA', 'HA', 'S']);
 const TOOL_TYPE_CODES = new Set(['AT', 'INS', 'GS', 'T']);
+const RING_TYPE_CODES = new Set(['RG']);
+const ROD_TYPE_CODES = new Set(['RD']);
+const WAND_TYPE_CODES = new Set(['WD']);
+const STAFF_TYPE_CODES = new Set(['ST', 'SCF']);
 const OVERLAY_PRICE_SOURCE = 'shop_magic_pricing_2014_overlay';
 const FALLBACK_PRICE_SOURCE = '5etools_fallback_policy_v1';
 const MANUAL_MAGIC_BUCKET = 'manual_magic_review';
 const MANUAL_UNPRICED_BUCKET = 'manual_unpriced';
+const ABILITY_KEYS = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+const PHASE1_ALLOWED_SLOTS = new Set(['armor', 'shield', 'main_hand', 'off_hand', 'neck', 'ring', 'inventory']);
+const PHASE1_ALLOWED_ACTIVATION = new Set(['equip', 'attunement_only']);
+const PHASE1_ALLOWED_EFFECT_TYPES = new Set([
+  'flat_bonus',
+  'ac_flat',
+  'shield_ac_bonus',
+  'spell_save_dc_bonus',
+  'spell_attack_bonus',
+  'ability_score_bonus',
+  'ability_score_set_min',
+  'all_saves_bonus',
+  'saving_throw_bonus',
+  'weapon_attack_bonus',
+]);
 
 const RARITY_FALLBACK_GP = {
   common: 100,
@@ -191,20 +210,83 @@ function parseBonus(raw) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function deriveSlotFamily(item = {}, name = '') {
+  const typeCode = parseTypeCode(item);
+  const loweredName = String(name || '').toLowerCase();
+  if (item.weaponCategory || WEAPON_TYPE_CODES.has(typeCode) || ROD_TYPE_CODES.has(typeCode) || WAND_TYPE_CODES.has(typeCode) || STAFF_TYPE_CODES.has(typeCode)) return 'main_hand';
+  if (typeCode === 'S') return 'shield';
+  if (item.ac || ARMOR_TYPE_CODES.has(typeCode)) return 'armor';
+  if (item.ring || RING_TYPE_CODES.has(typeCode)) return 'ring';
+  if (loweredName.includes('amulet') || loweredName.includes('necklace')) return 'neck';
+  return 'inventory';
+}
+
+function deriveAbilityEffects(item = {}) {
+  const ability = item?.ability;
+  if (!ability || typeof ability !== 'object') return [];
+  const effects = [];
+
+  if (ability.static && typeof ability.static === 'object') {
+    ABILITY_KEYS.forEach((key) => {
+      const min = Number(ability.static[key]);
+      if (Number.isFinite(min) && min > 0) {
+        effects.push({ type: 'ability_score_set_min', ability: key, min });
+      }
+    });
+  }
+
+  ABILITY_KEYS.forEach((key) => {
+    const value = Number(ability[key]);
+    if (Number.isFinite(value) && value !== 0) {
+      effects.push({ type: 'ability_score_bonus', ability: key, value });
+    }
+  });
+
+  return effects;
+}
+
+function isMechanicsPhase1Compatible(mechanics = {}, requiresAttunement = false) {
+  if (!mechanics || typeof mechanics !== 'object') return false;
+  const slot = String(mechanics.slot_family || '').toLowerCase();
+  if (!slot || !PHASE1_ALLOWED_SLOTS.has(slot)) return false;
+  const activation = String(mechanics.activation_mode || 'equip').toLowerCase();
+  if (!activation || !PHASE1_ALLOWED_ACTIVATION.has(activation)) return false;
+
+  if (requiresAttunement && mechanics.requires_attunement !== true) return false;
+  if (!requiresAttunement && mechanics.requires_attunement === true) return false;
+
+  const passive = Array.isArray(mechanics.passive_effects) ? mechanics.passive_effects : [];
+  for (const effect of passive) {
+    const type = String(effect?.type || '').toLowerCase();
+    if (!type || !PHASE1_ALLOWED_EFFECT_TYPES.has(type)) return false;
+  }
+
+  return true;
+}
+
 function deriveMechanics(item = {}, requiresAttunement = false) {
   const passiveEffects = [];
+  const slotFamily = deriveSlotFamily(item, item?.name);
 
   const weaponBonus = parseBonus(item.bonusWeapon);
   if (weaponBonus !== null) passiveEffects.push({ type: 'weapon_attack_bonus', value: weaponBonus });
 
   const acBonus = parseBonus(item.bonusAc);
-  if (acBonus !== null) passiveEffects.push({ type: 'flat_bonus', target: 'ac', value: acBonus });
+  if (acBonus !== null) {
+    if (slotFamily === 'shield') passiveEffects.push({ type: 'shield_ac_bonus', value: acBonus });
+    else passiveEffects.push({ type: 'flat_bonus', target: 'ac', value: acBonus });
+  }
 
   const spellAttackBonus = parseBonus(item.bonusSpellAttack);
   if (spellAttackBonus !== null) passiveEffects.push({ type: 'flat_bonus', target: 'spell_attack', value: spellAttackBonus });
 
   const spellSaveBonus = parseBonus(item.bonusSpellSaveDc);
   if (spellSaveBonus !== null) passiveEffects.push({ type: 'flat_bonus', target: 'spell_save_dc', value: spellSaveBonus });
+
+  const allSavesBonus = parseBonus(item.bonusSavingThrow);
+  if (allSavesBonus !== null) passiveEffects.push({ type: 'all_saves_bonus', value: allSavesBonus });
+
+  if (!item.potion) passiveEffects.push(...deriveAbilityEffects(item));
 
   const charges = Number.isFinite(Number(item.charges))
     ? {
@@ -218,8 +300,8 @@ function deriveMechanics(item = {}, requiresAttunement = false) {
   if (!passiveEffects.length && !charges && !recharge) return null;
 
   return {
-    slot_family: item.weaponCategory ? 'main_hand' : (item.ac ? 'armor' : 'inventory'),
-    activation_mode: 'equip',
+    slot_family: slotFamily,
+    activation_mode: requiresAttunement && slotFamily === 'inventory' ? 'attunement_only' : 'equip',
     requires_attunement: requiresAttunement,
     passive_effects: passiveEffects,
     charges,
@@ -519,7 +601,9 @@ export function convert5etoolsItemToImportRow(item = {}, context = {}) {
     shop_bucket: shop.bucket,
     metadata_json: {
       import_quality: mechanics ? 'detail_verified_partial_mechanics' : 'detail_verified_manual',
-      mechanics_support: mechanics ? 'partial_supported' : 'manual_required',
+      mechanics_support: mechanics
+        ? (isMechanicsPhase1Compatible(mechanics, requiresAttunement) ? 'phase1_supported' : 'partial_supported')
+        : 'manual_required',
       source_layer: SOURCE_LAYER_LABEL,
       source_key: sourceKey,
       source_filename: context.sourceFilename || null,
