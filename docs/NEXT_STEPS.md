@@ -35,6 +35,7 @@ Current landed baseline to preserve (already true on `main`):
 Phase 1 work now being scoped in detail (not yet landed):
 
 Recent landing note (April 17, 2026 follow-up polish/fix batch): mobile inventory tab density, short-rest active-button fit, AC/custom-AC profile visibility, and structured item mechanics detail display were tightened without changing the Phase 1 architecture boundaries.
+Recent landing note (April 17, 2026 source-split item conversion batch): curated `resources/items_by_source/*.json` inputs now have a deterministic converter + generated app-shaped seed artifact + in-app Manage → Imports action, without changing runtime `item_master` trust boundaries.
 
 #### A) Durable item trail and source-of-truth model (required)
 

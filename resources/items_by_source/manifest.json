@@ -1,7 +1,7 @@
 {
-  "source_file_path": "resources/items.json",
-  "derivation_strategy": "Grouped by item.source into one file per source key.",
-  "ordering_strategy": "Source files are listed by first appearance of source in resources/items.json; items within each source preserve original order from resources/items.json.",
+  "source_file_path": null,
+  "derivation_strategy": "Curated source-split layer keyed by item.source; this manifest may include historical entries even when only a curated subset of files remains in-repo.",
+  "ordering_strategy": "Manifest file order is deterministic; converters should process the listed files in order and skip entries whose JSON file is no longer present.",
   "total_source_file_count": 65,
   "total_item_count_represented": 1639,
   "source_less_records_found": false,

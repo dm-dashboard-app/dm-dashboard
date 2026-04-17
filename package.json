@@ -15,7 +15,9 @@
     "eject": "react-scripts eject",
     "import:items:2014": "node scripts/import_items_2014.mjs",
     "import:items:custom:2014": "node scripts/import_items_custom_seed_2014.mjs",
-    "report:items:degraded:2014": "node scripts/generate_srd_degraded_report_2014.mjs"
+    "report:items:degraded:2014": "node scripts/generate_srd_degraded_report_2014.mjs",
+    "generate:items:5etools:source-split:2014": "node scripts/generate_5etools_items_source_split_seed_2014.mjs",
+    "test:items:5etools:source-split": "node --test scripts/convert_5etools_source_split_items_lib.test.mjs"
   },
   "eslintConfig": {
     "extends": [

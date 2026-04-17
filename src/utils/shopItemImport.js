@@ -581,6 +581,14 @@ export async function loadCustomSeedRows() {
   return applyMechanicsEnrichmentRows(items, mechanicsEnrichment);
 }
 
+export async function load5etoolsSourceSplitRows() {
+  const response = await fetch('/data/shop_5etools_items_source_split_2014.json');
+  if (!response.ok) throw new Error('Failed to load 5etools source-split seed JSON.');
+  const parsed = await response.json();
+  const items = Array.isArray(parsed?.items) ? parsed.items : [];
+  return items;
+}
+
 export async function loadSrdDegradedReportRows() {
   const response = await fetch('/data/shop_srd_degraded_report_2014.json');
   if (!response.ok) throw new Error('Failed to load degraded SRD report JSON.');

@@ -1,4 +1,4 @@
-import { applySrdRepairsToImportRows, buildSrdImportRows, buildSrdRepairRows, loadSrdDegradedReportRows } from './shopItemImport';
+import { applySrdRepairsToImportRows, buildSrdImportRows, buildSrdRepairRows, load5etoolsSourceSplitRows, loadSrdDegradedReportRows } from './shopItemImport';
 import { generateShopRows } from './shopGenerator';
 import fs from 'fs';
 
@@ -287,6 +287,30 @@ describe('applySrdRepairsToImportRows', () => {
       expect(row.subcategory).not.toBe('unclassified');
       expect(row.metadata_json.degraded_import).toBe(false);
     });
+  });
+});
+
+describe('load5etoolsSourceSplitRows', () => {
+  test('loads repo-generated converted item rows for import lane consumption', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        items: [
+          {
+            name: 'Abacus',
+            source_slug: 'phb-abacus',
+            external_key: '5etools_items_by_source_curated:phb-abacus',
+            source_type: 'custom_homebrew_private_seed',
+            rules_era: '2014',
+          },
+        ],
+      }),
+    });
+
+    const rows = await load5etoolsSourceSplitRows();
+    expect(rows).toHaveLength(1);
+    expect(rows[0].external_key).toBe('5etools_items_by_source_curated:phb-abacus');
+    expect(rows[0].source_type).toBe('custom_homebrew_private_seed');
   });
 });
 
