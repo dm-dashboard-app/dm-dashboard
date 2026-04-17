@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { supabase } from '../supabaseClient';
-import { applySrdRepairsToImportRows, buildSrdImportRows, loadCustomSeedRows } from '../utils/shopItemImport';
+import { applySrdRepairsToImportRows, buildSrdImportRows, load5etoolsSourceSplitRows, loadCustomSeedRows } from '../utils/shopItemImport';
 
 async function loadLiveDegradedRows() {
   const { data, error } = await supabase
@@ -69,15 +69,22 @@ export default function ItemImportPanel({ onImportComplete = null }) {
 
   async function runImport(mode) {
     const isSrdMode = mode === 'srd';
+    const is5etoolsMode = mode === 'five_tools';
     const confirmMessage = isSrdMode
       ? 'Refresh the 2014 SRD catalog into item_master now? This may take a minute.'
-      : 'Import curated custom seed rows from docs/data/shop_custom_items_seed_2014.json now?';
+      : (is5etoolsMode
+        ? 'Import converted curated 5etools source-split rows into item_master now?'
+        : 'Import curated custom seed rows from docs/data/shop_custom_items_seed_2014.json now?');
     if (!window.confirm(confirmMessage)) return;
 
     setImportingMode(mode);
     setError('');
     if (isSrdMode) setLastFetchFailures([]);
-    setImportStatus(isSrdMode ? 'Preparing SRD 2014 import…' : 'Preparing custom seed import…');
+    setImportStatus(
+      isSrdMode
+        ? 'Preparing SRD 2014 import…'
+        : (is5etoolsMode ? 'Preparing converted 5etools source-split import…' : 'Preparing custom seed import…'),
+    );
 
     try {
       const srdResult = isSrdMode
@@ -86,7 +93,9 @@ export default function ItemImportPanel({ onImportComplete = null }) {
       const repairedSrdResult = isSrdMode
         ? await applySrdRepairsToImportRows(srdResult?.rows || [])
         : null;
-      const rows = isSrdMode ? (repairedSrdResult?.rows || []) : await loadCustomSeedRows();
+      const rows = isSrdMode
+        ? (repairedSrdResult?.rows || [])
+        : (is5etoolsMode ? await load5etoolsSourceSplitRows() : await loadCustomSeedRows());
 
       const { data, error: importError } = await supabase.rpc('dm_import_item_master_rows', {
         p_import_mode: isSrdMode ? 'srd_2014' : 'custom_seed_2014',
@@ -107,8 +116,10 @@ export default function ItemImportPanel({ onImportComplete = null }) {
       const baseStatus = importedCount === 0
         ? (isSrdMode
           ? `SRD import ran, but no rows were loaded. Check RPC logs and source connectivity.${transientFailureStatus}`
-          : 'Custom seed import ran with 0 rows. Seed file is intentionally empty by default; add your own curated items when ready.')
-        : `${isSrdMode ? 'SRD 2014 import' : 'Custom seed import'} complete: ${importedCount} rows loaded (${eligibleCount} shop-eligible).${repairStatus}${transientFailureStatus}`;
+          : (is5etoolsMode
+            ? 'Converted 5etools import ran with 0 rows. Regenerate docs/data/shop_5etools_items_source_split_2014.json if needed.'
+            : 'Custom seed import ran with 0 rows. Seed file is intentionally empty by default; add your own curated items when ready.'))
+        : `${isSrdMode ? 'SRD 2014 import' : (is5etoolsMode ? 'Converted 5etools import' : 'Custom seed import')} complete: ${importedCount} rows loaded (${eligibleCount} shop-eligible).${repairStatus}${transientFailureStatus}`;
 
       if (isSrdMode) {
         setLastFetchFailures(srdResult?.fetchFailures || []);
@@ -144,6 +155,13 @@ export default function ItemImportPanel({ onImportComplete = null }) {
         </button>
         <button
           className="btn btn-ghost"
+          onClick={() => runImport('five_tools')}
+          disabled={importingMode !== ''}
+        >
+          {importingMode === 'five_tools' ? 'Importing 5etools…' : 'Import Curated 5etools Items'}
+        </button>
+        <button
+          className="btn btn-ghost"
           onClick={() => runImport('custom')}
           disabled={importingMode !== ''}
         >
@@ -151,7 +169,7 @@ export default function ItemImportPanel({ onImportComplete = null }) {
         </button>
       </div>
       <div className="world-shops-import-help">
-        SRD refresh imports catalog rows, then reports the live degraded/quarantined SRD row set from current item_master.
+        SRD refresh imports catalog rows, converted 5etools import loads repo-generated app-shaped rows, then reports the live degraded/quarantined SRD row set from current item_master.
       </div>
       {importStatus ? <div className="world-shops-import-status">{importStatus}</div> : null}
       {error ? <div className="world-shops-error">{error}</div> : null}

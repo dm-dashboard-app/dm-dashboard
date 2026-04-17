@@ -377,8 +377,8 @@ Preservation rule:
 
 Landed baseline includes:
 
-- `resources/items.json` as untouched raw upstream source material for future item conversion/import work
-- `resources/items_by_source/` as a deterministic derived curation/prep layer (one JSON file per `item.source` plus a manifest)
+- `resources/items_by_source/` as the upstream in-repo source layer for item conversion/import work (manifest + curated surviving per-source JSON files)
+- deterministic converter output artifacts at `docs/data/shop_5etools_items_source_split_2014.json` and `public/data/shop_5etools_items_source_split_2014.json`, mapped into the existing app import row shape
 - explicit boundary that neither raw source nor source-split derivatives are the live runtime schema; runtime item truth remains the existing `item_master` import/runtime path
 
 Preservation rule:
