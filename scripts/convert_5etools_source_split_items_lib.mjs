@@ -51,6 +51,21 @@ const RARITY_FALLBACK_GP = {
   'very rare': 50000,
   legendary: 200000,
 };
+const SAFE_MAGIC_ENHANCEMENT_FAMILIES = new Set([
+  'all-purpose tool',
+  'amulet of the devout',
+  'arcane grimoire',
+  'bloodwell vial',
+  "rhythm-maker's drum",
+  'dragonhide belt',
+  'wraps of unarmed prowess',
+]);
+const FALLBACK_BLOCKLIST_ITEM_NAMES = new Set([
+  "baba yaga's mortar and pestle",
+  'teeth of dahlver-nar',
+  'platinum scarf',
+  "jester's mask",
+]);
 
 export function slugify(value = '') {
   return String(value || '')
@@ -507,12 +522,36 @@ function deriveEnhancementBonus(item = {}, row = {}) {
   return Number.isFinite(bonus) && bonus > 0 ? bonus : null;
 }
 
+function normalizeEnhancementFamilyName(name = '') {
+  return String(name || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/^\+\d+\s+/, '')
+    .replace(/\s+\+\d+$/g, '')
+    .replace(/['’]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+function normalizeFallbackName(name = '') {
+  return String(name || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/['’]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
 function deriveFallbackPricing({ item = {}, row = {} } = {}) {
   const rarity = normalizeRarity(row.rarity || item.rarity || '');
   const bonus = deriveEnhancementBonus(item, row);
   const isMagic = isClearlyMagicalItem(item, row);
   const name = String(row?.name || '').trim();
+  const normalizedName = normalizeFallbackName(name);
   if (!isMagic) return null;
+  if (FALLBACK_BLOCKLIST_ITEM_NAMES.has(normalizedName)) return null;
 
   if (row.item_type === 'weapon' && bonus && bonus <= 3) {
     const priceByBonus = { 1: 600, 2: 6000, 3: 50000 };
@@ -535,13 +574,16 @@ function deriveFallbackPricing({ item = {}, row = {} } = {}) {
   }
 
   if (row.item_type === 'magic_item' && bonus && bonus <= 3) {
-    const priceByBonus = { 1: 500, 2: 5000, 3: 50000 };
-    return {
-      priceGp: priceByBonus[bonus] || null,
-      bucket: 'utility',
-      reason: `enhancement_magic_item_plus_${bonus}`,
-      makeEligible: false,
-    };
+    const normalizedFamily = normalizeEnhancementFamilyName(name);
+    if (SAFE_MAGIC_ENHANCEMENT_FAMILIES.has(normalizedFamily)) {
+      const priceByBonus = { 1: 500, 2: 5000, 3: 50000 };
+      return {
+        priceGp: priceByBonus[bonus] || null,
+        bucket: 'utility',
+        reason: `enhancement_magic_item_plus_${bonus}`,
+        makeEligible: false,
+      };
+    }
   }
 
   const spellScrollLevelMatch = name.match(/^Spell Scroll \((Cantrip|\d+(?:st|nd|rd|th) Level)\)$/i);

@@ -230,6 +230,44 @@ test('uses constrained fallback pricing for magic-item enhancement bonus familie
   assert.equal(row.metadata_json.pricing.fallback_reason, 'enhancement_magic_item_plus_2');
 });
 
+test('does not apply generic enhancement fallback to special/high-power outlier items', () => {
+  const badExamples = [
+    {
+      name: "Baba Yaga's Mortar and Pestle",
+      rarity: 'artifact',
+      bonusSpellAttack: '+3',
+      bonusSpellSaveDc: '+3',
+    },
+    {
+      name: 'Teeth of Dahlver-Nar',
+      rarity: 'legendary',
+      bonusSpellAttack: '+2',
+    },
+    {
+      name: 'Platinum Scarf',
+      rarity: 'uncommon',
+      bonusWeapon: '+1',
+    },
+    {
+      name: "Jester's Mask",
+      rarity: 'very rare',
+      bonusSpellAttack: '+3',
+    },
+  ];
+
+  for (const item of badExamples) {
+    const row = convert({
+      ...item,
+      reqAttune: true,
+      wondrous: true,
+      type: 'SCF',
+    });
+    assert.equal(row.price_source, null, `${item.name} should stay unresolved/manual`);
+    assert.equal(row.base_price_gp, null, `${item.name} should not receive generic +N fallback pricing`);
+    assert.equal(row.metadata_json.pricing.strategy, 'unresolved_manual_review');
+  }
+});
+
 test('uses deterministic fallback pricing for higher-level spell scroll families', () => {
   const row = convert({ name: 'Spell Scroll (7th Level)', rarity: 'very rare', type: 'SC|DMG' });
   assert.equal(row.price_source, '5etools_fallback_policy_v1');
