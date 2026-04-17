@@ -246,19 +246,16 @@ export async function loadSourceSplitItems({
     const filename = String(fileEntry?.filename || '').trim();
     if (!filename) continue;
     const filePath = path.resolve(baseDir, filename);
-    try {
-      const text = await fs.readFile(filePath, 'utf8');
-      const parsed = JSON.parse(text);
-      if (Array.isArray(parsed)) {
-        loaded.push({
-          sourceKey: String(fileEntry.source_key || '').trim() || slugify(filename).toUpperCase(),
-          filename,
-          items: parsed,
-        });
-      }
-    } catch {
-      // Intentionally skip missing files from historical manifest entries.
+    const text = await fs.readFile(filePath, 'utf8');
+    const parsed = JSON.parse(text);
+    if (!Array.isArray(parsed)) {
+      throw new Error(`Expected source file "${filename}" to contain an array of items.`);
     }
+    loaded.push({
+      sourceKey: String(fileEntry.source_key || '').trim() || slugify(filename).toUpperCase(),
+      filename,
+      items: parsed,
+    });
   }
 
   return {
@@ -287,6 +284,15 @@ export async function buildConverted5etoolsDataset({ manifestPath }) {
       }));
     });
   });
+
+  const manifestDeclaredFiles = Number(manifest?.total_source_file_count || 0);
+  const manifestDeclaredItems = Number(manifest?.total_item_count_represented || 0);
+  if (manifestDeclaredFiles !== loaded.length) {
+    throw new Error(`Manifest source count mismatch: expected ${manifestDeclaredFiles}, loaded ${loaded.length}.`);
+  }
+  if (manifestDeclaredItems !== rows.length) {
+    throw new Error(`Manifest item count mismatch: expected ${manifestDeclaredItems}, converted ${rows.length}.`);
+  }
 
   return {
     source_type: SOURCE_TYPE,
