@@ -201,6 +201,8 @@ Landed baseline includes:
 - stronger magic-shop curation defaults: lower row counts, reduced duplicate churn, and utility/consumable/noncombat bias over chaotic high-end swings
 - affluence-aware magic rarity behavior where poor/modest shops strongly suppress high-rarity entries and wealthy shops can surface broader rarity bands
 - preserved Stage 2 save/regenerate and DM-only world-shop UX while adding lightweight item-detail curation context (bucket and pricing basis)
+- shop generator now enforces shop-surface trust boundaries against final item admission metadata: non-magic surfaces only admit their intended bucket families, manual/excluded buckets are hard-blocked, and magic-shop stock applies explicit affluence rarity/value guardrails before weighted selection
+- intentional exception preserved: spell scroll families remain first-class magic-shop stock (core/rotating by level) without leaking into general-store/blacksmith pools
 
 Preservation rule:
 
@@ -216,6 +218,7 @@ Landed baseline includes:
 - import writes now run through a server-mediated RPC (`dm_import_item_master_rows`) instead of requiring terminal-only scripts for normal operator workflow
 - 5etools imports now use a dedicated RPC mode (`five_tools_2014`) so re-import can demote stale legacy 5etools rows that are no longer in the generated active artifact, with server-side payload safety guards requiring validated source-layer metadata and exact expected-row-count parity before stale demotion runs
 - 5etools converter pricing now includes expanded high-confidence fallback coverage for unresolved plus-tier enhancement families (`+2/+3` style magic-item upgrades), higher spell-scroll levels, and spellwrought tattoo level variants, while keeping those fallback-priced rows explicit non-default stock unless separately curated
+- 5etools fallback pricing now also carries a durable curated override policy for known campaign-warping manual/tome families (manual-only; no synthetic price) and expanded alias normalization for tiny overlay match-miss cleanup, preserving explicit unresolved provenance instead of over-broad generic auto-pricing
 - 5etools review reporting now includes unresolved triage splits that separate likely overlay/match misses from intentionally excluded/noise rows and true manual unresolved residue (instead of one blurred unresolved bucket)
 - SRD refresh now treats upstream detail fetch failures as transient run-time failures (reported in UI) and no longer persists new degraded fallback rows from those failures into `item_master`
 - import RPC now hard-rejects degraded SRD payload rows (`degraded_import`, `degraded_fallback`, `fallback_quarantine`, `degraded_fallback_untrusted`) so client regressions cannot persist untrusted degraded SRD rows

@@ -184,6 +184,24 @@ test('matches punctuation-normalized aliases against overlay pricing keys', () =
   assert.equal(row.price_source, 'shop_magic_pricing_2014_overlay');
 });
 
+test('matches parenthetical alias variants against overlay pricing keys', () => {
+  const row = convert(
+    { name: 'Shield +1 (Dragonhide)', type: 'S', rarity: 'rare' },
+    {
+      pricingOverlayMap: buildOverlayMap({
+        normalized_name: 'dragonhide-shield-plus-1',
+        suggested_price_gp: 4200,
+        rarity: 'Rare',
+        shop_bucket: 'combat',
+        exclude_from_shop: false,
+      }),
+    },
+  );
+
+  assert.equal(row.base_price_gp, 4200);
+  assert.equal(row.price_source, 'shop_magic_pricing_2014_overlay');
+});
+
 test('keeps overlay-excluded items non-shop-eligible', () => {
   const row = convert(
     { name: 'Deck of Many Things', rarity: 'legendary', wondrous: true },
@@ -287,6 +305,19 @@ test('uses deterministic fallback pricing for spellwrought tattoo level variants
   assert.equal(row.base_price_gp, 5000);
   assert.equal(row.is_shop_eligible, false);
   assert.equal(row.metadata_json.pricing.fallback_reason, 'spellwrought_tattoo_4th_level');
+});
+
+test('keeps manuals and tomes as explicit manual-review pricing overrides', () => {
+  const manual = convert({ name: 'Manual of Bodily Health', rarity: 'Very Rare', wondrous: true, reqAttune: true });
+  const tome = convert({ name: 'Tome of Understanding', rarity: 'Very Rare', wondrous: true, reqAttune: true });
+
+  for (const row of [manual, tome]) {
+    assert.equal(row.price_source, null);
+    assert.equal(row.base_price_gp, null);
+    assert.equal(row.is_shop_eligible, false);
+    assert.equal(row.shop_bucket, 'manual_magic_review');
+    assert.equal(row.metadata_json.pricing.strategy, 'unresolved_manual_review');
+  }
 });
 
 test('keeps mundane priced equipment shop-eligible', () => {

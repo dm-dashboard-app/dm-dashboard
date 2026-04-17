@@ -66,6 +66,18 @@ const FALLBACK_BLOCKLIST_ITEM_NAMES = new Set([
   'platinum scarf',
   "jester's mask",
 ]);
+const CURATED_FALLBACK_MANUAL_ONLY_NAME_PATTERNS = [
+  /^manual of /i,
+  /^tome of /i,
+];
+const CURATED_FALLBACK_EXPLICIT_OVERRIDES = new Map([
+  ['manual of bodily health', { mode: 'manual_only', reason: 'ability_score_permanent_boost_requires_manual_pricing' }],
+  ['manual of gainful exercise', { mode: 'manual_only', reason: 'ability_score_permanent_boost_requires_manual_pricing' }],
+  ['manual of quickness of action', { mode: 'manual_only', reason: 'ability_score_permanent_boost_requires_manual_pricing' }],
+  ['tome of clear thought', { mode: 'manual_only', reason: 'ability_score_permanent_boost_requires_manual_pricing' }],
+  ['tome of leadership and influence', { mode: 'manual_only', reason: 'ability_score_permanent_boost_requires_manual_pricing' }],
+  ['tome of understanding', { mode: 'manual_only', reason: 'ability_score_permanent_boost_requires_manual_pricing' }],
+]);
 
 export function slugify(value = '') {
   return String(value || '')
@@ -481,6 +493,13 @@ function buildNameAliasCandidates(name = '') {
 
   const trailingPlusMatch = rawName.match(/^(.+?)\s+\+(\d+)$/i);
   if (trailingPlusMatch) aliases.add(`${trailingPlusMatch[1].trim()}, +${trailingPlusMatch[2].trim()}`);
+  const parentheticalVariantMatch = rawName.match(/^(.+?)\s+\(([^)]+)\)$/i);
+  if (parentheticalVariantMatch) {
+    const base = parentheticalVariantMatch[1].trim();
+    const parenthetical = parentheticalVariantMatch[2].trim();
+    aliases.add(`${parenthetical} ${base}`);
+    aliases.add(`${base}, ${parenthetical}`);
+  }
 
   aliases.forEach((alias) => {
     const normalized = String(alias || '').replace(/\(each\)/ig, '').trim();
@@ -552,6 +571,26 @@ function deriveFallbackPricing({ item = {}, row = {} } = {}) {
   const normalizedName = normalizeFallbackName(name);
   if (!isMagic) return null;
   if (FALLBACK_BLOCKLIST_ITEM_NAMES.has(normalizedName)) return null;
+  if (CURATED_FALLBACK_MANUAL_ONLY_NAME_PATTERNS.some(pattern => pattern.test(name))) {
+    return {
+      priceGp: null,
+      bucket: MANUAL_MAGIC_BUCKET,
+      reason: 'manual_or_tome_family_requires_manual_review',
+      makeEligible: false,
+      manualOnly: true,
+    };
+  }
+
+  const explicitOverride = CURATED_FALLBACK_EXPLICIT_OVERRIDES.get(normalizedName);
+  if (explicitOverride?.mode === 'manual_only') {
+    return {
+      priceGp: null,
+      bucket: MANUAL_MAGIC_BUCKET,
+      reason: explicitOverride.reason || 'explicit_manual_override',
+      makeEligible: false,
+      manualOnly: true,
+    };
+  }
 
   if (row.item_type === 'weapon' && bonus && bonus <= 3) {
     const priceByBonus = { 1: 600, 2: 6000, 3: 50000 };
@@ -717,6 +756,25 @@ function applyPricingEnrichment({ item = {}, row = {}, pricingOverlayMap = new M
   }
 
   const fallback = deriveFallbackPricing({ item, row });
+  if (fallback?.manualOnly === true) {
+    return {
+      ...row,
+      base_price_gp: null,
+      suggested_price_gp: null,
+      price_source: null,
+      is_shop_eligible: false,
+      shop_bucket: MANUAL_MAGIC_BUCKET,
+      metadata_json: {
+        ...(row.metadata_json || {}),
+        pricing: {
+          strategy: 'unresolved_manual_review',
+          trusted: false,
+          fallback_reason: fallback.reason || 'manual_only_policy',
+        },
+      },
+    };
+  }
+
   if (fallback?.priceGp && Number.isFinite(Number(fallback.priceGp))) {
     return {
       ...row,

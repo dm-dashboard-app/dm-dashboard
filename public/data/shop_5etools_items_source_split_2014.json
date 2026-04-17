@@ -18765,7 +18765,8 @@
         },
         "pricing": {
           "strategy": "unresolved_manual_review",
-          "trusted": false
+          "trusted": false,
+          "fallback_reason": "manual_or_tome_family_requires_manual_review"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -18808,7 +18809,8 @@
         "mechanics": null,
         "pricing": {
           "strategy": "unresolved_manual_review",
-          "trusted": false
+          "trusted": false,
+          "fallback_reason": "manual_or_tome_family_requires_manual_review"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -18851,7 +18853,8 @@
         "mechanics": null,
         "pricing": {
           "strategy": "unresolved_manual_review",
-          "trusted": false
+          "trusted": false,
+          "fallback_reason": "manual_or_tome_family_requires_manual_review"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -18907,7 +18910,8 @@
         },
         "pricing": {
           "strategy": "unresolved_manual_review",
-          "trusted": false
+          "trusted": false,
+          "fallback_reason": "manual_or_tome_family_requires_manual_review"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -18950,7 +18954,8 @@
         "mechanics": null,
         "pricing": {
           "strategy": "unresolved_manual_review",
-          "trusted": false
+          "trusted": false,
+          "fallback_reason": "manual_or_tome_family_requires_manual_review"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -19006,7 +19011,8 @@
         },
         "pricing": {
           "strategy": "unresolved_manual_review",
-          "trusted": false
+          "trusted": false,
+          "fallback_reason": "manual_or_tome_family_requires_manual_review"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -19049,7 +19055,8 @@
         "mechanics": null,
         "pricing": {
           "strategy": "unresolved_manual_review",
-          "trusted": false
+          "trusted": false,
+          "fallback_reason": "manual_or_tome_family_requires_manual_review"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -28509,7 +28516,8 @@
         },
         "pricing": {
           "strategy": "unresolved_manual_review",
-          "trusted": false
+          "trusted": false,
+          "fallback_reason": "manual_or_tome_family_requires_manual_review"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -28565,7 +28573,8 @@
         },
         "pricing": {
           "strategy": "unresolved_manual_review",
-          "trusted": false
+          "trusted": false,
+          "fallback_reason": "manual_or_tome_family_requires_manual_review"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
@@ -28674,7 +28683,8 @@
         },
         "pricing": {
           "strategy": "unresolved_manual_review",
-          "trusted": false
+          "trusted": false,
+          "fallback_reason": "manual_or_tome_family_requires_manual_review"
         },
         "catalog_admission": {
           "policy_version": "5etools_shop_admission_v2",
