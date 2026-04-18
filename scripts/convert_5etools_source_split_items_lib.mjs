@@ -64,6 +64,13 @@ const SAFE_MAGIC_ENHANCEMENT_FAMILIES = new Set([
   'dragonhide belt',
   'wraps of unarmed prowess',
 ]);
+const CANONICAL_ENHANCEMENT_BONUSES = [1, 2, 3];
+const CANONICAL_ENHANCEMENT_PRICE_BY_TYPE = {
+  weapon: { 1: 600, 2: 6000, 3: 50000 },
+  armor: { 1: 800, 2: 8000, 3: 60000 },
+  shield: { 1: 800, 2: 8000, 3: 60000 },
+};
+const CANONICAL_ENHANCEMENT_TRUSTED_SOURCE_KEYS = new Set(['PHB']);
 const FALLBACK_BLOCKLIST_ITEM_NAMES = new Set([
   "baba yaga's mortar and pestle",
   'teeth of dahlver-nar',
@@ -1261,6 +1268,101 @@ function buildSourceNameIdentity(sourceKey, itemName) {
   return `${slugify(sourceKey || 'unknown')}:${slugify(itemName || 'item')}`;
 }
 
+function isTrustedMundaneEnhancementBaseRow(row = {}) {
+  const itemType = String(row.item_type || '').trim().toLowerCase();
+  if (!['weapon', 'armor', 'shield'].includes(itemType)) return false;
+  if (row.requires_attunement) return false;
+  if (String(row.shop_bucket || '').trim().toLowerCase() !== 'mundane') return false;
+  if (String(row.price_source || '').trim().toLowerCase() !== '5etools_value_cp') return false;
+  if (!Number.isFinite(Number(row.base_price_gp))) return false;
+  if (/\+\d+/.test(String(row.name || ''))) return false;
+  const sourceLayer = String(row?.metadata_json?.source_layer || '').trim();
+  if (sourceLayer !== SOURCE_LAYER_LABEL) return false;
+  const sourceKey = String(row?.metadata_json?.source_key || '').trim().toUpperCase();
+  if (!CANONICAL_ENHANCEMENT_TRUSTED_SOURCE_KEYS.has(sourceKey)) return false;
+  return true;
+}
+
+function buildCanonicalEnhancementRow(baseRow = {}, bonus = 1) {
+  const itemType = String(baseRow.item_type || '').trim().toLowerCase();
+  const priceGp = Number(CANONICAL_ENHANCEMENT_PRICE_BY_TYPE[itemType]?.[bonus] || 0) || null;
+  if (!priceGp) return null;
+  const enhancedName = `${String(baseRow.name || '').trim()} +${bonus}`;
+  const baseSlug = slugify(baseRow.name || 'item');
+  const enhancedSlug = `five-tools-generated-${baseSlug}-plus-${bonus}`;
+  const slotFamily = itemType === 'weapon' ? 'main_hand' : itemType;
+  const passiveEffects = itemType === 'weapon'
+    ? [{ type: 'weapon_attack_bonus', value: bonus }]
+    : itemType === 'shield'
+      ? [{ type: 'shield_ac_bonus', value: bonus }]
+      : [{ type: 'flat_bonus', target: 'ac', value: bonus }];
+  const finalBucket = bonus <= 1 ? CURATED_MAGIC_SHOP_STOCK_BUCKET : CURATED_MAGIC_NONDEFAULT_BUCKET;
+  return {
+    ...baseRow,
+    name: enhancedName,
+    slug: enhancedSlug,
+    rarity: bonus === 1 ? 'uncommon' : bonus === 2 ? 'rare' : 'very rare',
+    requires_attunement: false,
+    base_price_gp: priceGp,
+    suggested_price_gp: priceGp,
+    price_source: FALLBACK_PRICE_SOURCE,
+    is_shop_eligible: finalBucket === CURATED_MAGIC_SHOP_STOCK_BUCKET,
+    shop_bucket: finalBucket,
+    source_book: 'Generated Canonical Enhancements (from trusted PHB mundane base rows)',
+    source_slug: `${baseSlug}-plus-${bonus}`,
+    external_key: `generated_canonical_enhancement:${itemType}:${baseSlug}:plus-${bonus}`,
+    metadata_json: {
+      ...(baseRow.metadata_json || {}),
+      source_layer: `${SOURCE_LAYER_LABEL}_generated_canonical_enhancements`,
+      source_key: 'GENERATED_CANONICAL_ENHANCEMENT',
+      source_record_hash_key: `generated_canonical_enhancement:${itemType}:${baseSlug}:plus-${bonus}`,
+      import_quality: 'detail_verified_generated_canonical_enhancement',
+      mechanics_support: 'phase1_supported',
+      mechanics: {
+        slot_family: slotFamily,
+        activation_mode: 'equip',
+        requires_attunement: false,
+        passive_effects: passiveEffects,
+      },
+      generated_canonical_enhancement: {
+        family: 'ordinary_plus_gear',
+        generated_from_external_key: baseRow.external_key || null,
+        generated_from_source_key: baseRow?.metadata_json?.source_key || null,
+        generated_from_source_layer: baseRow?.metadata_json?.source_layer || null,
+        generated_from_name: baseRow.name || null,
+        enhancement_bonus: bonus,
+        expected_rules_semantics: itemType === 'weapon'
+          ? `+${bonus} to attack and damage rolls`
+          : `+${bonus} AC bonus`,
+      },
+      pricing: {
+        strategy: 'generated_canonical_enhancement_family',
+        trusted: false,
+        fallback_reason: `generated_canonical_${itemType}_plus_${bonus}`,
+        final_policy_bucket: finalBucket,
+      },
+    },
+  };
+}
+
+export function generateCanonicalEnhancementRows(baseRows = []) {
+  const generatedRows = [];
+  const generatedKeys = new Set();
+
+  for (const baseRow of baseRows) {
+    if (!isTrustedMundaneEnhancementBaseRow(baseRow)) continue;
+    for (const bonus of CANONICAL_ENHANCEMENT_BONUSES) {
+      const generated = buildCanonicalEnhancementRow(baseRow, bonus);
+      if (!generated) continue;
+      if (generatedKeys.has(generated.external_key)) continue;
+      generatedKeys.add(generated.external_key);
+      generatedRows.push(generated);
+    }
+  }
+
+  return generatedRows;
+}
+
 export async function loadSourceSplitItems({
   manifestPath,
 }) {
@@ -1392,6 +1494,15 @@ export async function buildConverted5etoolsDataset({ manifestPath }) {
     return { ...acc, [reason]: Number(acc[reason] || 0) + 1 };
   }, {});
 
+  const existingExternalKeys = new Set(rows.map((row) => String(row?.external_key || '').trim()).filter(Boolean));
+  const generatedEnhancements = generateCanonicalEnhancementRows(rows)
+    .filter((row) => !existingExternalKeys.has(String(row?.external_key || '').trim()));
+  const finalRows = [...rows, ...generatedEnhancements];
+  const generatedEnhancementSummary = generatedEnhancements.reduce((acc, row) => {
+    const itemType = String(row?.item_type || 'unknown');
+    return { ...acc, [itemType]: Number(acc[itemType] || 0) + 1 };
+  }, {});
+
   return {
     source_type: SOURCE_TYPE,
     source_book: '5etools Curated Source-Split Items',
@@ -1402,7 +1513,9 @@ export async function buildConverted5etoolsDataset({ manifestPath }) {
     source_manifest_total_entries: Number(manifest?.total_source_file_count || 0),
     source_files_loaded: loaded.length,
     source_files_loaded_curated: curatedLoadedCount,
-    total_items_converted: rows.length,
+    total_items_converted: finalRows.length,
+    generated_canonical_enhancement_rows: generatedEnhancements.length,
+    generated_canonical_enhancement_rows_by_type: generatedEnhancementSummary,
     total_items_processed_from_sources: processedInputItems,
     total_items_processed_from_curated_sources: processedCuratedInputItems,
     total_items_excluded_from_active_lane: excludedRows.length,
@@ -1412,8 +1525,9 @@ export async function buildConverted5etoolsDataset({ manifestPath }) {
       'Generated from resources/items_by_source/manifest.json curated files plus declared supplemental upstream inputs.',
       'Rows are mapped to DM Dashboard item import row shape for item_master pipeline import.',
       'Magic/unpriced rows remain importable but intentionally non-shop-eligible pending manual review.',
+      'Adds deterministic generated canonical enhancement families (+1/+2/+3) for ordinary PHB mundane weapon/armor/shield base rows only.',
     ],
-    items: rows,
+    items: finalRows,
   };
 }
 

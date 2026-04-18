@@ -15,14 +15,37 @@ async function rpc(name, params) {
   return data;
 }
 
+function normalizeInventorySnapshotShape(raw) {
+  const snapshot = raw && typeof raw === 'object' ? raw : {};
+  const items = Array.isArray(snapshot.items)
+    ? snapshot.items.filter((row) => row && typeof row === 'object' && !Array.isArray(row))
+    : [];
+  const currency = snapshot.currency && typeof snapshot.currency === 'object' ? snapshot.currency : {};
+  const summary = snapshot.summary && typeof snapshot.summary === 'object' ? snapshot.summary : {};
+  return {
+    ...snapshot,
+    items,
+    currency: {
+      pp: Number(currency.pp) || 0,
+      gp: Number(currency.gp) || 0,
+      sp: Number(currency.sp) || 0,
+      cp: Number(currency.cp) || 0,
+    },
+    summary: {
+      total_item_quantity: Number(summary.total_item_quantity) || 0,
+      gp: Number(summary.gp) || 0,
+    },
+  };
+}
+
 export async function inventoryGetSnapshot({ playerProfileId, role, joinCode }) {
   const data = await rpc('inventory_get_snapshot', {
     p_player_profile_id: playerProfileId,
     p_join_code: playerJoinCode(role, joinCode),
   });
   if (!data) return null;
-  if (Array.isArray(data)) return data[0] || null;
-  return data;
+  if (Array.isArray(data)) return normalizeInventorySnapshotShape(data[0] || null);
+  return normalizeInventorySnapshotShape(data);
 }
 
 export async function inventoryGetSummary({ playerProfileId, role, joinCode }) {
