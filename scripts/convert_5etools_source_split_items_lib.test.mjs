@@ -27,6 +27,7 @@ test('maps mundane equipment with value into import row shape', () => {
   assert.equal(row.shop_bucket, 'mundane');
   assert.equal(row.source_slug, 'tst-abacus');
   assert.equal(row.price_source, '5etools_value_cp');
+  assert.equal(row.metadata_json.source_type_code, 'G');
 });
 
 test('maps attunement magic item truthfully', () => {
@@ -380,7 +381,7 @@ test('generates deterministic canonical +1/+2/+3 enhancement families from trust
       price_source: '5etools_value_cp',
       base_price_gp: 15,
       external_key: 'base:longsword',
-      metadata_json: { source_layer: '5etools_items_by_source_curated', source_key: 'PHB' },
+      metadata_json: { source_layer: '5etools_items_by_source_curated', source_key: 'PHB', source_type_code: 'M', source_weapon_category: 'martial' },
     },
     {
       name: 'Chain Mail',
@@ -390,7 +391,7 @@ test('generates deterministic canonical +1/+2/+3 enhancement families from trust
       price_source: '5etools_value_cp',
       base_price_gp: 75,
       external_key: 'base:chain-mail',
-      metadata_json: { source_layer: '5etools_items_by_source_curated', source_key: 'PHB' },
+      metadata_json: { source_layer: '5etools_items_by_source_curated', source_key: 'PHB', source_type_code: 'HA' },
     },
     {
       name: 'Shield',
@@ -400,7 +401,7 @@ test('generates deterministic canonical +1/+2/+3 enhancement families from trust
       price_source: '5etools_value_cp',
       base_price_gp: 10,
       external_key: 'base:shield',
-      metadata_json: { source_layer: '5etools_items_by_source_curated', source_key: 'PHB' },
+      metadata_json: { source_layer: '5etools_items_by_source_curated', source_key: 'PHB', source_type_code: 'S' },
     },
     {
       name: 'Automatic Rifle',
@@ -411,6 +412,21 @@ test('generates deterministic canonical +1/+2/+3 enhancement families from trust
       base_price_gp: 250,
       external_key: 'base:automatic-rifle',
       metadata_json: { source_layer: '5etools_items_by_source_curated', source_key: 'DMG' },
+    },
+    {
+      name: 'Arrow',
+      item_type: 'weapon',
+      requires_attunement: false,
+      shop_bucket: 'mundane',
+      price_source: '5etools_value_cp',
+      base_price_gp: 0.05,
+      external_key: 'base:arrow',
+      metadata_json: {
+        source_layer: '5etools_items_by_source_curated',
+        source_key: 'PHB',
+        source_type_code: 'A',
+        source_weapon_category: null,
+      },
     },
   ]);
 
@@ -427,6 +443,7 @@ test('generates deterministic canonical +1/+2/+3 enhancement families from trust
   assert.ok(generated.some((row) => row.name === 'Shield +1' && row.base_price_gp === 800));
   assert.ok(generated.some((row) => row.name === 'Shield +2' && row.base_price_gp === 8000));
   assert.ok(generated.some((row) => row.name === 'Shield +3' && row.base_price_gp === 60000));
+  assert.ok(!generated.some((row) => row.name.startsWith('Arrow +')));
   assert.ok(generated.every((row) => row.metadata_json.generated_canonical_enhancement.family === 'ordinary_plus_gear'));
 });
 

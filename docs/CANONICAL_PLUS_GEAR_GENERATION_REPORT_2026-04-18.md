@@ -28,21 +28,23 @@ Generated rows are policy-bucketed as:
 - No broad named magic-item family ingestion.
 - No uncontrolled sourcebook magical variant sweep.
 - No non-trusted-source generation in this lane (e.g. non-PHB base rows are not used to mint generated canonical enhancement families).
+- No ammunition-family generation (for example Arrow/Bolt rows are excluded).
+- No non-table weapon semantics (non-`M`/`R` weapon type codes are excluded from the ordinary weapon lane).
 
 ## Regenerated artifact verification snapshot
 
 Artifact: `docs/data/shop_5etools_items_source_split_2014.json`
 
-- `total_items_converted`: 1053
-- `generated_canonical_enhancement_rows`: 177
-- `generated_canonical_enhancement_rows_by_type`: weapon 144, armor 24, shield 9
+- `total_items_converted`: 1026
+- `generated_canonical_enhancement_rows`: 150
+- `generated_canonical_enhancement_rows_by_type`: weapon 111, armor 36, shield 3
 - duplicate external keys in final artifact: 0
 
 Representative generated rows confirmed present:
 
-- +1 weapon: `Arrow +1`
-- +2 weapon: `Arrow +2`
-- +3 weapon: `Arrow +3`
+- +1 weapon: `Longsword +1`
+- +2 weapon: `Longsword +2`
+- +3 weapon: `Longsword +3`
 - +1 armor: `Breastplate +1`
 - +2 armor: `Breastplate +2`
 - +3 armor: `Breastplate +3`

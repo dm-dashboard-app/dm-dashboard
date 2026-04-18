@@ -71,6 +71,10 @@ const CANONICAL_ENHANCEMENT_PRICE_BY_TYPE = {
   shield: { 1: 800, 2: 8000, 3: 60000 },
 };
 const CANONICAL_ENHANCEMENT_TRUSTED_SOURCE_KEYS = new Set(['PHB']);
+const CANONICAL_WEAPON_TYPE_CODES = new Set(['M', 'R']);
+const CANONICAL_ARMOR_TYPE_CODES = new Set(['LA', 'MA', 'HA']);
+const CANONICAL_SHIELD_TYPE_CODES = new Set(['S']);
+const CANONICAL_WEAPON_CATEGORIES = new Set(['simple', 'martial']);
 const FALLBACK_BLOCKLIST_ITEM_NAMES = new Set([
   "baba yaga's mortar and pestle",
   'teeth of dahlver-nar',
@@ -1206,6 +1210,7 @@ export function convert5etoolsItemToImportRow(item = {}, context = {}) {
   const subcategory = deriveSubcategory(item, itemType);
   const rarity = parseRarity(item);
   const sourceLookup = context.sourceLookup instanceof Map ? context.sourceLookup : new Map();
+  const sourceTypeCode = parseTypeCode(item);
   const requiresAttunement = deriveAttunement(item, description, { sourceKey, sourceLookup });
   const mechanics = deriveMechanics(item, requiresAttunement);
   const pricingOverlayMap = context.pricingOverlayMap instanceof Map ? context.pricingOverlayMap : new Map();
@@ -1247,6 +1252,8 @@ export function convert5etoolsItemToImportRow(item = {}, context = {}) {
       source_filename: context.sourceFilename || null,
       source_page: Number.isFinite(Number(item.page)) ? Number(item.page) : null,
       source_record_hash_key: `${sourceKey}:${nameSlug}`,
+      source_type_code: sourceTypeCode || null,
+      source_weapon_category: item?.weaponCategory ? String(item.weaponCategory).trim().toLowerCase() : null,
       has_structured_entries: Array.isArray(item.entries),
       req_attune_raw: item.reqAttune ?? null,
       req_attune_tags: Array.isArray(item.reqAttuneTags) ? item.reqAttuneTags : [],
@@ -1280,6 +1287,14 @@ function isTrustedMundaneEnhancementBaseRow(row = {}) {
   if (sourceLayer !== SOURCE_LAYER_LABEL) return false;
   const sourceKey = String(row?.metadata_json?.source_key || '').trim().toUpperCase();
   if (!CANONICAL_ENHANCEMENT_TRUSTED_SOURCE_KEYS.has(sourceKey)) return false;
+  const typeCode = String(row?.metadata_json?.source_type_code || '').trim().toUpperCase();
+  const weaponCategory = String(row?.metadata_json?.source_weapon_category || '').trim().toLowerCase();
+  if (itemType === 'weapon') {
+    if (!CANONICAL_WEAPON_TYPE_CODES.has(typeCode)) return false;
+    if (!CANONICAL_WEAPON_CATEGORIES.has(weaponCategory)) return false;
+  }
+  if (itemType === 'armor' && !CANONICAL_ARMOR_TYPE_CODES.has(typeCode)) return false;
+  if (itemType === 'shield' && !CANONICAL_SHIELD_TYPE_CODES.has(typeCode)) return false;
   return true;
 }
 
