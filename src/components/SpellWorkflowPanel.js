@@ -88,7 +88,7 @@ function PanelBody({ title, subtitle, tabs, activeTab, setActiveTab, filterState
           </div>
         </div>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: '44vh', overflowY: 'auto', paddingRight: 2 }}>
         {displayed.length === 0 && <div className="empty-state">No spells in this view.</div>}
         {displayed.map(item => item.render(setSelectedSpell))}
       </div>

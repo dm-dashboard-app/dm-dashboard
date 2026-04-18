@@ -167,7 +167,7 @@ export function formatShortRestResponseLogDetail(detail = {}) {
     `rolled ${Math.max(0, parseInt(healing?.rolledTotal, 10) || 0)}`,
     `hit dice ${Math.max(0, parseInt(healing?.totalHitDiceUsed, 10) || 0)}`,
     spendSummary ? `spend ${spendSummary}` : null,
-    `song ${Math.max(0, parseInt(healing?.songOfRestTotal, 10) || 0)}`,
+    Math.max(0, parseInt(healing?.songOfRestTotal, 10) || 0) > 0 ? `song ${Math.max(0, parseInt(healing?.songOfRestTotal, 10) || 0)}` : null,
     `attuned ${attunedCount}/3`,
   ].filter(Boolean).join(' • ');
 }

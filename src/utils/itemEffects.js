@@ -53,16 +53,30 @@ export function itemRequiresAttunement(item = {}) {
   return !!item.requires_attunement;
 }
 
+export function isSlotBoundItem(item = {}) {
+  return !!resolveItemSlot(item);
+}
+
+export function isAttunedSlotBoundItem(item = {}) {
+  return itemRequiresAttunement(item) && isSlotBoundItem(item);
+}
+
+export function isItemEffectivelyEquipped(item = {}) {
+  if (item?.equipped) return true;
+  if (!item?.attuned) return false;
+  return isAttunedSlotBoundItem(item);
+}
+
 export function isItemActive(item = {}) {
-  const equipped = !!item.equipped;
+  const effectivelyEquipped = isItemEffectivelyEquipped(item);
   const attuned = !!item.attuned;
   const mechanics = extractItemMechanics(item);
   const activation = String(mechanics?.activation_mode || '').toLowerCase();
   const requiresAttune = itemRequiresAttunement(item);
 
   if (activation === 'attunement_only') return attuned;
-  if (requiresAttune) return equipped && attuned;
-  return equipped;
+  if (requiresAttune) return effectivelyEquipped && attuned;
+  return effectivelyEquipped;
 }
 
 export function applyItemEffectsToProfile(profile = {}, inventoryItems = []) {

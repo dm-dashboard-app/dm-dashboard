@@ -15,6 +15,7 @@ export default function PlayerLongRestItemsSection({ state, joinCode, onApplied 
   const [items, setItems] = useState([]);
   const [selectedAttunedIds, setSelectedAttunedIds] = useState([]);
   const [rechargeDraft, setRechargeDraft] = useState({});
+  const [attunementFilter, setAttunementFilter] = useState('');
 
   const loadSnapshot = useCallback(async () => {
     if (!profileId) return;
@@ -50,6 +51,11 @@ export default function PlayerLongRestItemsSection({ state, joinCode, onApplied 
 
   const attunableItems = useMemo(() => items.filter((row) => itemRequiresAttunement(row)), [items]);
   const rechargeableItems = useMemo(() => items.filter((row) => getItemMaxCharges(row) > 0), [items]);
+  const filteredAttunableItems = useMemo(() => {
+    const q = String(attunementFilter || '').trim().toLowerCase();
+    if (!q) return attunableItems;
+    return attunableItems.filter((item) => String(item.name || '').toLowerCase().includes(q));
+  }, [attunementFilter, attunableItems]);
   const normalizedSelectedIds = useMemo(() => normalizeLongRestAttunedIds(selectedAttunedIds, 3), [selectedAttunedIds]);
 
   async function applyItemChanges() {
@@ -104,7 +110,15 @@ export default function PlayerLongRestItemsSection({ state, joinCode, onApplied 
           <div className="rest-modal-player-meta">No attunement-eligible items in your inventory.</div>
         ) : (
           <>
-            {attunableItems.map((item) => {
+            <input
+              className="rest-modal-input"
+              type="text"
+              value={attunementFilter}
+              placeholder="Search attunement items"
+              onChange={(event) => setAttunementFilter(event.target.value)}
+            />
+            <div style={{ display: 'grid', gap: 4, maxHeight: '28vh', overflowY: 'auto', paddingRight: 2 }}>
+            {filteredAttunableItems.map((item) => {
               const checked = normalizedSelectedIds.includes(item.id);
               return (
                 <label key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
@@ -122,6 +136,8 @@ export default function PlayerLongRestItemsSection({ state, joinCode, onApplied 
                 </label>
               );
             })}
+            </div>
+            {filteredAttunableItems.length === 0 ? <div className="rest-modal-player-meta">No attunement items match your search.</div> : null}
             <div className="rest-modal-player-meta">Selected: {normalizedSelectedIds.length} / 3</div>
           </>
         )}

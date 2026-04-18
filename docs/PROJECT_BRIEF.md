@@ -257,6 +257,12 @@ Landed truthfulness polish addendum (April 18, 2026):
 - player-facing long-rest path now includes direct inventory attunement/recharge access alongside spell prep readiness
 - short-rest response + DM review path now preserves clearer attunement payload handling with improved combat-log readability
 - manual profile bonus editor now normalizes persisted AC/spell-attack manual values into visible form fields (including legacy spell-attack storage variants)
+- generalized attuned-gear activation semantics now treat slot-bound attunement-required items as active via attuned slot occupancy (without requiring misleading player-facing direct-equip toggles), while player inventory detail actions now present attune-first behavior for those rows and reserve direct-equip override/force-attune control for DM workflows
+- mobile containment follow-up now caps and scroll-contains long item detail content plus spell/rest attunement list surfaces so large inventories/prose do not create runaway full-height panels
+- DM rewards catalog now supports scalable load-more browsing beyond the previous small slice cap
+- player top nav now labels the character tab with the actual character name (ellipsis-safe)
+- player NPC list portrait loading now uses lazy-load + placeholder behavior to improve perceived performance on mobile
+- short-rest response log output now suppresses low-signal duplicate/no-value entries while preserving meaningful procedure and readiness trail
 
 Landed baseline includes:
 

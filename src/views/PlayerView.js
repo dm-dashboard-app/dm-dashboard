@@ -123,6 +123,7 @@ export default function PlayerView() {
   const concentration = state?.concentration ?? false;
   const pendingConDc = concentration ? (state?.concentration_check_dc ?? null) : null;
   const playerName = state?.profiles_players?.name || combatant?.name || null;
+  const charTabLabel = playerName || 'Character';
   const prepRequired = hasPreparationRequirement(state?.profiles_players || {});
   const prepActive = !!encounter?.long_rest_prep_active;
   const prepReady = !!state?.spell_prep_ready;
@@ -187,7 +188,13 @@ export default function PlayerView() {
       <div className="shell-nav-stack">
         <div className="top-bar"><div className="top-bar-spacer" /></div>
         <div className="tab-bar">
-          <button className={`tab-btn ${topTab === 'char' ? 'active' : ''}`} onClick={() => setTopTab('char')}>Char</button>
+          <button
+            className={`tab-btn ${topTab === 'char' ? 'active' : ''}`}
+            onClick={() => setTopTab('char')}
+            title={charTabLabel}
+          >
+            <span className="tab-btn-label-ellipsis">{charTabLabel}</span>
+          </button>
           <button className={`tab-btn ${topTab === 'combat' ? 'active' : ''}`} onClick={() => setTopTab('combat')}>Combat</button>
           <button className={`tab-btn ${topTab === 'rolls' ? 'active' : ''}`} onClick={() => setTopTab('rolls')}>Rolls</button>
           <button className={`tab-btn ${topTab === 'world' ? 'active' : ''}`} onClick={() => setTopTab('world')}>World</button>

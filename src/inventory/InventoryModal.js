@@ -15,7 +15,13 @@ import {
   inventoryUnattuneItem,
   inventoryRechargeItem,
 } from './inventoryClient';
-import { classifyInventoryRows, getItemMaxCharges, itemRequiresAttunement, resolveItemSlot } from '../utils/itemEffects';
+import {
+  classifyInventoryRows,
+  getItemMaxCharges,
+  itemRequiresAttunement,
+  resolveItemSlot,
+  isAttunedSlotBoundItem,
+} from '../utils/itemEffects';
 import { formatInventorySummary, isClearlyUsableInventoryItem, normalizeInventoryItemPayload } from '../utils/inventoryUtils';
 import { compactItemMeta, getItemMechanicsSummary, resolveItemDetailText } from '../utils/itemDetailText';
 
@@ -279,6 +285,24 @@ export default function InventoryModal({
   const selectedItemQuantity = Math.max(1, parseInt(selectedItem?.quantity || 1, 10) || 1);
   const removeQuantity = Math.max(1, Math.min(selectedItemQuantity, parseInt(removeItemState.quantity || 1, 10) || 1));
   const canUseOne = isClearlyUsableInventoryItem({ inventoryItem: selectedItem, catalogItem: selectedItemCatalog });
+  const selectedItemShape = selectedItemCatalog || selectedItem;
+  const selectedItemNeedsAttunement = itemRequiresAttunement(selectedItemShape);
+  const selectedItemSlot = resolveItemSlot(selectedItemShape);
+  const selectedItemAttunedSlotBound = isAttunedSlotBoundItem(selectedItemShape);
+  const playerCanDirectEquip = isDm || !selectedItemNeedsAttunement;
+  const attuneDisabled = !selectedItem?.attuned && !attunementRestContext && !isDm;
+
+  function findSlotConflictForAttunedItem(itemRow) {
+    const itemShape = selectedItemCatalog || itemRow;
+    const slot = resolveItemSlot(itemShape);
+    if (!slot || slot === 'ring') return null;
+    return (snapshot.items || []).find((candidate) => {
+      if (candidate.id === itemRow.id) return false;
+      const candidateShape = candidate;
+      if (resolveItemSlot(candidateShape) !== slot) return false;
+      return !!candidate.attuned || !!candidate.equipped;
+    }) || null;
+  }
 
 
   async function handleEquipSelected(confirmReplace = false) {
@@ -304,6 +328,17 @@ export default function InventoryModal({
 
   async function handleAttuneSelected() {
     if (!selectedItem?.id) return;
+    const conflict = findSlotConflictForAttunedItem(selectedItem);
+    if (conflict) {
+      const ok = window.confirm(`Attuning this item will replace ${conflict.name} in the ${selectedItemSlot || 'same'} slot. Continue?`);
+      if (!ok) return;
+      if (conflict.attuned) {
+        await inventoryUnattuneItem({ playerProfileId, role, joinCode, itemRowId: conflict.id });
+      }
+      if (conflict.equipped) {
+        await inventoryUnequipItem({ playerProfileId, role, joinCode, itemRowId: conflict.id });
+      }
+    }
     await inventoryAttuneItem({ playerProfileId, role, joinCode, itemRowId: selectedItem.id, restContext: attunementRestContext });
     await loadAll();
   }
@@ -524,6 +559,7 @@ export default function InventoryModal({
                 )}
                 <span>• Quantity: {selectedItem.quantity}</span>
                 {selectedItem.updated_at ? <span>• Updated: {new Date(selectedItem.updated_at).toLocaleString()}</span> : null}
+                {selectedItemAttunedSlotBound ? <span>• Slot: {selectedItemSlot || '—'} (occupied via attunement)</span> : null}
               </div>
               {selectedItemCatalog ? (
                 selectedItemDetail?.mode === 'structured_fallback' ? (
@@ -553,15 +589,21 @@ export default function InventoryModal({
 
 
               <div style={{ marginTop: 8, borderTop: '1px solid var(--border)', paddingTop: 8, display: 'grid', gap: 6 }}>
-                <button className="btn btn-ghost" onClick={selectedItem?.equipped ? handleUnequipSelected : () => handleEquipSelected(false)}>
-                  {selectedItem?.equipped ? 'Unequip' : `Equip${resolveItemSlot(selectedItemCatalog || selectedItem) ? ` (${resolveItemSlot(selectedItemCatalog || selectedItem)})` : ''}`}
-                </button>
+                {playerCanDirectEquip ? (
+                  <button className="btn btn-ghost" onClick={selectedItem?.equipped ? handleUnequipSelected : () => handleEquipSelected(false)}>
+                    {selectedItem?.equipped ? 'Unequip' : `Equip${selectedItemSlot ? ` (${selectedItemSlot})` : ''}`}
+                  </button>
+                ) : (
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                    Attunement-required gear uses attunement-first activation; direct equip is DM-only.
+                  </div>
+                )}
                 {itemRequiresAttunement(selectedItemCatalog || selectedItem) ? (
                   <>
-                    <button className="btn btn-ghost" onClick={selectedItem?.attuned ? handleUnattuneSelected : handleAttuneSelected} disabled={!selectedItem?.attuned && !attunementRestContext}>
+                    <button className="btn btn-ghost" onClick={selectedItem?.attuned ? handleUnattuneSelected : handleAttuneSelected} disabled={attuneDisabled}>
                       {selectedItem?.attuned ? 'Unattune' : 'Attune'}
                     </button>
-                    {!attunementRestContext && !selectedItem?.attuned ? <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Attuning new items is limited to short/long rest.</div> : null}
+                    {!attunementRestContext && !selectedItem?.attuned && !isDm ? <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Attuning new items is limited to short/long rest.</div> : null}
                   </>
                 ) : null}
                 {allowChargeRecharge && getItemMaxCharges(selectedItemCatalog || selectedItem) > 0 ? (

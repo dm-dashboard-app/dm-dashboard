@@ -113,6 +113,7 @@ export default function WorldNpcsPanel({ role = 'dm' }) {
   const [npcs, setNpcs] = useState([]);
   const [selectedNpcId, setSelectedNpcId] = useState(null);
   const [editingNpc, setEditingNpc] = useState(null);
+  const [loadedImageKeys, setLoadedImageKeys] = useState({});
 
   const loadNpcs = useCallback(async (preferredNpcId = null) => {
     const { data, error: loadError } = await supabase.rpc(readRpc);
@@ -182,7 +183,20 @@ export default function WorldNpcsPanel({ role = 'dm' }) {
               const thumbUrl = resolvePortraitUrl(npc.portrait_path, npc.portrait_url);
               return (
                 <button key={npc.id} type="button" className="world-card world-card-button world-npc-list-row" onClick={() => setSelectedNpcId(npc.id)}>
-                  {thumbUrl ? <img className="world-npc-list-portrait" src={thumbUrl} alt="NPC portrait" /> : <div className="world-npc-list-portrait world-npc-thumb-empty">No portrait</div>}
+                  {thumbUrl ? (
+                    <>
+                      {!loadedImageKeys[npc.id] ? <div className="world-npc-list-portrait world-npc-thumb-empty">Loading…</div> : null}
+                      <img
+                        className="world-npc-list-portrait"
+                        src={thumbUrl}
+                        alt="NPC portrait"
+                        loading="lazy"
+                        decoding="async"
+                        style={{ display: loadedImageKeys[npc.id] ? 'block' : 'none' }}
+                        onLoad={() => setLoadedImageKeys((curr) => ({ ...curr, [npc.id]: true }))}
+                      />
+                    </>
+                  ) : <div className="world-npc-list-portrait world-npc-thumb-empty">No portrait</div>}
                   <div className="world-npc-list-content">
                     <div className="world-card-head"><strong>{npc.name}</strong><span>{npc.race || 'Unknown race'}</span></div>
                     <div className="world-card-body">{(npc.body_text || 'No profile text saved.').slice(0, 160)}</div>
@@ -198,7 +212,7 @@ export default function WorldNpcsPanel({ role = 'dm' }) {
           <button className="btn btn-ghost" onClick={() => setSelectedNpcId(null)}>← Back to NPC list</button>
           <div className="world-npc-hero">
             {resolvePortraitUrl(selectedNpc.portrait_path, selectedNpc.portrait_url)
-              ? <img className="world-npc-portrait" src={resolvePortraitUrl(selectedNpc.portrait_path, selectedNpc.portrait_url)} alt={`${selectedNpc.name} portrait`} />
+              ? <img className="world-npc-portrait" loading="lazy" decoding="async" src={resolvePortraitUrl(selectedNpc.portrait_path, selectedNpc.portrait_url)} alt={`${selectedNpc.name} portrait`} />
               : <div className="world-npc-portrait world-npc-portrait-empty">No Portrait</div>}
             <div className="world-card">
               <div className="world-card-head"><strong>{selectedNpc.name}</strong><span>{selectedNpc.race || 'Race not set'}</span></div>

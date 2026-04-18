@@ -579,6 +579,9 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  max-height: min(56vh, 520px);
+  overflow-y: auto;
+  padding-right: 2px;
 }
 
 .rest-modal-player-card {
@@ -1161,6 +1164,8 @@
 
 .world-shop-modal {
   width: min(560px, 100%);
+  max-height: min(88vh, 760px);
+  overflow-y: auto;
   border-radius: 12px;
   border: 1px solid var(--border-strong);
   background: var(--bg-panel);
@@ -1193,6 +1198,9 @@
   line-height: 1.4;
   white-space: pre-wrap;
   font-family: inherit;
+  max-height: min(30vh, 240px);
+  overflow-y: auto;
+  padding-right: 2px;
 }
 
 .item-mechanics-summary {
