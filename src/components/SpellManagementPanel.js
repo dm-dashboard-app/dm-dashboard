@@ -117,8 +117,8 @@ export function SpellImportPanel() {
         Import SRD spell rows into the live spells table.
       </div>
       <div className="form-row" style={{ flexWrap: 'wrap', gap: 8 }}>
-        <button type="button" className="btn btn-primary" onClick={handleImportSrd} disabled={importing}>
-          {importing ? 'Importing…' : 'Import SRD 5.1'}
+        <button type="button" className="btn btn-primary" style={{ width: '100%' }} onClick={handleImportSrd} disabled={importing}>
+          {importing ? 'Importing Spells…' : 'Import Spells'}
         </button>
       </div>
       {status ? <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 8 }}>{status}</div> : null}

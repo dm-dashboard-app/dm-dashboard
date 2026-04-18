@@ -180,11 +180,11 @@ test('flattens nested entries and keeps weird rows importable/manual', () => {
   assert.equal(row.is_shop_eligible, false);
 });
 
-test('keeps attunement-gated magic rows non-shop-eligible even when fallback pricing exists', () => {
+test('keeps attunement-gated combat magic rows in curated nondefault posture even when fallback pricing exists', () => {
   const row = convert({ name: 'Moon Sickle +1', source: 'TCE', type: 'M', weaponCategory: 'martial', rarity: 'uncommon', reqAttune: true });
   assert.equal(row.base_price_gp, 600);
   assert.equal(row.is_shop_eligible, false);
-  assert.equal(row.shop_bucket, 'manual_magic_review');
+  assert.equal(row.shop_bucket, 'curated_magic_nondefault');
   assert.equal(row.price_source, '5etools_fallback_policy_v1');
 });
 
@@ -289,7 +289,7 @@ test('uses constrained fallback pricing for straightforward enhancement items', 
   assert.equal(row.price_source, '5etools_fallback_policy_v1');
   assert.equal(row.base_price_gp, 600);
   assert.equal(row.is_shop_eligible, true);
-  assert.equal(row.shop_bucket, 'combat');
+  assert.equal(row.shop_bucket, 'curated_magic_shop_stock');
 });
 
 test('uses constrained fallback pricing for magic-item enhancement bonus families', () => {
@@ -351,7 +351,8 @@ test('uses deterministic fallback pricing for higher-level spell scroll families
   const row = convert({ name: 'Spell Scroll (7th Level)', rarity: 'very rare', type: 'SC|DMG' });
   assert.equal(row.price_source, '5etools_fallback_policy_v1');
   assert.equal(row.base_price_gp, 25000);
-  assert.equal(row.is_shop_eligible, false);
+  assert.equal(row.is_shop_eligible, true);
+  assert.equal(row.shop_bucket, 'curated_magic_shop_stock');
   assert.equal(row.metadata_json.pricing.fallback_reason, 'spell_scroll_7th_level');
 });
 
@@ -364,7 +365,8 @@ test('uses deterministic fallback pricing for spellwrought tattoo level variants
   });
   assert.equal(row.price_source, '5etools_fallback_policy_v1');
   assert.equal(row.base_price_gp, 5000);
-  assert.equal(row.is_shop_eligible, false);
+  assert.equal(row.is_shop_eligible, true);
+  assert.equal(row.shop_bucket, 'curated_magic_shop_stock');
   assert.equal(row.metadata_json.pricing.fallback_reason, 'spellwrought_tattoo_4th_level');
 });
 
@@ -394,7 +396,7 @@ test('keeps manuals and tomes as explicit manual-review pricing overrides', () =
     assert.equal(row.price_source, null);
     assert.equal(row.base_price_gp, null);
     assert.equal(row.is_shop_eligible, false);
-    assert.equal(row.shop_bucket, 'manual_magic_review');
+    assert.equal(row.shop_bucket, 'manual_only_forever');
     assert.equal(row.metadata_json.pricing.strategy, 'unresolved_manual_review');
   }
 });
@@ -440,7 +442,9 @@ test('marks magical armor and weapon examples non-shop-eligible by default', () 
   const blackrazor = convert({ name: 'Blackrazor', source: 'DMG', type: 'M', weaponCategory: 'martial', rarity: 'legendary', reqAttune: true });
 
   assert.equal(animatedShield.is_shop_eligible, false);
-  assert.equal(animatedShield.shop_bucket, 'manual_magic_review');
+  assert.equal(animatedShield.shop_bucket, 'still_unpriced_but_priceable');
   assert.equal(armorOfInvulnerability.is_shop_eligible, false);
+  assert.equal(armorOfInvulnerability.shop_bucket, 'manual_only_forever');
   assert.equal(blackrazor.is_shop_eligible, false);
+  assert.equal(blackrazor.shop_bucket, 'manual_only_forever');
 });

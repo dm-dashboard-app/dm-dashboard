@@ -1,5 +1,8 @@
 const MANUAL_BUCKETS = new Set([
   'manual_magic_review',
+  'manual_only_forever',
+  'curated_magic_nondefault',
+  'still_unpriced_but_priceable',
   'manual_unpriced',
   'unpriced',
   'excluded',
@@ -208,6 +211,11 @@ export function build5etoolsReviewReport(rows = []) {
 
   const shopEligibleRows = rows.filter(row => row.is_shop_eligible);
   const nonShopRows = rows.filter(row => !row.is_shop_eligible);
+  const manualMagicReviewRows = rows.filter((row) => normalize(row.shop_bucket) === 'manual_magic_review');
+  const manualOnlyForeverRows = rows.filter((row) => normalize(row.shop_bucket) === 'manual_only_forever');
+  const curatedMagicNondefaultRows = rows.filter((row) => normalize(row.shop_bucket) === 'curated_magic_nondefault');
+  const curatedMagicShopStockRows = rows.filter((row) => normalize(row.shop_bucket) === 'curated_magic_shop_stock');
+  const stillUnpricedButPriceableRows = rows.filter((row) => normalize(row.shop_bucket) === 'still_unpriced_but_priceable');
 
   return {
     generated_at: new Date().toISOString(),
@@ -228,6 +236,11 @@ export function build5etoolsReviewReport(rows = []) {
       catalog_noise_non_shop: catalogNoiseNonShop.length,
       shop_eligible: shopEligibleRows.length,
       non_shop: nonShopRows.length,
+      manual_magic_review: manualMagicReviewRows.length,
+      manual_only_forever: manualOnlyForeverRows.length,
+      curated_magic_nondefault: curatedMagicNondefaultRows.length,
+      curated_magic_shop_stock: curatedMagicShopStockRows.length,
+      still_unpriced_but_priceable: stillUnpricedButPriceableRows.length,
       rows_with_structured_mechanics: rowsWithStructuredMechanics.length,
       rows_with_null_mechanics: rowsWithNullMechanics.length,
       rows_with_attunement_true: rowsWithAttunement.length,
