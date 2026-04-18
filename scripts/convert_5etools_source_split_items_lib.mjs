@@ -16,6 +16,10 @@ const STAFF_TYPE_CODES = new Set(['ST', 'SCF']);
 const OVERLAY_PRICE_SOURCE = 'shop_magic_pricing_2014_overlay';
 const FALLBACK_PRICE_SOURCE = '5etools_fallback_policy_v1';
 const MANUAL_MAGIC_BUCKET = 'manual_magic_review';
+const MANUAL_ONLY_FOREVER_BUCKET = 'manual_only_forever';
+const CURATED_MAGIC_NONDEFAULT_BUCKET = 'curated_magic_nondefault';
+const CURATED_MAGIC_SHOP_STOCK_BUCKET = 'curated_magic_shop_stock';
+const STILL_UNPRICED_BUT_PRICEABLE_BUCKET = 'still_unpriced_but_priceable';
 const MANUAL_UNPRICED_BUCKET = 'manual_unpriced';
 const HAZARDOUS_NON_DEFAULT_BUCKET = 'hazardous_non_default';
 const CATALOG_ADMISSION_POLICY_VERSION = '5etools_shop_admission_v2';
@@ -69,6 +73,13 @@ const FALLBACK_BLOCKLIST_ITEM_NAMES = new Set([
 const CURATED_FALLBACK_MANUAL_ONLY_NAME_PATTERNS = [
   /^manual of /i,
   /^tome of /i,
+  /^deck of /i,
+  /\bdeck\b.*\bcards?\b/i,
+];
+const MANUAL_ONLY_FOREVER_NAME_PATTERNS = [
+  /^deck of /i,
+  /\bdeck\b.*\bcards?\b/i,
+  /\bcards?\b/i,
 ];
 const CURATED_FALLBACK_EXPLICIT_OVERRIDES = new Map([
   ['manual of bodily health', { mode: 'manual_only', reason: 'ability_score_permanent_boost_requires_manual_pricing' }],
@@ -77,6 +88,9 @@ const CURATED_FALLBACK_EXPLICIT_OVERRIDES = new Map([
   ['tome of clear thought', { mode: 'manual_only', reason: 'ability_score_permanent_boost_requires_manual_pricing' }],
   ['tome of leadership and influence', { mode: 'manual_only', reason: 'ability_score_permanent_boost_requires_manual_pricing' }],
   ['tome of understanding', { mode: 'manual_only', reason: 'ability_score_permanent_boost_requires_manual_pricing' }],
+  ['deck of many things', { mode: 'manual_only', reason: 'deck_of_chaos_effects_require_manual_only_policy' }],
+  ['deck of many more things', { mode: 'manual_only', reason: 'deck_of_chaos_effects_require_manual_only_policy' }],
+  ['deck of several things', { mode: 'manual_only', reason: 'deck_of_chaos_effects_require_manual_only_policy' }],
 ]);
 const CURATED_FALLBACK_FAMILY_MATRIX = [
   {
@@ -729,6 +743,7 @@ function deriveFallbackPricing({ item = {}, row = {} } = {}) {
       bucket: policy.bucket || 'utility',
       reason: policy.reason || 'curated_family_matrix',
       makeEligible: !!policy.makeEligible,
+      finalBucket: policy.makeEligible ? CURATED_MAGIC_SHOP_STOCK_BUCKET : CURATED_MAGIC_NONDEFAULT_BUCKET,
     };
   }
 
@@ -739,6 +754,7 @@ function deriveFallbackPricing({ item = {}, row = {} } = {}) {
       bucket: 'combat',
       reason: `enhancement_weapon_plus_${bonus}`,
       makeEligible: bonus <= 2 && !row.requires_attunement,
+      finalBucket: bonus <= 1 ? CURATED_MAGIC_SHOP_STOCK_BUCKET : CURATED_MAGIC_NONDEFAULT_BUCKET,
     };
   }
 
@@ -749,6 +765,7 @@ function deriveFallbackPricing({ item = {}, row = {} } = {}) {
       bucket: 'combat',
       reason: `enhancement_${row.item_type}_plus_${bonus}`,
       makeEligible: bonus <= 2 && !row.requires_attunement,
+      finalBucket: bonus <= 1 ? CURATED_MAGIC_SHOP_STOCK_BUCKET : CURATED_MAGIC_NONDEFAULT_BUCKET,
     };
   }
 
@@ -761,6 +778,7 @@ function deriveFallbackPricing({ item = {}, row = {} } = {}) {
         bucket: 'utility',
         reason: `enhancement_magic_item_plus_${bonus}`,
         makeEligible: false,
+        finalBucket: CURATED_MAGIC_NONDEFAULT_BUCKET,
       };
     }
   }
@@ -786,7 +804,8 @@ function deriveFallbackPricing({ item = {}, row = {} } = {}) {
         priceGp,
         bucket: 'consumable',
         reason: `spell_scroll_${levelLabel.replace(/\s+/g, '_')}`,
-        makeEligible: false,
+        makeEligible: true,
+        finalBucket: CURATED_MAGIC_SHOP_STOCK_BUCKET,
       };
     }
   }
@@ -808,7 +827,8 @@ function deriveFallbackPricing({ item = {}, row = {} } = {}) {
         priceGp,
         bucket: 'consumable',
         reason: `spellwrought_tattoo_${levelLabel.replace(/\s+/g, '_')}`,
-        makeEligible: false,
+        makeEligible: true,
+        finalBucket: CURATED_MAGIC_SHOP_STOCK_BUCKET,
       };
     }
   }
@@ -820,6 +840,7 @@ function deriveFallbackPricing({ item = {}, row = {} } = {}) {
       bucket: 'consumable',
       reason: `consumable_${rarity || 'unspecified'}`,
       makeEligible: true,
+      finalBucket: CURATED_MAGIC_SHOP_STOCK_BUCKET,
     };
   }
 
@@ -829,6 +850,7 @@ function deriveFallbackPricing({ item = {}, row = {} } = {}) {
       bucket: 'utility',
       reason: 'common_magic_tool',
       makeEligible: true,
+      finalBucket: CURATED_MAGIC_SHOP_STOCK_BUCKET,
     };
   }
 
@@ -840,6 +862,7 @@ function deriveFallbackPricing({ item = {}, row = {} } = {}) {
         bucket: 'utility',
         reason: `rarity_band_${rarity}`,
         makeEligible: rarity === 'common',
+        finalBucket: rarity === 'common' ? CURATED_MAGIC_SHOP_STOCK_BUCKET : CURATED_MAGIC_NONDEFAULT_BUCKET,
       };
     }
   }
@@ -847,17 +870,51 @@ function deriveFallbackPricing({ item = {}, row = {} } = {}) {
   return null;
 }
 
+function deriveDirectMagicPolicy({ item = {}, row = {} } = {}) {
+  const name = String(row?.name || '').trim();
+  const normalizedName = normalizeFallbackName(name);
+  const rarity = normalizeRarity(row.rarity || item.rarity || '');
+  const manualPatternMatch = CURATED_FALLBACK_MANUAL_ONLY_NAME_PATTERNS.some(pattern => pattern.test(name))
+    || MANUAL_ONLY_FOREVER_NAME_PATTERNS.some(pattern => pattern.test(name));
+  const explicitOverride = CURATED_FALLBACK_EXPLICIT_OVERRIDES.get(normalizedName);
+  if (rarity === 'artifact' || rarity === 'legendary' || manualPatternMatch || explicitOverride?.mode === 'manual_only') {
+    return {
+      is_shop_eligible: false,
+      shop_bucket: MANUAL_ONLY_FOREVER_BUCKET,
+    };
+  }
+
+  const isSpellScroll = /^Spell Scroll \((Cantrip|\d+(?:st|nd|rd|th) Level)\)$/i.test(name);
+  const isPotion = !!(item.potion || /potion|elixir/i.test(name));
+  if (isSpellScroll || (isPotion && (rarity === 'common' || rarity === 'uncommon'))) {
+    return {
+      is_shop_eligible: true,
+      shop_bucket: CURATED_MAGIC_SHOP_STOCK_BUCKET,
+    };
+  }
+
+  return {
+    is_shop_eligible: false,
+    shop_bucket: CURATED_MAGIC_NONDEFAULT_BUCKET,
+  };
+}
+
 function applyPricingEnrichment({ item = {}, row = {}, pricingOverlayMap = new Map() } = {}) {
   if (hasTrustworthyPrice(row.base_price_gp)) {
+    const isMagic = isClearlyMagicalItem(item, row);
+    const directMagicPolicy = isMagic ? deriveDirectMagicPolicy({ item, row }) : null;
     return {
       ...row,
       suggested_price_gp: row.base_price_gp,
       price_source: '5etools_value_cp',
+      is_shop_eligible: directMagicPolicy ? directMagicPolicy.is_shop_eligible : row.is_shop_eligible,
+      shop_bucket: directMagicPolicy ? directMagicPolicy.shop_bucket : row.shop_bucket,
       metadata_json: {
         ...(row.metadata_json || {}),
         pricing: {
           strategy: 'direct_source_value_cp',
           trusted: true,
+          final_policy_bucket: directMagicPolicy?.shop_bucket || row.shop_bucket,
         },
       },
     };
@@ -871,6 +928,10 @@ function applyPricingEnrichment({ item = {}, row = {}, pricingOverlayMap = new M
       ? null
       : (Number.isFinite(Number(rawOverlayPrice)) ? Number(rawOverlayPrice) : null);
     const makeEligible = !excluded && Number.isFinite(overlayPrice);
+    const overlayBucket = String(overlay.shop_bucket || '').trim().toLowerCase();
+    const mappedOverlayBucket = overlayBucket === MANUAL_MAGIC_BUCKET
+      ? CURATED_MAGIC_SHOP_STOCK_BUCKET
+      : (overlay.shop_bucket || CURATED_MAGIC_NONDEFAULT_BUCKET);
     return {
       ...row,
       base_price_gp: overlayPrice,
@@ -878,7 +939,7 @@ function applyPricingEnrichment({ item = {}, row = {}, pricingOverlayMap = new M
       price_source: OVERLAY_PRICE_SOURCE,
       rarity: overlay.rarity && String(overlay.rarity).toLowerCase() !== 'unspecified' ? overlay.rarity : row.rarity,
       is_shop_eligible: makeEligible,
-      shop_bucket: excluded ? String(overlay.shop_bucket || MANUAL_MAGIC_BUCKET).trim() : (overlay.shop_bucket || 'manual_magic_review'),
+      shop_bucket: excluded ? String(overlay.shop_bucket || MANUAL_ONLY_FOREVER_BUCKET).trim() : mappedOverlayBucket,
       metadata_json: {
         ...(row.metadata_json || {}),
         pricing_overlay: {
@@ -903,26 +964,29 @@ function applyPricingEnrichment({ item = {}, row = {}, pricingOverlayMap = new M
       suggested_price_gp: null,
       price_source: null,
       is_shop_eligible: false,
-      shop_bucket: MANUAL_MAGIC_BUCKET,
+      shop_bucket: MANUAL_ONLY_FOREVER_BUCKET,
       metadata_json: {
         ...(row.metadata_json || {}),
         pricing: {
           strategy: 'unresolved_manual_review',
           trusted: false,
           fallback_reason: fallback.reason || 'manual_only_policy',
+          review_bucket: MANUAL_ONLY_FOREVER_BUCKET,
         },
       },
     };
   }
 
   if (fallback?.priceGp && Number.isFinite(Number(fallback.priceGp))) {
+    const finalBucket = fallback.finalBucket
+      || (fallback.makeEligible ? CURATED_MAGIC_SHOP_STOCK_BUCKET : CURATED_MAGIC_NONDEFAULT_BUCKET);
     return {
       ...row,
       base_price_gp: Number(fallback.priceGp),
       suggested_price_gp: Number(fallback.priceGp),
       price_source: FALLBACK_PRICE_SOURCE,
-      is_shop_eligible: !!fallback.makeEligible,
-      shop_bucket: fallback.makeEligible ? fallback.bucket : MANUAL_MAGIC_BUCKET,
+      is_shop_eligible: finalBucket === CURATED_MAGIC_SHOP_STOCK_BUCKET,
+      shop_bucket: finalBucket,
       metadata_json: {
         ...(row.metadata_json || {}),
         pricing: {
@@ -930,6 +994,36 @@ function applyPricingEnrichment({ item = {}, row = {}, pricingOverlayMap = new M
           trusted: false,
           fallback_reason: fallback.reason || 'policy_default',
           fallback_bucket: fallback.bucket,
+          final_policy_bucket: finalBucket,
+        },
+      },
+    };
+  }
+
+  if (isClearlyMagicalItem(item, row)) {
+    const normalizedName = normalizeFallbackName(row?.name || '');
+    const rarity = normalizeRarity(row.rarity || item.rarity || '');
+    const explicitOverride = CURATED_FALLBACK_EXPLICIT_OVERRIDES.get(normalizedName);
+    const manualPatternMatch = CURATED_FALLBACK_MANUAL_ONLY_NAME_PATTERNS.some(pattern => pattern.test(row?.name || ''));
+    const isManualOnlyFamily = rarity === 'artifact'
+      || rarity === 'legendary'
+      || !!explicitOverride
+      || manualPatternMatch
+      || MANUAL_ONLY_FOREVER_NAME_PATTERNS.some(pattern => pattern.test(row?.name || ''));
+    const unresolvedBucket = isManualOnlyFamily ? MANUAL_ONLY_FOREVER_BUCKET : STILL_UNPRICED_BUT_PRICEABLE_BUCKET;
+    return {
+      ...row,
+      base_price_gp: null,
+      suggested_price_gp: null,
+      price_source: null,
+      is_shop_eligible: false,
+      shop_bucket: unresolvedBucket,
+      metadata_json: {
+        ...(row.metadata_json || {}),
+        pricing: {
+          strategy: 'unresolved_manual_review',
+          trusted: false,
+          review_bucket: unresolvedBucket,
         },
       },
     };
@@ -941,7 +1035,7 @@ function applyPricingEnrichment({ item = {}, row = {}, pricingOverlayMap = new M
     suggested_price_gp: null,
     price_source: null,
     is_shop_eligible: false,
-    shop_bucket: isClearlyMagicalItem(item, row) ? MANUAL_MAGIC_BUCKET : MANUAL_UNPRICED_BUCKET,
+    shop_bucket: MANUAL_UNPRICED_BUCKET,
     metadata_json: {
       ...(row.metadata_json || {}),
       pricing: {

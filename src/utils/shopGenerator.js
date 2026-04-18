@@ -39,12 +39,25 @@ const APOTHECARY_ALLOWED_TERMS = ['potion', 'poison', 'healing', 'herbal', 'alch
 const BLACKSMITH_ALLOWED_TERMS = ['weapon', 'armor', 'shield', 'ammo', 'smith', 'metal', 'martial'];
 const GENERAL_STORE_BLOCKLIST = ['vehicle', 'mount', 'ship', 'siege'];
 const NON_MAGIC_SHOP_SURFACES = new Set(['general_store', 'blacksmith', 'apothecary']);
-const MANUAL_REVIEW_BUCKETS = new Set(['manual', 'manual_magic_review', 'manual_unpriced', 'unpriced', 'gamechanging', 'special', 'artifact', 'catalog_noise_excluded', 'hazardous_non_default']);
+const MANUAL_REVIEW_BUCKETS = new Set([
+  'manual',
+  'manual_magic_review',
+  'manual_only_forever',
+  'still_unpriced_but_priceable',
+  'manual_unpriced',
+  'unpriced',
+  'gamechanging',
+  'special',
+  'artifact',
+  'catalog_noise_excluded',
+  'hazardous_non_default',
+  'curated_magic_nondefault',
+]);
 const SHOP_SURFACE_ALLOWED_BUCKETS = {
   general_store: new Set(['mundane']),
   blacksmith: new Set(['mundane']),
   apothecary: new Set(['mundane', 'consumable', 'healing']),
-  magic_shop: new Set(['consumable', 'utility', 'noncombat', 'healing', 'combat', 'magic', 'manual_magic_review']),
+  magic_shop: new Set(['consumable', 'utility', 'noncombat', 'healing', 'combat', 'magic', 'curated_magic_shop_stock']),
 };
 const MAGIC_SHOP_AFFLUENCE_GUARDRAILS = {
   poor: { allowedRarities: new Set(['common', 'uncommon']), maxPriceGp: 1200, allowCombat: false },

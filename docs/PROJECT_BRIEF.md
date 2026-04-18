@@ -221,10 +221,12 @@ Landed baseline includes:
 - 5etools fallback pricing now also carries a durable curated override policy for known campaign-warping manual/tome families (manual-only; no synthetic price) and expanded alias normalization for tiny overlay match-miss cleanup, preserving explicit unresolved provenance instead of over-broad generic auto-pricing
 - 5etools review reporting now includes unresolved triage splits that separate likely overlay/match misses from intentionally excluded/noise rows and true manual unresolved residue (instead of one blurred unresolved bucket)
 - 5etools fallback policy now includes a durable curated family matrix for high-repeat unresolved families (essence shards, absorbing tattoos, dragon vessel/focus tiers) while preserving explicit manual-only handling for campaign-warping/bespoke outliers
+- manual-magic policy now uses explicit final buckets (`manual_only_forever`, `curated_magic_nondefault`, `curated_magic_shop_stock`, `still_unpriced_but_priceable`) so unresolved/manual residue is intentionally small and priced-but-nondefault rows are no longer mixed into a giant catch-all
 - mechanics derivation now also supports safe name-derived +N weapon/armor/shield variants and explicit dragon-touched focus + scaled ornament tier passive mappings when they fit existing phase-1 runtime semantics
 - SRD refresh now treats upstream detail fetch failures as transient run-time failures (reported in UI) and no longer persists new degraded fallback rows from those failures into `item_master`
 - import RPC now hard-rejects degraded SRD payload rows (`degraded_import`, `degraded_fallback`, `fallback_quarantine`, `degraded_fallback_untrusted`) so client regressions cannot persist untrusted degraded SRD rows
 - custom seed defaults are now explicit and safe: `docs/data/shop_custom_items_seed_2014.json` is intentionally empty-by-default, while prior sample rows live in `docs/data/shop_custom_items_seed_2014.example.json` as example/demo content
+- Manage → Imports now presents one operator-facing item action (`Import Items`) and keeps the imported-item review/report tooling while removing obsolete SRD/custom import controls and old SRD failure/degraded status panels
 - preserved generation safety: only `is_shop_eligible=true` and `rules_era=2014` rows can enter Stage 2/3 generation
 
 Preservation rule:

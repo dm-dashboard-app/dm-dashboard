@@ -12,7 +12,7 @@ describe('build5etoolsReviewReport', () => {
         suggested_price_gp: 500,
         price_source: '5etools_value_cp',
         is_shop_eligible: false,
-        shop_bucket: 'manual_magic_review',
+        shop_bucket: 'curated_magic_nondefault',
         requires_attunement: false,
         metadata_json: {
           source_key: 'DMG',
@@ -33,7 +33,7 @@ describe('build5etoolsReviewReport', () => {
         suggested_price_gp: null,
         price_source: 'shop_magic_pricing_2014_overlay',
         is_shop_eligible: false,
-        shop_bucket: 'manual_magic_review',
+        shop_bucket: 'manual_only_forever',
         requires_attunement: true,
         metadata_json: {
           pricing_overlay: {
@@ -96,7 +96,7 @@ describe('build5etoolsReviewReport', () => {
         suggested_price_gp: 500,
         price_source: '5etools_fallback_policy_v1',
         is_shop_eligible: false,
-        shop_bucket: 'manual_magic_review',
+        shop_bucket: 'curated_magic_nondefault',
         requires_attunement: true,
         metadata_json: {
           pricing: { strategy: 'fallback_policy' },
@@ -113,7 +113,7 @@ describe('build5etoolsReviewReport', () => {
         suggested_price_gp: null,
         price_source: null,
         is_shop_eligible: false,
-        shop_bucket: 'manual_magic_review',
+        shop_bucket: 'still_unpriced_but_priceable',
         requires_attunement: true,
         metadata_json: {
           pricing: { strategy: 'unresolved_manual_review' },
@@ -130,7 +130,7 @@ describe('build5etoolsReviewReport', () => {
         suggested_price_gp: null,
         price_source: null,
         is_shop_eligible: false,
-        shop_bucket: 'manual_magic_review',
+        shop_bucket: 'still_unpriced_but_priceable',
         requires_attunement: true,
         metadata_json: {
           pricing: { strategy: 'unresolved_manual_review' },
@@ -147,7 +147,7 @@ describe('build5etoolsReviewReport', () => {
         suggested_price_gp: 300,
         price_source: '5etools_fallback_policy_v1',
         is_shop_eligible: false,
-        shop_bucket: 'manual_magic_review',
+        shop_bucket: 'curated_magic_nondefault',
         requires_attunement: false,
         metadata_json: {
           req_attune_raw: 'by a wizard',
@@ -178,6 +178,11 @@ describe('build5etoolsReviewReport', () => {
     expect(report.counts.catalog_noise_non_shop).toBe(1);
     expect(report.counts.shop_eligible).toBe(1);
     expect(report.counts.non_shop).toBe(7);
+    expect(report.counts.manual_magic_review).toBe(0);
+    expect(report.counts.manual_only_forever).toBe(1);
+    expect(report.counts.curated_magic_nondefault).toBe(3);
+    expect(report.counts.curated_magic_shop_stock).toBe(0);
+    expect(report.counts.still_unpriced_but_priceable).toBe(2);
     expect(report.counts.rows_with_structured_mechanics).toBe(3);
     expect(report.counts.rows_with_attunement_true).toBe(6);
     expect(report.counts.rows_with_phase1_compatible_payload).toBe(3);
