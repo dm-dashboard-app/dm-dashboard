@@ -9,7 +9,10 @@ async function loadLiveImportedRows() {
     .select('external_key, source_type, source_book, source_slug, name, item_type, category, subcategory, is_shop_eligible, shop_bucket, price_source, base_price_gp, suggested_price_gp, metadata_json')
     .eq('rules_era', '2014')
     .eq('source_type', 'custom_homebrew_private_seed')
-    .eq('metadata_json->>source_layer', '5etools_items_by_source_curated')
+    .in('metadata_json->>source_layer', [
+      '5etools_items_by_source_curated',
+      '5etools_items_by_source_curated_generated_canonical_enhancements',
+    ])
     .ilike('external_key', '5etools_items_by_source_curated:%')
     .order('name');
   if (error) throw error;
@@ -75,6 +78,7 @@ export default function ItemImportPanel({ onImportComplete = null }) {
   const [importedRows, setImportedRows] = useState([]);
   const [loadingImportedRows, setLoadingImportedRows] = useState(false);
   const [importedRowsError, setImportedRowsError] = useState('');
+  const [showImportedRowsList, setShowImportedRowsList] = useState(false);
 
   const importSummary = useMemo(() => buildImportSummary(importedRows), [importedRows]);
   const importReviewReport = useMemo(() => build5etoolsReviewReport(importedRows), [importedRows]);
@@ -188,12 +192,12 @@ export default function ItemImportPanel({ onImportComplete = null }) {
       {importStatus ? <div className="world-shops-import-status">{importStatus}</div> : null}
       {error ? <div className="world-shops-error">{error}</div> : null}
 
-      <div className="panel session-subpanel" style={{ marginTop: 10 }}>
+      <div className="panel session-subpanel world-shops-import-review-panel" style={{ marginTop: 10 }}>
         <div className="panel-title">Live Imported Item Rows</div>
         <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
-          Source-of-truth list from current item_master rows imported via the curated source-split lane (source_layer 5etools_items_by_source_curated).
+          Source-of-truth list from current item_master rows imported via the curated source-split lane (curated + generated canonical enhancement source layers).
         </div>
-        <div className="form-row" style={{ flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+        <div className="world-shops-import-actions">
           <button type="button" className="btn btn-ghost" onClick={refreshImportedRows} disabled={loadingImportedRows}>
             {loadingImportedRows ? 'Loading...' : 'View imported rows'}
           </button>
@@ -210,48 +214,84 @@ export default function ItemImportPanel({ onImportComplete = null }) {
             Export Structured Report
           </button>
         </div>
-        <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 8, display: 'grid', gap: 4 }}>
-          <div>{importSummary.count} imported row{importSummary.count === 1 ? '' : 's'} total.</div>
-          <div>{importSummary.shopEligibleCount} shop-eligible.</div>
-          <div>{importSummary.nullBasePriceCount} with null base_price_gp • {importSummary.nullSuggestedPriceCount} with null suggested_price_gp.</div>
-          <div>{importSummary.weakPricingCount} flagged as weak pricing.</div>
+        <div className="world-shops-import-stats-grid">
+          <div className="world-shops-import-stat-card">
+            <div className="world-shops-import-stat-label">Imported Rows</div>
+            <div className="world-shops-import-stat-value">{importSummary.count}</div>
+          </div>
+          <div className="world-shops-import-stat-card">
+            <div className="world-shops-import-stat-label">Shop Eligible</div>
+            <div className="world-shops-import-stat-value">{importSummary.shopEligibleCount}</div>
+          </div>
+          <div className="world-shops-import-stat-card">
+            <div className="world-shops-import-stat-label">Null Base Price</div>
+            <div className="world-shops-import-stat-value">{importSummary.nullBasePriceCount}</div>
+          </div>
+          <div className="world-shops-import-stat-card">
+            <div className="world-shops-import-stat-label">Weak Pricing</div>
+            <div className="world-shops-import-stat-value">{importSummary.weakPricingCount}</div>
+          </div>
         </div>
-        <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 8, display: 'grid', gap: 4 }}>
-          <div>structured report slices (for ChatGPT follow-up):</div>
-          <div>
+        <div className="world-shops-import-report-grid">
+          <div className="world-shops-import-report-block">
+            <div className="world-shops-import-report-title">Pricing Sources</div>
+            <div className="world-shops-import-report-line">
             priced by source → direct: {importReviewReport.counts.direct_source_priced} • overlay: {importReviewReport.counts.overlay_priced} • fallback: {importReviewReport.counts.fallback_priced}
+            </div>
           </div>
-          <div>
+          <div className="world-shops-import-report-block">
+            <div className="world-shops-import-report-title">Unresolved</div>
+            <div className="world-shops-import-report-line">
             unresolved/unpriced: {importReviewReport.counts.unresolved_unpriced} • overlay-excluded: {importReviewReport.counts.overlay_excluded} • should-be-priced-not-matched: {importReviewReport.counts.should_be_priced_but_not_matched}
+            </div>
           </div>
-          <div>
+          <div className="world-shops-import-report-block">
+            <div className="world-shops-import-report-title">Policy Buckets</div>
+            <div className="world-shops-import-report-line">
             final policy buckets → manual_only_forever: {importReviewReport.counts.manual_only_forever} • curated_magic_nondefault: {importReviewReport.counts.curated_magic_nondefault} • curated_magic_shop_stock: {importReviewReport.counts.curated_magic_shop_stock} • still_unpriced_but_priceable: {importReviewReport.counts.still_unpriced_but_priceable}
+            </div>
           </div>
-          <div>
+          <div className="world-shops-import-report-block">
+            <div className="world-shops-import-report-title">Shop Admission</div>
+            <div className="world-shops-import-report-line">
             should-never-default-to-shop: {importReviewReport.counts.should_never_default_to_shop} • policy-demoted non-shop: {importReviewReport.counts.policy_demoted_non_shop} • shop-eligible: {importReviewReport.counts.shop_eligible} • non-shop: {importReviewReport.counts.non_shop}
+            </div>
           </div>
-          <div>
+          <div className="world-shops-import-report-block">
+            <div className="world-shops-import-report-title">Mechanics Coverage</div>
+            <div className="world-shops-import-report-line">
             mechanics → structured: {importReviewReport.counts.rows_with_structured_mechanics} • null: {importReviewReport.counts.rows_with_null_mechanics} • attunement=true: {importReviewReport.counts.rows_with_attunement_true} • phase1-compatible payload: {importReviewReport.counts.rows_with_phase1_compatible_payload}
+            </div>
           </div>
         </div>
 
-        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8, display: 'grid', gap: 4 }}>
-          <div>
+        <div className="world-shops-import-breakdown-grid">
+          <div className="world-shops-import-breakdown-line">
             by item_type:{' '}
             {Object.entries(importSummary.byItemType).map(([key, count]) => `${key}: ${count}`).join(' • ') || '—'}
           </div>
-          <div>
+          <div className="world-shops-import-breakdown-line">
             by mechanics_support:{' '}
             {Object.entries(importSummary.byMechanicsSupport).map(([key, count]) => `${key}: ${count}`).join(' • ') || '—'}
           </div>
-          <div>
+          <div className="world-shops-import-breakdown-line">
             by shop_bucket:{' '}
             {Object.entries(importSummary.byShopBucket).map(([key, count]) => `${key}: ${count}`).join(' • ') || '—'}
           </div>
         </div>
         {importedRowsError ? <div className="world-shops-error">{importedRowsError}</div> : null}
+        <div className="world-shops-import-actions">
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => setShowImportedRowsList((curr) => !curr)}
+            disabled={importedRows.length === 0}
+          >
+            {showImportedRowsList ? 'Hide Imported Rows List' : `Show Imported Rows List (${importedRows.length})`}
+          </button>
+        </div>
         {importedRows.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: showImportedRowsList ? 'flex' : 'none', flexDirection: 'column', gap: 8 }}>
             {importedRows.map(row => (
               <div key={row.external_key} style={{ border: '1px solid var(--border)', borderRadius: 8, padding: 10, background: 'var(--bg-panel-2)', display: 'grid', gap: 4 }}>
                 <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{row.external_key}</div>

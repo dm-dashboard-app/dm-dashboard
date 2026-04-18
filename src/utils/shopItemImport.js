@@ -586,14 +586,21 @@ export async function load5etoolsSourceSplitRows(options = {}) {
   if (!response.ok) throw new Error('Failed to load 5etools source-split seed JSON.');
   const parsed = await response.json();
   const items = Array.isArray(parsed?.items) ? parsed.items : [];
+  const activeSourceLayers = [
+    '5etools_items_by_source_curated',
+    '5etools_items_by_source_curated_generated_canonical_enhancements',
+  ];
+  const expectedActiveRowCount = items.filter((row) => {
+    const layer = String(row?.metadata_json?.source_layer || '').trim();
+    return activeSourceLayers.includes(layer);
+  }).length;
   if (options?.withMeta === true) {
     return {
       rows: items,
       importMeta: {
-        source_layer: String(parsed?.source_layer || '').trim() || '5etools_items_by_source_curated',
-        expected_active_row_count: Number.isFinite(Number(parsed?.total_items_converted))
-          ? Number(parsed.total_items_converted)
-          : items.length,
+        source_layer: '5etools_items_by_source_curated_plus_generated',
+        active_source_layers: activeSourceLayers,
+        expected_active_row_count: expectedActiveRowCount,
         artifact_generated_at: parsed?.generated_at || null,
         catalog_admission_policy_version: '5etools_shop_admission_v2',
       },
