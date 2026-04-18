@@ -56,5 +56,17 @@
       "last_item_name": "Wand of Smiles",
       "notes": null
     }
-  ]
+  ],
+  "additional_upstream_inputs": [
+    {
+      "type": "items_base_json",
+      "filename": "items-base.json",
+      "record_path": "baseitem",
+      "dedupe_identity": "source_plus_name",
+      "purpose": "Restore omitted baseline PHB/SRD combat equipment rows without full monolith re-split.",
+      "item_count_before_policy": 124
+    }
+  ],
+  "total_item_count_represented_curated": 892,
+  "total_item_count_represented_with_declared_supplemental_inputs": 1016
 }
