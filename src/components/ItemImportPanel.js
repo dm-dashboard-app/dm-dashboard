@@ -13,7 +13,6 @@ async function loadLiveImportedRows() {
       '5etools_items_by_source_curated',
       '5etools_items_by_source_curated_generated_canonical_enhancements',
     ])
-    .ilike('external_key', '5etools_items_by_source_curated:%')
     .order('name');
   if (error) throw error;
   return data || [];
