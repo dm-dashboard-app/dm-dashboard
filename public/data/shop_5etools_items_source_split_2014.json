@@ -75,6 +75,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -148,6 +149,7 @@
           "slot_family": "neck",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -218,6 +220,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -288,6 +291,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -361,6 +365,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -435,6 +440,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -505,6 +511,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -578,6 +585,7 @@
           "slot_family": "neck",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -648,6 +656,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -718,6 +727,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -791,6 +801,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -865,6 +876,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -935,6 +947,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -1008,6 +1021,7 @@
           "slot_family": "neck",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -1078,6 +1092,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -1148,6 +1163,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -1221,6 +1237,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -1295,6 +1312,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -1413,6 +1431,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -1529,6 +1548,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -1593,6 +1613,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -1653,6 +1674,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -1716,6 +1738,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -1932,6 +1955,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -1992,6 +2016,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 10,
@@ -2201,6 +2226,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 6,
@@ -2263,6 +2289,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -2323,6 +2350,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 8,
@@ -2440,6 +2468,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -2500,6 +2529,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -3024,6 +3054,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -3084,6 +3115,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -3151,6 +3183,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -3215,6 +3248,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -3327,6 +3361,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -4042,6 +4077,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -4202,6 +4238,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -4362,6 +4399,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -4811,6 +4849,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -5079,6 +5118,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 6,
@@ -5187,6 +5227,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -5253,6 +5294,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -5360,6 +5402,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -5466,6 +5509,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -5575,6 +5619,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -5617,8 +5662,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "FTD",
         "source_filename": "FTD.json",
@@ -5629,7 +5674,20 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "shield",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [
+            {
+              "type": "shield_ac_bonus",
+              "value": 2
+            }
+          ],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -5877,6 +5935,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -5943,6 +6002,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -6098,6 +6158,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -6164,6 +6225,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -6232,6 +6294,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -6297,6 +6360,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -6364,6 +6428,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -6429,6 +6494,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -6496,6 +6562,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -6560,6 +6627,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -6620,6 +6688,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": null,
           "recharge": {
@@ -6675,6 +6744,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -6735,6 +6805,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -6795,6 +6866,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -6839,8 +6911,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "BMT",
         "source_filename": "BMT.json",
@@ -6851,7 +6923,20 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "shield",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [
+            {
+              "type": "shield_ac_bonus",
+              "value": 2
+            }
+          ],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -6903,6 +6988,11 @@
           "slot_family": "armor",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": {
+            "base_ac": 14,
+            "add_dex": true,
+            "dex_cap": 2
+          },
           "passive_effects": [],
           "charges": {
             "max": 4,
@@ -7011,6 +7101,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": null,
           "recharge": {
@@ -7066,6 +7157,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 6,
@@ -7126,6 +7218,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 6,
@@ -7424,6 +7517,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -7487,6 +7581,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": null,
           "recharge": {
@@ -7542,6 +7637,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -7602,6 +7698,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": null,
           "recharge": {
@@ -7641,8 +7738,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "manual_only_forever",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "BMT",
         "source_filename": "BMT.json",
@@ -7653,7 +7750,20 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "shield",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [
+            {
+              "type": "shield_ac_bonus",
+              "value": 2
+            }
+          ],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "unresolved_manual_review",
           "trusted": false,
@@ -7799,6 +7909,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": null,
           "recharge": {
@@ -7854,6 +7965,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": null,
           "recharge": {
@@ -7909,6 +8021,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": null,
           "recharge": {
@@ -7964,6 +8077,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": null,
           "recharge": {
@@ -8019,6 +8133,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -8079,6 +8194,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -8192,6 +8308,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": null,
           "recharge": {
@@ -8257,6 +8374,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -8321,6 +8439,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 5,
@@ -8379,6 +8498,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": null,
           "recharge": {
@@ -8434,6 +8554,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": null,
           "recharge": {
@@ -8473,8 +8594,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "BMT",
         "source_filename": "BMT.json",
@@ -8485,7 +8606,19 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "armor",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": {
+            "base_ac": 18,
+            "add_dex": false,
+            "dex_cap": null
+          },
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -8537,6 +8670,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": null,
           "recharge": {
@@ -8592,6 +8726,7 @@
           "slot_family": "ring",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -8704,6 +8839,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": null,
           "recharge": {
@@ -8807,6 +8943,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": null,
           "recharge": {
@@ -8862,6 +8999,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -8922,6 +9060,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": null,
           "recharge": {
@@ -9334,6 +9473,7 @@
           "slot_family": "shield",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "shield_ac_bonus",
@@ -9394,6 +9534,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -9454,6 +9595,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": null,
           "recharge": {
@@ -9605,6 +9747,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 6,
@@ -9663,6 +9806,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": null,
           "recharge": {
@@ -9718,6 +9862,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -9778,6 +9923,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": null,
           "recharge": {
@@ -9843,6 +9989,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -9903,6 +10050,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": null,
           "recharge": {
@@ -10004,6 +10152,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": null,
           "recharge": {
@@ -10059,6 +10208,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -10124,6 +10274,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": null,
           "recharge": {
@@ -10163,8 +10314,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "BMT",
         "source_filename": "BMT.json",
@@ -10175,7 +10326,19 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "armor",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": {
+            "base_ac": 12,
+            "add_dex": true,
+            "dex_cap": null
+          },
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -10227,6 +10390,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -10291,6 +10455,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -10364,6 +10529,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -10432,6 +10598,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -10505,6 +10672,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -10573,6 +10741,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -10646,6 +10815,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -10761,6 +10931,7 @@
           "slot_family": "neck",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_set_min",
@@ -10911,8 +11082,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "combat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -10923,7 +11094,20 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "shield",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [
+            {
+              "type": "shield_ac_bonus",
+              "value": 2
+            }
+          ],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "animated-shield",
           "exclude_from_shop": false,
@@ -11013,8 +11197,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "gamechanging",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -11025,7 +11209,19 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "armor",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": {
+            "base_ac": 18,
+            "add_dex": false,
+            "dex_cap": null
+          },
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "armor-of-invulnerability",
           "exclude_from_shop": false,
@@ -11064,8 +11260,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -11076,7 +11272,19 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "armor",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": {
+            "base_ac": 18,
+            "add_dex": false,
+            "dex_cap": null
+          },
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -11112,8 +11320,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -11124,7 +11332,19 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "armor",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": {
+            "base_ac": 18,
+            "add_dex": false,
+            "dex_cap": null
+          },
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -11160,8 +11380,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -11172,7 +11392,19 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "armor",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": {
+            "base_ac": 18,
+            "add_dex": false,
+            "dex_cap": null
+          },
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -11224,6 +11456,7 @@
           "slot_family": "shield",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "shield_ac_bonus",
@@ -11333,6 +11566,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -11542,6 +11776,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": null,
           "recharge": {
@@ -11599,6 +11834,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": null,
           "recharge": {
@@ -11656,6 +11892,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": null,
           "recharge": {
@@ -11764,6 +12001,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_set_min",
@@ -11823,6 +12061,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_bonus",
@@ -11887,6 +12126,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_set_min",
@@ -11948,6 +12188,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_set_min",
@@ -12009,6 +12250,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_set_min",
@@ -12070,6 +12312,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_set_min",
@@ -12131,6 +12374,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_set_min",
@@ -12190,6 +12434,11 @@
           "slot_family": "armor",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": {
+            "base_ac": 14,
+            "add_dex": true,
+            "dex_cap": 2
+          },
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -12261,6 +12510,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -12321,6 +12571,11 @@
           "slot_family": "armor",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": {
+            "base_ac": 14,
+            "add_dex": true,
+            "dex_cap": 2
+          },
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -12434,6 +12689,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_bonus",
@@ -12896,6 +13152,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -12960,6 +13217,11 @@
           "slot_family": "armor",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": {
+            "base_ac": 14,
+            "add_dex": true,
+            "dex_cap": 2
+          },
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -13072,6 +13334,11 @@
           "slot_family": "armor",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": {
+            "base_ac": 14,
+            "add_dex": true,
+            "dex_cap": 2
+          },
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -14029,6 +14296,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -14199,6 +14467,11 @@
           "slot_family": "armor",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": {
+            "base_ac": 14,
+            "add_dex": true,
+            "dex_cap": 2
+          },
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -14449,6 +14722,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 36,
@@ -14512,6 +14786,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -14626,6 +14901,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -14842,6 +15118,11 @@
           "slot_family": "armor",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": {
+            "base_ac": 18,
+            "add_dex": false,
+            "dex_cap": null
+          },
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -15208,6 +15489,11 @@
           "slot_family": "armor",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": {
+            "base_ac": 18,
+            "add_dex": false,
+            "dex_cap": null
+          },
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -15276,6 +15562,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -15435,6 +15722,11 @@
           "slot_family": "armor",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": {
+            "base_ac": 16,
+            "add_dex": false,
+            "dex_cap": null
+          },
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -15742,6 +16034,11 @@
           "slot_family": "armor",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": {
+            "base_ac": 13,
+            "add_dex": true,
+            "dex_cap": 2
+          },
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -15903,6 +16200,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 8,
@@ -15961,6 +16259,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -16270,6 +16569,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 24,
@@ -16664,6 +16964,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_set_min",
@@ -16728,6 +17029,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 50,
@@ -16789,6 +17091,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -16852,6 +17155,11 @@
           "slot_family": "armor",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": {
+            "base_ac": 12,
+            "add_dex": true,
+            "dex_cap": null
+          },
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -17120,6 +17428,11 @@
           "slot_family": "armor",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": {
+            "base_ac": 14,
+            "add_dex": true,
+            "dex_cap": 2
+          },
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -17181,6 +17494,11 @@
           "slot_family": "armor",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": {
+            "base_ac": 14,
+            "add_dex": true,
+            "dex_cap": 2
+          },
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -17379,6 +17697,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -17452,6 +17771,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_set_min",
@@ -17567,6 +17887,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_set_min",
@@ -17781,6 +18102,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -18719,6 +19041,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_bonus",
@@ -18834,6 +19157,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_bonus",
@@ -18949,6 +19273,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_bonus",
@@ -19013,6 +19338,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_bonus",
@@ -19077,6 +19403,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_bonus",
@@ -19192,6 +19519,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -19358,6 +19686,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_bonus",
@@ -19779,6 +20108,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -19842,6 +20172,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -20002,6 +20333,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_bonus",
@@ -20156,6 +20488,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_bonus",
@@ -20263,6 +20596,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_bonus",
@@ -20370,6 +20704,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -20545,6 +20880,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -20918,6 +21254,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -21078,6 +21415,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 7,
@@ -21441,6 +21779,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -21504,6 +21843,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -21551,8 +21891,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -21563,7 +21903,19 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "armor",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": {
+            "base_ac": 18,
+            "add_dex": false,
+            "dex_cap": null
+          },
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "plate-armor-of-etherealness",
           "exclude_from_shop": false,
@@ -21870,6 +22222,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_set_min",
@@ -22081,6 +22434,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_set_min",
@@ -22289,6 +22643,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_set_min",
@@ -22600,6 +22955,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_set_min",
@@ -23207,6 +23563,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_set_min",
@@ -23268,6 +23625,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_set_min",
@@ -23979,6 +24337,11 @@
           "slot_family": "armor",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": {
+            "base_ac": 14,
+            "add_dex": true,
+            "dex_cap": 2
+          },
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -24088,6 +24451,7 @@
           "slot_family": "ring",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 5,
@@ -24151,6 +24515,7 @@
           "slot_family": "ring",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -24313,6 +24678,7 @@
           "slot_family": "ring",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 5,
@@ -24376,6 +24742,7 @@
           "slot_family": "ring",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -24490,6 +24857,7 @@
           "slot_family": "ring",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 5,
@@ -24997,6 +25365,7 @@
           "slot_family": "ring",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -25212,6 +25581,7 @@
           "slot_family": "ring",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 6,
@@ -25479,6 +25849,7 @@
           "slot_family": "ring",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -25692,6 +26063,7 @@
           "slot_family": "ring",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 5,
@@ -25908,6 +26280,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -25971,6 +26344,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "all_saves_bonus",
@@ -26047,6 +26421,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -26218,6 +26593,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -26286,6 +26662,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -26359,6 +26736,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 5,
@@ -26677,6 +27055,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 12,
@@ -26738,6 +27117,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -27220,8 +27600,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "combat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -27232,7 +27612,20 @@
         "has_structured_entries": true,
         "req_attune_raw": null,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "shield",
+          "activation_mode": "equip",
+          "requires_attunement": false,
+          "armor": null,
+          "passive_effects": [
+            {
+              "type": "shield_ac_bonus",
+              "value": 2
+            }
+          ],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "sentinel-shield",
           "exclude_from_shop": false,
@@ -27317,8 +27710,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -27329,7 +27722,20 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "shield",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [
+            {
+              "type": "shield_ac_bonus",
+              "value": 2
+            }
+          ],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "shield-of-missile-attraction",
           "exclude_from_shop": false,
@@ -27384,6 +27790,11 @@
           "slot_family": "armor",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": {
+            "base_ac": 14,
+            "add_dex": true,
+            "dex_cap": 2
+          },
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -28056,8 +28467,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -28068,7 +28479,20 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "shield",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [
+            {
+              "type": "shield_ac_bonus",
+              "value": 2
+            }
+          ],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "spellguard-shield",
           "exclude_from_shop": false,
@@ -28257,6 +28681,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 10,
@@ -28333,6 +28758,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 10,
@@ -28406,6 +28832,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 10,
@@ -28479,6 +28906,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -28561,6 +28989,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -28648,6 +29077,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 10,
@@ -28782,6 +29212,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -28920,6 +29351,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -28993,6 +29425,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -29066,6 +29499,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -29180,6 +29614,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "all_saves_bonus",
@@ -29240,6 +29675,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -29307,6 +29743,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -29377,6 +29814,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -29447,6 +29885,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -29517,6 +29956,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -29587,6 +30027,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -29656,6 +30097,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -29726,6 +30168,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -29796,6 +30239,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -29866,6 +30310,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -29929,6 +30374,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -29995,6 +30441,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -30119,6 +30566,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -30237,6 +30685,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_bonus",
@@ -30297,6 +30746,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_bonus",
@@ -30412,6 +30862,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [
             {
               "type": "ability_score_bonus",
@@ -30518,6 +30969,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -30682,6 +31134,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 7,
@@ -30745,6 +31198,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 7,
@@ -30808,6 +31262,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 7,
@@ -30875,6 +31330,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 7,
@@ -30942,6 +31398,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 7,
@@ -31005,6 +31462,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -31068,6 +31526,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 7,
@@ -31131,6 +31590,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -31205,6 +31665,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 7,
@@ -31272,6 +31733,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 7,
@@ -31335,6 +31797,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -31402,6 +31865,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 7,
@@ -31469,6 +31933,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 7,
@@ -31532,6 +31997,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -31647,6 +32113,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [
             {
               "type": "weapon_attack_bonus",
@@ -31707,6 +32174,11 @@
           "slot_family": "armor",
           "activation_mode": "equip",
           "requires_attunement": true,
+          "armor": {
+            "base_ac": 14,
+            "add_dex": true,
+            "dex_cap": 2
+          },
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -38852,6 +39324,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -38964,6 +39437,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 10,
@@ -39024,6 +39498,7 @@
           "slot_family": "inventory",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 4,
@@ -39132,6 +39607,7 @@
           "slot_family": "inventory",
           "activation_mode": "attunement_only",
           "requires_attunement": true,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -39708,8 +40184,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "curated_magic_shop_stock",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "XGE",
         "source_filename": "XGE.json",
@@ -39720,7 +40196,20 @@
         "has_structured_entries": true,
         "req_attune_raw": null,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "shield",
+          "activation_mode": "equip",
+          "requires_attunement": false,
+          "armor": null,
+          "passive_effects": [
+            {
+              "type": "shield_ac_bonus",
+              "value": 2
+            }
+          ],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -39820,6 +40309,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 10,
@@ -39880,6 +40370,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 10,
@@ -40132,6 +40623,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -40192,6 +40684,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 7,
@@ -40252,6 +40745,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -40312,6 +40806,7 @@
           "slot_family": "main_hand",
           "activation_mode": "equip",
           "requires_attunement": false,
+          "armor": null,
           "passive_effects": [],
           "charges": {
             "max": 3,
@@ -40904,8 +41399,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "mundane",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "PHB",
         "source_filename": "items-base.json",
@@ -40916,7 +41411,19 @@
         "has_structured_entries": true,
         "req_attune_raw": null,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "armor",
+          "activation_mode": "equip",
+          "requires_attunement": false,
+          "armor": {
+            "base_ac": 14,
+            "add_dex": true,
+            "dex_cap": 2
+          },
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "direct_source_value_cp",
           "trusted": true,
@@ -41134,8 +41641,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "mundane",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "PHB",
         "source_filename": "items-base.json",
@@ -41146,7 +41653,19 @@
         "has_structured_entries": true,
         "req_attune_raw": null,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "armor",
+          "activation_mode": "equip",
+          "requires_attunement": false,
+          "armor": {
+            "base_ac": 16,
+            "add_dex": false,
+            "dex_cap": null
+          },
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "direct_source_value_cp",
           "trusted": true,
@@ -41180,8 +41699,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "mundane",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "PHB",
         "source_filename": "items-base.json",
@@ -41192,7 +41711,19 @@
         "has_structured_entries": true,
         "req_attune_raw": null,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "armor",
+          "activation_mode": "equip",
+          "requires_attunement": false,
+          "armor": {
+            "base_ac": 13,
+            "add_dex": true,
+            "dex_cap": 2
+          },
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "direct_source_value_cp",
           "trusted": true,
@@ -42190,8 +42721,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "mundane",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "PHB",
         "source_filename": "items-base.json",
@@ -42202,7 +42733,19 @@
         "has_structured_entries": true,
         "req_attune_raw": null,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "armor",
+          "activation_mode": "equip",
+          "requires_attunement": false,
+          "armor": {
+            "base_ac": 15,
+            "add_dex": true,
+            "dex_cap": 2
+          },
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "direct_source_value_cp",
           "trusted": true,
@@ -42419,8 +42962,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "mundane",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "PHB",
         "source_filename": "items-base.json",
@@ -42431,7 +42974,19 @@
         "has_structured_entries": true,
         "req_attune_raw": null,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "armor",
+          "activation_mode": "equip",
+          "requires_attunement": false,
+          "armor": {
+            "base_ac": 12,
+            "add_dex": true,
+            "dex_cap": 2
+          },
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "direct_source_value_cp",
           "trusted": true,
@@ -42875,8 +43430,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "mundane",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "PHB",
         "source_filename": "items-base.json",
@@ -42887,7 +43442,19 @@
         "has_structured_entries": true,
         "req_attune_raw": null,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "armor",
+          "activation_mode": "equip",
+          "requires_attunement": false,
+          "armor": {
+            "base_ac": 11,
+            "add_dex": true,
+            "dex_cap": null
+          },
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "direct_source_value_cp",
           "trusted": true,
@@ -43745,8 +44312,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "mundane",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "PHB",
         "source_filename": "items-base.json",
@@ -43757,7 +44324,19 @@
         "has_structured_entries": true,
         "req_attune_raw": null,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "armor",
+          "activation_mode": "equip",
+          "requires_attunement": false,
+          "armor": {
+            "base_ac": 11,
+            "add_dex": true,
+            "dex_cap": null
+          },
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "direct_source_value_cp",
           "trusted": true,
@@ -43975,8 +44554,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "mundane",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "PHB",
         "source_filename": "items-base.json",
@@ -43987,7 +44566,19 @@
         "has_structured_entries": true,
         "req_attune_raw": null,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "armor",
+          "activation_mode": "equip",
+          "requires_attunement": false,
+          "armor": {
+            "base_ac": 18,
+            "add_dex": false,
+            "dex_cap": null
+          },
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "direct_source_value_cp",
           "trusted": true,
@@ -44296,8 +44887,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "mundane",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "PHB",
         "source_filename": "items-base.json",
@@ -44308,7 +44899,19 @@
         "has_structured_entries": true,
         "req_attune_raw": null,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "armor",
+          "activation_mode": "equip",
+          "requires_attunement": false,
+          "armor": {
+            "base_ac": 14,
+            "add_dex": false,
+            "dex_cap": null
+          },
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "direct_source_value_cp",
           "trusted": true,
@@ -44388,8 +44991,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "mundane",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "PHB",
         "source_filename": "items-base.json",
@@ -44400,7 +45003,19 @@
         "has_structured_entries": true,
         "req_attune_raw": null,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "armor",
+          "activation_mode": "equip",
+          "requires_attunement": false,
+          "armor": {
+            "base_ac": 14,
+            "add_dex": true,
+            "dex_cap": 2
+          },
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "direct_source_value_cp",
           "trusted": true,
@@ -44571,8 +45186,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "mundane",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "PHB",
         "source_filename": "items-base.json",
@@ -44583,7 +45198,20 @@
         "has_structured_entries": true,
         "req_attune_raw": null,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "shield",
+          "activation_mode": "equip",
+          "requires_attunement": false,
+          "armor": null,
+          "passive_effects": [
+            {
+              "type": "shield_ac_bonus",
+              "value": 2
+            }
+          ],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "direct_source_value_cp",
           "trusted": true,
@@ -45075,8 +45703,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "mundane",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "SCAG",
         "source_filename": "items-base.json",
@@ -45087,7 +45715,19 @@
         "has_structured_entries": true,
         "req_attune_raw": null,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "armor",
+          "activation_mode": "equip",
+          "requires_attunement": false,
+          "armor": {
+            "base_ac": 14,
+            "add_dex": true,
+            "dex_cap": 2
+          },
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "direct_source_value_cp",
           "trusted": true,
@@ -45121,8 +45761,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "mundane",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "PHB",
         "source_filename": "items-base.json",
@@ -45133,7 +45773,19 @@
         "has_structured_entries": true,
         "req_attune_raw": null,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "armor",
+          "activation_mode": "equip",
+          "requires_attunement": false,
+          "armor": {
+            "base_ac": 17,
+            "add_dex": false,
+            "dex_cap": null
+          },
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "direct_source_value_cp",
           "trusted": true,
@@ -45213,8 +45865,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "mundane",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "PHB",
         "source_filename": "items-base.json",
@@ -45225,7 +45877,19 @@
         "has_structured_entries": true,
         "req_attune_raw": null,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "armor",
+          "activation_mode": "equip",
+          "requires_attunement": false,
+          "armor": {
+            "base_ac": 12,
+            "add_dex": true,
+            "dex_cap": null
+          },
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "direct_source_value_cp",
           "trusted": true,

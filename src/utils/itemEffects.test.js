@@ -92,7 +92,16 @@ describe('itemEffects', () => {
       ],
     );
 
-    expect(result.acFromItems).toBe(10);
+    expect(result.acFromItems).toBe(12);
+  });
+
+  test('uses automatic unarmored baseline instead of profile.ac when no armor formula is active', () => {
+    const result = applyItemEffectsToProfile(
+      { ac: 18, ability_dex: 14 },
+      [],
+    );
+
+    expect(result.acFromItems).toBe(12);
   });
 
   test('classifies rows into non-overlapping items/equipment/attuned buckets', () => {
