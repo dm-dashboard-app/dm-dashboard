@@ -388,6 +388,52 @@ test('uses curated family matrix fallback pricing for clustered unresolved famil
   assert.equal(vessel.metadata_json.pricing.fallback_reason, 'curated_family_dragon_vessel_wakened');
 });
 
+test('prices targeted rare/very-rare residue families into curated nondefault buckets', () => {
+  const ring = convert({ name: 'Ring of Fire Resistance', rarity: 'rare', reqAttune: true, type: 'RG' });
+  const carpet = convert({ name: 'Carpet of Flying, 4 ft. × 6 ft.', rarity: 'very rare', wondrous: true });
+  const scroll = convert({ name: 'Scroll of Protection from Fiends', rarity: 'rare', wondrous: true });
+  const tceFocus = convert({ name: 'Astromancy Archive', rarity: 'rare', wondrous: true, reqAttune: 'by a wizard' });
+
+  for (const row of [ring, carpet, scroll, tceFocus]) {
+    assert.equal(row.price_source, '5etools_fallback_policy_v1');
+    assert.equal(row.is_shop_eligible, false);
+    assert.equal(row.shop_bucket, 'curated_magic_nondefault');
+  }
+  assert.equal(ring.base_price_gp, 5000);
+  assert.equal(ring.metadata_json.pricing.fallback_reason, 'curated_family_ring_of_resistance');
+  assert.equal(carpet.base_price_gp, 50000);
+  assert.equal(carpet.metadata_json.pricing.fallback_reason, 'curated_family_carpet_of_flying');
+  assert.equal(scroll.base_price_gp, 5000);
+  assert.equal(scroll.metadata_json.pricing.fallback_reason, 'curated_family_scroll_of_protection');
+  assert.equal(tceFocus.base_price_gp, 5000);
+  assert.equal(tceFocus.metadata_json.pricing.fallback_reason, 'curated_family_tce_magic_focus_residue');
+});
+
+test('demotes deck-chaos and high-swing overrides to manual-only forever', () => {
+  const fateDeck = convert({ name: "+2 Fate Dealer's Deck", rarity: 'very rare', wondrous: true });
+  const bag = convert({ name: 'Bag of Devouring', rarity: 'very rare', wondrous: true });
+
+  for (const row of [fateDeck, bag]) {
+    assert.equal(row.price_source, null);
+    assert.equal(row.base_price_gp, null);
+    assert.equal(row.is_shop_eligible, false);
+    assert.equal(row.shop_bucket, 'manual_only_forever');
+    assert.equal(row.metadata_json.pricing.strategy, 'unresolved_manual_review');
+  }
+});
+
+test('promotes safe common novelty shield/staff rows into curated magic shop stock', () => {
+  const shield = convert({ name: 'Shield of Expression', rarity: 'common', type: 'S' });
+  const staff = convert({ name: 'Staff of Birdcalls', rarity: 'common', type: 'M', weaponCategory: 'simple' });
+
+  for (const row of [shield, staff]) {
+    assert.equal(row.price_source, '5etools_fallback_policy_v1');
+    assert.equal(row.base_price_gp, 100);
+    assert.equal(row.is_shop_eligible, true);
+    assert.equal(row.shop_bucket, 'curated_magic_shop_stock');
+  }
+});
+
 test('keeps manuals and tomes as explicit manual-review pricing overrides', () => {
   const manual = convert({ name: 'Manual of Bodily Health', rarity: 'Very Rare', wondrous: true, reqAttune: true });
   const tome = convert({ name: 'Tome of Understanding', rarity: 'Very Rare', wondrous: true, reqAttune: true });

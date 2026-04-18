@@ -91,8 +91,139 @@ const CURATED_FALLBACK_EXPLICIT_OVERRIDES = new Map([
   ['deck of many things', { mode: 'manual_only', reason: 'deck_of_chaos_effects_require_manual_only_policy' }],
   ['deck of many more things', { mode: 'manual_only', reason: 'deck_of_chaos_effects_require_manual_only_policy' }],
   ['deck of several things', { mode: 'manual_only', reason: 'deck_of_chaos_effects_require_manual_only_policy' }],
+  ['+1 fate dealer\'s deck', { mode: 'manual_only', reason: 'deck_of_chaos_effects_require_manual_only_policy' }],
+  ['+2 fate dealer\'s deck', { mode: 'manual_only', reason: 'deck_of_chaos_effects_require_manual_only_policy' }],
+  ['bag of devouring', { mode: 'manual_only', reason: 'high_swing_consumption_effect_requires_manual_pricing' }],
 ]);
 const CURATED_FALLBACK_FAMILY_MATRIX = [
+  {
+    pattern: /^(alchemical compendium|astromancy archive|atlas of endless horizons|bell branch|cauldron of rebirth|crystalline chronicle|devotee's censer|duplicitous manuscript|fulminating treatise|heart weaver's primer|libram of souls and flesh|lyre of building|planecaller's codex|protective verses|reveler's concertina)$/i,
+    priceByRarity: { rare: 5000, 'very rare': 50000 },
+    bucket: 'utility',
+    reason: 'curated_family_tce_magic_focus_residue',
+    makeEligible: false,
+  },
+  {
+    pattern: /^(barrier tattoo \((medium|large)\)|ghost step tattoo|lifewell tattoo|shadowfell brand tattoo)$/i,
+    priceByRarity: { rare: 5000, 'very rare': 50000 },
+    bucket: 'utility',
+    reason: 'curated_family_tattoo_residue',
+    makeEligible: false,
+  },
+  {
+    pattern: /^sage's signet \((bear|hart|lion|serpent|songbird|wolf)\)$/i,
+    priceByRarity: { rare: 5000, 'very rare': 50000 },
+    bucket: 'utility',
+    reason: 'curated_family_sages_signet_residue',
+    makeEligible: false,
+  },
+  {
+    pattern: /^(boomerang shield|breastplate of balance|crown of whirling comets|donjon's sundering sphere|fate cutter shears|plate of knight's fellowship|rod of hellish flames|rogue's mantle|shrieking greaves|skull helm|sling of giant felling|voidwalker armor|warrior's passkey)$/i,
+    priceByRarity: { uncommon: 500, rare: 5000, 'very rare': 50000 },
+    bucket: 'utility',
+    reason: 'curated_family_bmt_named_residue',
+    makeEligible: false,
+  },
+  {
+    pattern: /^(amethyst lodestone|sapphire buckler|stirring scaled ornament|wakened scaled ornament)$/i,
+    priceByRarity: { rare: 5000, 'very rare': 50000 },
+    bucket: 'utility',
+    reason: 'curated_family_draconic_focus_residue',
+    makeEligible: false,
+  },
+  {
+    pattern: /^armor of vulnerability \((bludgeoning|piercing|slashing)\)$/i,
+    priceGp: 5000,
+    bucket: 'combat',
+    reason: 'curated_family_armor_of_vulnerability',
+    makeEligible: false,
+  },
+  {
+    pattern: /^belt of (hill|fire|frost|stone) giant strength$/i,
+    priceByRarity: { rare: 5000, 'very rare': 50000 },
+    bucket: 'combat',
+    reason: 'curated_family_giant_strength_belt',
+    makeEligible: false,
+  },
+  {
+    pattern: /^potion of (fire|frost|stone|cloud) giant strength$/i,
+    priceByRarity: { rare: 5000, 'very rare': 50000 },
+    bucket: 'consumable',
+    reason: 'curated_family_giant_strength_potion',
+    makeEligible: false,
+  },
+  {
+    pattern: /^carpet of flying, /i,
+    priceGp: 50000,
+    bucket: 'utility',
+    reason: 'curated_family_carpet_of_flying',
+    makeEligible: false,
+  },
+  {
+    pattern: /^figurine of wondrous power, /i,
+    priceByRarity: { rare: 5000, 'very rare': 50000 },
+    bucket: 'utility',
+    reason: 'curated_family_figurine_of_wondrous_power',
+    makeEligible: false,
+  },
+  {
+    pattern: /^horn of valhalla, (brass|silver|bronze)$/i,
+    priceByRarity: { rare: 5000, 'very rare': 50000 },
+    bucket: 'utility',
+    reason: 'curated_family_horn_of_valhalla',
+    makeEligible: false,
+  },
+  {
+    pattern: /^ring of (acid|cold|fire|force|lightning|necrotic|poison|psychic|radiant|thunder) resistance$/i,
+    priceGp: 5000,
+    bucket: 'utility',
+    reason: 'curated_family_ring_of_resistance',
+    makeEligible: false,
+  },
+  {
+    pattern: /^scroll of protection from (aberrations|beasts|celestials|elementals|fey|fiends|plants|undead)$/i,
+    priceGp: 5000,
+    bucket: 'consumable',
+    reason: 'curated_family_scroll_of_protection',
+    makeEligible: false,
+  },
+  {
+    pattern: /^quaal's feather token, tree$/i,
+    priceGp: 5000,
+    bucket: 'utility',
+    reason: 'curated_named_quaals_feather_token_tree',
+    makeEligible: false,
+  },
+  {
+    pattern: /^horseshoes of a zephyr$/i,
+    priceGp: 50000,
+    bucket: 'utility',
+    reason: 'curated_named_horseshoes_of_a_zephyr',
+    makeEligible: false,
+  },
+  {
+    pattern: /^necklace of prayer beads$/i,
+    priceGp: 5000,
+    bucket: 'utility',
+    reason: 'curated_named_necklace_of_prayer_beads',
+    makeEligible: false,
+  },
+  {
+    pattern: /^shield of expression$/i,
+    priceGp: 100,
+    bucket: 'utility',
+    reason: 'curated_family_common_expressions',
+    makeEligible: true,
+    finalBucket: CURATED_MAGIC_SHOP_STOCK_BUCKET,
+  },
+  {
+    pattern: /^staff of (adornment|birdcalls|flowers)$/i,
+    priceGp: 100,
+    bucket: 'utility',
+    reason: 'curated_family_common_staff_novelties',
+    makeEligible: true,
+    finalBucket: CURATED_MAGIC_SHOP_STOCK_BUCKET,
+  },
   {
     pattern: /^elemental essence shard(?: \((?:air|earth|fire|water)\))?$/i,
     priceGp: 5000,
@@ -738,12 +869,19 @@ function deriveFallbackPricing({ item = {}, row = {} } = {}) {
 
   for (const policy of CURATED_FALLBACK_FAMILY_MATRIX) {
     if (!policy?.pattern?.test(name)) continue;
+    const matrixPrice = Number.isFinite(Number(policy.priceGp))
+      ? Number(policy.priceGp)
+      : (policy.priceByRarity && Number.isFinite(Number(policy.priceByRarity[rarity]))
+        ? Number(policy.priceByRarity[rarity])
+        : null);
+    if (!Number.isFinite(matrixPrice)) continue;
     return {
-      priceGp: policy.priceGp,
+      priceGp: matrixPrice,
       bucket: policy.bucket || 'utility',
       reason: policy.reason || 'curated_family_matrix',
       makeEligible: !!policy.makeEligible,
-      finalBucket: policy.makeEligible ? CURATED_MAGIC_SHOP_STOCK_BUCKET : CURATED_MAGIC_NONDEFAULT_BUCKET,
+      finalBucket: policy.finalBucket
+        || (policy.makeEligible ? CURATED_MAGIC_SHOP_STOCK_BUCKET : CURATED_MAGIC_NONDEFAULT_BUCKET),
     };
   }
 

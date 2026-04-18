@@ -1,6 +1,6 @@
 # DM Dashboard — Project Brief
 
-Last updated: April 17, 2026 (5etools final completion batch landed)
+Last updated: April 18, 2026 (targeted still-unpriced pricing completion pass landed)
 
 Purpose: This document is the current-state/background brief for DM Dashboard. It describes what the app now is, what is materially landed, and what principles future work must preserve.
 
@@ -397,7 +397,8 @@ Landed baseline includes:
 - durable execution plan for completion work is now tracked in `docs/5ETOOLS_IMPORT_COMPLETION_PLAN.md`
 - 5etools conversion now reuses the same curated magic-pricing overlay artifact (`shop_magic_pricing_2014.json`) already used by SRD import paths, including alias-aware name matching for common plus-order variant naming differences
 - 5etools conversion now applies a constrained fallback pricing policy only when direct source value and curated overlay matching are both unavailable, with explicit provenance markers (`5etools_fallback_policy_v1`) and non-default/manual behavior preserved for excluded/high-risk rows
-- latest regenerated 5etools artifact state after final completion batch (`5etools_shop_admission_v2`): 892 source rows processed with 140 clutter-family rows excluded from the active artifact (gem/art/coin/trade-good/ship-airship/large-vehicle families), leaving 752 active-lane rows; active-lane pricing provenance now splits to direct source value (152), curated overlay (251), fallback policy (180), and unresolved manual (184), with unresolved triage now at 2 overlay-match-miss candidates + 18 intentionally excluded/noise + 164 true manual residues, shop split at 425 shop-eligible / 327 non-shop, and structured mechanics + Phase-1-compatible payload coverage raised to 243
+- targeted pricing completion follow-up now applies curated family-level fallback pricing for the former `still_unpriced_but_priceable` residue (including ring-of-resistance, scroll-of-protection, figurine/carpet/horn clusters, TCE/BMT named residue clusters, and selected named outliers) while preserving explicit manual-only handling for deck-chaos/high-swing outliers
+- latest regenerated 5etools artifact state after targeted still-unpriced completion pass (`5etools_shop_admission_v2`): 892 source rows processed with 140 clutter-family rows excluded from the active artifact (gem/art/coin/trade-good/ship-airship/large-vehicle families), leaving 752 active-lane rows; active-lane pricing provenance now splits to direct source value (152), curated overlay (251), fallback policy (272), and unresolved manual (92), unresolved triage now at 0 overlay-match-miss candidates + 18 intentionally excluded/noise + 74 true manual residues, final manual-policy buckets at 71 `manual_only_forever`, 197 `curated_magic_nondefault`, 76 `curated_magic_shop_stock`, and 0 `still_unpriced_but_priceable`, with shop split at 445 shop-eligible / 307 non-shop and structured mechanics + Phase-1-compatible payload coverage at 243
 - practical lane status: 5etools import lane is now considered ready to replace the old SRD-source import lane for day-to-day item catalog operation, while legacy SRD refresh controls remain temporarily available as explicitly deprecated fallback tooling
 - explicit boundary that neither raw source nor source-split derivatives are the live runtime schema; runtime item truth remains the existing `item_master` import/runtime path
 
