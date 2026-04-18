@@ -181,16 +181,20 @@ export function applyItemEffectsToProfile(profile = {}, inventoryItems = []) {
 
   const dexScore = readNumberField(profile, ['ability_dex'], 10) + nextAbilities.dex;
   const dexMod = getAbilityModifier(dexScore);
-  let armorAc = readNumberField(profile, ['ac'], 10);
+  const unarmoredBaseAc = 10 + dexMod;
+  let armorAc = unarmoredBaseAc;
   if (armorFormula) {
     const cappedDex = armorFormula.dexCap === null ? dexMod : Math.min(dexMod, armorFormula.dexCap);
     armorAc = armorFormula.baseAc + (armorFormula.addDex ? cappedDex : 0);
   }
+  const itemAcBonus = bonuses.shieldAc + bonuses.acFlat;
 
   return {
     abilityBonus: nextAbilities,
     saveBonus,
-    acFromItems: armorAc + bonuses.shieldAc + bonuses.acFlat,
+    acFromItems: armorAc + itemAcBonus,
+    acItemBonus: itemAcBonus,
+    hasArmorFormula: !!armorFormula,
     spellSaveDcBonus: bonuses.spellSaveDc,
     spellAttackBonus: bonuses.spellAttack,
     supportCoverage: (inventoryItems || []).filter((row) => isMechanicsSupported(row)).length,

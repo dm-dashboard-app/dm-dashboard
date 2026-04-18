@@ -394,6 +394,7 @@ Landed baseline includes:
 - inventory modal mobile polish follow-up: Items / Equipment / Attunement tabs now sit in one balanced row with search-first scanning (wasteful heading/explanatory copy removed)
 - short-rest dock action label now fits cleanly on mobile while preserving active-state clarity
 - profile Derived Combat Maths now again exposes AC with a dedicated custom AC modifier field
+- AC fallback baseline now derives automatically from ability scores (`10 + DEX mod`) when no active armor formula applies, avoiding legacy `profiles_players.ac` baked totals as the generic baseline while preserving explicit armor formulas, Mage Armour behavior, shield/flat bonuses, and manual `ac_bonus` layering
 - item detail modals (inventory/world/rewards/locale shop) now include a distinct Mechanics & Stat Bonuses block so supported mechanics are testable independent of prose description
 
 Preservation rule:

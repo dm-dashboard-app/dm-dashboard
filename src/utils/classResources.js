@@ -49,7 +49,7 @@ export function getDerivedSpellSaveDC(source = {}) { return getSpellcastingAbili
 export function getFinalSpellSaveDC(source = {}) { const base = getDerivedSpellSaveDC(source); return base > 0 ? base + getManualSpellSaveBonus(source) : 0; }
 export function getDerivedSpellAttackBonus(source = {}) { return getSpellcastingAbilityKey(source) ? getProficiencyBonus(getTotalLevel(source)) + getSpellcastingAbilityModifier(source) : 0; }
 export function getFinalSpellAttackBonus(source = {}) { const base = getDerivedSpellAttackBonus(source); return base > 0 ? base + getManualSpellAttackBonus(source) : 0; }
-export function getBaseArmorClass(source = {}) { return readNumberField(source, ['ac'], 10) ?? 10; }
+export function getBaseArmorClass(source = {}) { return 10 + (getAbilityModifiers(source).dex ?? 0); }
 export function getMageArmourArmorClass(source = {}) { return 13 + (getAbilityModifiers(source).dex ?? 0); }
 export function getFinalArmorClass(profile = {}, state = {}) {
   const base = readBooleanField(state, ['mage_armour_active'], false) ? getMageArmourArmorClass(profile) : getBaseArmorClass(profile);
