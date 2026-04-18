@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase, removePortraitPath, resolvePortraitUrl, uploadNpcPortrait } from '../../supabaseClient';
 
+const INITIAL_EAGER_NPC_ROWS = 6;
+
 function NpcEditor({ npc, onSave, onCancel }) {
   const [form, setForm] = useState({
     name: npc?.name || '',
@@ -114,6 +116,7 @@ export default function WorldNpcsPanel({ role = 'dm' }) {
   const [selectedNpcId, setSelectedNpcId] = useState(null);
   const [editingNpc, setEditingNpc] = useState(null);
   const [loadedImageKeys, setLoadedImageKeys] = useState({});
+  const [failedImageKeys, setFailedImageKeys] = useState({});
 
   const loadNpcs = useCallback(async (preferredNpcId = null) => {
     const { data, error: loadError } = await supabase.rpc(readRpc);
@@ -141,13 +144,25 @@ export default function WorldNpcsPanel({ role = 'dm' }) {
     return () => { active = false; };
   }, [loadNpcs]);
 
+  useEffect(() => {
+    const liveNpcIds = new Set(npcs.map((npc) => npc.id));
+    setLoadedImageKeys((curr) => Object.fromEntries(Object.entries(curr).filter(([id]) => liveNpcIds.has(Number(id)))));
+    setFailedImageKeys((curr) => Object.fromEntries(Object.entries(curr).filter(([id]) => liveNpcIds.has(Number(id)))));
+  }, [npcs]);
+
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
     if (!needle) return npcs;
     return npcs.filter((npc) => `${npc.name || ''} ${npc.race || ''} ${npc.body_text || ''}`.toLowerCase().includes(needle));
   }, [npcs, query]);
 
+  const npcPortraitUrls = useMemo(
+    () => Object.fromEntries(npcs.map((npc) => [npc.id, resolvePortraitUrl(npc.portrait_path, npc.portrait_url)])),
+    [npcs],
+  );
+
   const selectedNpc = useMemo(() => npcs.find((npc) => npc.id === selectedNpcId) || null, [npcs, selectedNpcId]);
+  const selectedNpcPortraitUrl = selectedNpc ? npcPortraitUrls[selectedNpc.id] || '' : '';
 
   async function saveNpc(form) {
     const { data, error: saveError } = await supabase.rpc('dm_world_upsert_npc', {
@@ -179,24 +194,30 @@ export default function WorldNpcsPanel({ role = 'dm' }) {
             {canEdit ? <button className="btn btn-primary" onClick={() => setEditingNpc({})}>New NPC</button> : null}
           </div>
           <div className="world-card-grid">
-            {filtered.map((npc) => {
-              const thumbUrl = resolvePortraitUrl(npc.portrait_path, npc.portrait_url);
+            {filtered.map((npc, index) => {
+              const thumbUrl = npcPortraitUrls[npc.id] || '';
+              const showBrokenPortrait = Boolean(thumbUrl && failedImageKeys[npc.id]);
+              const showLoadingSkeleton = Boolean(thumbUrl && !showBrokenPortrait && !loadedImageKeys[npc.id]);
+              const isInitialRow = index < INITIAL_EAGER_NPC_ROWS;
               return (
                 <button key={npc.id} type="button" className="world-card world-card-button world-npc-list-row" onClick={() => setSelectedNpcId(npc.id)}>
-                  {thumbUrl ? (
-                    <>
-                      {!loadedImageKeys[npc.id] ? <div className="world-npc-list-portrait world-npc-thumb-empty">Loading…</div> : null}
-                      <img
-                        className="world-npc-list-portrait"
-                        src={thumbUrl}
-                        alt="NPC portrait"
-                        loading="lazy"
-                        decoding="async"
-                        style={{ display: loadedImageKeys[npc.id] ? 'block' : 'none' }}
-                        onLoad={() => setLoadedImageKeys((curr) => ({ ...curr, [npc.id]: true }))}
-                      />
-                    </>
-                  ) : <div className="world-npc-list-portrait world-npc-thumb-empty">No portrait</div>}
+                  <div className="world-npc-list-portrait-wrap">
+                    {thumbUrl && !showBrokenPortrait ? (
+                      <>
+                        <img
+                          className={`world-npc-list-portrait world-npc-list-portrait-img ${loadedImageKeys[npc.id] ? 'is-loaded' : ''}`}
+                          src={thumbUrl}
+                          alt="NPC portrait"
+                          loading={isInitialRow ? 'eager' : 'lazy'}
+                          fetchPriority={isInitialRow ? 'high' : 'auto'}
+                          decoding="async"
+                          onLoad={() => setLoadedImageKeys((curr) => ({ ...curr, [npc.id]: true }))}
+                          onError={() => setFailedImageKeys((curr) => ({ ...curr, [npc.id]: true }))}
+                        />
+                        {showLoadingSkeleton ? <div className="world-npc-list-portrait-overlay" aria-hidden="true" /> : null}
+                      </>
+                    ) : <div className="world-npc-list-portrait world-npc-thumb-empty">No portrait</div>}
+                  </div>
                   <div className="world-npc-list-content">
                     <div className="world-card-head"><strong>{npc.name}</strong><span>{npc.race || 'Unknown race'}</span></div>
                     <div className="world-card-body">{(npc.body_text || 'No profile text saved.').slice(0, 160)}</div>
@@ -211,8 +232,8 @@ export default function WorldNpcsPanel({ role = 'dm' }) {
         <div className="world-npc-page">
           <button className="btn btn-ghost" onClick={() => setSelectedNpcId(null)}>← Back to NPC list</button>
           <div className="world-npc-hero">
-            {resolvePortraitUrl(selectedNpc.portrait_path, selectedNpc.portrait_url)
-              ? <img className="world-npc-portrait" loading="lazy" decoding="async" src={resolvePortraitUrl(selectedNpc.portrait_path, selectedNpc.portrait_url)} alt={`${selectedNpc.name} portrait`} />
+            {selectedNpcPortraitUrl
+              ? <img className="world-npc-portrait" loading="lazy" decoding="async" src={selectedNpcPortraitUrl} alt={`${selectedNpc.name} portrait`} />
               : <div className="world-npc-portrait world-npc-portrait-empty">No Portrait</div>}
             <div className="world-card">
               <div className="world-card-head"><strong>{selectedNpc.name}</strong><span>{selectedNpc.race || 'Race not set'}</span></div>
