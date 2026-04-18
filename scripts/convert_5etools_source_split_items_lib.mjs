@@ -1257,6 +1257,10 @@ export function convert5etoolsItemToImportRow(item = {}, context = {}) {
   });
 }
 
+function buildSourceNameIdentity(sourceKey, itemName) {
+  return `${slugify(sourceKey || 'unknown')}:${slugify(itemName || 'item')}`;
+}
+
 export async function loadSourceSplitItems({
   manifestPath,
 }) {
@@ -1279,6 +1283,33 @@ export async function loadSourceSplitItems({
       sourceKey: String(fileEntry.source_key || '').trim() || slugify(filename).toUpperCase(),
       filename,
       items: parsed,
+      skipIfDuplicateIdentity: false,
+    });
+  }
+
+  const supplementalInputs = Array.isArray(manifest.additional_upstream_inputs)
+    ? manifest.additional_upstream_inputs
+    : [];
+
+  for (const supplementalEntry of supplementalInputs) {
+    const type = String(supplementalEntry?.type || '').trim();
+    if (type !== 'items_base_json') continue;
+    const filename = String(supplementalEntry?.filename || '').trim();
+    if (!filename) continue;
+
+    const filePath = path.resolve(baseDir, filename);
+    const text = await fs.readFile(filePath, 'utf8');
+    const parsed = JSON.parse(text);
+    const recordPath = String(supplementalEntry?.record_path || 'baseitem').trim() || 'baseitem';
+    const records = Array.isArray(parsed?.[recordPath]) ? parsed[recordPath] : [];
+
+    loaded.push({
+      sourceKey: String(supplementalEntry?.source_key || 'SUPPLEMENTAL_BASE').trim() || 'SUPPLEMENTAL_BASE',
+      filename,
+      items: records,
+      skipIfDuplicateIdentity: true,
+      supplementalType: type,
+      supplementalRecordPath: recordPath,
     });
   }
 
@@ -1298,30 +1329,45 @@ export async function buildConverted5etoolsDataset({ manifestPath }) {
     fileBundle.items.forEach((item) => {
       const lookupName = String(item?.name || '').trim();
       if (!lookupName) return;
+      const itemSourceKey = String(item?.source || '').trim() || fileBundle.sourceKey;
+      sourceLookup.set(`${itemSourceKey}::${lookupName}`, item);
       sourceLookup.set(`${fileBundle.sourceKey}::${lookupName}`, item);
     });
   });
   const dedupeCounter = new Map();
+  const emittedIdentitySet = new Set();
   const rows = [];
   const excludedRows = [];
   let processedInputItems = 0;
+  let processedCuratedInputItems = 0;
+  let skippedDuplicateSourceNameRows = 0;
 
   loaded.forEach((fileBundle) => {
-    const sourceSlug = slugify(fileBundle.sourceKey);
     fileBundle.items.forEach((item) => {
       processedInputItems += 1;
+      if (!fileBundle.supplementalType) processedCuratedInputItems += 1;
+      const sourceKey = String(item?.source || '').trim() || fileBundle.sourceKey;
+      const sourceSlug = slugify(sourceKey);
       const baseNameSlug = slugify(item?.name || 'item');
       const dedupeKey = `${sourceSlug}:${baseNameSlug}`;
+      const identityKey = buildSourceNameIdentity(sourceKey, item?.name);
+      const isDuplicateIdentity = emittedIdentitySet.has(identityKey);
+      if (fileBundle.skipIfDuplicateIdentity && isDuplicateIdentity) {
+        skippedDuplicateSourceNameRows += 1;
+        return;
+      }
+
       const nextCount = (dedupeCounter.get(dedupeKey) || 0) + 1;
       dedupeCounter.set(dedupeKey, nextCount);
       const converted = convert5etoolsItemToImportRow(item, {
-        sourceKey: fileBundle.sourceKey,
+        sourceKey,
         sourceSlug,
         duplicateIndex: nextCount,
         sourceFilename: fileBundle.filename,
         pricingOverlayMap,
         sourceLookup,
       });
+      emittedIdentitySet.add(identityKey);
 
       if (converted?.metadata_json?.catalog_admission?.active_lane_decision === 'excluded') {
         excludedRows.push(converted);
@@ -1331,13 +1377,14 @@ export async function buildConverted5etoolsDataset({ manifestPath }) {
     });
   });
 
+  const curatedLoadedCount = loaded.filter((bundle) => !bundle.supplementalType).length;
   const manifestDeclaredFiles = Number(manifest?.total_source_file_count || 0);
   const manifestDeclaredItems = Number(manifest?.total_item_count_represented || 0);
-  if (manifestDeclaredFiles !== loaded.length) {
-    throw new Error(`Manifest source count mismatch: expected ${manifestDeclaredFiles}, loaded ${loaded.length}.`);
+  if (manifestDeclaredFiles !== curatedLoadedCount) {
+    throw new Error(`Manifest source count mismatch: expected ${manifestDeclaredFiles}, loaded ${curatedLoadedCount}.`);
   }
-  if (manifestDeclaredItems !== processedInputItems) {
-    throw new Error(`Manifest item count mismatch: expected ${manifestDeclaredItems}, processed ${processedInputItems}.`);
+  if (manifestDeclaredItems !== processedCuratedInputItems) {
+    throw new Error(`Manifest item count mismatch: expected ${manifestDeclaredItems}, processed ${processedCuratedInputItems}.`);
   }
 
   const excludedSummaryByReason = excludedRows.reduce((acc, row) => {
@@ -1354,12 +1401,15 @@ export async function buildConverted5etoolsDataset({ manifestPath }) {
     source_manifest_path: path.relative(process.cwd(), manifestPath).replace(/\\/g, '/'),
     source_manifest_total_entries: Number(manifest?.total_source_file_count || 0),
     source_files_loaded: loaded.length,
+    source_files_loaded_curated: curatedLoadedCount,
     total_items_converted: rows.length,
     total_items_processed_from_sources: processedInputItems,
+    total_items_processed_from_curated_sources: processedCuratedInputItems,
     total_items_excluded_from_active_lane: excludedRows.length,
+    skipped_duplicate_source_name_rows: skippedDuplicateSourceNameRows,
     excluded_from_active_lane_by_reason: excludedSummaryByReason,
     notes: [
-      'Generated from resources/items_by_source/manifest.json and surviving source files only.',
+      'Generated from resources/items_by_source/manifest.json curated files plus declared supplemental upstream inputs.',
       'Rows are mapped to DM Dashboard item import row shape for item_master pipeline import.',
       'Magic/unpriced rows remain importable but intentionally non-shop-eligible pending manual review.',
     ],
