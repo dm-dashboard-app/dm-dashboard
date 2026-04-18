@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 17, 2026 (5etools pricing match-coverage and unresolved triage landed)
+Last updated: April 17, 2026 (5etools final completion batch landed)
 
 Purpose: This file is the active roadmap only. It lists active next steps, intentionally parked/deferred work, and longer-range ideas.
 
@@ -46,6 +46,8 @@ Recent landing note (April 17, 2026 shop-admission tightening): the 5etools conv
 Recent landing note (April 17, 2026 5etools stale-row runtime exclusion fix): the import RPC now uses a dedicated `five_tools_2014` mode and actively demotes stale previously-imported 5etools rows that are no longer present in the generated active-lane artifact, but only after server-side payload safety checks validate source-layer metadata and exact expected active-row count parity.
 Recent landing note (April 17, 2026 5etools pricing match-coverage + triage pass): converter pricing now extends high-confidence fallback coverage for plus-tier enhancement magic-item families, spell-scroll levels, and spellwrought tattoo levels (all with explicit fallback provenance + non-default shop posture), while the live review report now splits unresolved rows into overlay/match-miss candidates vs intentionally excluded/noise vs true manual residue.
 Recent landing note (April 17, 2026 shop-surface trust-boundary + curated fallback matrix pass): shop generation now hard-gates candidate pools by final admission truth per shop surface (bucket/eligibility/manual-bucket exclusion + magic-shop affluence rarity/value guardrails), preserving scrolls as intentional magic-shop stock while preventing cross-surface leakage; converter pricing fallback now includes explicit manual-only override policy for campaign-warping manual/tome families plus expanded alias normalization for tiny overlay match-miss cleanup.
+Recent landing note (April 17, 2026 5etools completion batch): converter fallback now adds a durable curated family pricing matrix + explicit outlier/manual policy for high-repeat unresolved families (essence shards, absorbing tattoos, dragon vessel/focus tiers), mechanics derivation now includes safe named +N weapon/armor/shield support and explicit dragon-touched focus/scaled ornament tier passive mappings, and regenerated active-lane metrics moved to: fallback priced 180, unresolved true manual review 164, structured mechanics 243, Phase-1-compatible payload 243.
+Recent landing note (April 17, 2026 SRD lane replacement readiness gate): Manage → Imports now labels SRD refresh as legacy/deprecated while keeping it available as a fallback control; practical replacement target is met for the 5etools lane with an explicit remaining manual residue list (campaign-warping artifacts/deck-card families and bespoke one-off effects).
 
 #### A) Durable item trail and source-of-truth model (required)
 

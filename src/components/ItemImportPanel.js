@@ -279,7 +279,7 @@ export default function ItemImportPanel({ onImportComplete = null }) {
           onClick={() => runImport('srd')}
           disabled={importingMode !== ''}
         >
-          {importingMode === 'srd' ? 'Refreshing SRD…' : 'Refresh 2014 SRD Catalog'}
+          {importingMode === 'srd' ? 'Refreshing SRD…' : 'Refresh 2014 SRD Catalog (Legacy/Deprecated)'}
         </button>
         <button
           className="btn btn-ghost"
@@ -297,7 +297,7 @@ export default function ItemImportPanel({ onImportComplete = null }) {
         </button>
       </div>
       <div className="world-shops-import-help">
-        SRD refresh imports catalog rows, converted 5etools import loads repo-generated app-shaped rows, then reports the live degraded/quarantined SRD row set from current item_master.
+        Converted 5etools import is now the primary lane for item_master catalog updates. SRD refresh remains as a legacy/deprecated fallback control while removal timing is finalized.
       </div>
       {importStatus ? <div className="world-shops-import-status">{importStatus}</div> : null}
       {error ? <div className="world-shops-error">{error}</div> : null}
