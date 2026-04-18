@@ -182,6 +182,7 @@ export function classifyInventoryRows(items = []) {
   const attunementRows = [];
 
   (items || []).forEach((item) => {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) return;
     if (item?.attuned) {
       attunementRows.push(item);
       return;

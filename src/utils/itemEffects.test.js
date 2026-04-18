@@ -99,4 +99,18 @@ describe('itemEffects', () => {
     expect(rows.attunementRows.map((row) => row.id)).toEqual(['b', 'c']);
     expect(rows.itemRows.map((row) => row.id)).toEqual(['d', 'e']);
   });
+
+  test('ignores malformed/null inventory rows during classification', () => {
+    const rows = classifyInventoryRows([
+      null,
+      undefined,
+      42,
+      'bad',
+      ['x'],
+      item({ id: 'ok' }),
+    ]);
+    expect(rows.itemRows.map((row) => row.id)).toEqual(['ok']);
+    expect(rows.equipmentRows).toEqual([]);
+    expect(rows.attunementRows).toEqual([]);
+  });
 });

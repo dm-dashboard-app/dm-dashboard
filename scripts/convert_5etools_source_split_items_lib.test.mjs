@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { convert5etoolsItemToImportRow } from './convert_5etools_source_split_items_lib.mjs';
+import { convert5etoolsItemToImportRow, generateCanonicalEnhancementRows } from './convert_5etools_source_split_items_lib.mjs';
 
 function convert(item, ctx = {}) {
   return convert5etoolsItemToImportRow(item, {
@@ -27,6 +27,7 @@ test('maps mundane equipment with value into import row shape', () => {
   assert.equal(row.shop_bucket, 'mundane');
   assert.equal(row.source_slug, 'tst-abacus');
   assert.equal(row.price_source, '5etools_value_cp');
+  assert.equal(row.metadata_json.source_type_code, 'G');
 });
 
 test('maps attunement magic item truthfully', () => {
@@ -368,6 +369,82 @@ test('uses deterministic fallback pricing for spellwrought tattoo level variants
   assert.equal(row.is_shop_eligible, true);
   assert.equal(row.shop_bucket, 'curated_magic_shop_stock');
   assert.equal(row.metadata_json.pricing.fallback_reason, 'spellwrought_tattoo_4th_level');
+});
+
+test('generates deterministic canonical +1/+2/+3 enhancement families from trusted mundane PHB base rows only', () => {
+  const generated = generateCanonicalEnhancementRows([
+    {
+      name: 'Longsword',
+      item_type: 'weapon',
+      requires_attunement: false,
+      shop_bucket: 'mundane',
+      price_source: '5etools_value_cp',
+      base_price_gp: 15,
+      external_key: 'base:longsword',
+      metadata_json: { source_layer: '5etools_items_by_source_curated', source_key: 'PHB', source_type_code: 'M', source_weapon_category: 'martial' },
+    },
+    {
+      name: 'Chain Mail',
+      item_type: 'armor',
+      requires_attunement: false,
+      shop_bucket: 'mundane',
+      price_source: '5etools_value_cp',
+      base_price_gp: 75,
+      external_key: 'base:chain-mail',
+      metadata_json: { source_layer: '5etools_items_by_source_curated', source_key: 'PHB', source_type_code: 'HA' },
+    },
+    {
+      name: 'Shield',
+      item_type: 'shield',
+      requires_attunement: false,
+      shop_bucket: 'mundane',
+      price_source: '5etools_value_cp',
+      base_price_gp: 10,
+      external_key: 'base:shield',
+      metadata_json: { source_layer: '5etools_items_by_source_curated', source_key: 'PHB', source_type_code: 'S' },
+    },
+    {
+      name: 'Automatic Rifle',
+      item_type: 'weapon',
+      requires_attunement: false,
+      shop_bucket: 'mundane',
+      price_source: '5etools_value_cp',
+      base_price_gp: 250,
+      external_key: 'base:automatic-rifle',
+      metadata_json: { source_layer: '5etools_items_by_source_curated', source_key: 'DMG' },
+    },
+    {
+      name: 'Arrow',
+      item_type: 'weapon',
+      requires_attunement: false,
+      shop_bucket: 'mundane',
+      price_source: '5etools_value_cp',
+      base_price_gp: 0.05,
+      external_key: 'base:arrow',
+      metadata_json: {
+        source_layer: '5etools_items_by_source_curated',
+        source_key: 'PHB',
+        source_type_code: 'A',
+        source_weapon_category: null,
+      },
+    },
+  ]);
+
+  assert.equal(generated.length, 9);
+  assert.equal(generated.filter((row) => row.item_type === 'weapon').length, 3);
+  assert.equal(generated.filter((row) => row.item_type === 'armor').length, 3);
+  assert.equal(generated.filter((row) => row.item_type === 'shield').length, 3);
+  assert.ok(generated.some((row) => row.name === 'Longsword +1' && row.base_price_gp === 600));
+  assert.ok(generated.some((row) => row.name === 'Longsword +2' && row.base_price_gp === 6000));
+  assert.ok(generated.some((row) => row.name === 'Longsword +3' && row.base_price_gp === 50000));
+  assert.ok(generated.some((row) => row.name === 'Chain Mail +1' && row.base_price_gp === 800));
+  assert.ok(generated.some((row) => row.name === 'Chain Mail +2' && row.base_price_gp === 8000));
+  assert.ok(generated.some((row) => row.name === 'Chain Mail +3' && row.base_price_gp === 60000));
+  assert.ok(generated.some((row) => row.name === 'Shield +1' && row.base_price_gp === 800));
+  assert.ok(generated.some((row) => row.name === 'Shield +2' && row.base_price_gp === 8000));
+  assert.ok(generated.some((row) => row.name === 'Shield +3' && row.base_price_gp === 60000));
+  assert.ok(!generated.some((row) => row.name.startsWith('Arrow +')));
+  assert.ok(generated.every((row) => row.metadata_json.generated_canonical_enhancement.family === 'ordinary_plus_gear'));
 });
 
 test('uses curated family matrix fallback pricing for clustered unresolved families', () => {
