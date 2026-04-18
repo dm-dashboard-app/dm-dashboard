@@ -58,6 +58,11 @@ const CURRENCY_STYLE_MAP = {
   cp: { label: 'CP', color: '#d9a58a', border: 'rgba(217, 165, 138, 0.45)' },
 };
 
+function normalizeItemShapeCandidate(item) {
+  if (!item || typeof item !== 'object' || Array.isArray(item)) return null;
+  return item;
+}
+
 export default function InventoryModal({
   open,
   onClose,
@@ -285,7 +290,7 @@ export default function InventoryModal({
   const selectedItemQuantity = Math.max(1, parseInt(selectedItem?.quantity || 1, 10) || 1);
   const removeQuantity = Math.max(1, Math.min(selectedItemQuantity, parseInt(removeItemState.quantity || 1, 10) || 1));
   const canUseOne = isClearlyUsableInventoryItem({ inventoryItem: selectedItem, catalogItem: selectedItemCatalog });
-  const selectedItemShape = selectedItemCatalog || selectedItem;
+  const selectedItemShape = normalizeItemShapeCandidate(selectedItemCatalog) || normalizeItemShapeCandidate(selectedItem);
   const selectedItemNeedsAttunement = itemRequiresAttunement(selectedItemShape);
   const selectedItemSlot = resolveItemSlot(selectedItemShape);
   const selectedItemAttunedSlotBound = isAttunedSlotBoundItem(selectedItemShape);
@@ -293,12 +298,12 @@ export default function InventoryModal({
   const attuneDisabled = !selectedItem?.attuned && !attunementRestContext && !isDm;
 
   function findSlotConflictForAttunedItem(itemRow) {
-    const itemShape = selectedItemCatalog || itemRow;
+    const itemShape = normalizeItemShapeCandidate(selectedItemCatalog) || normalizeItemShapeCandidate(itemRow);
     const slot = resolveItemSlot(itemShape);
     if (!slot || slot === 'ring') return null;
     return (snapshot.items || []).find((candidate) => {
       if (candidate.id === itemRow.id) return false;
-      const candidateShape = candidate;
+      const candidateShape = normalizeItemShapeCandidate(candidate);
       if (resolveItemSlot(candidateShape) !== slot) return false;
       return !!candidate.attuned || !!candidate.equipped;
     }) || null;

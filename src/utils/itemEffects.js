@@ -11,18 +11,36 @@ export const EQUIPMENT_SLOT_LIMITS = {
 
 const EMPTY_EFFECTS = Object.freeze([]);
 
+function isPlainObject(value) {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function normalizeItemShape(item) {
+  if (!isPlainObject(item)) return {};
+  return item;
+}
+
+function normalizedMetadata(item) {
+  const safeItem = normalizeItemShape(item);
+  return isPlainObject(safeItem.metadata_json) ? safeItem.metadata_json : null;
+}
+
 function toNumber(value, fallback = 0) {
   const numeric = Number(value);
   return Number.isFinite(numeric) ? numeric : fallback;
 }
 
 export function extractItemMechanics(item = {}) {
-  const metadata = item?.metadata_json || {};
-  return metadata.mechanics || item.mechanics || null;
+  const safeItem = normalizeItemShape(item);
+  const metadata = normalizedMetadata(safeItem);
+  const metadataMechanics = isPlainObject(metadata?.mechanics) ? metadata.mechanics : null;
+  const topLevelMechanics = isPlainObject(safeItem.mechanics) ? safeItem.mechanics : null;
+  return metadataMechanics || topLevelMechanics || null;
 }
 
 export function mechanicsSupportLevel(item = {}) {
-  return String(item?.metadata_json?.mechanics_support || 'unsupported');
+  const metadata = normalizedMetadata(item);
+  return String(metadata?.mechanics_support || 'unsupported');
 }
 
 export function isMechanicsSupported(item = {}) {
@@ -48,9 +66,10 @@ export function getItemPassiveEffects(item = {}) {
 }
 
 export function itemRequiresAttunement(item = {}) {
-  const mechanics = extractItemMechanics(item);
+  const safeItem = normalizeItemShape(item);
+  const mechanics = extractItemMechanics(safeItem);
   if (typeof mechanics?.requires_attunement === 'boolean') return mechanics.requires_attunement;
-  return !!item.requires_attunement;
+  return !!safeItem.requires_attunement;
 }
 
 export function isSlotBoundItem(item = {}) {
@@ -62,17 +81,19 @@ export function isAttunedSlotBoundItem(item = {}) {
 }
 
 export function isItemEffectivelyEquipped(item = {}) {
-  if (item?.equipped) return true;
-  if (!item?.attuned) return false;
-  return isAttunedSlotBoundItem(item);
+  const safeItem = normalizeItemShape(item);
+  if (safeItem.equipped) return true;
+  if (!safeItem.attuned) return false;
+  return isAttunedSlotBoundItem(safeItem);
 }
 
 export function isItemActive(item = {}) {
-  const effectivelyEquipped = isItemEffectivelyEquipped(item);
-  const attuned = !!item.attuned;
-  const mechanics = extractItemMechanics(item);
+  const safeItem = normalizeItemShape(item);
+  const effectivelyEquipped = isItemEffectivelyEquipped(safeItem);
+  const attuned = !!safeItem.attuned;
+  const mechanics = extractItemMechanics(safeItem);
   const activation = String(mechanics?.activation_mode || '').toLowerCase();
-  const requiresAttune = itemRequiresAttunement(item);
+  const requiresAttune = itemRequiresAttunement(safeItem);
 
   if (activation === 'attunement_only') return attuned;
   if (requiresAttune) return effectivelyEquipped && attuned;

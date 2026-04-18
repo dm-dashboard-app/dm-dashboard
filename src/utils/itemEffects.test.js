@@ -1,4 +1,12 @@
-import { applyItemEffectsToProfile, classifyInventoryRows, isItemActive } from './itemEffects';
+import {
+  applyItemEffectsToProfile,
+  classifyInventoryRows,
+  extractItemMechanics,
+  isItemActive,
+  itemRequiresAttunement,
+  mechanicsSupportLevel,
+  resolveItemSlot,
+} from './itemEffects';
 
 function item(overrides = {}) {
   return {
@@ -112,5 +120,23 @@ describe('itemEffects', () => {
     expect(rows.itemRows.map((row) => row.id)).toEqual(['ok']);
     expect(rows.equipmentRows).toEqual([]);
     expect(rows.attunementRows).toEqual([]);
+  });
+
+  test('guards nullish and malformed mechanics containers without throwing', () => {
+    expect(() => extractItemMechanics(null)).not.toThrow();
+    expect(extractItemMechanics(null)).toBeNull();
+    expect(extractItemMechanics({ metadata_json: null })).toBeNull();
+    expect(extractItemMechanics({ metadata_json: { mechanics: null } })).toBeNull();
+    expect(extractItemMechanics({ metadata_json: { mechanics: 'bad' } })).toBeNull();
+    expect(extractItemMechanics({ metadata_json: { mechanics: { slot_family: 'armor' } } })).toEqual({ slot_family: 'armor' });
+  });
+
+  test('inventory-facing helpers stay safe for null selected-item shapes', () => {
+    expect(() => itemRequiresAttunement(null)).not.toThrow();
+    expect(itemRequiresAttunement(null)).toBe(false);
+    expect(resolveItemSlot(null)).toBeNull();
+    expect(mechanicsSupportLevel(null)).toBe('unsupported');
+    expect(mechanicsSupportLevel({ metadata_json: null })).toBe('unsupported');
+    expect(itemRequiresAttunement({ metadata_json: null, requires_attunement: true })).toBe(true);
   });
 });

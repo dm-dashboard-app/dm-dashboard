@@ -252,6 +252,8 @@ Preservation rule:
 
 Landed truthfulness polish addendum (April 18, 2026):
 
+
+- item-effects helper seams used by inventory render now defensively normalize null/malformed item + metadata mechanics payloads, preventing render-time crashes when selected/candidate inventory rows contain null mechanics shapes
 - inventory rows now present in player-facing non-overlapping buckets by real state (`Items`, `Equipment`, `Attuned`) so attuned rows no longer disappear/misclassify
 - inventory open-path now hardens snapshot row-shape assumptions so malformed/null rows no longer crash player inventory rendering to a black screen
 - attunement RPC semantics no longer auto-force `equipped=true`, reducing player-facing equip/attune confusion while preserving activation rules
