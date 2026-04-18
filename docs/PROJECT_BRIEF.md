@@ -121,6 +121,7 @@ Landed baseline includes:
 - archive/unarchive flow for monster/NPC templates
 - default active lists remain cleaner for session use
 - non-destructive recovery path for archived templates
+- NPC world-list portraits now render with a graceful skeleton/fade-in loading treatment (with above-the-fold eager priority and broken-image fallback), so row text remains readable without prolonged `Loading…` placeholders
 
 Preservation rule:
 
