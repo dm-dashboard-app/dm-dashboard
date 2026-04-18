@@ -112,6 +112,23 @@ export default function DMCombatLog({ encounterId }) {
   }
 
   const pendingAlertCount = alerts.filter(c => c.result === 'pending').length;
+  const compactCombatEntries = (() => {
+    const rows = [];
+    for (const entry of combatEntries) {
+      const prev = rows[rows.length - 1];
+      if (
+        prev
+        && entry?.action === SHORT_REST_RESPONSE_ACTION
+        && prev?.action === SHORT_REST_RESPONSE_ACTION
+        && prev?.actor === entry?.actor
+        && formatCombatDetail(prev) === formatCombatDetail(entry)
+      ) {
+        continue;
+      }
+      rows.push(entry);
+    }
+    return rows;
+  })();
 
   return (
     <div className="panel dm-section-panel dm-log-panel">
@@ -132,7 +149,7 @@ export default function DMCombatLog({ encounterId }) {
           {loadingCombat && <div className="empty-state">Loading…</div>}
           {!loadingCombat && combatEntries.length === 0 && <div className="empty-state">No events logged yet.</div>}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {combatEntries.map(e => (
+            {compactCombatEntries.map(e => (
               <div key={e.id} className={`log-item ${actionClass(e.action)}`}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
                   <span className="log-item-action">{formatCombatDetail(e)}</span>

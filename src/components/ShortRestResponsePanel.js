@@ -10,6 +10,7 @@ import {
   computeHealingTotal,
   deriveShortRestAttunementChanges,
 } from '../utils/shortRestWorkflow';
+import { itemRequiresAttunement } from '../utils/itemEffects';
 
 export default function ShortRestResponsePanel({ open, encounterId, state, playerStates, initialResponse, sharedSongOfRestTotal = 0, onClose, onSubmitted }) {
   const profile = useMemo(() => state?.profiles_players || {}, [state?.profiles_players]);
@@ -31,6 +32,7 @@ export default function ShortRestResponsePanel({ open, encounterId, state, playe
   const [submitting, setSubmitting] = useState(false);
   const [snapshotItems, setSnapshotItems] = useState([]);
   const [selectedAttuneIds, setSelectedAttuneIds] = useState([]);
+  const [attunementFilter, setAttunementFilter] = useState('');
 
 
   useEffect(() => {
@@ -61,8 +63,13 @@ export default function ShortRestResponsePanel({ open, encounterId, state, playe
   }, [open, state?.id, state?.player_profile_id]);
 
   const attunableItems = useMemo(() => {
-    return (snapshotItems || []).filter((row) => !!row.requires_attunement);
+    return (snapshotItems || []).filter((row) => itemRequiresAttunement(row));
   }, [snapshotItems]);
+  const filteredAttunableItems = useMemo(() => {
+    const q = String(attunementFilter || '').trim().toLowerCase();
+    if (!q) return attunableItems;
+    return attunableItems.filter((item) => String(item.name || '').toLowerCase().includes(q));
+  }, [attunementFilter, attunableItems]);
 
 
   useEffect(() => {
@@ -179,8 +186,16 @@ export default function ShortRestResponsePanel({ open, encounterId, state, playe
                 {attunableItems.length === 0 ? (
                   <div className="rest-modal-player-meta">No attunement-eligible items in your inventory.</div>
                 ) : (
-                  <div style={{ display: 'grid', gap: 4 }}>
-                    {attunableItems.map((item) => {
+                  <div style={{ display: 'grid', gap: 6 }}>
+                    <input
+                      className="rest-modal-input"
+                      type="text"
+                      value={attunementFilter}
+                      placeholder="Search attunement items"
+                      onChange={(event) => setAttunementFilter(event.target.value)}
+                    />
+                    <div style={{ display: 'grid', gap: 4, maxHeight: '26vh', overflowY: 'auto', paddingRight: 2 }}>
+                    {filteredAttunableItems.map((item) => {
                       const checked = selectedAttuneIds.includes(item.id);
                       return (
                         <label key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
@@ -199,6 +214,8 @@ export default function ShortRestResponsePanel({ open, encounterId, state, playe
                         </label>
                       );
                     })}
+                    </div>
+                    {filteredAttunableItems.length === 0 ? <div className="rest-modal-player-meta">No attunement items match your search.</div> : null}
                     <div className="rest-modal-player-meta">Selected: {selectedAttuneIds.length} / 3</div>
                   </div>
                 )}

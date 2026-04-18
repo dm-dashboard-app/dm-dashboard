@@ -11,18 +11,18 @@ function item(overrides = {}) {
 }
 
 describe('itemEffects', () => {
-  test('attunement-gated item is active only when equipped and attuned', () => {
+  test('attunement-gated slot-bound item is active when attuned and occupying its slot', () => {
     const gated = item({
-      equipped: true,
+      equipped: false,
       attuned: false,
       requires_attunement: true,
-      metadata_json: { mechanics_support: 'phase1_supported', mechanics: { activation_mode: 'equip', passive_effects: [] } },
+      metadata_json: { mechanics_support: 'phase1_supported', mechanics: { activation_mode: 'equip', slot_family: 'armor', passive_effects: [] } },
     });
     expect(isItemActive(gated)).toBe(false);
     expect(isItemActive({ ...gated, attuned: true })).toBe(true);
   });
 
-  test('equipping an already-attuned gated item preserves active state', () => {
+  test('attuned item without slot data still requires explicit equip state', () => {
     const itemRow = item({
       equipped: false,
       attuned: true,

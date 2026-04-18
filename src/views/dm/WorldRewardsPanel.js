@@ -80,6 +80,9 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
   const [currencyTarget, setCurrencyTarget] = useState('single');
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
+  const [catalogOffset, setCatalogOffset] = useState(0);
+  const [catalogHasMore, setCatalogHasMore] = useState(false);
+  const PAGE_SIZE = 60;
 
   const players = useMemo(() => {
     const map = new Map();
@@ -98,6 +101,10 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
   }, [players, targetProfileId]);
 
   useEffect(() => {
+    setCatalogOffset(0);
+  }, [query]);
+
+  useEffect(() => {
     let cancelled = false;
     const timer = setTimeout(async () => {
       const { data, error } = await supabase
@@ -106,13 +113,15 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
         .eq('rules_era', '2014')
         .ilike('name', `%${query.trim()}%`)
         .order('name')
-        .limit(40);
+        .range(catalogOffset, catalogOffset + PAGE_SIZE - 1);
       if (!cancelled) {
         if (error) {
           setStatus(`Item search failed: ${error.message || 'Unknown error'}`);
           return;
         }
-        setCatalog(data || []);
+        const rows = data || [];
+        setCatalog((curr) => (catalogOffset === 0 ? rows : [...curr, ...rows]));
+        setCatalogHasMore(rows.length === PAGE_SIZE);
       }
     }, 150);
 
@@ -120,7 +129,7 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [query]);
+  }, [catalogOffset, query]);
 
   function getPlayerName(profileId) {
     const player = players.find((entry) => entry.id === profileId);
@@ -205,6 +214,11 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
             ))}
             {catalog.length === 0 ? <div className="empty-state">No catalog matches your search.</div> : null}
           </div>
+          {catalogHasMore ? (
+            <button className="btn btn-ghost" type="button" onClick={() => setCatalogOffset((curr) => curr + PAGE_SIZE)}>
+              Load More
+            </button>
+          ) : null}
         </div>
 
         <div className="world-shops-stock-panel">
