@@ -168,12 +168,12 @@ export function classifyInventoryRows(items = []) {
   const attunementRows = [];
 
   (items || []).forEach((item) => {
-    if (item.equipped) {
-      equipmentRows.push(item);
+    if (item?.attuned) {
+      attunementRows.push(item);
       return;
     }
-    if (itemRequiresAttunement(item)) {
-      attunementRows.push(item);
+    if (item?.equipped) {
+      equipmentRows.push(item);
       return;
     }
     itemRows.push(item);

@@ -13,6 +13,7 @@ import IncomingTransferPopup from '../inventory/IncomingTransferPopup';
 import { inventoryGetPendingIncoming, inventoryRespondTransfer } from '../inventory/inventoryClient';
 import PlayerWorldPanel from './player/PlayerWorldPanel';
 import ShortRestResponsePanel from '../components/ShortRestResponsePanel';
+import PlayerLongRestItemsSection from '../components/PlayerLongRestItemsSection';
 import {
   getSharedSongOfRestTotal,
 } from '../utils/shortRestWorkflow';
@@ -214,7 +215,7 @@ export default function PlayerView() {
           <span style={{ fontSize: 13, fontWeight: 600, color: prepReady ? 'var(--accent-green)' : 'var(--accent-blue)' }}>
             {prepReady ? 'Long rest spell prep complete. Waiting for DM to finish the long rest.' : 'Long rest spell prep required.'}
           </span>
-          {!prepReady && <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => { setTopTab('char'); setCharTab('spells'); }}>Open Spells</button>}
+          {!prepReady && <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => { setTopTab('char'); setCharTab('spells'); }}>Open Long Rest Prep</button>}
         </div>
       )}
 
@@ -270,10 +271,19 @@ export default function PlayerView() {
           prepReady={prepReady}
           onMarkReady={markPrepReady}
           onPrepChanged={markPrepDirty}
+
+          prepExtraSection={(
+            <PlayerLongRestItemsSection
+              state={state}
+              joinCode={localStorage.getItem('player_join_code')}
+              onApplied={refreshAll}
+            />
+          )}
           title="Long Rest Preparation"
-          subtitle="Choose your prepared spells, inspect details if needed, then mark ready."
+          subtitle="Choose prepared spells, review item attunement/recharge in this same flow, then mark ready."
         />
       )}
+
     </div>
   );
 }

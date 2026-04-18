@@ -250,6 +250,14 @@ Preservation rule:
 
 ### 15) Inventory subsystem baseline (Phase 1)
 
+Landed truthfulness polish addendum (April 18, 2026):
+
+- inventory rows now present in player-facing non-overlapping buckets by real state (`Items`, `Equipment`, `Attuned`) so attuned rows no longer disappear/misclassify
+- attunement RPC semantics no longer auto-force `equipped=true`, reducing player-facing equip/attune confusion while preserving activation rules
+- player-facing long-rest path now includes direct inventory attunement/recharge access alongside spell prep readiness
+- short-rest response + DM review path now preserves clearer attunement payload handling with improved combat-log readability
+- manual profile bonus editor now normalizes persisted AC/spell-attack manual values into visible form fields (including legacy spell-attack storage variants)
+
 Landed baseline includes:
 
 - dedicated inventory subsystem tables + RPCs for player inventory items, currency, transfer lifecycle, and DM-only audit logs

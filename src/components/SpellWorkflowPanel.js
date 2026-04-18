@@ -68,7 +68,7 @@ function SpellRow({ spell, action, onOpenDetail, compact = false }) {
   );
 }
 
-function PanelBody({ title, subtitle, tabs, activeTab, setActiveTab, filterState, setFilterState, displayed, selectedSpell, setSelectedSpell, footer }) {
+function PanelBody({ title, subtitle, tabs, activeTab, setActiveTab, filterState, setFilterState, displayed, selectedSpell, setSelectedSpell, prepExtraSection, footer }) {
   return (
     <>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 10 }}>
@@ -92,13 +92,14 @@ function PanelBody({ title, subtitle, tabs, activeTab, setActiveTab, filterState
         {displayed.length === 0 && <div className="empty-state">No spells in this view.</div>}
         {displayed.map(item => item.render(setSelectedSpell))}
       </div>
+      {prepExtraSection ? <div style={{ marginTop: 12 }}>{prepExtraSection}</div> : null}
       {footer ? <div style={{ marginTop: 12 }}>{footer}</div> : null}
       <SpellDetailsModal spell={selectedSpell} onClose={() => setSelectedSpell(null)} />
     </>
   );
 }
 
-export default function SpellWorkflowPanel({ profile, state, encounterId, onUpdate, role = 'player', mode = 'runtime', variant = 'panel', onClose = null, prepReady = false, onMarkReady = null, onPrepChanged = null, title = '', subtitle = '' }) {
+export default function SpellWorkflowPanel({ profile, state, encounterId, onUpdate, role = 'player', mode = 'runtime', variant = 'panel', onClose = null, prepReady = false, onMarkReady = null, onPrepChanged = null, title = '', subtitle = '', prepExtraSection = null }) {
   const [allSpells, setAllSpells] = useState([]);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -221,7 +222,7 @@ export default function SpellWorkflowPanel({ profile, state, encounterId, onUpda
 
   const body = loading
     ? <div className="empty-state">Loading spells…</div>
-    : <PanelBody title={panelTitle} subtitle={panelSubtitle} tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} filterState={filterState} setFilterState={setFilterState} displayed={displayed} selectedSpell={selectedSpell} setSelectedSpell={setSelectedSpell} footer={footer} />;
+    : <PanelBody title={panelTitle} subtitle={panelSubtitle} tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} filterState={filterState} setFilterState={setFilterState} displayed={displayed} selectedSpell={selectedSpell} setSelectedSpell={setSelectedSpell} prepExtraSection={prepExtraSection} footer={footer} />;
 
   if (variant === 'modal') {
     return (
@@ -234,7 +235,7 @@ export default function SpellWorkflowPanel({ profile, state, encounterId, onUpda
             </div>
             {onClose ? <button type="button" className="btn btn-ghost btn-icon" onClick={onClose}>✕</button> : null}
           </div>
-          <div style={{ marginTop: 8 }}>{loading ? <div className="empty-state">Loading spells…</div> : <PanelBody title="" subtitle="" tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} filterState={filterState} setFilterState={setFilterState} displayed={displayed} selectedSpell={selectedSpell} setSelectedSpell={setSelectedSpell} footer={footer} />}</div>
+          <div style={{ marginTop: 8 }}>{loading ? <div className="empty-state">Loading spells…</div> : <PanelBody title="" subtitle="" tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} filterState={filterState} setFilterState={setFilterState} displayed={displayed} selectedSpell={selectedSpell} setSelectedSpell={setSelectedSpell} prepExtraSection={prepExtraSection} footer={footer} />}</div>
         </div>
       </div>
     );

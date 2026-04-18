@@ -87,14 +87,16 @@ describe('itemEffects', () => {
     expect(result.acFromItems).toBe(10);
   });
 
-  test('classifies rows into items/equipment/attunement buckets', () => {
+  test('classifies rows into non-overlapping items/equipment/attuned buckets', () => {
     const rows = classifyInventoryRows([
       item({ id: 'a', equipped: true }),
-      item({ id: 'b', requires_attunement: true }),
-      item({ id: 'c' }),
+      item({ id: 'b', equipped: true, attuned: true, requires_attunement: true }),
+      item({ id: 'c', attuned: true, requires_attunement: true }),
+      item({ id: 'd', requires_attunement: true }),
+      item({ id: 'e' }),
     ]);
     expect(rows.equipmentRows.map((row) => row.id)).toEqual(['a']);
-    expect(rows.attunementRows.map((row) => row.id)).toEqual(['b']);
-    expect(rows.itemRows.map((row) => row.id)).toEqual(['c']);
+    expect(rows.attunementRows.map((row) => row.id)).toEqual(['b', 'c']);
+    expect(rows.itemRows.map((row) => row.id)).toEqual(['d', 'e']);
   });
 });

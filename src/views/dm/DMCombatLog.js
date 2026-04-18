@@ -1,6 +1,11 @@
 import React, { useCallback, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import usePolling from '../../hooks/usePolling';
+import {
+  SHORT_REST_LOG_ACTION,
+  SHORT_REST_RESPONSE_ACTION,
+  formatShortRestResponseLogDetail,
+} from '../../utils/shortRestWorkflow';
 
 export default function DMCombatLog({ encounterId }) {
   const [logSection, setLogSection] = useState('combat');
@@ -82,6 +87,30 @@ export default function DMCombatLog({ encounterId }) {
     await resolveAlert(alert, 'cleared');
   }
 
+
+  function formatCombatDetail(entry) {
+    if (!entry) return '';
+    if (entry.action === SHORT_REST_LOG_ACTION) {
+      try {
+        const payload = typeof entry.detail === 'object' ? entry.detail : JSON.parse(entry.detail);
+        if (payload?.type === 'start') return 'Short rest procedure started';
+        if (payload?.type === 'cancel') return 'Short rest procedure canceled';
+        if (payload?.type === 'complete') return 'Short rest procedure completed';
+      } catch (_err) {
+        return 'Short rest procedure event';
+      }
+    }
+    if (entry.action === SHORT_REST_RESPONSE_ACTION) {
+      try {
+        const payload = typeof entry.detail === 'object' ? entry.detail : JSON.parse(entry.detail);
+        return formatShortRestResponseLogDetail(payload);
+      } catch (_err) {
+        return 'Short rest response submitted';
+      }
+    }
+    return entry.detail || entry.action;
+  }
+
   const pendingAlertCount = alerts.filter(c => c.result === 'pending').length;
 
   return (
@@ -106,7 +135,7 @@ export default function DMCombatLog({ encounterId }) {
             {combatEntries.map(e => (
               <div key={e.id} className={`log-item ${actionClass(e.action)}`}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
-                  <span className="log-item-action">{e.detail || e.action}</span>
+                  <span className="log-item-action">{formatCombatDetail(e)}</span>
                   <span className="log-item-meta" style={{ flexShrink: 0 }}>{timeLabel(e.created_at)}</span>
                 </div>
                 {e.actor && <span className="log-item-meta">by {e.actor}</span>}

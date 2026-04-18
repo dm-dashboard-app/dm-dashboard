@@ -8,6 +8,7 @@ import {
   validateShortRestResponse,
   SHORT_REST_RESPONSE_ACTION,
   computeHealingTotal,
+  deriveShortRestAttunementChanges,
 } from '../utils/shortRestWorkflow';
 
 export default function ShortRestResponsePanel({ open, encounterId, state, playerStates, initialResponse, sharedSongOfRestTotal = 0, onClose, onSubmitted }) {
@@ -16,6 +17,11 @@ export default function ShortRestResponsePanel({ open, encounterId, state, playe
   const isSongOwner = state?.id === songOwnerId;
   const songDie = getSongOfRestDie(profile);
   const initialHealing = initialResponse?.sections?.healing || {};
+  const initialAttunementIds = useMemo(() => (
+    Array.isArray(initialResponse?.sections?.attunement?.item_ids)
+      ? initialResponse.sections.attunement.item_ids
+      : []
+  ), [initialResponse]);
   const [draft, setDraft] = useState(() => ({
     rolledTotal: initialHealing.rolledTotal ?? '',
     totalHitDiceUsed: initialHealing.totalHitDiceUsed ?? '',
@@ -54,7 +60,26 @@ export default function ShortRestResponsePanel({ open, encounterId, state, playe
     };
   }, [open, state?.id, state?.player_profile_id]);
 
-  const attunableItems = useMemo(() => (snapshotItems || []).filter((row) => row.requires_attunement), [snapshotItems]);
+  const attunableItems = useMemo(() => {
+    return (snapshotItems || []).filter((row) => !!row.requires_attunement);
+  }, [snapshotItems]);
+
+
+  useEffect(() => {
+    if (!open) return;
+    const nextHealing = initialResponse?.sections?.healing || {};
+    setDraft({
+      rolledTotal: nextHealing.rolledTotal ?? '',
+      totalHitDiceUsed: nextHealing.totalHitDiceUsed ?? '',
+      songOfRestTotal: nextHealing.songOfRestTotal ?? '',
+      spendBySize: nextHealing.spendBySize || {},
+    });
+    setSelectedAttuneIds((curr) => {
+      if (initialAttunementIds.length > 0) return initialAttunementIds;
+      if (curr.length > 0) return curr;
+      return (snapshotItems || []).filter((row) => row.attuned).map((row) => row.id);
+    });
+  }, [open, initialResponse, initialAttunementIds, snapshotItems]);
 
   const validation = useMemo(() => validateShortRestResponse({ input: draft, state, profile, isSongOfRestOwner: isSongOwner }), [draft, state, profile, isSongOwner]);
   const healing = validation.response.sections.healing;
@@ -69,10 +94,26 @@ export default function ShortRestResponsePanel({ open, encounterId, state, playe
   function updateField(key, value) { setDraft(curr => ({ ...curr, [key]: value })); }
   function updateSpend(size, value) { setDraft(curr => ({ ...curr, spendBySize: { ...(curr.spendBySize || {}), [size]: value } })); }
 
+  const attunementTooMany = selectedAttuneIds.length > 3;
+
   async function handleSubmit() {
-    if (!encounterId || !state?.id || !validation.valid || submitting) return;
+    if (!encounterId || !state?.id || !validation.valid || submitting || attunementTooMany) return;
     setSubmitting(true);
     try {
+      const normalizedAttunement = deriveShortRestAttunementChanges({
+        selectedAttuneIds,
+        inventoryRows: attunableItems,
+        maxAttuned: 3,
+      })
+        .filter((row) => row.shouldBeAttuned)
+        .map((row) => row.id);
+      const submissionResponse = {
+        ...validation.response,
+        sections: {
+          ...(validation.response.sections || {}),
+          attunement: { item_ids: normalizedAttunement },
+        },
+      };
       await supabase.from('combat_log').insert({
         encounter_id: encounterId,
         actor: profile?.name || 'Player',
@@ -80,10 +121,10 @@ export default function ShortRestResponsePanel({ open, encounterId, state, playe
         detail: JSON.stringify({
           player_state_id: state.id,
           player_profile_id: state.player_profile_id,
-          response: { ...validation.response, sections: { ...(validation.response.sections || {}), attunement: { item_ids: selectedAttuneIds } } },
+          response: submissionResponse,
         }),
       });
-      onSubmitted?.(validation.response);
+      onSubmitted?.(submissionResponse);
       onClose?.();
     } finally {
       setSubmitting(false);
@@ -147,7 +188,11 @@ export default function ShortRestResponsePanel({ open, encounterId, state, playe
                             type="checkbox"
                             checked={checked}
                             onChange={() => {
-                              setSelectedAttuneIds((curr) => checked ? curr.filter((id) => id !== item.id) : [...curr, item.id].slice(0, 3));
+                              setSelectedAttuneIds((curr) => {
+                                if (checked) return curr.filter((id) => id !== item.id);
+                                if (curr.length >= 3) return curr;
+                                return [...curr, item.id];
+                              });
                             }}
                           />
                           <span>{item.name}</span>
@@ -159,6 +204,7 @@ export default function ShortRestResponsePanel({ open, encounterId, state, playe
                 )}
               </div>
 
+              {attunementTooMany ? <div style={{ fontSize: 11, color: 'var(--accent-red)', marginTop: 6 }}>Attunement selection exceeds the max of 3.</div> : null}
               {validation.errors.map(error => <div key={error} style={{ fontSize: 11, color: 'var(--accent-red)', marginTop: 6 }}>{error}</div>)}
 
               <div className="rest-modal-player-meta" style={{ marginTop: 8 }}>
@@ -168,7 +214,7 @@ export default function ShortRestResponsePanel({ open, encounterId, state, playe
           </div>
           <div className="rest-modal-actions">
             <button className="btn btn-ghost" onClick={onClose} disabled={submitting}>Cancel</button>
-            <button className="btn btn-primary" onClick={handleSubmit} disabled={submitting || !validation.valid}>{submitting ? 'Submitting…' : 'Mark Ready'}</button>
+            <button className="btn btn-primary" onClick={handleSubmit} disabled={submitting || !validation.valid || attunementTooMany}>{submitting ? 'Submitting…' : 'Mark Ready'}</button>
           </div>
         </div>
       </div>

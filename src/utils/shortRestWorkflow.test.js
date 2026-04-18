@@ -5,6 +5,8 @@ import {
   deriveShortRestProcedureState,
   getSharedSongOfRestTotal,
   validateShortRestResponse,
+  deriveShortRestAttunementChanges,
+  formatShortRestResponseLogDetail,
 } from './shortRestWorkflow';
 
 describe('shortRestWorkflow', () => {
@@ -101,6 +103,43 @@ describe('shortRestWorkflow', () => {
     expect(patch.current_hp).toBe(23);
   });
 
+
+
+  test('derives attunement delta updates from selected short-rest ids', () => {
+    const changes = deriveShortRestAttunementChanges({
+      selectedAttuneIds: ['a', 'b', 'b', 'c', 'd'],
+      inventoryRows: [
+        { id: 'a', attuned: true },
+        { id: 'b', attuned: false },
+        { id: 'c', attuned: false },
+        { id: 'x', attuned: true },
+      ],
+      maxAttuned: 3,
+    });
+
+    const changedIds = changes.filter((row) => row.needsUpdate).map((row) => row.id);
+    expect(changedIds).toEqual(['b', 'c', 'x']);
+  });
+
+  test('formats short rest response detail into readable combat-log text', () => {
+    const text = formatShortRestResponseLogDetail({
+      response: {
+        sections: {
+          healing: {
+            rolledTotal: 9,
+            totalHitDiceUsed: 2,
+            spendBySize: { d8: 1, d10: 1 },
+            songOfRestTotal: 3,
+          },
+          attunement: { item_ids: ['1', '2'] },
+        },
+      },
+    });
+
+    expect(text).toContain('Short rest response ready');
+    expect(text).toContain('spend 1d8, 1d10');
+    expect(text).toContain('attuned 2/3');
+  });
 
   test('clears previous responses when a new short rest starts', () => {
     const logs = [

@@ -8,6 +8,7 @@ import {
   getSongOfRestOwnerStateId,
   getSharedSongOfRestTotal,
   SHORT_REST_LOG_ACTION,
+  deriveShortRestAttunementChanges,
 } from '../utils/shortRestWorkflow';
 
 function spentSummary(spendBySize = {}) {
@@ -80,15 +81,18 @@ export default function ShortRestModal({
             .from('player_inventory_items')
             .select('id, attuned')
             .eq('player_profile_id', row.state.player_profile_id);
-          const currentRows = inventoryRows || [];
-          for (const entry of currentRows) {
-            const shouldBeAttuned = attuneIds.includes(entry.id);
-            if (shouldBeAttuned === !!entry.attuned) continue;
-            await supabase.rpc(shouldBeAttuned ? 'inventory_attune_item' : 'inventory_unattune_item', {
+          const changes = deriveShortRestAttunementChanges({
+            selectedAttuneIds: attuneIds,
+            inventoryRows: inventoryRows || [],
+            maxAttuned: 3,
+          });
+          for (const entry of changes) {
+            if (!entry.needsUpdate) continue;
+            await supabase.rpc(entry.shouldBeAttuned ? 'inventory_attune_item' : 'inventory_unattune_item', {
               p_player_profile_id: row.state.player_profile_id,
               p_item_row_id: entry.id,
               p_join_code: null,
-              p_rest_context: shouldBeAttuned,
+              p_rest_context: entry.shouldBeAttuned,
             });
           }
         }
@@ -96,11 +100,12 @@ export default function ShortRestModal({
         const fromHp = readNumberField(row.state, ['current_hp'], 0);
         const toHp = patch.current_hp ?? fromHp;
         const spends = spentSummary(row.spendBySize);
+        const usedHitDice = Math.max(0, parseInt(row.totalHitDiceUsed, 10) || 0);
         await supabase.from('combat_log').insert({
           encounter_id: encounterId,
           actor: 'DM',
           action: 'heal',
-          detail: `${row.name}: short rest +${row.healingTotal} HP (${fromHp} → ${toHp})${spends ? ` • ${spends} spent` : ''}`,
+          detail: `${row.name}: short rest +${row.healingTotal} HP (${fromHp} → ${toHp}) • hit dice ${usedHitDice}${spends ? ` • spend ${spends}` : ''}`,
         });
       }
       await supabase.from('encounters').update({ round: 1, turn_index: 0, short_rest_active: false, short_rest_started_at: null }).eq('id', encounterId);
