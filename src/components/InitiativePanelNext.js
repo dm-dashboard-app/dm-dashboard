@@ -7,8 +7,10 @@ import InitiativeEnemySlotGrid from './initiative/InitiativeEnemySlotGrid';
 import InitiativePcResourceSummary from './initiative/InitiativePcResourceSummary';
 import InitiativeLegendaryPips from './initiative/InitiativeLegendaryPips';
 import { applyPlayerDamage, applyPlayerHeal, togglePlayerReaction } from '../utils/playerStateMutations';
-import { getFinalArmorClass, getFinalSpellAttackBonus, getFinalSpellSaveDC } from '../utils/classResources';
+import { getFinalSpellAttackBonus, getFinalSpellSaveDC } from '../utils/classResources';
 import { ConcentrationSpellPickerModal } from './SpellWorkflowPanel';
+import { inventoryGetSnapshot } from '../inventory/inventoryClient';
+import { buildDerivedPlayerStats } from '../utils/derivedPlayerStats';
 
 function resolveThresholdColor(pct) {
   return pct > 50 ? 'var(--hp-high)' : pct > 25 ? 'var(--hp-mid)' : 'var(--hp-low)';
@@ -111,6 +113,7 @@ export default function InitiativePanelNext({ encounter, combatants, playerState
   const activeTurnIndex = encounter?.turn_index ?? 0;
   const displayOrdered = getDisplayOrderedCombatants(sortedOriginal, activeTurnIndex);
   const [showAddCombatant, setShowAddCombatant] = useState(false);
+  const [inventoryItemsByProfileId, setInventoryItemsByProfileId] = useState({});
   const activeRowRef = useRef(null);
   const lastActiveIdRef = useRef(null);
   const activeCombatantId = sortedOriginal[activeTurnIndex]?.id ?? null;
@@ -121,6 +124,46 @@ export default function InitiativePanelNext({ encounter, combatants, playerState
     lastActiveIdRef.current = activeCombatantId;
     activeRowRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
   }, [activeCombatantId]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadPcInventorySnapshots() {
+      const profileIds = Array.from(
+        new Set(
+          (playerStates || [])
+            .map((state) => state?.player_profile_id || state?.profiles_players?.id || null)
+            .filter(Boolean),
+        ),
+      );
+
+      if (!profileIds.length) {
+        if (!cancelled) setInventoryItemsByProfileId({});
+        return;
+      }
+
+      const joinCode = typeof window !== 'undefined' ? localStorage.getItem('player_join_code') : null;
+      const snapshots = await Promise.all(
+        profileIds.map(async (profileId) => {
+          try {
+            const snapshot = await inventoryGetSnapshot({ playerProfileId: profileId, role, joinCode });
+            return [profileId, Array.isArray(snapshot?.items) ? snapshot.items : []];
+          } catch (_error) {
+            return [profileId, []];
+          }
+        }),
+      );
+
+      if (cancelled) return;
+      setInventoryItemsByProfileId(Object.fromEntries(snapshots));
+    }
+
+    loadPcInventorySnapshots();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [playerStates, role]);
 
   return (
     <div>
@@ -133,7 +176,20 @@ export default function InitiativePanelNext({ encounter, combatants, playerState
           const isNextUp = displayIndex === 1;
           return (
             <div key={combatant.id} ref={isActive ? activeRowRef : null}>
-              <InitiativeRow combatant={combatant} playerState={playerState} isActive={isActive} isNextUp={isNextUp} isDM={isDM} isDisplay={isDisplay} onUpdate={onUpdate} sorted={sortedOriginal} idx={originalIndex} encounterId={encounter?.id} myCombatantId={myCombatantId} />
+              <InitiativeRow
+                combatant={combatant}
+                playerState={playerState}
+                isActive={isActive}
+                isNextUp={isNextUp}
+                isDM={isDM}
+                isDisplay={isDisplay}
+                onUpdate={onUpdate}
+                sorted={sortedOriginal}
+                idx={originalIndex}
+                encounterId={encounter?.id}
+                myCombatantId={myCombatantId}
+                inventoryItems={inventoryItemsByProfileId[playerState?.player_profile_id || playerState?.profiles_players?.id || ''] || []}
+              />
             </div>
           );
         })}
@@ -144,7 +200,7 @@ export default function InitiativePanelNext({ encounter, combatants, playerState
   );
 }
 
-function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDisplay, onUpdate, encounterId, myCombatantId }) {
+function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDisplay, onUpdate, encounterId, myCombatantId, inventoryItems = [] }) {
   const [condPickerOpen, setCondPickerOpen] = useState(false);
   const [resPicker, setResPicker] = useState(false);
   const [conDc, setConDc] = useState(null);
@@ -188,9 +244,16 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
   const rxUsed = isPC ? reactionUsed : enemyReactionUsed;
   const canToggleReaction = isDM || (!isDM && isPC && myCombatantId && combatant.id === myCombatantId);
   const pcProfile = playerState?.profiles_players || {};
-  const armorClass = isPC ? getFinalArmorClass(pcProfile, playerState || {}) : combatant.ac ?? '—';
-  const spellSave = isPC ? (pcProfile?.spell_save_dc || getFinalSpellSaveDC(pcProfile || {})) : (combatant.spell_save_dc ?? null);
-  const spellAttack = isPC ? (pcProfile?.spell_attack_bonus || getFinalSpellAttackBonus(pcProfile || {})) : (combatant.spell_attack_bonus ?? combatant.spell_attack_bonus_mod ?? null);
+  const derivedPcStats = isPC
+    ? buildDerivedPlayerStats({ profile: pcProfile || {}, state: playerState || {}, inventoryItems: inventoryItems || [] })
+    : null;
+  const armorClass = isPC ? derivedPcStats?.armorClass : combatant.ac ?? '—';
+  const spellSave = isPC
+    ? (derivedPcStats?.spellSaveDc ?? (pcProfile?.spell_save_dc || getFinalSpellSaveDC(pcProfile || {})))
+    : (combatant.spell_save_dc ?? null);
+  const spellAttack = isPC
+    ? (derivedPcStats?.spellAttackBonus ?? (pcProfile?.spell_attack_bonus || getFinalSpellAttackBonus(pcProfile || {})))
+    : (combatant.spell_attack_bonus ?? combatant.spell_attack_bonus_mod ?? null);
   const sideLabel = isPC ? 'PC' : isNPC ? 'NPC' : 'ENEMY';
   const topBorder = isActive ? 'var(--accent-blue)' : isNextUp ? 'var(--accent-gold)' : 'var(--border)';
   const cardBg = isActive ? 'rgba(74,158,255,0.06)' : isNextUp ? 'rgba(240,180,41,0.05)' : 'var(--bg-panel-2)';

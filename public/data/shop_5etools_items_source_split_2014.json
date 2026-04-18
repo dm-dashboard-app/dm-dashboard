@@ -1363,8 +1363,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -1375,7 +1375,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -1476,8 +1484,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -1492,7 +1500,15 @@
             "class": "sorcerer"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -1788,8 +1804,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -1800,7 +1816,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -1836,8 +1860,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -1848,7 +1872,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -1884,8 +1916,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -1896,7 +1928,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -2059,8 +2099,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -2078,7 +2118,15 @@
             "class": "warlock"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -2114,8 +2162,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -2126,7 +2174,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -2162,8 +2218,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -2174,7 +2230,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -2393,8 +2457,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -2412,7 +2476,15 @@
             "class": "paladin"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -2574,8 +2646,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -2590,7 +2662,15 @@
             "class": "sorcerer"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -2626,8 +2706,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -2642,7 +2722,15 @@
             "class": "sorcerer"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -2678,8 +2766,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -2694,7 +2782,15 @@
             "class": "sorcerer"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -2730,8 +2826,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -2746,7 +2842,15 @@
             "class": "sorcerer"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -2782,8 +2886,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -2798,7 +2902,15 @@
             "class": "sorcerer"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -2834,8 +2946,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -2850,7 +2962,15 @@
             "class": "sorcerer"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -2886,8 +3006,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -2902,7 +3022,15 @@
             "class": "sorcerer"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -2938,8 +3066,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -2950,7 +3078,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -2986,8 +3122,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -2998,7 +3134,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -3293,8 +3437,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "curated_magic_shop_stock",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -3305,7 +3449,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -3406,8 +3558,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -3418,7 +3570,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -3454,8 +3614,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -3466,7 +3626,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -3502,8 +3670,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "manual_only_forever",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -3514,7 +3682,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "unresolved_manual_review",
           "trusted": false,
@@ -3548,8 +3724,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -3564,7 +3740,15 @@
             "class": "bard"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -3600,8 +3784,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "curated_magic_shop_stock",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -3612,7 +3796,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -3648,8 +3840,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "manual_only_forever",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -3660,7 +3852,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "unresolved_manual_review",
           "trusted": false,
@@ -3694,8 +3894,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -3713,7 +3913,15 @@
             "class": "ranger"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -3749,8 +3957,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -3761,7 +3969,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -3797,8 +4013,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -3813,7 +4029,15 @@
             "class": "sorcerer"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -3849,8 +4073,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -3865,7 +4089,15 @@
             "class": "sorcerer"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -3901,8 +4133,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -3917,7 +4149,15 @@
             "class": "sorcerer"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -3953,8 +4193,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -3969,7 +4209,15 @@
             "class": "sorcerer"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -4005,8 +4253,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -4021,7 +4269,15 @@
             "class": "sorcerer"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -4122,8 +4378,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -4134,7 +4390,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -4283,8 +4547,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -4295,7 +4559,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -4331,8 +4603,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -4343,7 +4615,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -4445,8 +4725,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -4457,7 +4737,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -4493,8 +4781,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -4509,7 +4797,15 @@
             "class": "sorcerer"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -4898,8 +5194,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "TCE",
         "source_filename": "TCE.json",
@@ -4910,7 +5206,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -4946,8 +5250,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "FTD",
         "source_filename": "FTD.json",
@@ -4962,7 +5266,15 @@
             "class": "monk"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -4998,8 +5310,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "FTD",
         "source_filename": "FTD.json",
@@ -5014,7 +5326,15 @@
             "class": "monk"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -5050,8 +5370,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "FTD",
         "source_filename": "FTD.json",
@@ -5066,7 +5386,15 @@
             "class": "monk"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -5163,8 +5491,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "FTD",
         "source_filename": "FTD.json",
@@ -5175,7 +5503,15 @@
         "has_structured_entries": true,
         "req_attune_raw": null,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -5723,8 +6059,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "FTD",
         "source_filename": "FTD.json",
@@ -5735,7 +6071,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -5771,8 +6115,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "FTD",
         "source_filename": "FTD.json",
@@ -5787,7 +6131,15 @@
             "spellcasting": true
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -5823,8 +6175,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "FTD",
         "source_filename": "FTD.json",
@@ -5835,7 +6187,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -5871,8 +6231,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "FTD",
         "source_filename": "FTD.json",
@@ -5883,7 +6243,15 @@
         "has_structured_entries": true,
         "req_attune_raw": null,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -6048,8 +6416,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "manual_only_forever",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "FTD",
         "source_filename": "FTD.json",
@@ -6060,7 +6428,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "unresolved_manual_review",
           "trusted": false,
@@ -6094,8 +6470,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "FTD",
         "source_filename": "FTD.json",
@@ -6106,7 +6482,15 @@
         "has_structured_entries": true,
         "req_attune_raw": null,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -7407,8 +7791,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "manual_only_forever",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "BMT",
         "source_filename": "BMT.json",
@@ -7419,7 +7803,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "unresolved_manual_review",
           "trusted": false,
@@ -7797,8 +8189,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "BMT",
         "source_filename": "BMT.json",
@@ -7809,7 +8201,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -7845,8 +8245,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "BMT",
         "source_filename": "BMT.json",
@@ -7857,7 +8257,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -8771,8 +9179,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "BMT",
         "source_filename": "BMT.json",
@@ -8787,7 +9195,15 @@
             "spellcasting": true
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -8879,8 +9295,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "BMT",
         "source_filename": "BMT.json",
@@ -8891,7 +9307,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -9100,8 +9524,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "BMT",
         "source_filename": "BMT.json",
@@ -9116,7 +9540,15 @@
             "spellcasting": true
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -9152,8 +9584,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "BMT",
         "source_filename": "BMT.json",
@@ -9168,7 +9600,15 @@
             "spellcasting": true
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -9204,8 +9644,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "BMT",
         "source_filename": "BMT.json",
@@ -9220,7 +9660,15 @@
             "spellcasting": true
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -9256,8 +9704,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "BMT",
         "source_filename": "BMT.json",
@@ -9272,7 +9720,15 @@
             "spellcasting": true
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -9308,8 +9764,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "BMT",
         "source_filename": "BMT.json",
@@ -9324,7 +9780,15 @@
             "spellcasting": true
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -9360,8 +9824,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "BMT",
         "source_filename": "BMT.json",
@@ -9376,7 +9840,15 @@
             "spellcasting": true
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -9635,8 +10107,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "BMT",
         "source_filename": "BMT.json",
@@ -9647,7 +10119,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -10980,8 +11460,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -10992,7 +11472,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "neck",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "amulet-of-proof-against-detection-and-location",
           "exclude_from_shop": false,
@@ -11031,8 +11519,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "gamechanging",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -11043,7 +11531,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "neck",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "amulet-of-the-planes",
           "exclude_from_shop": false,
@@ -12733,8 +13229,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "manual_only_forever",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -12745,7 +13241,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "unresolved_manual_review",
           "trusted": false,
@@ -12830,8 +13334,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -12842,7 +13346,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "boots-of-levitation",
           "exclude_from_shop": false,
@@ -12881,8 +13393,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "combat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -12893,7 +13405,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "boots-of-speed",
           "exclude_from_shop": false,
@@ -12932,8 +13452,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -12944,7 +13464,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "boots-of-striding-and-springing",
           "exclude_from_shop": false,
@@ -12983,8 +13511,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -12995,7 +13523,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "boots-of-the-winterlands",
           "exclude_from_shop": false,
@@ -13085,8 +13621,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "combat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -13097,7 +13633,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "bracers-of-archery",
           "exclude_from_shop": false,
@@ -13384,8 +13928,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "combat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -13396,7 +13940,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "brooch-of-shielding",
           "exclude_from_shop": false,
@@ -13532,8 +14084,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "unpriced",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -13544,7 +14096,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "candle-of-invocation",
           "exclude_from_shop": true,
@@ -14076,8 +14636,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -14088,7 +14648,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "cloak-of-arachnida",
           "exclude_from_shop": false,
@@ -14127,8 +14695,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -14139,7 +14707,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "cloak-of-displacement",
           "exclude_from_shop": false,
@@ -14178,8 +14754,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -14190,7 +14766,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "cloak-of-elvenkind",
           "exclude_from_shop": false,
@@ -14229,8 +14813,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "gamechanging",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -14241,7 +14825,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "cloak-of-invisibility",
           "exclude_from_shop": false,
@@ -14349,8 +14941,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -14361,7 +14953,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "cloak-of-the-bat",
           "exclude_from_shop": false,
@@ -14517,8 +15117,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "gamechanging",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -14529,7 +15129,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "crystal-ball",
           "exclude_from_shop": false,
@@ -14568,8 +15176,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "manual_only_forever",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -14580,7 +15188,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "unresolved_manual_review",
           "trusted": false,
@@ -14614,8 +15230,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "manual_only_forever",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -14626,7 +15242,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "unresolved_manual_review",
           "trusted": false,
@@ -14660,8 +15284,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "manual_only_forever",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -14672,7 +15296,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "unresolved_manual_review",
           "trusted": false,
@@ -16358,8 +16990,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -16370,7 +17002,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "eyes-of-the-eagle",
           "exclude_from_shop": false,
@@ -17208,8 +17848,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "combat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -17220,7 +17860,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "gloves-of-missile-snaring",
           "exclude_from_shop": false,
@@ -17259,8 +17907,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -17271,7 +17919,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "gloves-of-swimming-and-climbing",
           "exclude_from_shop": false,
@@ -17820,8 +18476,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -17832,7 +18488,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "hat-of-disguise",
           "exclude_from_shop": false,
@@ -17936,8 +18600,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "unpriced",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -17948,7 +18612,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "helm-of-brilliance",
           "exclude_from_shop": true,
@@ -18035,8 +18707,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -18047,7 +18719,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "helm-of-telepathy",
           "exclude_from_shop": false,
@@ -18592,8 +19272,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -18608,7 +19288,15 @@
             "class": "bard"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "instrument-of-the-bards-anstruth-harp",
           "exclude_from_shop": false,
@@ -18647,8 +19335,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -18663,7 +19351,15 @@
             "class": "bard"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "instrument-of-the-bards-canaith-mandolin",
           "exclude_from_shop": false,
@@ -18702,8 +19398,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -18718,7 +19414,15 @@
             "class": "bard"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "instrument-of-the-bards-cli-lyre",
           "exclude_from_shop": false,
@@ -18757,8 +19461,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -18773,7 +19477,15 @@
             "class": "bard"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "instrument-of-the-bards-doss-lute",
           "exclude_from_shop": false,
@@ -18812,8 +19524,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -18828,7 +19540,15 @@
             "class": "bard"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -18864,8 +19584,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -18880,7 +19600,15 @@
             "class": "bard"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "instrument-of-the-bards-mac-fuirmidh-cittern",
           "exclude_from_shop": false,
@@ -18919,8 +19647,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -18935,7 +19663,15 @@
             "class": "bard"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "instrument-of-the-bards-ollamh-harp",
           "exclude_from_shop": false,
@@ -18974,8 +19710,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "combat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -18986,7 +19722,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "ioun-stone-absorption",
           "exclude_from_shop": false,
@@ -19090,8 +19834,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "combat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -19102,7 +19846,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "ioun-stone-awareness",
           "exclude_from_shop": false,
@@ -19206,8 +19958,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "combat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -19218,7 +19970,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "ioun-stone-greater-absorption",
           "exclude_from_shop": false,
@@ -19452,8 +20212,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "combat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -19464,7 +20224,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "ioun-stone-mastery",
           "exclude_from_shop": false,
@@ -19568,8 +20336,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "combat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -19580,7 +20348,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "ioun-stone-regeneration",
           "exclude_from_shop": false,
@@ -19619,8 +20395,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "combat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -19631,7 +20407,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "ioun-stone-reserve",
           "exclude_from_shop": false,
@@ -19735,8 +20519,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -19747,7 +20531,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "ioun-stone-sustenance",
           "exclude_from_shop": false,
@@ -20041,8 +20833,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "combat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -20053,7 +20845,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "mace-of-disruption",
           "exclude_from_shop": false,
@@ -20266,8 +21066,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -20278,7 +21078,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "mantle-of-spell-resistance",
           "exclude_from_shop": false,
@@ -20925,8 +21733,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -20937,7 +21745,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "neck",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "necklace-of-adaptation",
           "exclude_from_shop": false,
@@ -21027,8 +21843,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -21049,7 +21865,15 @@
             "class": "paladin"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "neck",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -21136,8 +21960,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "combat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -21148,7 +21972,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "oathbow",
           "exclude_from_shop": false,
@@ -21504,8 +22336,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "combat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -21520,7 +22352,15 @@
             "spellcasting": true
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "pearl-of-power",
           "exclude_from_shop": false,
@@ -21661,8 +22501,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "combat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -21673,7 +22513,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "periapt-of-wound-closure",
           "exclude_from_shop": false,
@@ -24387,8 +25235,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -24399,7 +25247,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -24563,8 +25419,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -24575,7 +25431,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -24611,8 +25475,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "unpriced",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -24623,7 +25487,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "ring-of-djinni-summoning",
           "exclude_from_shop": true,
@@ -24790,8 +25662,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -24802,7 +25674,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "ring-of-feather-falling",
           "exclude_from_shop": false,
@@ -24905,8 +25785,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -24917,7 +25797,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -24953,8 +25841,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -24965,7 +25853,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -25001,8 +25897,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "combat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -25013,7 +25909,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "ring-of-free-action",
           "exclude_from_shop": false,
@@ -25052,8 +25956,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -25064,7 +25968,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "ring-of-invisibility",
           "exclude_from_shop": false,
@@ -25103,8 +26015,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -25115,7 +26027,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "ring-of-jumping",
           "exclude_from_shop": false,
@@ -25154,8 +26074,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -25166,7 +26086,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -25202,8 +26130,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -25214,7 +26142,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "ring-of-mind-shielding",
           "exclude_from_shop": false,
@@ -25253,8 +26189,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -25265,7 +26201,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -25301,8 +26245,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -25313,7 +26257,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -25418,8 +26370,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -25430,7 +26382,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -25466,8 +26426,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -25478,7 +26438,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -25514,8 +26482,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "gamechanging",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -25526,7 +26494,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "ring-of-regeneration",
           "exclude_from_shop": false,
@@ -25629,8 +26605,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -25641,7 +26617,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "ring-of-spell-storing",
           "exclude_from_shop": false,
@@ -25680,8 +26664,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -25692,7 +26676,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "ring-of-spell-turning",
           "exclude_from_shop": false,
@@ -25782,8 +26774,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "gamechanging",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -25794,7 +26786,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "ring-of-telekinesis",
           "exclude_from_shop": false,
@@ -25948,8 +26948,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "curated_magic_nondefault",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -25960,7 +26960,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -25996,8 +27004,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -26008,7 +27016,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "ring-of-warmth",
           "exclude_from_shop": false,
@@ -26162,8 +27178,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -26174,7 +27190,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "ring",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "ring-of-x-ray-vision",
           "exclude_from_shop": false,
@@ -26213,8 +27237,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -26225,7 +27249,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "robe-of-eyes",
           "exclude_from_shop": false,
@@ -26526,8 +27558,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "combat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -26538,7 +27570,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "rod-of-absorption",
           "exclude_from_shop": false,
@@ -26784,8 +27824,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -26796,7 +27836,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "rod-of-rulership",
           "exclude_from_shop": false,
@@ -27840,8 +28888,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "noncombat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -27852,7 +28900,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "slippers-of-spider-climbing",
           "exclude_from_shop": false,
@@ -28582,8 +29638,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "combat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -28613,7 +29669,15 @@
             "class": "wizard"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "staff-of-charming",
           "exclude_from_shop": false,
@@ -29125,8 +30189,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "combat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -29147,7 +30211,15 @@
             "class": "warlock"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "staff-of-the-adder",
           "exclude_from_shop": false,
@@ -29270,8 +30342,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "summoning",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -29292,7 +30364,15 @@
             "class": "warlock"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "staff-of-the-python",
           "exclude_from_shop": false,
@@ -30493,8 +31573,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "gamechanging",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -30505,7 +31585,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "talisman-of-the-sphere",
           "exclude_from_shop": false,
@@ -30618,8 +31706,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "combat",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -30630,7 +31718,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "main_hand",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "tentacle-rod",
           "exclude_from_shop": false,
@@ -30791,8 +31887,8 @@
       "is_shop_eligible": false,
       "shop_bucket": "unpriced",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -30807,7 +31903,15 @@
             "class": "wizard"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "tome-of-the-stilled-tongue",
           "exclude_from_shop": true,
@@ -32275,8 +33379,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "gamechanging",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -32287,7 +33391,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "winged-boots",
           "exclude_from_shop": false,
@@ -32326,8 +33438,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "gamechanging",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "DMG",
         "source_filename": "DMG.json",
@@ -32338,7 +33450,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing_overlay": {
           "normalized_name": "wings-of-flying",
           "exclude_from_shop": false,
@@ -38824,8 +39944,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "curated_magic_shop_stock",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "XGE",
         "source_filename": "XGE.json",
@@ -38836,7 +39956,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -39064,8 +40192,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "curated_magic_shop_stock",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "XGE",
         "source_filename": "XGE.json",
@@ -39080,7 +40208,15 @@
             "class": "warlock"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "neck",
+          "activation_mode": "equip",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -39369,8 +40505,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "curated_magic_shop_stock",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "XGE",
         "source_filename": "XGE.json",
@@ -39385,7 +40521,15 @@
             "class": "wizard"
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -39543,8 +40687,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "curated_magic_shop_stock",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "XGE",
         "source_filename": "XGE.json",
@@ -39555,7 +40699,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -40132,8 +41284,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "curated_magic_shop_stock",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "XGE",
         "source_filename": "XGE.json",
@@ -40148,7 +41300,15 @@
             "spellcasting": true
           }
         ],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,
@@ -40415,8 +41575,8 @@
       "is_shop_eligible": true,
       "shop_bucket": "curated_magic_shop_stock",
       "metadata_json": {
-        "import_quality": "detail_verified_manual",
-        "mechanics_support": "manual_required",
+        "import_quality": "detail_verified_partial_mechanics",
+        "mechanics_support": "phase1_supported",
         "source_layer": "5etools_items_by_source_curated",
         "source_key": "XGE",
         "source_filename": "XGE.json",
@@ -40427,7 +41587,15 @@
         "has_structured_entries": true,
         "req_attune_raw": true,
         "req_attune_tags": [],
-        "mechanics": null,
+        "mechanics": {
+          "slot_family": "inventory",
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
+          "armor": null,
+          "passive_effects": [],
+          "charges": null,
+          "recharge": null
+        },
         "pricing": {
           "strategy": "fallback_policy",
           "trusted": false,

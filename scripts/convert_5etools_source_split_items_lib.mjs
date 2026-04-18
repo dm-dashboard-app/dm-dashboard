@@ -633,7 +633,18 @@ function deriveMechanics(item = {}, requiresAttunement = false) {
 
   const recharge = item.recharge ? { text: String(item.recharge) } : null;
 
-  if (!armor && !passiveEffects.length && !charges && !recharge) return null;
+  if (!armor && !passiveEffects.length && !charges && !recharge) {
+    if (!requiresAttunement) return null;
+    return {
+      slot_family: slotFamily,
+      activation_mode: slotFamily === 'inventory' ? 'attunement_only' : 'equip',
+      requires_attunement: true,
+      armor: null,
+      passive_effects: [],
+      charges: null,
+      recharge: null,
+    };
+  }
 
   return {
     slot_family: slotFamily,

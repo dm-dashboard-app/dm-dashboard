@@ -35,7 +35,9 @@ test('maps attunement magic item truthfully', () => {
   assert.equal(row.item_type, 'magic_item');
   assert.equal(row.requires_attunement, true);
   assert.equal(row.is_shop_eligible, false);
-  assert.equal(row.metadata_json.mechanics_support, 'manual_required');
+  assert.equal(row.metadata_json.mechanics_support, 'phase1_supported');
+  assert.equal(row.metadata_json.mechanics.activation_mode, 'attunement_only');
+  assert.equal(row.metadata_json.mechanics.requires_attunement, true);
 });
 
 test('derives top-level attunement from nested mechanics/runtime signals', () => {
@@ -146,9 +148,25 @@ test('inherits attunement truth through _copy chain for dragon vessel tiers', ()
 
   for (const row of [stirring, wakened, ascendant]) {
     assert.equal(row.requires_attunement, true);
-    assert.equal(row.metadata_json.mechanics || null, null);
-    assert.equal(row.metadata_json.mechanics_support, 'manual_required');
+    assert.equal(row.metadata_json.mechanics?.activation_mode, 'attunement_only');
+    assert.equal(row.metadata_json.mechanics?.requires_attunement, true);
+    assert.equal(row.metadata_json.mechanics_support, 'phase1_supported');
   }
+});
+
+test('maps pearl of power as attunement-only inventory activation', () => {
+  const row = convert({
+    name: 'Pearl of Power',
+    source: 'DMG',
+    rarity: 'uncommon',
+    wondrous: true,
+    reqAttune: 'by a spellcaster',
+  });
+  assert.equal(row.requires_attunement, true);
+  assert.equal(row.metadata_json.mechanics_support, 'phase1_supported');
+  assert.equal(row.metadata_json.mechanics.slot_family, 'inventory');
+  assert.equal(row.metadata_json.mechanics.activation_mode, 'attunement_only');
+  assert.equal(row.metadata_json.mechanics.requires_attunement, true);
 });
 
 test('maps ability score floor items into supported mechanics payloads', () => {
