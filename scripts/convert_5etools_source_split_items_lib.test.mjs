@@ -75,6 +75,31 @@ test('derives simple +N armor mechanics from item name when raw bonus fields are
   assert.ok(row.metadata_json.mechanics.passive_effects.some((effect) => effect.type === 'shield_ac_bonus' && effect.value === 1));
 });
 
+test('derives mundane armor/shield mechanics for curated PHB lane rows', () => {
+  const cases = [
+    { name: 'Leather Armor', type: 'LA', ac: 11, expectedArmor: { base_ac: 11, add_dex: true, dex_cap: null } },
+    { name: 'Studded Leather Armor', type: 'LA', ac: 12, expectedArmor: { base_ac: 12, add_dex: true, dex_cap: null } },
+    { name: 'Chain Shirt', type: 'MA', ac: 13, expectedArmor: { base_ac: 13, add_dex: true, dex_cap: 2 } },
+    { name: 'Breastplate', type: 'MA', ac: 14, expectedArmor: { base_ac: 14, add_dex: true, dex_cap: 2 } },
+    { name: 'Half Plate Armor', type: 'MA', ac: 15, expectedArmor: { base_ac: 15, add_dex: true, dex_cap: 2 } },
+    { name: 'Chain Mail', type: 'HA', ac: 16, expectedArmor: { base_ac: 16, add_dex: false, dex_cap: null } },
+    { name: 'Splint Armor', type: 'HA', ac: 17, expectedArmor: { base_ac: 17, add_dex: false, dex_cap: null } },
+    { name: 'Plate Armor', type: 'HA', ac: 18, expectedArmor: { base_ac: 18, add_dex: false, dex_cap: null } },
+  ];
+
+  for (const entry of cases) {
+    const row = convert({ name: entry.name, source: 'PHB', type: entry.type, ac: entry.ac, value: 1000, armor: true }, { sourceKey: 'PHB', sourceSlug: 'phb' });
+    assert.equal(row.metadata_json.mechanics_support, 'phase1_supported');
+    assert.equal(row.metadata_json.mechanics.slot_family, 'armor');
+    assert.deepEqual(row.metadata_json.mechanics.armor, entry.expectedArmor);
+  }
+
+  const shield = convert({ name: 'Shield', source: 'PHB', type: 'S', ac: 2, value: 1000 }, { sourceKey: 'PHB', sourceSlug: 'phb' });
+  assert.equal(shield.metadata_json.mechanics_support, 'phase1_supported');
+  assert.equal(shield.metadata_json.mechanics.slot_family, 'shield');
+  assert.ok(shield.metadata_json.mechanics.passive_effects.some((effect) => effect.type === 'shield_ac_bonus' && effect.value === 2));
+});
+
 test('maps charge/recharge fields into mechanics metadata', () => {
   const row = convert({ name: 'Wand of Charges', rarity: 'rare', charges: 7, recharge: 'dawn', rechargeAmount: 1 });
   assert.equal(row.metadata_json.mechanics.charges.max, 7);

@@ -571,14 +571,26 @@ function deriveMechanics(item = {}, requiresAttunement = false) {
   const passiveEffects = [];
   const slotFamily = deriveSlotFamily(item, item?.name);
   const derivedItemType = deriveItemType(item);
+  const typeCode = parseTypeCode(item);
   const nameBonus = parseNameEnhancementBonus(item?.name);
+  const armorBaseAc = Number(item?.ac);
+  const hasArmorBaseAc = Number.isFinite(armorBaseAc) && armorBaseAc > 0;
+  const armorDexCap = typeCode === 'MA' ? 2 : null;
+  const armor = derivedItemType === 'armor' && hasArmorBaseAc
+    ? {
+      base_ac: armorBaseAc,
+      add_dex: typeCode !== 'HA',
+      dex_cap: typeCode === 'HA' ? null : armorDexCap,
+    }
+    : null;
 
   const weaponBonus = parseBonus(item.bonusWeapon)
     ?? ((derivedItemType === 'weapon' && nameBonus && nameBonus <= 3) ? nameBonus : null);
   if (weaponBonus !== null) passiveEffects.push({ type: 'weapon_attack_bonus', value: weaponBonus });
 
   const acBonus = parseBonus(item.bonusAc)
-    ?? ((['armor', 'shield'].includes(derivedItemType) && nameBonus && nameBonus <= 3) ? nameBonus : null);
+    ?? ((['armor', 'shield'].includes(derivedItemType) && nameBonus && nameBonus <= 3) ? nameBonus : null)
+    ?? ((derivedItemType === 'shield' && hasArmorBaseAc) ? armorBaseAc : null);
   if (acBonus !== null) {
     if (slotFamily === 'shield') passiveEffects.push({ type: 'shield_ac_bonus', value: acBonus });
     else passiveEffects.push({ type: 'flat_bonus', target: 'ac', value: acBonus });
@@ -621,12 +633,13 @@ function deriveMechanics(item = {}, requiresAttunement = false) {
 
   const recharge = item.recharge ? { text: String(item.recharge) } : null;
 
-  if (!passiveEffects.length && !charges && !recharge) return null;
+  if (!armor && !passiveEffects.length && !charges && !recharge) return null;
 
   return {
     slot_family: slotFamily,
     activation_mode: requiresAttunement && slotFamily === 'inventory' ? 'attunement_only' : 'equip',
     requires_attunement: requiresAttunement,
+    armor,
     passive_effects: passiveEffects,
     charges,
     recharge,

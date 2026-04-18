@@ -395,6 +395,7 @@ Landed baseline includes:
 - short-rest dock action label now fits cleanly on mobile while preserving active-state clarity
 - profile Derived Combat Maths now again exposes AC with a dedicated custom AC modifier field
 - AC fallback baseline now derives automatically from ability scores (`10 + DEX mod`) when no active armor formula applies, avoiding legacy `profiles_players.ac` baked totals as the generic baseline while preserving explicit armor formulas, Mage Armour behavior, shield/flat bonuses, and manual `ac_bonus` layering
+- curated source-split mundane PHB armor/shield rows now derive explicit phase-1 mechanics payloads from trusted raw `type`/`ac` fields (armor formulas for light/medium/heavy and shield AC bonus semantics), preventing key baseline gear from remaining `manual_required` in the active curated lane
 - item detail modals (inventory/world/rewards/locale shop) now include a distinct Mechanics & Stat Bonuses block so supported mechanics are testable independent of prose description
 
 Preservation rule:

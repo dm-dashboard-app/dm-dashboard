@@ -51,6 +51,34 @@ describe('buildDerivedPlayerStats', () => {
     expect(result.armorClass).toBe(17);
   });
 
+  test('equipped curated-lane mundane armor row applies armor formula to AC', () => {
+    const result = buildDerivedPlayerStats({
+      profile: {
+        ability_dex: 16,
+      },
+      state: {},
+      inventoryItems: [
+        {
+          equipped: true,
+          source_type: 'custom_homebrew_private_seed',
+          source_slug: 'phb-leather-armor',
+          metadata_json: {
+            mechanics_support: 'phase1_supported',
+            mechanics: {
+              slot_family: 'armor',
+              activation_mode: 'equip',
+              requires_attunement: false,
+              armor: { base_ac: 11, add_dex: true, dex_cap: null },
+              passive_effects: [],
+            },
+          },
+        },
+      ],
+    });
+
+    expect(result.armorClass).toBe(14);
+  });
+
   test('layers shield and flat AC item bonuses and preserves ac_bonus manual override', () => {
     const result = buildDerivedPlayerStats({
       profile: {
