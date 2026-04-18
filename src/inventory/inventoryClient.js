@@ -18,7 +18,25 @@ async function rpc(name, params) {
 function normalizeInventorySnapshotShape(raw) {
   const snapshot = raw && typeof raw === 'object' ? raw : {};
   const items = Array.isArray(snapshot.items)
-    ? snapshot.items.filter((row) => row && typeof row === 'object' && !Array.isArray(row))
+    ? snapshot.items
+      .filter((row) => row && typeof row === 'object' && !Array.isArray(row))
+      .map((row) => {
+        const metadata = row?.metadata_json && typeof row.metadata_json === 'object' && !Array.isArray(row.metadata_json)
+          ? row.metadata_json
+          : {};
+        const safeName = typeof row.name === 'string' ? row.name.trim() : '';
+        return {
+          ...row,
+          id: row.id || null,
+          item_master_id: row.item_master_id || null,
+          name: safeName || 'Unnamed item',
+          quantity: Math.max(0, Number(row.quantity) || 0),
+          notes: typeof row.notes === 'string' ? row.notes : null,
+          equipped: !!row.equipped,
+          attuned: !!row.attuned,
+          metadata_json: metadata,
+        };
+      })
     : [];
   const currency = snapshot.currency && typeof snapshot.currency === 'object' ? snapshot.currency : {};
   const summary = snapshot.summary && typeof snapshot.summary === 'object' ? snapshot.summary : {};

@@ -950,6 +950,97 @@
   color: var(--accent-gold);
 }
 
+.world-shops-import-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.world-shops-import-actions .btn {
+  width: 100%;
+  min-width: 0;
+}
+
+.world-shops-import-review-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.world-shops-import-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: 8px;
+}
+
+.world-shops-import-stat-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-panel-2);
+  padding: 8px;
+  display: grid;
+  gap: 2px;
+}
+
+.world-shops-import-stat-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.world-shops-import-stat-value {
+  font-size: 17px;
+  line-height: 1.1;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.world-shops-import-report-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.world-shops-import-report-block {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  display: grid;
+  gap: 4px;
+}
+
+.world-shops-import-report-title {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.world-shops-import-report-line {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+.world-shops-import-breakdown-grid {
+  display: grid;
+  gap: 6px;
+}
+
+.world-shops-import-breakdown-line {
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.01);
+  line-height: 1.35;
+}
+
 .world-shops-controls {
   display: flex;
   flex-wrap: wrap;
@@ -1285,6 +1376,10 @@
   }
 
   .world-rewards-modal-assign-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .world-shops-import-actions {
     grid-template-columns: 1fr;
   }
 }

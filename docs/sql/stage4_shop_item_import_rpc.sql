@@ -23,6 +23,7 @@ declare
   v_rows jsonb := coalesce(p_rows, '[]'::jsonb);
   v_import_meta jsonb := coalesce(p_import_meta, '{}'::jsonb);
   v_source_layer text;
+  v_source_layers text[];
   v_five_tools_expected_count integer;
   v_five_tools_valid_count integer;
 begin
@@ -53,8 +54,15 @@ begin
       v_source_layer := '5etools_items_by_source_curated';
     end if;
 
-    if v_source_layer <> '5etools_items_by_source_curated' then
-      raise exception 'five_tools_2014 import_meta source_layer must be 5etools_items_by_source_curated.';
+    if v_source_layer = '5etools_items_by_source_curated_plus_generated' then
+      v_source_layers := array[
+        '5etools_items_by_source_curated',
+        '5etools_items_by_source_curated_generated_canonical_enhancements'
+      ];
+    elsif v_source_layer = '5etools_items_by_source_curated' then
+      v_source_layers := array['5etools_items_by_source_curated'];
+    else
+      raise exception 'five_tools_2014 import_meta source_layer must be 5etools_items_by_source_curated or 5etools_items_by_source_curated_plus_generated.';
     end if;
 
     if coalesce(v_import_meta->>'expected_active_row_count', '') !~ '^[0-9]+$' then
@@ -80,7 +88,7 @@ begin
         and external_key <> ''
         and rules_era = '2014'
         and source_type = v_source_type
-        and coalesce(metadata_json->>'source_layer', '') = v_source_layer
+        and coalesce(metadata_json->>'source_layer', '') = any (coalesce(v_source_layers, array[]::text[]))
     )
     select count(*)::integer
     into v_five_tools_valid_count
@@ -92,6 +100,7 @@ begin
     end if;
   else
     v_source_layer := null;
+    v_source_layers := null;
     v_five_tools_expected_count := null;
     v_five_tools_valid_count := null;
   end if;
@@ -137,7 +146,7 @@ begin
       )
       and (
         v_mode <> 'five_tools_2014'
-        or coalesce(metadata_json->>'source_layer', '') = v_source_layer
+        or coalesce(metadata_json->>'source_layer', '') = any (coalesce(v_source_layers, array[]::text[]))
       )
   ), five_tools_payload_keys as (
     select distinct external_key
@@ -163,7 +172,7 @@ begin
     where v_mode = 'five_tools_2014'
       and v_five_tools_valid_count = v_five_tools_expected_count
       and im.source_type = v_source_type
-      and coalesce(im.metadata_json->>'source_layer', '') = coalesce(v_source_layer, '')
+      and coalesce(im.metadata_json->>'source_layer', '') = any (coalesce(v_source_layers, array[]::text[]))
       and im.external_key not in (select external_key from five_tools_payload_keys)
       and (
         im.is_shop_eligible = true
