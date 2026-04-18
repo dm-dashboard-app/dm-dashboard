@@ -136,6 +136,42 @@ export function buildShortRestPatch({ state = {}, profile = {}, healingTotal = 0
   return patch;
 }
 
+
+export function deriveShortRestAttunementChanges({ selectedAttuneIds = [], inventoryRows = [], maxAttuned = 3 } = {}) {
+  const targetIds = Array.from(new Set((selectedAttuneIds || []).filter(Boolean))).slice(0, maxAttuned);
+  const targetSet = new Set(targetIds);
+  return (inventoryRows || []).map((row) => {
+    const shouldBeAttuned = targetSet.has(row.id);
+    return {
+      ...row,
+      shouldBeAttuned,
+      needsUpdate: shouldBeAttuned !== !!row.attuned,
+    };
+  });
+}
+
+export function formatShortRestResponseLogDetail(detail = {}) {
+  const response = detail?.response || {};
+  const healing = response?.sections?.healing || {};
+  const attunement = response?.sections?.attunement || {};
+  const spendBySize = healing?.spendBySize || {};
+  const spendSummary = Object.entries(spendBySize)
+    .map(([size, amount]) => ({ size, amount: Math.max(0, parseInt(amount, 10) || 0) }))
+    .filter((row) => row.amount > 0)
+    .map((row) => `${row.amount}${row.size}`)
+    .join(', ');
+  const attunedCount = Array.isArray(attunement?.item_ids) ? attunement.item_ids.length : 0;
+
+  return [
+    'Short rest response ready',
+    `rolled ${Math.max(0, parseInt(healing?.rolledTotal, 10) || 0)}`,
+    `hit dice ${Math.max(0, parseInt(healing?.totalHitDiceUsed, 10) || 0)}`,
+    spendSummary ? `spend ${spendSummary}` : null,
+    `song ${Math.max(0, parseInt(healing?.songOfRestTotal, 10) || 0)}`,
+    `attuned ${attunedCount}/3`,
+  ].filter(Boolean).join(' • ');
+}
+
 export function deriveShortRestProcedureState(logRows = []) {
   let active = false;
   const responsesByStateId = {};

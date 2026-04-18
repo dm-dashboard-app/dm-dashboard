@@ -238,11 +238,7 @@ begin
   end if;
 
   update public.player_inventory_items pi
-  set attuned = true,
-      equipped = case
-        when coalesce(im.metadata_json->'mechanics'->>'activation_mode', '') = 'attunement_only' then pi.equipped
-        else true
-      end
+  set attuned = true
   from public.item_master im
   where pi.item_master_id = im.id
     and pi.id = p_item_row_id

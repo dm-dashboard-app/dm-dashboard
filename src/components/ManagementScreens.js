@@ -376,9 +376,18 @@ function PlayerProfileManager({ inventoryRefreshTick = 0 }) {
   return <div>{deleteError && <div className="empty-state" style={{ color: 'var(--accent-red)', marginBottom: 10 }}>{deleteError}</div>}{profiles.map(p => <div key={p.id} style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 }}><div className="manage-row"><span><strong>{p.name}</strong>{classSummary(p) ? <span style={{ color: 'var(--text-secondary)', marginLeft: 8, fontSize: 12 }}>{classSummary(p)}</span> : null}</span><div className="form-row"><button className="btn btn-ghost" onClick={() => setEditing(p)}>Edit</button><button className="btn btn-danger" onClick={() => remove(p.id)}>Delete</button></div></div><button className="btn btn-ghost" style={{ textAlign: 'left' }} onClick={() => setInventoryProfile(p)}>{formatInventorySummary(inventorySummaries[p.id] || { total_item_quantity: 0, gp: 0 })}</button></div>)}<button className="btn btn-primary" style={{ marginTop: 12 }} onClick={() => setEditing({})}>+ New Player</button>{inventoryProfile && <InventoryModal open={!!inventoryProfile} onClose={() => setInventoryProfile(null)} role="dm" playerProfileId={inventoryProfile.id} playerName={inventoryProfile.name} senderProfileId={inventoryProfile.id} inventoryRefreshTick={inventoryRefreshTick} />}</div>;
 }
 
+function normalizeManualBonusInitial(initial = {}) {
+  return {
+    ...initial,
+    ac_bonus: initial?.ac_bonus ?? 0,
+    spell_save_bonus: initial?.spell_save_bonus ?? 0,
+    spell_attack_bonus_mod: initial?.spell_attack_bonus_mod ?? initial?.spell_attack_bonus ?? 0,
+  };
+}
+
 function PlayerProfileForm({ initial, onSave, onCancel }) {
   const formRef = useRef(null);
-  const [f, setF] = useState({ name: '', max_hp: 10, ac: 10, ac_bonus: 0, initiative_mod: 0, initiative_bonus: 0, spell_save_bonus: 0, spell_attack_bonus_mod: 0, class_name: '', subclass_name: '', class_level: 1, class_name_2: '', subclass_name_2: '', class_level_2: 0, ancestry_name: '', feat_lucky: false, feat_relentless_endurance: false, feat_fey_step: false, feat_celestial_revelation: false, mage_armour_enabled: false, ability_str: 10, ability_dex: 10, ability_con: 10, ability_int: 10, ability_wis: 10, ability_cha: 10, save_str: 0, save_dex: 0, save_con: 0, save_int: 0, save_wis: 0, save_cha: 0, spell_save_dc: 8, spell_attack_bonus: 0, slots_max_1: 0, slots_max_2: 0, slots_max_3: 0, slots_max_4: 0, slots_max_5: 0, slots_max_6: 0, slots_max_7: 0, slots_max_8: 0, slots_max_9: 0, wildshape_enabled: false, portrait_url: '', ...Object.fromEntries(SKILL_DEFINITIONS.map(skill => [`skill_${skill.key}_rank`, 0])), ...initial });
+  const [f, setF] = useState({ name: '', max_hp: 10, ac: 10, ac_bonus: 0, initiative_mod: 0, initiative_bonus: 0, spell_save_bonus: 0, spell_attack_bonus_mod: 0, class_name: '', subclass_name: '', class_level: 1, class_name_2: '', subclass_name_2: '', class_level_2: 0, ancestry_name: '', feat_lucky: false, feat_relentless_endurance: false, feat_fey_step: false, feat_celestial_revelation: false, mage_armour_enabled: false, ability_str: 10, ability_dex: 10, ability_con: 10, ability_int: 10, ability_wis: 10, ability_cha: 10, save_str: 0, save_dex: 0, save_con: 0, save_int: 0, save_wis: 0, save_cha: 0, spell_save_dc: 8, spell_attack_bonus: 0, slots_max_1: 0, slots_max_2: 0, slots_max_3: 0, slots_max_4: 0, slots_max_5: 0, slots_max_6: 0, slots_max_7: 0, slots_max_8: 0, slots_max_9: 0, wildshape_enabled: false, portrait_url: '', ...Object.fromEntries(SKILL_DEFINITIONS.map(skill => [`skill_${skill.key}_rank`, 0])), ...normalizeManualBonusInitial(initial) });
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
   const derivedProfile = applyDerivedPlayerDefaults(f);

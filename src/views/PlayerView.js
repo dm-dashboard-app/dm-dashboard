@@ -13,6 +13,7 @@ import IncomingTransferPopup from '../inventory/IncomingTransferPopup';
 import { inventoryGetPendingIncoming, inventoryRespondTransfer } from '../inventory/inventoryClient';
 import PlayerWorldPanel from './player/PlayerWorldPanel';
 import ShortRestResponsePanel from '../components/ShortRestResponsePanel';
+import InventoryModal from '../inventory/InventoryModal';
 import {
   getSharedSongOfRestTotal,
 } from '../utils/shortRestWorkflow';
@@ -36,6 +37,7 @@ export default function PlayerView() {
   const [shortRestActive, setShortRestActive] = useState(false);
   const [shortRestResponsesByStateId, setShortRestResponsesByStateId] = useState({});
   const [shortRestOpen, setShortRestOpen] = useState(false);
+  const [longRestItemsOpen, setLongRestItemsOpen] = useState(false);
   const [lastSeenShortRestStartAt, setLastSeenShortRestStartAt] = useState(null);
   const profileId = localStorage.getItem('player_profile_id');
   const encounterId = localStorage.getItem('player_encounter_id');
@@ -214,7 +216,10 @@ export default function PlayerView() {
           <span style={{ fontSize: 13, fontWeight: 600, color: prepReady ? 'var(--accent-green)' : 'var(--accent-blue)' }}>
             {prepReady ? 'Long rest spell prep complete. Waiting for DM to finish the long rest.' : 'Long rest spell prep required.'}
           </span>
-          {!prepReady && <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => { setTopTab('char'); setCharTab('spells'); }}>Open Spells</button>}
+          <div style={{ display: 'flex', gap: 6 }}>
+            {!prepReady && <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => { setTopTab('char'); setCharTab('spells'); }}>Open Spells</button>}
+            <button className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }} onClick={() => setLongRestItemsOpen(true)}>Open Items</button>
+          </div>
         </div>
       )}
 
@@ -271,7 +276,21 @@ export default function PlayerView() {
           onMarkReady={markPrepReady}
           onPrepChanged={markPrepDirty}
           title="Long Rest Preparation"
-          subtitle="Choose your prepared spells, inspect details if needed, then mark ready."
+          subtitle="Choose your prepared spells, inspect details if needed, then mark ready. Use Open Items in the long-rest banner for attunement/recharge updates."
+        />
+      )}
+
+      {prepActive && state && longRestItemsOpen && (
+        <InventoryModal
+          open={longRestItemsOpen}
+          onClose={() => setLongRestItemsOpen(false)}
+          role="player"
+          playerProfileId={state.player_profile_id}
+          playerName={state?.profiles_players?.name || combatant?.name || 'Player'}
+          joinCode={localStorage.getItem('player_join_code')}
+          senderProfileId={state.player_profile_id}
+          attunementRestContext
+          allowChargeRecharge
         />
       )}
     </div>
