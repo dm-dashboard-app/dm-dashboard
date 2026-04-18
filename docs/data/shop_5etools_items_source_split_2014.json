@@ -4794,7 +4794,7 @@
       "category": "magic",
       "subcategory": "standard",
       "rarity": "legendary",
-      "requires_attunement": false,
+      "requires_attunement": true,
       "description": "This vessel can be a potion bottle, drinking horn, or other container meant to hold a liquid.\nAs a bonus action, if the vessel is empty, you can speak the command word to fill the vessel with one of the following (your choice): ale, olive oil, mead, wine, whiskey, a potion of healing, a potion of greater healing, a potion of superior healing, a potion of supreme healing, a potion of climbing, a potion of fire breath, a potion of flying, or a potion of dragon's majesty. Once this property is used, it can't be used until the next dawn. A potion you create in this way loses its magical properties if it isn't imbibed within 24 hours.",
       "base_price_gp": 200000,
       "suggested_price_gp": 200000,
@@ -4839,7 +4839,7 @@
       "category": "magic",
       "subcategory": "standard",
       "rarity": "legendary",
-      "requires_attunement": false,
+      "requires_attunement": true,
       "description": "This wondrous item can be a scepter, an orb, an amulet, a crystal, or another finely crafted object. It typically incorporates imagery of dragons' wings, claws, teeth, or scales.\nYou have advantage on initiative rolls. While you are holding the focus, it can function as a spellcasting focus for all your spells.\nThe focus gains an additional property determined by the family of the dragon in whose hoard it became Stirring:\n- Chromatic:\nWhenever you use a spell slot to cast a spell that deals acid, cold, fire, lightning, or poison damage, roll a d6, and you gain a bonus equal to the number rolled to one of the spell's damage rolls.\n- Gem:\nWhenever you use a spell slot to cast a spell, you can immediately teleport to an unoccupied space you can see within 15 feet of you.\n- Metallic:\nWhen a creature you can see within 30 feet of you makes a saving throw, you can use your reaction to give that creature advantage on the saving throw.\nWhile you are holding a Wakened focus, you can use it to cast certain spells. Once the item is used to cast a given spell, it can't be used to cast that spell again until the next dawn. The spells are determined by the family of the dragon in whose hoard it became Wakened.\n- Chromatic:\nHold monster, Rime's binding ice\n- Gem:\nRary's telepathic bond, Raulothim's psychic lance\n- Metallic:\nFizban's platinum shield, legend lore\nWhen you cast a spell of 1st level or higher while holding this focus, you can treat the spell as if it were cast using a 9th-level spell slot. Once this property is used, it can't be used again until the next dawn.",
       "base_price_gp": 200000,
       "suggested_price_gp": 200000,
@@ -4865,7 +4865,7 @@
         "mechanics": {
           "slot_family": "main_hand",
           "activation_mode": "equip",
-          "requires_attunement": false,
+          "requires_attunement": true,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -4902,7 +4902,7 @@
       "category": "magic",
       "subcategory": "standard",
       "rarity": "legendary",
-      "requires_attunement": false,
+      "requires_attunement": true,
       "description": "This ornament can be jewelry, a cloak, or another wearable accessory. It appears to be fashioned from a dragon's scale, tooth, or claw, or it incorporates images in those shapes.\nYou gain a +1 bonus to AC, and you can't be charmed or frightened. Moreover, each creature of your choice within 30 feet of you has advantage on saving throws it makes to avoid being charmed or frightened or to end those conditions on itself.\nWhen you would take damage of the type dealt by the breath of the dragon in whose hoard the ornament became Wakened, you can use your reaction to take no damage instead, and you regain hit points equal to the damage you would have taken. Once this property is used, it can't be used again until the next dawn.\nWhile you are wearing the ornament, you gain a flying speed equal to your walking speed and can hover. While you are flying using this speed, spectral dragon wings appear on your back.",
       "base_price_gp": null,
       "suggested_price_gp": null,
@@ -4927,8 +4927,8 @@
         "req_attune_tags": [],
         "mechanics": {
           "slot_family": "inventory",
-          "activation_mode": "equip",
-          "requires_attunement": false,
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -5443,7 +5443,7 @@
       "category": "magic",
       "subcategory": "standard",
       "rarity": "rare",
-      "requires_attunement": false,
+      "requires_attunement": true,
       "description": "This vessel can be a potion bottle, drinking horn, or other container meant to hold a liquid.\nAs a bonus action, if the vessel is empty, you can speak the command word to fill the vessel with one of the following (your choice): ale, olive oil, mead, a potion of healing, a potion of greater healing, a potion of climbing, or a potion of fire breath. Once this property is used, it can't be used until the next dawn. A potion you create in this way loses its magical properties if it isn't imbibed within 24 hours.",
       "base_price_gp": 5000,
       "suggested_price_gp": 5000,
@@ -5488,7 +5488,7 @@
       "category": "magic",
       "subcategory": "standard",
       "rarity": "rare",
-      "requires_attunement": false,
+      "requires_attunement": true,
       "description": "This wondrous item can be a scepter, an orb, an amulet, a crystal, or another finely crafted object. It typically incorporates imagery of dragons' wings, claws, teeth, or scales.\nYou have advantage on initiative rolls. While you are holding the focus, it can function as a spellcasting focus for all your spells.\nThe focus gains an additional property determined by the family of the dragon in whose hoard it became Stirring:\n- Chromatic:\nWhenever you use a spell slot to cast a spell that deals acid, cold, fire, lightning, or poison damage, roll a d6, and you gain a bonus equal to the number rolled to one of the spell's damage rolls.\n- Gem:\nWhenever you use a spell slot to cast a spell, you can immediately teleport to an unoccupied space you can see within 15 feet of you.\n- Metallic:\nWhen a creature you can see within 30 feet of you makes a saving throw, you can use your reaction to give that creature advantage on the saving throw.",
       "base_price_gp": 5000,
       "suggested_price_gp": 5000,
@@ -5514,7 +5514,7 @@
         "mechanics": {
           "slot_family": "main_hand",
           "activation_mode": "equip",
-          "requires_attunement": false,
+          "requires_attunement": true,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -5551,7 +5551,7 @@
       "category": "magic",
       "subcategory": "standard",
       "rarity": "rare",
-      "requires_attunement": false,
+      "requires_attunement": true,
       "description": "This ornament can be jewelry, a cloak, or another wearable accessory. It appears to be fashioned from a dragon's scale, tooth, or claw, or it incorporates images in those shapes.\nYou gain a +1 bonus to AC, and you can't be charmed or frightened. Moreover, each creature of your choice within 30 feet of you has advantage on saving throws it makes to avoid being charmed or frightened or to end those conditions on itself.",
       "base_price_gp": null,
       "suggested_price_gp": null,
@@ -5576,8 +5576,8 @@
         "req_attune_tags": [],
         "mechanics": {
           "slot_family": "inventory",
-          "activation_mode": "equip",
-          "requires_attunement": false,
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -5650,7 +5650,7 @@
       "category": "magic",
       "subcategory": "standard",
       "rarity": "very rare",
-      "requires_attunement": false,
+      "requires_attunement": true,
       "description": "This vessel can be a potion bottle, drinking horn, or other container meant to hold a liquid.\nAs a bonus action, if the vessel is empty, you can speak the command word to fill the vessel with one of the following (your choice): ale, olive oil, mead, wine, a potion of healing, a potion of greater healing, a potion of superior healing, a potion of climbing, a potion of fire breath, or a potion of flying. Once this property is used, it can't be used until the next dawn. A potion you create in this way loses its magical properties if it isn't imbibed within 24 hours.",
       "base_price_gp": 50000,
       "suggested_price_gp": 50000,
@@ -5695,7 +5695,7 @@
       "category": "magic",
       "subcategory": "standard",
       "rarity": "very rare",
-      "requires_attunement": false,
+      "requires_attunement": true,
       "description": "This wondrous item can be a scepter, an orb, an amulet, a crystal, or another finely crafted object. It typically incorporates imagery of dragons' wings, claws, teeth, or scales.\nYou have advantage on initiative rolls. While you are holding the focus, it can function as a spellcasting focus for all your spells.\nThe focus gains an additional property determined by the family of the dragon in whose hoard it became Stirring:\n- Chromatic:\nWhenever you use a spell slot to cast a spell that deals acid, cold, fire, lightning, or poison damage, roll a d6, and you gain a bonus equal to the number rolled to one of the spell's damage rolls.\n- Gem:\nWhenever you use a spell slot to cast a spell, you can immediately teleport to an unoccupied space you can see within 15 feet of you.\n- Metallic:\nWhen a creature you can see within 30 feet of you makes a saving throw, you can use your reaction to give that creature advantage on the saving throw.\nWhile you are holding a Wakened focus, you can use it to cast certain spells. Once the item is used to cast a given spell, it can't be used to cast that spell again until the next dawn. The spells are determined by the family of the dragon in whose hoard it became Wakened.\n- Chromatic:\nHold monster, Rime's binding ice\n- Gem:\nRary's telepathic bond, Raulothim's psychic lance\n- Metallic:\nFizban's platinum shield, legend lore",
       "base_price_gp": 50000,
       "suggested_price_gp": 50000,
@@ -5721,7 +5721,7 @@
         "mechanics": {
           "slot_family": "main_hand",
           "activation_mode": "equip",
-          "requires_attunement": false,
+          "requires_attunement": true,
           "passive_effects": [
             {
               "type": "flat_bonus",
@@ -5758,7 +5758,7 @@
       "category": "magic",
       "subcategory": "standard",
       "rarity": "very rare",
-      "requires_attunement": false,
+      "requires_attunement": true,
       "description": "This ornament can be jewelry, a cloak, or another wearable accessory. It appears to be fashioned from a dragon's scale, tooth, or claw, or it incorporates images in those shapes.\nYou gain a +1 bonus to AC, and you can't be charmed or frightened. Moreover, each creature of your choice within 30 feet of you has advantage on saving throws it makes to avoid being charmed or frightened or to end those conditions on itself.\nWhen you would take damage of the type dealt by the breath of the dragon in whose hoard the ornament became Wakened, you can use your reaction to take no damage instead, and you regain hit points equal to the damage you would have taken. Once this property is used, it can't be used again until the next dawn.",
       "base_price_gp": null,
       "suggested_price_gp": null,
@@ -5783,8 +5783,8 @@
         "req_attune_tags": [],
         "mechanics": {
           "slot_family": "inventory",
-          "activation_mode": "equip",
-          "requires_attunement": false,
+          "activation_mode": "attunement_only",
+          "requires_attunement": true,
           "passive_effects": [
             {
               "type": "flat_bonus",

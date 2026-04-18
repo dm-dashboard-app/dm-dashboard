@@ -15,6 +15,10 @@ function buildOverlayMap(...items) {
   return new Map(items.map(item => [String(item.normalized_name), item]));
 }
 
+function buildSourceLookup(...entries) {
+  return new Map(entries.map(entry => [`${entry.source}::${entry.name}`, entry]));
+}
+
 test('maps mundane equipment with value into import row shape', () => {
   const row = convert({ name: 'Abacus', source: 'PHB', type: 'G', rarity: 'none', value: 200, page: 150 });
   assert.equal(row.item_type, 'equipment');
@@ -81,6 +85,44 @@ test('derives dragon-touched focus tier mechanics for spell attack/save bonuses'
   assert.equal(row.metadata_json.mechanics_support, 'phase1_supported');
   assert.ok(row.metadata_json.mechanics.passive_effects.some((effect) => effect.type === 'flat_bonus' && effect.target === 'spell_attack' && effect.value === 2));
   assert.ok(row.metadata_json.mechanics.passive_effects.some((effect) => effect.type === 'flat_bonus' && effect.target === 'spell_save_dc' && effect.value === 2));
+});
+
+test('inherits attunement truth through _copy chain for dragon-touched focus tiers', () => {
+  const sourceLookup = buildSourceLookup(
+    { source: 'FTD', name: 'Slumbering Dragon-Touched Focus', reqAttune: 'by a spellcaster', reqAttuneTags: [{ spellcasting: true }], type: 'SCF', rarity: 'uncommon' },
+    { source: 'FTD', name: 'Stirring Dragon-Touched Focus', _copy: { source: 'FTD', name: 'Slumbering Dragon-Touched Focus' }, type: 'SCF', rarity: 'rare' },
+    { source: 'FTD', name: 'Wakened Dragon-Touched Focus', _copy: { source: 'FTD', name: 'Stirring Dragon-Touched Focus' }, type: 'SCF', rarity: 'very rare' },
+    { source: 'FTD', name: 'Ascendant Dragon-Touched Focus', _copy: { source: 'FTD', name: 'Wakened Dragon-Touched Focus' }, type: 'SCF', rarity: 'legendary' },
+  );
+
+  const stirring = convert({ name: 'Stirring Dragon-Touched Focus', source: 'FTD', _copy: { source: 'FTD', name: 'Slumbering Dragon-Touched Focus' }, type: 'SCF', rarity: 'rare' }, { sourceLookup, sourceKey: 'FTD' });
+  const wakened = convert({ name: 'Wakened Dragon-Touched Focus', source: 'FTD', _copy: { source: 'FTD', name: 'Stirring Dragon-Touched Focus' }, type: 'SCF', rarity: 'very rare' }, { sourceLookup, sourceKey: 'FTD' });
+  const ascendant = convert({ name: 'Ascendant Dragon-Touched Focus', source: 'FTD', _copy: { source: 'FTD', name: 'Wakened Dragon-Touched Focus' }, type: 'SCF', rarity: 'legendary' }, { sourceLookup, sourceKey: 'FTD' });
+
+  for (const row of [stirring, wakened, ascendant]) {
+    assert.equal(row.requires_attunement, true);
+    assert.equal(row.metadata_json.mechanics?.requires_attunement, true);
+    assert.equal(row.metadata_json.mechanics_support, 'phase1_supported');
+  }
+});
+
+test('inherits attunement truth through _copy chain for dragon vessel tiers', () => {
+  const sourceLookup = buildSourceLookup(
+    { source: 'FTD', name: 'Slumbering Dragon Vessel', reqAttune: true, rarity: 'uncommon' },
+    { source: 'FTD', name: 'Stirring Dragon Vessel', _copy: { source: 'FTD', name: 'Slumbering Dragon Vessel' }, rarity: 'rare' },
+    { source: 'FTD', name: 'Wakened Dragon Vessel', _copy: { source: 'FTD', name: 'Stirring Dragon Vessel' }, rarity: 'very rare' },
+    { source: 'FTD', name: 'Ascendant Dragon Vessel', _copy: { source: 'FTD', name: 'Wakened Dragon Vessel' }, rarity: 'legendary' },
+  );
+
+  const stirring = convert({ name: 'Stirring Dragon Vessel', source: 'FTD', _copy: { source: 'FTD', name: 'Slumbering Dragon Vessel' }, rarity: 'rare' }, { sourceLookup, sourceKey: 'FTD' });
+  const wakened = convert({ name: 'Wakened Dragon Vessel', source: 'FTD', _copy: { source: 'FTD', name: 'Stirring Dragon Vessel' }, rarity: 'very rare' }, { sourceLookup, sourceKey: 'FTD' });
+  const ascendant = convert({ name: 'Ascendant Dragon Vessel', source: 'FTD', _copy: { source: 'FTD', name: 'Wakened Dragon Vessel' }, rarity: 'legendary' }, { sourceLookup, sourceKey: 'FTD' });
+
+  for (const row of [stirring, wakened, ascendant]) {
+    assert.equal(row.requires_attunement, true);
+    assert.equal(row.metadata_json.mechanics || null, null);
+    assert.equal(row.metadata_json.mechanics_support, 'manual_required');
+  }
 });
 
 test('maps ability score floor items into supported mechanics payloads', () => {

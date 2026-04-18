@@ -286,7 +286,7 @@ function parseAttunementFlag(value) {
   return null;
 }
 
-function deriveAttunement(item = {}, description = '') {
+function readAttunementSignals(item = {}) {
   const directSignals = [
     item.reqAttune,
     item.requiresAttunement,
@@ -297,11 +297,41 @@ function deriveAttunement(item = {}, description = '') {
 
   for (const signal of directSignals) {
     const parsed = parseAttunementFlag(signal);
-    if (parsed !== null) return parsed;
+    if (parsed !== null) return { value: parsed, explicit: true };
   }
 
-  if (Array.isArray(item.reqAttuneTags) && item.reqAttuneTags.length > 0) return true;
-  if (Array.isArray(item?.metadata_json?.req_attune_tags) && item.metadata_json.req_attune_tags.length > 0) return true;
+  if (Array.isArray(item.reqAttuneTags) && item.reqAttuneTags.length > 0) return { value: true, explicit: true };
+  if (Array.isArray(item?.metadata_json?.req_attune_tags) && item.metadata_json.req_attune_tags.length > 0) return { value: true, explicit: true };
+
+  return { value: null, explicit: false };
+}
+
+function resolveInheritedAttunement(item = {}, { sourceKey = '', sourceLookup = new Map(), visited = new Set() } = {}) {
+  const copy = item?._copy;
+  if (!copy || typeof copy !== 'object') return null;
+  const inheritedSource = String(copy.source || sourceKey || '').trim();
+  const inheritedName = String(copy.name || '').trim();
+  if (!inheritedSource || !inheritedName) return null;
+
+  const lookupKey = `${inheritedSource}::${inheritedName}`;
+  if (visited.has(lookupKey)) return null;
+  visited.add(lookupKey);
+
+  const inheritedItem = sourceLookup.get(lookupKey);
+  if (!inheritedItem) return null;
+
+  const inheritedSignals = readAttunementSignals(inheritedItem);
+  if (inheritedSignals.value !== null) return inheritedSignals.value;
+
+  return resolveInheritedAttunement(inheritedItem, { sourceKey: inheritedSource, sourceLookup, visited });
+}
+
+function deriveAttunement(item = {}, description = '', { sourceKey = '', sourceLookup = new Map() } = {}) {
+  const directSignals = readAttunementSignals(item);
+  if (directSignals.value !== null) return directSignals.value;
+
+  const inheritedAttunement = resolveInheritedAttunement(item, { sourceKey, sourceLookup });
+  if (inheritedAttunement !== null) return inheritedAttunement;
 
   return /requires attunement/i.test(description);
 }
@@ -934,7 +964,8 @@ export function convert5etoolsItemToImportRow(item = {}, context = {}) {
   const category = deriveCategory(item, itemType);
   const subcategory = deriveSubcategory(item, itemType);
   const rarity = parseRarity(item);
-  const requiresAttunement = deriveAttunement(item, description);
+  const sourceLookup = context.sourceLookup instanceof Map ? context.sourceLookup : new Map();
+  const requiresAttunement = deriveAttunement(item, description, { sourceKey, sourceLookup });
   const mechanics = deriveMechanics(item, requiresAttunement);
   const pricingOverlayMap = context.pricingOverlayMap instanceof Map ? context.pricingOverlayMap : new Map();
   const shop = buildShopEligibility({
@@ -1028,6 +1059,14 @@ export async function buildConverted5etoolsDataset({ manifestPath }) {
   const overlayParsed = JSON.parse(await fs.readFile(overlayPath, 'utf8'));
   const pricingOverlayMap = buildPricingOverlayMap(Array.isArray(overlayParsed?.items) ? overlayParsed.items : []);
   const { manifest, loaded } = await loadSourceSplitItems({ manifestPath });
+  const sourceLookup = new Map();
+  loaded.forEach((fileBundle) => {
+    fileBundle.items.forEach((item) => {
+      const lookupName = String(item?.name || '').trim();
+      if (!lookupName) return;
+      sourceLookup.set(`${fileBundle.sourceKey}::${lookupName}`, item);
+    });
+  });
   const dedupeCounter = new Map();
   const rows = [];
   const excludedRows = [];
@@ -1047,6 +1086,7 @@ export async function buildConverted5etoolsDataset({ manifestPath }) {
         duplicateIndex: nextCount,
         sourceFilename: fileBundle.filename,
         pricingOverlayMap,
+        sourceLookup,
       });
 
       if (converted?.metadata_json?.catalog_admission?.active_lane_decision === 'excluded') {
