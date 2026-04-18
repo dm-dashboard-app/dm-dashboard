@@ -180,11 +180,11 @@ test('flattens nested entries and keeps weird rows importable/manual', () => {
   assert.equal(row.is_shop_eligible, false);
 });
 
-test('keeps attunement-gated magic rows non-shop-eligible even when fallback pricing exists', () => {
+test('keeps attunement-gated combat magic rows in curated nondefault posture even when fallback pricing exists', () => {
   const row = convert({ name: 'Moon Sickle +1', source: 'TCE', type: 'M', weaponCategory: 'martial', rarity: 'uncommon', reqAttune: true });
   assert.equal(row.base_price_gp, 600);
-  assert.equal(row.is_shop_eligible, true);
-  assert.equal(row.shop_bucket, 'curated_magic_shop_stock');
+  assert.equal(row.is_shop_eligible, false);
+  assert.equal(row.shop_bucket, 'curated_magic_nondefault');
   assert.equal(row.price_source, '5etools_fallback_policy_v1');
 });
 

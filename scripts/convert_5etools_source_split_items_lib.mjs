@@ -749,23 +749,25 @@ function deriveFallbackPricing({ item = {}, row = {} } = {}) {
 
   if (row.item_type === 'weapon' && bonus && bonus <= 3) {
     const priceByBonus = { 1: 600, 2: 6000, 3: 50000 };
+    const isSafeDefaultStock = bonus <= 1 && !row.requires_attunement;
     return {
       priceGp: priceByBonus[bonus] || null,
       bucket: 'combat',
       reason: `enhancement_weapon_plus_${bonus}`,
       makeEligible: bonus <= 2 && !row.requires_attunement,
-      finalBucket: bonus <= 1 ? CURATED_MAGIC_SHOP_STOCK_BUCKET : CURATED_MAGIC_NONDEFAULT_BUCKET,
+      finalBucket: isSafeDefaultStock ? CURATED_MAGIC_SHOP_STOCK_BUCKET : CURATED_MAGIC_NONDEFAULT_BUCKET,
     };
   }
 
   if ((row.item_type === 'armor' || row.item_type === 'shield') && bonus && bonus <= 3) {
     const priceByBonus = { 1: 800, 2: 8000, 3: 60000 };
+    const isSafeDefaultStock = bonus <= 1 && !row.requires_attunement;
     return {
       priceGp: priceByBonus[bonus] || null,
       bucket: 'combat',
       reason: `enhancement_${row.item_type}_plus_${bonus}`,
       makeEligible: bonus <= 2 && !row.requires_attunement,
-      finalBucket: bonus <= 1 ? CURATED_MAGIC_SHOP_STOCK_BUCKET : CURATED_MAGIC_NONDEFAULT_BUCKET,
+      finalBucket: isSafeDefaultStock ? CURATED_MAGIC_SHOP_STOCK_BUCKET : CURATED_MAGIC_NONDEFAULT_BUCKET,
     };
   }
 
