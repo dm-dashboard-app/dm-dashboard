@@ -21,7 +21,7 @@
   --text-secondary: #9090a8;
   --text-muted:     #55556a;
 
-  --accent-blue:    #4a9eff;
+  --accent-blue:    #8f6cf4;
   --accent-gold:    #f0b429;
   --accent-green:   #3ecf6a;
   --accent-orange:  #f07030;
@@ -223,7 +223,7 @@ input:focus, select:focus, textarea:focus {
 
 .initiative-row.active-turn {
   border-color: var(--accent-blue);
-  box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.2), 0 0 12px rgba(74, 158, 255, 0.1);
+  box-shadow: 0 0 0 2px rgba(143, 108, 244, 0.2), 0 0 12px rgba(143, 108, 244, 0.1);
 }
 
 .initiative-number {

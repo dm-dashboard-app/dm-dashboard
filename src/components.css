@@ -401,9 +401,9 @@
   text-transform: uppercase;
 }
 .display-order-tag--active {
-  background: rgba(74, 158, 255, 0.16);
+  background: rgba(143, 108, 244, 0.16);
   color: var(--accent-blue);
-  border: 1px solid rgba(74, 158, 255, 0.45);
+  border: 1px solid rgba(143, 108, 244, 0.45);
 }
 .display-order-tag--next {
   background: rgba(240, 180, 41, 0.14);
@@ -440,8 +440,8 @@
 }
 
 .display-turn-feature--current {
-  border-color: rgba(74, 158, 255, 0.6);
-  box-shadow: 0 0 0 1px rgba(74, 158, 255, 0.18), 0 16px 34px rgba(0, 0, 0, 0.24);
+  border-color: rgba(143, 108, 244, 0.6);
+  box-shadow: 0 0 0 1px rgba(143, 108, 244, 0.18), 0 16px 34px rgba(0, 0, 0, 0.24);
 }
 
 .display-turn-feature--next {
@@ -729,8 +729,8 @@
 }
 
 .manage-tab-bar .tab-btn.active {
-  background: rgba(74, 158, 255, 0.1);
-  border-color: rgba(74, 158, 255, 0.32);
+  background: rgba(143, 108, 244, 0.1);
+  border-color: rgba(143, 108, 244, 0.32);
 }
 
 .session-subpanel {
@@ -1237,8 +1237,8 @@
 }
 
 .world-shops-saved-item[data-active='true'] {
-  border-color: rgba(74, 158, 255, .5);
-  background: rgba(74, 158, 255, .1);
+  border-color: rgba(143, 108, 244, .5);
+  background: rgba(143, 108, 244, .1);
 }
 
 .world-shops-saved-item span {
@@ -1293,14 +1293,14 @@
 }
 
 .world-shops-stock-row[data-lane='core'] {
-  border-color: rgba(74, 158, 255, .45);
-  background: linear-gradient(180deg, rgba(74, 158, 255, .10), rgba(74, 158, 255, .03));
+  border-color: rgba(143, 108, 244, .45);
+  background: linear-gradient(180deg, rgba(143, 108, 244, .10), rgba(143, 108, 244, .03));
 }
 
 .world-shops-core-badge {
   display: inline-flex;
   align-items: center;
-  border: 1px solid rgba(74, 158, 255, .45);
+  border: 1px solid rgba(143, 108, 244, .45);
   border-radius: 999px;
   padding: 1px 6px;
   font-size: 10px;
@@ -1544,7 +1544,7 @@
 
 .world-tabs-row .btn[data-active='true'] {
   border-color: var(--accent-blue);
-  background: rgba(74, 158, 255, .1);
+  background: rgba(143, 108, 244, .1);
 }
 
 .world-tabs-row--sticky {

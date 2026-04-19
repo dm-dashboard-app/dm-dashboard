@@ -39,7 +39,7 @@ function buildLongRestStatePatch(state = {}) {
   return patch;
 }
 
-const tabsRowStyle = { width: 'min(1180px, calc(100vw - 24px))', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 8, padding: 4, borderRadius: 16, background: 'rgba(17,22,29,.96)', border: '1px solid rgba(74,158,255,.12)', boxShadow: '0 12px 24px rgba(0,0,0,.24)' };
+const tabsRowStyle = { width: 'min(1180px, calc(100vw - 24px))', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 8, padding: 4, borderRadius: 16, background: 'rgba(17,22,29,.96)', border: '1px solid rgba(143,108,244,.12)', boxShadow: '0 12px 24px rgba(0,0,0,.24)' };
 const tabsButtonBase = { minHeight: 42, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 10px', borderRadius: 12, border: '1px solid transparent', background: 'transparent', color: 'var(--text-secondary)', fontSize: 13, fontWeight: 700, appearance: 'none', WebkitAppearance: 'none', WebkitTapHighlightColor: 'transparent', outline: 'none', boxShadow: 'none' };
 const dockShellStyle = { position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 131, padding: '0 12px calc(10px + env(safe-area-inset-bottom,0px))', background: 'linear-gradient(180deg, rgba(17,22,29,0), rgba(17,22,29,.72) 18%, rgba(17,22,29,.92) 42%, rgba(17,22,29,.98))', pointerEvents: 'none' };
 const dockInnerStyle = { width: 'min(1180px, calc(100vw - 24px))', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 10, pointerEvents: 'auto' };
@@ -49,6 +49,7 @@ export default function DMView() {
   const [combatants, setCombatants] = useState([]);
   const [playerStates, setPlayerStates] = useState([]);
   const [tab, setTab] = useState('combat');
+  const [worldTab, setWorldTab] = useState('locales');
   const [loading, setLoading] = useState(true);
   const [displayToken, setDisplayToken] = useState(null);
   const [joinCodes, setJoinCodes] = useState([]);
@@ -316,23 +317,37 @@ export default function DMView() {
 
   function tabButtonStyle(active) {
     return active
-      ? { ...tabsButtonBase, color: 'var(--accent-blue)', background: 'rgba(74,158,255,.12)', borderColor: 'rgba(74,158,255,.28)' }
+      ? { ...tabsButtonBase, color: 'var(--accent-blue)', background: 'rgba(143,108,244,.12)', borderColor: 'rgba(143,108,244,.28)' }
       : { ...tabsButtonBase };
+  }
+
+  function worldSubTabButtonStyle(active) {
+    return active
+      ? { ...tabsButtonBase, minHeight: 38, fontSize: 12, color: 'var(--accent-blue)', background: 'rgba(143,108,244,.16)', borderColor: 'rgba(143,108,244,.34)' }
+      : { ...tabsButtonBase, minHeight: 38, fontSize: 12 };
   }
 
   return (
     <div className="app-shell">
-      <div className="main-content dm-main-content main-content--with-bottom-dock" style={{ paddingTop: 12, paddingBottom: tab === 'activity' ? 214 : 238 }}>
+      <div className="main-content dm-main-content main-content--with-bottom-dock" style={{ paddingTop: 12, paddingBottom: tab === 'world' ? 286 : tab === 'activity' ? 214 : 238 }}>
         {tab === 'combat' && <div className="dm-combat-layout"><div className="dm-initiative-column"><div className="initiative-top-bar"><div className="initiative-top-bar-primary">Round {encounter.round}</div></div><InitiativePanel encounter={encounter} combatants={combatants} playerStates={playerStates} role="dm" onUpdate={refreshAll} /></div></div>}
         {tab === 'players' && <DMPlayerCardsSection combatants={pcCombatants} playerStates={playerStates} encounterId={encounter.id} playerEditMode={encounter.player_edit_mode} onUpdate={refreshAll} inventoryRefreshTick={inventoryRefreshTick} attunementRestContext={shortRestProcedureActive || longRestPrepOpen} longRestRechargeContext={longRestPrepOpen} />}
         {tab === 'activity' && <div className="dm-activity-layout"><div className="dm-activity-primary"><RecentAlertsStrip encounterId={encounter.id} mode="panel" /><SecretRollInbox encounterId={encounter.id} /></div><div className="dm-activity-secondary"><DMCombatLog encounterId={encounter.id} /></div></div>}
-        {tab === 'world' && <WorldPanel encounterId={encounter.id} playerStates={playerStates} refreshAll={refreshAll} onInventoryRefresh={triggerInventoryRefresh} />}
+        {tab === 'world' && <WorldPanel encounterId={encounter.id} playerStates={playerStates} refreshAll={refreshAll} onInventoryRefresh={triggerInventoryRefresh} tab={worldTab} />}
         {tab === 'manage' && <ManagementScreens onEncounterCreated={enc => { setEncounter(enc); setEncounterId(enc.id); setTab('combat'); }} currentEncounter={encounter} displayToken={displayToken} joinCodes={joinCodes} onGenerateDisplayToken={handleGenerateDisplayToken} onRevokeDisplayToken={handleRevokeDisplayToken} onFrontScreen={handleFrontScreen} onSignOut={signOut} displayCombatMode={displayCombatMode} onSetDisplayCombatMode={mode => handleSetDisplayCombatMode(mode, 'manual')} inventoryRefreshTick={inventoryRefreshTick} />}
       </div>
 
       <div style={dockShellStyle}>
         <div style={dockInnerStyle}>
           <DMNotificationOverlay encounterId={encounter.id} inline onActivityUpdate={refreshActivityPresence} />
+          {tab === 'world' && (
+            <div className="dm-world-subtabs-dock">
+              <button type="button" className="dm-bottom-tab-btn" style={worldSubTabButtonStyle(worldTab === 'locales')} onClick={() => setWorldTab('locales')}>Locales</button>
+              <button type="button" className="dm-bottom-tab-btn" style={worldSubTabButtonStyle(worldTab === 'shops')} onClick={() => setWorldTab('shops')}>Shop Generator</button>
+              <button type="button" className="dm-bottom-tab-btn" style={worldSubTabButtonStyle(worldTab === 'rewards')} onClick={() => setWorldTab('rewards')}>Rewards</button>
+              <button type="button" className="dm-bottom-tab-btn" style={worldSubTabButtonStyle(worldTab === 'npcs')} onClick={() => setWorldTab('npcs')}>NPCs</button>
+            </div>
+          )}
           <div style={tabsRowStyle}>
             <button type="button" className="dm-bottom-tab-btn" style={tabButtonStyle(tab === 'combat')} onClick={event => handleTabSwitch('combat', event)}>Combat</button>
             <button type="button" className="dm-bottom-tab-btn" style={tabButtonStyle(tab === 'players')} onClick={event => handleTabSwitch('players', event)}>Players</button>
