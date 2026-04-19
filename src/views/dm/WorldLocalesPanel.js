@@ -550,7 +550,7 @@ export default function WorldLocalesPanel({ playerStates = [], role = 'dm' }) {
     <div className="world-shops-shell">
       <div className="world-mobile-stack">
         {!localeListMode ? <button className="btn btn-ghost" onClick={() => { setLocaleListMode(true); setSelectedLocaleId(null); setSelectedShopId(null); setShopListMode(true); }}>← Back to Locales</button> : null}
-        {localeListMode && canEdit ? <button className="btn btn-primary" onClick={() => setEditingLocale({})}>New Locale</button> : null}
+        {localeListMode && canEdit ? <button className="btn btn-primary world-action-btn-full" onClick={() => setEditingLocale({})}>New Locale</button> : null}
       </div>
 
       {status ? <div className="world-shops-import-status">{status}</div> : null}

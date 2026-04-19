@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import { generateShopRows } from '../../utils/shopGenerator';
-import { applyPersistedStockLanes, buildGenerationSeedWithCoreCount, countCoreRows } from '../../utils/shopLanePersistence';
+import { applyPersistedStockLanes } from '../../utils/shopLanePersistence';
 import ItemImportPanel from '../../components/ItemImportPanel';
 import { generateSpellScrollBatch } from '../../utils/spellScrolls';
 import { inventoryDmAssignGeneratedShopItem, inventoryDmShopAssignItem } from '../../inventory/inventoryClient';
@@ -156,10 +156,7 @@ export default function WorldShopsPanel({ showImportControls = false, playerStat
   const [catalogItems, setCatalogItems] = useState([]);
   const [spellItems, setSpellItems] = useState([]);
   const [generatedRows, setGeneratedRows] = useState([]);
-  const [savedShops, setSavedShops] = useState([]);
-  const [selectedShopId, setSelectedShopId] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
   const [scrollLevel, setScrollLevel] = useState(1);
@@ -176,25 +173,6 @@ export default function WorldShopsPanel({ showImportControls = false, playerStat
     return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
   }, [playerStates]);
 
-  const selectedShop = useMemo(() => savedShops.find((shop) => shop.id === selectedShopId) || null, [savedShops, selectedShopId]);
-  const catalogById = useMemo(() => new Map(catalogItems.map((item) => [item.id, item])), [catalogItems]);
-  const catalogByIdRef = useRef(catalogById);
-
-  useEffect(() => {
-    catalogByIdRef.current = catalogById;
-  }, [catalogById]);
-
-  function buildRpcRows(rows = []) {
-    return rows.map((row, index) => ({
-      item_id: row.item_id,
-      quantity: Number(row.quantity || 1),
-      listed_price_gp: Number(row.listed_price_gp || 0),
-      minimum_price_gp: Number(row.minimum_price_gp || 0),
-      barter_dc: Number(row.barter_dc || 0),
-      sort_order: index,
-    }));
-  }
-
   const loadCatalog = useCallback(async () => {
     const { data, error: loadError } = await supabase
       .from('item_master')
@@ -207,14 +185,6 @@ export default function WorldShopsPanel({ showImportControls = false, playerStat
     setCatalogItems(filtered);
   }, []);
 
-  const loadSavedShops = useCallback(async () => {
-    const { data, error: loadError } = await supabase.rpc('dm_list_shops');
-    if (loadError) throw loadError;
-    const shops = data || [];
-    setSavedShops(shops);
-    return shops;
-  }, []);
-
   const loadSpells = useCallback(async () => {
     const { data, error: loadError } = await supabase
       .from('spells')
@@ -225,45 +195,9 @@ export default function WorldShopsPanel({ showImportControls = false, playerStat
     setSpellItems(data || []);
   }, []);
 
-  const loadShopInventory = useCallback(async (shopId, generationSeed = '') => {
-    const { data, error: loadError } = await supabase.rpc('dm_get_shop_inventory', { p_shop_id: shopId });
-    if (loadError) throw loadError;
-
-    const catalogLookup = catalogByIdRef.current;
-
-    const normalized = (data || []).map((row) => ({
-      ...(catalogLookup.get(row.item_id) || {}),
-      id: row.id,
-      shop_inventory_id: row.id,
-      item_id: row.item_id,
-      item_name: row.item_name,
-      item_type: row.item_type,
-      category: row.category,
-      subcategory: row.subcategory || catalogLookup.get(row.item_id)?.subcategory || null,
-      rarity: row.rarity,
-      description: row.description,
-      source_type: row.source_type,
-      source_book: row.source_book,
-      price_source: row.price_source,
-      shop_bucket: row.shop_bucket,
-      metadata_json: catalogLookup.get(row.item_id)?.metadata_json || row.metadata_json || null,
-      requires_attunement: catalogLookup.get(row.item_id)?.requires_attunement ?? null,
-      quantity: row.quantity,
-      listed_price_gp: row.listed_price_gp,
-      minimum_price_gp: row.minimum_price_gp,
-      barter_dc: row.barter_dc,
-    }));
-
-    setGeneratedRows(applyPersistedStockLanes(normalized, { shopType, generationSeed }));
-  }, [shopType]);
-
   const refreshWorldShopData = useCallback(async () => {
-    const [, , shops] = await Promise.all([loadCatalog(), loadSpells(), loadSavedShops()]);
-    if (selectedShopId) {
-      const activeShop = (shops || []).find((shop) => shop.id === selectedShopId);
-      await loadShopInventory(selectedShopId, activeShop?.generation_seed || '');
-    }
-  }, [loadCatalog, loadSavedShops, loadShopInventory, loadSpells, selectedShopId]);
+    await Promise.all([loadCatalog(), loadSpells()]);
+  }, [loadCatalog, loadSpells]);
 
   useEffect(() => {
     let active = true;
@@ -289,79 +223,6 @@ export default function WorldShopsPanel({ showImportControls = false, playerStat
     const rows = generateShopRows(catalogItems, { shopType, affluence: affluenceTier, spells: spellItems });
     const laneRows = applyPersistedStockLanes(rows, { shopType });
     setGeneratedRows(laneRows);
-    setSelectedShopId(null);
-  }
-
-  async function handleSaveNewShop() {
-    if (generatedRows.length === 0) {
-      setError('Generate stock before saving a shop.');
-      return;
-    }
-    setSaving(true);
-    setError('');
-
-    try {
-      const generationSeed = buildGenerationSeedWithCoreCount(crypto.randomUUID(), countCoreRows(generatedRows));
-      const payload = buildRpcRows(generatedRows);
-      const { data: shopId, error: saveError } = await supabase.rpc('dm_save_shop', {
-        p_shop_type: shopType,
-        p_affluence_tier: affluenceTier,
-        p_generation_seed: generationSeed,
-        p_rows: payload,
-      });
-
-      if (saveError) throw saveError;
-
-      await loadSavedShops();
-      setSelectedShopId(shopId);
-    } catch (saveError) {
-      setError(saveError.message || 'Failed to save shop.');
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function handleSelectShop(shop) {
-    setShopType(shop.shop_type);
-    setAffluenceTier(shop.affluence_tier);
-    setSelectedShopId(shop.id);
-    setError('');
-    try {
-      await loadShopInventory(shop.id, shop.generation_seed || '');
-    } catch (loadError) {
-      setError(loadError.message || 'Failed to load saved shop inventory.');
-    }
-  }
-
-  async function handleRegenerateExisting() {
-    if (!selectedShopId) {
-      await handleGenerate();
-      return;
-    }
-
-    const rows = generateShopRows(catalogItems, { shopType, affluence: affluenceTier, spells: spellItems });
-    const laneRows = applyPersistedStockLanes(rows, { shopType });
-    setGeneratedRows(laneRows);
-
-    try {
-      setSaving(true);
-      const generationSeed = buildGenerationSeedWithCoreCount(crypto.randomUUID(), countCoreRows(laneRows));
-      const payload = buildRpcRows(laneRows);
-      const { error: replaceError } = await supabase.rpc('dm_replace_shop_inventory', {
-        p_shop_id: selectedShopId,
-        p_shop_type: shopType,
-        p_affluence_tier: affluenceTier,
-        p_generation_seed: generationSeed,
-        p_rows: payload,
-      });
-      if (replaceError) throw replaceError;
-
-      await loadSavedShops();
-    } catch (saveError) {
-      setError(saveError.message || 'Failed to regenerate shop.');
-    } finally {
-      setSaving(false);
-    }
   }
 
   function handleGenerateScrolls() {
@@ -378,7 +239,7 @@ export default function WorldShopsPanel({ showImportControls = false, playerStat
     <div className="world-shops-shell">
       {showImportControls ? <ItemImportPanel onImportComplete={refreshWorldShopData} /> : null}
 
-      <div className="world-shops-controls">
+      <div className="world-shops-controls world-shops-controls--generator">
         <div className="world-shops-control-group">
           <label>Shop Type</label>
           <select className="world-shops-select" value={shopType} onChange={(event) => setShopType(event.target.value)}>
@@ -391,34 +252,13 @@ export default function WorldShopsPanel({ showImportControls = false, playerStat
             {AFFLUENCE_TIERS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
           </select>
         </div>
-        <button className="btn btn-primary" onClick={handleGenerate}>Generate</button>
-        <button className="btn btn-ghost" onClick={handleRegenerateExisting} disabled={saving}>{selectedShop ? 'Regenerate Saved' : 'Regenerate'}</button>
-        <button className="btn btn-ghost" onClick={handleSaveNewShop} disabled={saving || generatedRows.length === 0}>{saving ? 'Saving…' : 'Save Shop'}</button>
+        <button className="btn btn-primary world-shops-generate-btn" onClick={handleGenerate}>Generate</button>
       </div>
 
       {error ? <div className="world-shops-error">{error}</div> : null}
 
-      <div className="world-shops-layout">
-        <div className="world-shops-saved-list">
-          <div className="world-shops-panel-title">Saved Shops</div>
-          {savedShops.length === 0 ? <div className="empty-state">No saved shops yet.</div> : null}
-          {savedShops.map((shop) => (
-            <button
-              type="button"
-              key={shop.id}
-              className="world-shops-saved-item"
-              data-active={shop.id === selectedShopId}
-              onClick={() => handleSelectShop(shop)}
-            >
-              <strong>{shop.shop_type.replace('_', ' ')}</strong>
-              <span>{shop.affluence_tier.replace('_', ' ')}</span>
-              <span>{new Date(shop.updated_at || shop.created_at).toLocaleString()}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="world-shops-stock-panel">
-          <div className="world-shops-panel-title">Generated Stock ({generatedRows.length})</div>
+      <div className="world-shops-stock-panel">
+        <div className="world-shops-panel-title">Generated Stock ({generatedRows.length})</div>
           <div className="world-shops-stock-head">
             <span>Item</span>
             <span>Qty</span>
@@ -443,7 +283,6 @@ export default function WorldShopsPanel({ showImportControls = false, playerStat
             );
           })}
           {generatedRows.length === 0 ? <div className="empty-state">Generate stock to start building a shop.</div> : null}
-        </div>
       </div>
 
       <div className="world-shops-scroll-tool">

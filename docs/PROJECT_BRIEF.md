@@ -1,6 +1,6 @@
 # DM Dashboard — Project Brief
 
-Last updated: April 18, 2026 (targeted still-unpriced pricing completion pass landed)
+Last updated: April 19, 2026 (Manage/World mobile UI cleanup pass landed)
 
 Purpose: This document is the current-state/background brief for DM Dashboard. It describes what the app now is, what is materially landed, and what principles future work must preserve.
 
@@ -76,6 +76,7 @@ Landed baseline includes:
 - mobile-oriented DM shell and bottom-dock interaction model
 - practical tab grouping and fast in-session action reach
 - stabilized alert/notification handling for live play
+- Manage/Session surface compacted for phone use: Current Session box removed, Front Screen + Sign Out elevated to first equal-width action row, join-code panel moved above display/map controls, display code row simplified (no revoke action on this surface), and map/rewards/import helper filler copy reduced for denser scan
 
 Preservation rule:
 
