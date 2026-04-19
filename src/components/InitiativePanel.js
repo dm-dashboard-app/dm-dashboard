@@ -1072,7 +1072,7 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
                   height: 22,
                   padding: '0 6px',
                   borderRadius: 999,
-                  background: 'rgba(74,158,255,0.12)',
+                  background: 'rgba(143,108,244,0.12)',
                   border: '1px solid var(--accent-blue)',
                   color: 'var(--accent-blue)',
                   fontSize: 11,
@@ -1276,7 +1276,7 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
                 </span>
               )}
               {miniMarker && (
-                <span style={{ fontSize: 11, color: 'var(--accent-blue)', background: 'rgba(74,158,255,0.10)', border: '1px solid var(--accent-blue)', borderRadius: 4, padding: '3px 7px', fontWeight: 700 }}>
+                <span style={{ fontSize: 11, color: 'var(--accent-blue)', background: 'rgba(143,108,244,0.10)', border: '1px solid var(--accent-blue)', borderRadius: 4, padding: '3px 7px', fontWeight: 700 }}>
                   Mini {miniMarker}
                 </span>
               )}
@@ -1309,7 +1309,7 @@ function InitiativeRow({ combatant, playerState, isActive, isNextUp, isDM, isDis
                 <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Resistances</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 8 }}>
                   {DAMAGE_TYPES.map(t => (
-                    <button key={t} style={{ fontSize: 10, padding: '2px 6px', borderRadius: 3, cursor: 'pointer', border: `1px solid ${resistances.includes(t) ? 'var(--accent-blue)' : 'var(--border)'}`, background: resistances.includes(t) ? 'rgba(74,158,255,0.2)' : 'var(--bg-panel-3)', color: resistances.includes(t) ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
+                    <button key={t} style={{ fontSize: 10, padding: '2px 6px', borderRadius: 3, cursor: 'pointer', border: `1px solid ${resistances.includes(t) ? 'var(--accent-blue)' : 'var(--border)'}`, background: resistances.includes(t) ? 'rgba(143,108,244,0.2)' : 'var(--bg-panel-3)', color: resistances.includes(t) ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
                       onClick={() => toggleDamageType('resistances', t)}
                     >{t}</button>
                   ))}

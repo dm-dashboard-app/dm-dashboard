@@ -29,7 +29,7 @@ function FilterChip({ label, selected, onClick }) {
         padding: '3px 10px',
         borderColor: selected ? 'var(--accent-blue)' : 'var(--border)',
         color: selected ? 'var(--accent-blue)' : 'var(--text-secondary)',
-        background: selected ? 'rgba(74,158,255,0.12)' : 'transparent',
+        background: selected ? 'rgba(143,108,244,0.12)' : 'transparent',
       }}
       onClick={onClick}
     >
@@ -76,7 +76,7 @@ function PanelBody({ title, subtitle, tabs, activeTab, setActiveTab, filterState
         {subtitle ? <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{subtitle}</div> : null}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
           {tabs.map(tab => (
-            <button type="button" key={tab.value} className="btn btn-ghost" style={{ minHeight: 40, fontSize: 13, padding: '8px 10px', borderColor: activeTab === tab.value ? 'var(--accent-blue)' : 'var(--border)', color: activeTab === tab.value ? 'var(--accent-blue)' : 'var(--text-secondary)', background: activeTab === tab.value ? 'rgba(74,158,255,0.12)' : 'transparent', fontWeight: 800 }} onClick={() => setActiveTab(tab.value)}>{tab.label}</button>
+            <button type="button" key={tab.value} className="btn btn-ghost" style={{ minHeight: 40, fontSize: 13, padding: '8px 10px', borderColor: activeTab === tab.value ? 'var(--accent-blue)' : 'var(--border)', color: activeTab === tab.value ? 'var(--accent-blue)' : 'var(--text-secondary)', background: activeTab === tab.value ? 'rgba(143,108,244,0.12)' : 'transparent', fontWeight: 800 }} onClick={() => setActiveTab(tab.value)}>{tab.label}</button>
           ))}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>

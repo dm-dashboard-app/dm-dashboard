@@ -31,6 +31,7 @@ export default function PlayerView() {
   const [initSuccess, setInitSuccess] = useState(false);
   const [topTab, setTopTab] = useState('char');
   const [charTab, setCharTab] = useState('sheet');
+  const [worldTab, setWorldTab] = useState('locales');
   const [showConPanel, setShowConPanel] = useState(false);
   const [pendingIncoming, setPendingIncoming] = useState([]);
   const [dismissedTransferIds, setDismissedTransferIds] = useState(() => new Set());
@@ -206,10 +207,16 @@ export default function PlayerView() {
             <button className={`tab-btn ${charTab === 'spells' ? 'active' : ''}`} onClick={() => setCharTab('spells')}>Spells</button>
           </div>
         )}
+        {topTab === 'world' && (
+          <div className="tab-bar tab-bar-subnav player-world-subtabs-shell">
+            <button className={`tab-btn ${worldTab === 'locales' ? 'active' : ''}`} onClick={() => setWorldTab('locales')}>Locales</button>
+            <button className={`tab-btn ${worldTab === 'npcs' ? 'active' : ''}`} onClick={() => setWorldTab('npcs')}>NPCs</button>
+          </div>
+        )}
       </div>
 
       {shortRestActive && state && (
-        <div style={{ background: 'rgba(74,158,255,0.10)', borderBottom: '1.5px solid var(--accent-blue)', padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <div style={{ background: 'rgba(143,108,244,0.10)', borderBottom: '1.5px solid var(--accent-blue)', padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
           <span style={{ fontSize: 13, fontWeight: 600, color: shortRestResponsesByStateId[state.id]?.response?.ready ? 'var(--accent-green)' : 'var(--accent-blue)' }}>
             {shortRestResponsesByStateId[state.id]?.response?.ready ? 'Short rest response submitted. Waiting for DM confirmation.' : 'Short rest in progress — submit your healing response.'}
           </span>
@@ -218,7 +225,7 @@ export default function PlayerView() {
       )}
 
       {prepActive && prepRequired && !showPrepModal && (
-        <div style={{ background: 'rgba(74,158,255,0.10)', borderBottom: '1.5px solid var(--accent-blue)', padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <div style={{ background: 'rgba(143,108,244,0.10)', borderBottom: '1.5px solid var(--accent-blue)', padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
           <span style={{ fontSize: 13, fontWeight: 600, color: prepReady ? 'var(--accent-green)' : 'var(--accent-blue)' }}>
             {prepReady ? 'Long rest spell prep complete. Waiting for DM to finish the long rest.' : 'Long rest spell prep required.'}
           </span>
@@ -245,7 +252,7 @@ export default function PlayerView() {
           </>
         )}
         {topTab === 'rolls' && combatant && <SecretRollPanel playerId={profileId} encounterId={encounterId} />}
-        {topTab === 'world' && <PlayerWorldPanel />}
+        {topTab === 'world' && <PlayerWorldPanel tab={worldTab} />}
       </div>
       <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border)' }}><button className="btn btn-ghost" style={{ fontSize: 12, color: 'var(--text-muted)' }} onClick={handleLeave}>Leave Session</button></div>
 

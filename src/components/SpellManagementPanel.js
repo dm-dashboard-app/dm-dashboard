@@ -136,7 +136,7 @@ function FilterChip({ label, selected, onClick }) {
         padding: '3px 10px',
         borderColor: selected ? 'var(--accent-blue)' : 'var(--border)',
         color: selected ? 'var(--accent-blue)' : 'var(--text-secondary)',
-        background: selected ? 'rgba(74,158,255,0.12)' : 'transparent',
+        background: selected ? 'rgba(143,108,244,0.12)' : 'transparent',
       }}
       onClick={onClick}
     >
