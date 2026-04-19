@@ -242,7 +242,6 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
             <input className="form-input" type="number" min={1} value={currencyAmount} onChange={(event) => setCurrencyAmount(event.target.value)} />
           </div>
           <button className="btn btn-primary" onClick={handleAwardCurrency} disabled={loading || (currencyTarget === 'single' && !targetProfileId)}>Award Currency</button>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Remainder policy: extra currency is distributed one-by-one in ascending player-profile UUID order.</div>
         </div>
       </div>
       {status ? <div className="world-shops-import-status">{status}</div> : null}

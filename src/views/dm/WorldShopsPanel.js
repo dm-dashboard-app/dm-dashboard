@@ -273,7 +273,7 @@ export default function WorldShopsPanel({ showImportControls = false, playerStat
               <React.Fragment key={`${row.item_id}-${row.item_name}-${index}`}>
                 {showLaneLabel ? <div className="world-shops-stock-lane-label">{row.stock_lane === 'core' ? 'Core Stock' : 'Rotating Stock'}</div> : null}
                 <button className="world-shops-stock-row" data-lane={row.stock_lane || 'rotating'} onClick={() => setSelectedItem(row)}>
-                  <span className="item-name">{row.item_name}{(row.stock_lane || 'rotating') === 'core' ? <span className="world-shops-core-badge">Core</span> : null}</span>
+                  <span className="item-name">{row.item_name}</span>
                   <span>{row.quantity}</span>
                   <span>{gpLabel(row.listed_price_gp)}</span>
                   <span>{gpLabel(row.minimum_price_gp)}</span>
