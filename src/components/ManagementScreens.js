@@ -26,9 +26,6 @@ import {
 import SpellManagementPanel, { SpellImportPanel } from './SpellManagementPanel';
 import PlayerProfileSpellManager from './PlayerProfileSpellManager';
 import ItemImportPanel from './ItemImportPanel';
-import InventoryModal from '../inventory/InventoryModal';
-import { inventoryGetSummariesForProfiles } from '../inventory/inventoryClient';
-import { formatInventorySummary } from '../utils/inventoryUtils';
 
 const CLASS_OPTIONS = ['', 'Barbarian', 'Bard', 'Cleric', 'Druid', 'Fighter', 'Monk', 'Paladin', 'Ranger', 'Rogue', 'Sorcerer', 'Warlock', 'Wizard'];
 const ABILITY_LABELS = { str: 'STR', dex: 'DEX', con: 'CON', int: 'INT', wis: 'WIS', cha: 'CHA' };
@@ -95,7 +92,7 @@ async function insertPlayerStateWithFallback(payload, fallbackPayload) {
   return supabase.from('player_encounter_state').insert(fallbackPayload);
 }
 
-export default function ManagementScreens({ onEncounterCreated, currentEncounter = null, displayToken = null, joinCodes = [], onGenerateDisplayToken = null, onRevokeDisplayToken = null, onFrontScreen = null, onSignOut = null, displayCombatMode = 'out_of_combat', onSetDisplayCombatMode = null, inventoryRefreshTick = 0 }) {
+export default function ManagementScreens({ onEncounterCreated, currentEncounter = null, displayToken = null, joinCodes = [], onGenerateDisplayToken = null, onFrontScreen = null, onSignOut = null, displayCombatMode = 'out_of_combat', onSetDisplayCombatMode = null, inventoryRefreshTick = 0 }) {
   const [tab, setTab] = useState(currentEncounter ? 'session' : 'players');
   const buildMarker = resolveBuildMarker();
   useEffect(() => { if (!currentEncounter && tab === 'session') setTab('players'); }, [currentEncounter, tab]);
@@ -114,7 +111,7 @@ export default function ManagementScreens({ onEncounterCreated, currentEncounter
         <button className={`tab-btn ${tab === 'wildshape' ? 'active' : ''}`} onClick={() => setTab('wildshape')}>Wild Shape</button>
         <button className={`tab-btn ${tab === 'imports' ? 'active' : ''}`} onClick={() => setTab('imports')}>Imports</button>
       </div>
-      {tab === 'session' && currentEncounter && <SessionControls currentEncounter={currentEncounter} displayToken={displayToken} joinCodes={joinCodes} onGenerateDisplayToken={onGenerateDisplayToken} onRevokeDisplayToken={onRevokeDisplayToken} onFrontScreen={onFrontScreen} onSignOut={onSignOut} displayCombatMode={displayCombatMode} onSetDisplayCombatMode={onSetDisplayCombatMode} onToggleDisplayWorldMap={async enabled => { if (!currentEncounter) return; await supabase.from('encounters').update({ display_world_map: !!enabled }).eq('id', currentEncounter.id); }} />}
+      {tab === 'session' && currentEncounter && <SessionControls currentEncounter={currentEncounter} displayToken={displayToken} joinCodes={joinCodes} onGenerateDisplayToken={onGenerateDisplayToken} onFrontScreen={onFrontScreen} onSignOut={onSignOut} displayCombatMode={displayCombatMode} onSetDisplayCombatMode={onSetDisplayCombatMode} onToggleDisplayWorldMap={async enabled => { if (!currentEncounter) return; await supabase.from('encounters').update({ display_world_map: !!enabled }).eq('id', currentEncounter.id); }} />}
       {tab === 'players' && <PlayerProfileManager inventoryRefreshTick={inventoryRefreshTick} />}
       {tab === 'monsters' && <MonsterTemplateManager />}
       {tab === 'spells' && <SpellManagementPanel />}
@@ -124,17 +121,12 @@ export default function ManagementScreens({ onEncounterCreated, currentEncounter
   );
 }
 
-function SessionControls({ currentEncounter, displayToken, joinCodes, onGenerateDisplayToken, onRevokeDisplayToken, onFrontScreen, onSignOut, displayCombatMode = 'out_of_combat', onSetDisplayCombatMode = null, onToggleDisplayWorldMap = null }) {
-  const [mapUrlDraft, setMapUrlDraft] = useState(currentEncounter?.world_map_url || '');
+function SessionControls({ currentEncounter, displayToken, joinCodes, onGenerateDisplayToken, onFrontScreen, onSignOut, displayCombatMode = 'out_of_combat', onSetDisplayCombatMode = null, onToggleDisplayWorldMap = null }) {
   const [uploadingMap, setUploadingMap] = useState(false);
   const [mapError, setMapError] = useState('');
   const [players, setPlayers] = useState([]);
   const [addingPlayerId, setAddingPlayerId] = useState(null);
   const [playerAddError, setPlayerAddError] = useState('');
-
-  useEffect(() => {
-    setMapUrlDraft(currentEncounter?.world_map_url || '');
-  }, [currentEncounter?.id, currentEncounter?.world_map_url]);
 
   useEffect(() => {
     if (!currentEncounter || displayToken || !onGenerateDisplayToken) return;
@@ -160,11 +152,6 @@ function SessionControls({ currentEncounter, displayToken, joinCodes, onGenerate
     return () => { cancelled = true; };
   }, [currentEncounter?.id, joinCodes.length]);
 
-  async function saveWorldMapUrl() {
-    if (!currentEncounter) return;
-    await supabase.from('encounters').update({ world_map_url: mapUrlDraft.trim() || null }).eq('id', currentEncounter.id);
-  }
-
   async function handleWorldMapUpload(event) {
     const file = event.target.files?.[0];
     if (!file || !currentEncounter) return;
@@ -175,7 +162,6 @@ function SessionControls({ currentEncounter, displayToken, joinCodes, onGenerate
       const prevUrl = currentEncounter.world_map_url || null;
       await supabase.from('encounters').update({ world_map_url: nextUrl }).eq('id', currentEncounter.id);
       if (prevUrl) await removeStoragePublicUrl(null, prevUrl);
-      setMapUrlDraft(nextUrl);
     } catch (error) {
       setMapError(error?.message || 'World map upload failed.');
     } finally {
@@ -239,85 +225,54 @@ function SessionControls({ currentEncounter, displayToken, joinCodes, onGenerate
     const previous = currentEncounter.world_map_url;
     await supabase.from('encounters').update({ world_map_url: null, display_world_map: false }).eq('id', currentEncounter.id);
     await removeStoragePublicUrl(null, previous);
-    setMapUrlDraft('');
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 12 }}>
-      <div className="panel session-subpanel">
-        <div className="panel-title">Current Session</div>
-        <div className="session-meta-grid">
-          <div className="session-meta-item"><span className="session-meta-label">Encounter</span><span className="session-meta-value">{currentEncounter?.name || 'Active session'}</span></div>
-          <div className="session-meta-item"><span className="session-meta-label">Round</span><span className="session-meta-value">{currentEncounter?.round ?? 1}</span></div>
-        </div>
-        <div className="form-row" style={{ marginTop: 12, flexWrap: 'wrap' }}>
-          {onFrontScreen && <button className="btn btn-ghost" onClick={onFrontScreen}>Front Screen</button>}
-          {onSignOut && <button className="btn btn-danger" onClick={onSignOut}>Sign Out</button>}
-        </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
+      <div className="manage-create-row">
+        {onFrontScreen && <button className="btn btn-ghost" onClick={onFrontScreen}>Front Screen</button>}
+        {onSignOut && <button className="btn btn-danger" onClick={onSignOut}>Sign Out</button>}
       </div>
 
       <div className="panel session-subpanel">
-        <div className="panel-title">Display Screen</div>
-        <div className="display-screen-stack">
-          <div className="display-token-row display-token-row--tidy">
-            <span className="display-token-label">Display Code</span>
-            <span className="display-token-value">{displayToken || 'Generating…'}</span>
-            {onRevokeDisplayToken && <button className="btn btn-danger" onClick={onRevokeDisplayToken}>Revoke</button>}
+        <div className="panel-title">Player Join Codes {joinCodes.length > 0 ? `(${joinCodes.length})` : ''}</div>
+        {joinCodes.length === 0 ? <div className="empty-state">No join codes for this encounter.</div> : joinCodes.map((s, i) => <div key={i} className="join-code-row"><span className="join-code-name">{s.profiles_players?.name || 'Player'}</span><span className="join-code-value">{s.join_code}</span></div>)}
+      </div>
+
+      <div className="panel session-subpanel">
+        <div className="display-screen-header-row">
+          <div className="panel-title" style={{ marginBottom: 0 }}>Display Screen</div>
+          <div className="display-screen-header-codes">
+            <span className="display-screen-header-token">{displayToken || 'Generating…'}</span>
           </div>
         </div>
-        {currentEncounter && (
-          <>
-            <div className="world-map-controls">
-              <div className="world-map-header">
-                <span className="world-map-kicker">World Map Image</span>
-                <span className="world-map-help">Upload directly (portrait-style) for Display map mode.</span>
-              </div>
-              <div className="world-map-image-state">
-                {currentEncounter.world_map_url ? (
-                  <>
-                    <img src={currentEncounter.world_map_url} alt="World map preview" className="world-map-preview" />
-                    <div className="world-map-image-meta">Current map is uploaded and ready.</div>
-                  </>
-                ) : (
-                  <div className="world-map-empty">No world map uploaded yet.</div>
-                )}
-              </div>
-              <div className="world-map-upload-row">
-                <label className="btn btn-ghost" style={{ cursor: uploadingMap ? 'default' : 'pointer' }}>
-                  {uploadingMap ? 'Uploading…' : 'Upload Map'}
-                  <input type="file" accept="image/*" onChange={handleWorldMapUpload} disabled={uploadingMap} style={{ display: 'none' }} />
-                </label>
-                {currentEncounter.world_map_url ? <button className="btn btn-ghost" onClick={removeWorldMap}>Remove Map</button> : null}
-              </div>
-              {mapError ? <div className="empty-state" style={{ color: 'var(--accent-red)', paddingTop: 0, paddingBottom: 0 }}>{mapError}</div> : null}
-              <div className="world-map-url-fallback">
-                <input className="form-input" placeholder="Fallback map URL (optional)" value={mapUrlDraft} onChange={e => setMapUrlDraft(e.target.value)} />
-                <button className="btn btn-ghost" onClick={saveWorldMapUrl}>Save URL</button>
-              </div>
-            </div>
-            {onSetDisplayCombatMode && (
-              <div className="world-map-toggle-row" style={{ marginTop: 10 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Display Layout Mode</span>
-                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{displayCombatMode === 'in_combat' ? 'In Combat layout is active on Display View.' : 'Out of Combat four-card layout is active on Display View.'}</span>
-                </div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                  <button className="btn btn-ghost" style={{ minWidth: 120, borderColor: displayCombatMode === 'in_combat' ? 'var(--accent-red)' : 'var(--border)', color: displayCombatMode === 'in_combat' ? 'var(--accent-red)' : 'var(--text-primary)' }} onClick={() => onSetDisplayCombatMode('in_combat')}>In Combat</button>
-                  <button className="btn btn-ghost" style={{ minWidth: 140, borderColor: displayCombatMode === 'out_of_combat' ? 'var(--accent-blue)' : 'var(--border)', color: displayCombatMode === 'out_of_combat' ? 'var(--accent-blue)' : 'var(--text-primary)' }} onClick={() => onSetDisplayCombatMode('out_of_combat')}>Out of Combat</button>
-                </div>
-              </div>
-            )}
-            {onToggleDisplayWorldMap && (
-              <div className="world-map-toggle-row">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '.05em' }}>World Map Mode</span>
-                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{currentEncounter.display_world_map ? 'Display is locked to world map' : 'Display follows normal initiative layout'}</span>
-                </div>
-                <button className="btn btn-ghost" style={{ minWidth: 130, borderColor: currentEncounter.display_world_map ? 'var(--accent-gold)' : 'var(--border)', color: currentEncounter.display_world_map ? 'var(--accent-gold)' : 'var(--text-primary)' }} onClick={() => onToggleDisplayWorldMap(!currentEncounter.display_world_map)}>{currentEncounter.display_world_map ? 'Disable Map' : 'Enable Map'}</button>
-              </div>
-            )}
-          </>
-        )}
+
+        {onToggleDisplayWorldMap ? (
+          <button className="btn btn-ghost display-screen-bar-btn" onClick={() => onToggleDisplayWorldMap(!currentEncounter?.display_world_map)}>
+            {currentEncounter?.display_world_map ? 'Disable World Map Mode' : 'Enable World Map Mode'}
+          </button>
+        ) : null}
+
+        {onSetDisplayCombatMode ? (
+          <div className="display-layout-btn-row">
+            <button className="btn btn-ghost" style={{ borderColor: displayCombatMode === 'in_combat' ? 'var(--accent-red)' : 'var(--border)', color: displayCombatMode === 'in_combat' ? 'var(--accent-red)' : 'var(--text-primary)' }} onClick={() => onSetDisplayCombatMode('in_combat')}>In Combat</button>
+            <button className="btn btn-ghost" style={{ borderColor: displayCombatMode === 'out_of_combat' ? 'var(--accent-blue)' : 'var(--border)', color: displayCombatMode === 'out_of_combat' ? 'var(--accent-blue)' : 'var(--text-primary)' }} onClick={() => onSetDisplayCombatMode('out_of_combat')}>Out of Combat</button>
+          </div>
+        ) : null}
+
+        <label className="btn btn-ghost display-screen-bar-btn" style={{ cursor: uploadingMap ? 'default' : 'pointer' }}>
+          {uploadingMap ? 'Uploading…' : 'Upload Map'}
+          <input type="file" accept="image/*" onChange={handleWorldMapUpload} disabled={uploadingMap} style={{ display: 'none' }} />
+        </label>
+
+        <div className="world-map-image-state">
+          {currentEncounter?.world_map_url
+            ? <img src={currentEncounter.world_map_url} alt="World map preview" className="world-map-preview" />
+            : <div className="world-map-empty">No world map uploaded yet.</div>}
+        </div>
+
+        {currentEncounter?.world_map_url ? <button className="btn btn-ghost" onClick={removeWorldMap}>Remove Map</button> : null}
+        {mapError ? <div className="empty-state" style={{ color: 'var(--accent-red)', paddingTop: 0, paddingBottom: 0 }}>{mapError}</div> : null}
       </div>
 
       <div className="panel session-subpanel">
@@ -337,11 +292,6 @@ function SessionControls({ currentEncounter, displayToken, joinCodes, onGenerate
           </div>
         )}
         {playerAddError ? <div className="empty-state" style={{ color: 'var(--accent-red)', paddingTop: 8, paddingBottom: 0 }}>{playerAddError}</div> : null}
-      </div>
-
-      <div className="panel session-subpanel">
-        <div className="panel-title">Player Join Codes {joinCodes.length > 0 ? `(${joinCodes.length})` : ''}</div>
-        {joinCodes.length === 0 ? <div className="empty-state">No join codes for this encounter.</div> : joinCodes.map((s, i) => <div key={i} className="join-code-row"><span className="join-code-name">{s.profiles_players?.name || 'Player'}</span><span className="join-code-value">{s.join_code}</span></div>)}
       </div>
     </div>
   );
@@ -365,16 +315,72 @@ function PlayerProfileManager({ inventoryRefreshTick = 0 }) {
   const [profiles, setProfiles] = useState([]);
   const [editing, setEditing] = useState(null);
   const [deleteError, setDeleteError] = useState('');
-  const [inventorySummaries, setInventorySummaries] = useState({});
-  const [inventoryProfile, setInventoryProfile] = useState(null);
+
   useEffect(() => { load(); }, []);
   useEffect(() => { load(); }, [inventoryRefreshTick]);
-  async function load() { const { data } = await supabase.from('profiles_players').select('*').order('name'); const rows = data || []; setProfiles(rows); if (rows.length > 0) { const summaryRows = await inventoryGetSummariesForProfiles(rows.map(profile => profile.id)); const next = {}; (summaryRows || []).forEach(row => { next[row.player_profile_id] = row; }); setInventorySummaries(next); } else { setInventorySummaries({}); } }
-  async function save(profile) { const finalProfile = applyDerivedPlayerDefaults(profile); if (finalProfile.id) await supabase.from('profiles_players').update(finalProfile).eq('id', finalProfile.id); else await supabase.from('profiles_players').insert(finalProfile); setEditing(null); load(); }
-  async function remove(id) { if (!window.confirm('Delete this player profile? This will also remove that player from saved encounter state and join sessions.')) return; setDeleteError(''); const { data: ownedCombatants, error: combatantLookupError } = await supabase.from('combatants').select('id').eq('owner_player_id', id); if (combatantLookupError) { setDeleteError(combatantLookupError.message || 'Failed to look up linked combatants.'); return; } const combatantIds = (ownedCombatants || []).map(row => row.id); if (combatantIds.length > 0) { const { error: playerStateDeleteError } = await supabase.from('player_encounter_state').delete().in('combatant_id', combatantIds); if (playerStateDeleteError) { setDeleteError(playerStateDeleteError.message || 'Failed to remove linked player encounter state.'); return; } const { error: combatantDeleteError } = await supabase.from('combatants').delete().in('id', combatantIds); if (combatantDeleteError) { setDeleteError(combatantDeleteError.message || 'Failed to remove linked combatants.'); return; } } const { error: directStateDeleteError } = await supabase.from('player_encounter_state').delete().eq('player_profile_id', id); if (directStateDeleteError) { setDeleteError(directStateDeleteError.message || 'Failed to remove linked player encounter state.'); return; } const { error: playerSessionDeleteError } = await supabase.from('player_sessions').delete().eq('player_profile_id', id); if (playerSessionDeleteError) { setDeleteError(playerSessionDeleteError.message || 'Failed to remove linked player sessions.'); return; } const { error: playerSpellsDeleteError } = await supabase.from('profile_player_spells').delete().eq('player_profile_id', id); if (playerSpellsDeleteError) { setDeleteError(playerSpellsDeleteError.message || 'Failed to remove linked player spells.'); return; } const { error: profileDeleteError } = await supabase.from('profiles_players').delete().eq('id', id); if (profileDeleteError) { setDeleteError(profileDeleteError.message || 'Failed to delete player profile.'); return; } load(); }
-  if (editing !== null) return <PlayerProfileForm initial={editing} onSave={save} onCancel={() => setEditing(null)} />;
-  return <div>{deleteError && <div className="empty-state" style={{ color: 'var(--accent-red)', marginBottom: 10 }}>{deleteError}</div>}{profiles.map(p => <div key={p.id} style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 }}><div className="manage-row"><span><strong>{p.name}</strong>{classSummary(p) ? <span style={{ color: 'var(--text-secondary)', marginLeft: 8, fontSize: 12 }}>{classSummary(p)}</span> : null}</span><div className="form-row"><button className="btn btn-ghost" onClick={() => setEditing(p)}>Edit</button><button className="btn btn-danger" onClick={() => remove(p.id)}>Delete</button></div></div><button className="btn btn-ghost" style={{ textAlign: 'left' }} onClick={() => setInventoryProfile(p)}>{formatInventorySummary(inventorySummaries[p.id] || { total_item_quantity: 0, gp: 0 })}</button></div>)}<button className="btn btn-primary" style={{ marginTop: 12 }} onClick={() => setEditing({})}>+ New Player</button>{inventoryProfile && <InventoryModal open={!!inventoryProfile} onClose={() => setInventoryProfile(null)} role="dm" playerProfileId={inventoryProfile.id} playerName={inventoryProfile.name} senderProfileId={inventoryProfile.id} inventoryRefreshTick={inventoryRefreshTick} />}</div>;
+
+  async function load() {
+    const { data } = await supabase.from('profiles_players').select('*').order('name');
+    setProfiles(data || []);
+  }
+
+  async function save(profile) {
+    const finalProfile = applyDerivedPlayerDefaults(profile);
+    if (finalProfile.id) await supabase.from('profiles_players').update(finalProfile).eq('id', finalProfile.id);
+    else await supabase.from('profiles_players').insert(finalProfile);
+    setEditing(null);
+    load();
+  }
+
+  async function remove(id) {
+    if (!window.confirm('Delete this player profile? This will also remove that player from saved encounter state and join sessions.')) return;
+    setDeleteError('');
+    const { data: ownedCombatants, error: combatantLookupError } = await supabase.from('combatants').select('id').eq('owner_player_id', id);
+    if (combatantLookupError) { setDeleteError(combatantLookupError.message || 'Failed to look up linked combatants.'); return; }
+    const combatantIds = (ownedCombatants || []).map(row => row.id);
+    if (combatantIds.length > 0) {
+      const { error: playerStateDeleteError } = await supabase.from('player_encounter_state').delete().in('combatant_id', combatantIds);
+      if (playerStateDeleteError) { setDeleteError(playerStateDeleteError.message || 'Failed to remove linked player encounter state.'); return; }
+      const { error: combatantDeleteError } = await supabase.from('combatants').delete().in('id', combatantIds);
+      if (combatantDeleteError) { setDeleteError(combatantDeleteError.message || 'Failed to remove linked combatants.'); return; }
+    }
+    const { error: directStateDeleteError } = await supabase.from('player_encounter_state').delete().eq('player_profile_id', id);
+    if (directStateDeleteError) { setDeleteError(directStateDeleteError.message || 'Failed to remove linked player encounter state.'); return; }
+    const { error: playerSessionDeleteError } = await supabase.from('player_sessions').delete().eq('player_profile_id', id);
+    if (playerSessionDeleteError) { setDeleteError(playerSessionDeleteError.message || 'Failed to remove linked player sessions.'); return; }
+    const { error: playerSpellsDeleteError } = await supabase.from('profile_player_spells').delete().eq('player_profile_id', id);
+    if (playerSpellsDeleteError) { setDeleteError(playerSpellsDeleteError.message || 'Failed to remove linked player spells.'); return; }
+    const { error: profileDeleteError } = await supabase.from('profiles_players').delete().eq('id', id);
+    if (profileDeleteError) { setDeleteError(profileDeleteError.message || 'Failed to delete player profile.'); return; }
+    setEditing(null);
+    load();
+  }
+
+  if (editing !== null) {
+    const isExisting = !!editing?.id;
+    return <PlayerProfileForm initial={editing} onSave={save} onCancel={() => setEditing(null)} onDelete={isExisting ? () => remove(editing.id) : null} />;
+  }
+
+  return (
+    <div>
+      {deleteError && <div className="empty-state" style={{ color: 'var(--accent-red)', marginBottom: 10 }}>{deleteError}</div>}
+      {profiles.map((profile) => (
+        <div key={profile.id} className="manage-row manage-row--list-item">
+          <div className="manage-row-main">
+            <strong className="manage-row-title">{profile.name}</strong>
+            <span className="manage-row-meta">{classSummary(profile) || 'Class not set'}</span>
+          </div>
+          <div className="manage-row-actions">
+            <button className="btn btn-ghost" onClick={() => setEditing(profile)}>Edit</button>
+          </div>
+        </div>
+      ))}
+      {profiles.length === 0 ? <div className="empty-state">No players yet.</div> : null}
+      <button className="btn btn-primary world-action-btn-full" style={{ marginTop: 12 }} onClick={() => setEditing({})}>+ New Player</button>
+    </div>
+  );
 }
+
 
 function normalizeManualBonusInitial(initial = {}) {
   return {
@@ -385,7 +391,7 @@ function normalizeManualBonusInitial(initial = {}) {
   };
 }
 
-function PlayerProfileForm({ initial, onSave, onCancel }) {
+function PlayerProfileForm({ initial, onSave, onCancel, onDelete = null }) {
   const formRef = useRef(null);
   const [f, setF] = useState({ name: '', max_hp: 10, ac: 10, ac_bonus: 0, initiative_mod: 0, initiative_bonus: 0, spell_save_bonus: 0, spell_attack_bonus_mod: 0, class_name: '', subclass_name: '', class_level: 1, class_name_2: '', subclass_name_2: '', class_level_2: 0, ancestry_name: '', feat_lucky: false, feat_relentless_endurance: false, feat_fey_step: false, feat_celestial_revelation: false, mage_armour_enabled: false, ability_str: 10, ability_dex: 10, ability_con: 10, ability_int: 10, ability_wis: 10, ability_cha: 10, save_str: 0, save_dex: 0, save_con: 0, save_int: 0, save_wis: 0, save_cha: 0, spell_save_dc: 8, spell_attack_bonus: 0, slots_max_1: 0, slots_max_2: 0, slots_max_3: 0, slots_max_4: 0, slots_max_5: 0, slots_max_6: 0, slots_max_7: 0, slots_max_8: 0, slots_max_9: 0, wildshape_enabled: false, portrait_url: '', ...Object.fromEntries(SKILL_DEFINITIONS.map(skill => [`skill_${skill.key}_rank`, 0])), ...normalizeManualBonusInitial(initial) });
   const [uploading, setUploading] = useState(false);
@@ -456,14 +462,99 @@ function PlayerProfileForm({ initial, onSave, onCancel }) {
       <Field label="Portrait"><div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>{f.portrait_url && <img src={f.portrait_url} alt="Portrait" style={{ width: 64, height: 80, objectFit: 'cover', borderRadius: 6 }} />}<input type="file" accept="image/*" onChange={handlePortraitUpload} disabled={uploading} style={{ fontSize: 13 }} />{uploading && <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Uploading…</span>}{uploadError && <span style={{ fontSize: 12, color: 'var(--accent-red)' }}>{uploadError}</span>}</div></Field>
       <Field label="Base AC"><NumInput name="ac" value={f.ac} onChange={v => set('ac', v)} min={1} /></Field>
       <Field label="Max HP"><NumInput name="max_hp" value={f.max_hp} onChange={v => set('max_hp', v)} min={1} /></Field>
-      <div className="form-row" style={{ marginTop: 16 }}><button type="submit" className="btn btn-primary" disabled={!f.name || uploading}>Save</button><button type="button" className="btn btn-ghost" onClick={onCancel}>Cancel</button></div>
+      <div className="form-row" style={{ marginTop: 16 }}><button type="submit" className="btn btn-primary" disabled={!f.name || uploading}>Save</button><button type="button" className="btn btn-ghost" onClick={onCancel}>Cancel</button></div>{onDelete ? <div style={{ marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 10 }}><button type="button" className="btn btn-danger" onClick={onDelete}>Delete Player</button></div> : null}
     </form>
   );
 }
 
-function MonsterTemplateManager() { const [monsters, setMonsters] = useState([]); const [editing, setEditing] = useState(null); const [filter, setFilter] = useState('ALL'); useEffect(() => { load(); }, []);
-  async function load() { const { data } = await supabase.from('profiles_monsters').select('*').order('name'); setMonsters(data || []); } async function save(m) { const payload = m.id ? { ...m } : { archived: false, ...m }; if (payload.id) await supabase.from('profiles_monsters').update(payload).eq('id', payload.id); else await supabase.from('profiles_monsters').insert(payload); setEditing(null); load(); } async function setArchived(id, archived) { await supabase.from('profiles_monsters').update({ archived }).eq('id', id); load(); } async function remove(id) { if (!window.confirm('Delete this template?')) return; await supabase.from('profiles_monsters').delete().eq('id', id); load(); } if (editing !== null) return <MonsterForm initial={editing} onSave={save} onCancel={() => setEditing(null)} />; const active = monsters.filter(m => !m.archived); const archived = monsters.filter(m => m.archived); const filtered = filter === 'ARCHIVED' ? archived : filter === 'ALL' ? active : active.filter(m => m.side === filter); return <div><div style={{ display: 'flex', gap: 8, marginBottom: 12, marginTop: 8, flexWrap: 'wrap' }}>{['ALL','ENEMY','NPC','ARCHIVED'].map(f => <button key={f} className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 10px', borderColor: filter === f ? 'var(--accent-blue)' : 'var(--border)', color: filter === f ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => setFilter(f)}>{f}</button>)}</div>{filtered.map(m => <div key={m.id} className="manage-row"><span><span className={`badge badge-${(m.side || 'ENEMY').toLowerCase()}`} style={{ marginRight: 6 }}>{m.side || 'ENEMY'}</span>{m.name}{m.mini_marker ? <span style={{ marginLeft: 6, fontSize: 12, color: 'var(--accent-gold)' }}>• {m.mini_marker}</span> : null}<span style={{ color: 'var(--text-secondary)', marginLeft: 6 }}>AC {m.ac}, HP {m.hp_max}</span>{classSummary(m) ? <span style={{ color: 'var(--text-secondary)', marginLeft: 6, fontSize: 12 }}>{classSummary(m)}</span> : null}{(m.legendary_actions_max > 0 || m.legendary_resistances_max > 0) && <span style={{ fontSize: 10, color: 'var(--accent-gold)', marginLeft: 6 }}></span>}</span><div className="form-row"><button className="btn btn-ghost" onClick={() => setEditing(m)}>Edit</button>{m.archived ? <button className="btn btn-ghost" onClick={() => setArchived(m.id, false)}>Restore</button> : <button className="btn btn-ghost" onClick={() => setArchived(m.id, true)}>Archive</button>}<button className="btn btn-danger" onClick={() => remove(m.id)}>Delete</button></div></div>)}{filtered.length === 0 && <div className="empty-state">{filter === 'ARCHIVED' ? 'No archived templates.' : 'No active templates in this filter.'}</div>}<div className="form-row" style={{ marginTop: 12 }}><button className="btn btn-primary" onClick={() => setEditing({ side: 'ENEMY', archived: false })}>+ New Enemy</button><button className="btn btn-ghost" onClick={() => setEditing({ side: 'NPC', archived: false })}>+ New NPC</button></div></div>; }
-function MonsterForm({ initial, onSave, onCancel }) { const [f, setF] = useState({ name: '', ac: 10, hp_max: 10, initiative_mod: 0, notes: '', side: 'ENEMY', class_name: '', subclass_name: '', class_level: 1, class_name_2: '', subclass_name_2: '', class_level_2: 0, mini_marker: '', mod_str: 0, mod_dex: 0, mod_con: 0, mod_int: 0, mod_wis: 0, mod_cha: 0, resistances: [], immunities: [], legendary_actions_max: 0, legendary_resistances_max: 0, slots_max_1: 0, slots_max_2: 0, slots_max_3: 0, slots_max_4: 0, slots_max_5: 0, slots_max_6: 0, slots_max_7: 0, slots_max_8: 0, slots_max_9: 0, ...initial }); const set = (k, v) => setF(p => ({ ...p, [k]: v })); const DAMAGE_TYPES = ['Acid','Bludgeoning','Cold','Fire','Force','Lightning','Necrotic','Piercing','Poison','Psychic','Radiant','Slashing','Thunder']; function toggleDamageType(field, type) { const arr = f[field] || []; set(field, arr.includes(type) ? arr.filter(t => t !== type) : [...arr, type]); } return <div className="profile-form"><Field label="Type"><div style={{ display: 'flex', gap: 8 }}>{['ENEMY','NPC'].map(s => <button key={s} className="btn btn-ghost" style={{ flex: 1, borderColor: f.side === s ? 'var(--accent-blue)' : 'var(--border)', color: f.side === s ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => set('side', s)}>{s}</button>)}</div></Field><Field label="Name"><input className="form-input" value={f.name} onChange={e => set('name', e.target.value)} /></Field><div className="panel-title" style={{ marginTop: 12 }}>Class & Marker</div><Field label="Primary Class"><SelectField value={f.class_name} onChange={v => set('class_name', v)} options={CLASS_OPTIONS} /></Field><Field label="Primary Subclass"><input className="form-input" value={f.subclass_name || ''} onChange={e => set('subclass_name', e.target.value)} /></Field><Field label="Primary Level"><NumInput value={f.class_level ?? 1} onChange={v => set('class_level', v || 1)} /></Field><Field label="Secondary Class"><SelectField value={f.class_name_2} onChange={v => { set('class_name_2', v); if (!v) { set('subclass_name_2', ''); set('class_level_2', 0); } }} options={CLASS_OPTIONS} /></Field><Field label="Secondary Subclass"><input className="form-input" value={f.subclass_name_2 || ''} onChange={e => set('subclass_name_2', e.target.value)} /></Field><Field label="Secondary Level"><NumInput value={f.class_level_2 ?? 0} onChange={v => set('class_level_2', v)} /></Field><Field label="Mini Marker"><input className="form-input" value={f.mini_marker || ''} onChange={e => set('mini_marker', e.target.value.slice(0, 12))} placeholder="A, B, 1, red dot, etc." /></Field><Field label="AC"><NumInput value={f.ac} onChange={v => set('ac', v)} /></Field><Field label="HP Max"><NumInput value={f.hp_max} onChange={v => set('hp_max', v)} /></Field><Field label="Initiative Mod"><NumInput value={f.initiative_mod} onChange={v => set('initiative_mod', v)} /></Field><div className="panel-title" style={{ marginTop: 12 }}>Ability Modifiers</div><div className="saves-grid">{['str','dex','con','int','wis','cha'].map(s => <div key={s} className="form-group"><label className="form-label">{s.toUpperCase()}</label><NumInput value={f[`mod_${s}`] ?? 0} onChange={v => set(`mod_${s}`, v)} /></div>)}</div><div className="panel-title" style={{ marginTop: 12 }}>Legendary</div><div className="form-row"><div className="form-group" style={{ flex: 1 }}><label className="form-label">Legendary Actions</label><NumInput value={f.legendary_actions_max ?? 0} onChange={v => set('legendary_actions_max', v)} /></div><div className="form-group" style={{ flex: 1 }}><label className="form-label">Legendary Resistances</label><NumInput value={f.legendary_resistances_max ?? 0} onChange={v => set('legendary_resistances_max', v)} /></div></div><div className="panel-title" style={{ marginTop: 12 }}>Spell Slots (max per level)</div><div className="saves-grid">{[1,2,3,4,5,6,7,8,9].map(l => <div key={l} className="form-group"><label className="form-label">L{l}</label><NumInput value={f[`slots_max_${l}`] ?? 0} onChange={v => set(`slots_max_${l}`, v)} /></div>)}</div><div className="panel-title" style={{ marginTop: 12 }}>Resistances</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>{DAMAGE_TYPES.map(t => <button key={t} style={{ fontSize: 11, padding: '3px 8px', borderRadius: 4, fontWeight: 600, cursor: 'pointer', border: `1px solid ${(f.resistances || []).includes(t) ? 'var(--accent-blue)' : 'var(--border)'}`, background: (f.resistances || []).includes(t) ? 'rgba(74,158,255,0.2)' : 'var(--bg-panel-3)', color: (f.resistances || []).includes(t) ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => toggleDamageType('resistances', t)}>{t}</button>)}</div><div className="panel-title">Immunities</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>{DAMAGE_TYPES.map(t => <button key={t} style={{ fontSize: 11, padding: '3px 8px', borderRadius: 4, fontWeight: 600, cursor: 'pointer', border: `1px solid ${(f.immunities || []).includes(t) ? 'var(--accent-gold)' : 'var(--border)'}`, background: (f.immunities || []).includes(t) ? 'rgba(240,180,41,0.15)' : 'var(--bg-panel-3)', color: (f.immunities || []).includes(t) ? 'var(--accent-gold)' : 'var(--text-secondary)' }} onClick={() => toggleDamageType('immunities', t)}>{t}</button>)}</div><Field label="Notes (DM only)"><textarea className="form-input" value={f.notes || ''} onChange={e => set('notes', e.target.value)} rows={2} /></Field><div className="form-row" style={{ marginTop: 12 }}><button className="btn btn-primary" onClick={() => onSave(f)} disabled={!f.name}>Save</button><button className="btn btn-ghost" onClick={onCancel}>Cancel</button></div></div>; }
+function MonsterTemplateManager() {
+  const [monsters, setMonsters] = useState([]);
+  const [editing, setEditing] = useState(null);
+  const [filter, setFilter] = useState('ALL');
+
+  useEffect(() => { load(); }, []);
+
+  async function load() {
+    const { data } = await supabase.from('profiles_monsters').select('*').order('name');
+    setMonsters(data || []);
+  }
+
+  async function save(monster) {
+    const payload = monster.id ? { ...monster } : { archived: false, ...monster };
+    if (payload.id) await supabase.from('profiles_monsters').update(payload).eq('id', payload.id);
+    else await supabase.from('profiles_monsters').insert(payload);
+    setEditing(null);
+    load();
+  }
+
+  async function setArchived(id, archived) {
+    await supabase.from('profiles_monsters').update({ archived }).eq('id', id);
+    setEditing(null);
+    load();
+  }
+
+  async function remove(id) {
+    if (!window.confirm('Delete this template?')) return;
+    await supabase.from('profiles_monsters').delete().eq('id', id);
+    setEditing(null);
+    load();
+  }
+
+  if (editing !== null) {
+    const isExisting = !!editing?.id;
+    return <MonsterForm initial={editing} onSave={save} onCancel={() => setEditing(null)} onArchiveToggle={isExisting ? (archived) => setArchived(editing.id, archived) : null} onDelete={isExisting ? () => remove(editing.id) : null} />;
+  }
+
+  const active = monsters.filter((monster) => !monster.archived);
+  const archived = monsters.filter((monster) => monster.archived);
+  const filtered = filter === 'ARCHIVED'
+    ? archived
+    : filter === 'ALL'
+      ? active
+      : active.filter((monster) => monster.side === filter);
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, marginTop: 8, flexWrap: 'wrap' }}>
+        {['ALL', 'ENEMY', 'NPC', 'ARCHIVED'].map((entry) => (
+          <button
+            key={entry}
+            className="btn btn-ghost"
+            style={{ fontSize: 11, padding: '2px 10px', borderColor: filter === entry ? 'var(--accent-blue)' : 'var(--border)', color: filter === entry ? 'var(--accent-blue)' : 'var(--text-secondary)' }}
+            onClick={() => setFilter(entry)}
+          >
+            {entry}
+          </button>
+        ))}
+      </div>
+
+      {filtered.map((monster) => (
+        <div key={monster.id} className="manage-row manage-row--list-item">
+          <div className="manage-row-main">
+            <div className="manage-row-title-wrap">
+              <span className={`badge badge-${(monster.side || 'ENEMY').toLowerCase()}`}>{monster.side || 'ENEMY'}</span>
+              <strong className="manage-row-title">{monster.name}</strong>
+            </div>
+            <span className="manage-row-meta">AC {monster.ac}, HP {monster.hp_max}</span>
+          </div>
+          <div className="manage-row-actions">
+            <button className="btn btn-ghost" onClick={() => setEditing(monster)}>Edit</button>
+          </div>
+        </div>
+      ))}
+
+      {filtered.length === 0 && <div className="empty-state">{filter === 'ARCHIVED' ? 'No archived templates.' : 'No active templates in this filter.'}</div>}
+
+      <div className="manage-create-row" style={{ marginTop: 12 }}>
+        <button className="btn btn-primary" onClick={() => setEditing({ side: 'ENEMY', archived: false })}>+ New Enemy</button>
+        <button className="btn btn-ghost" onClick={() => setEditing({ side: 'NPC', archived: false })}>+ New NPC</button>
+      </div>
+    </div>
+  );
+}
+
+
+function MonsterForm({ initial, onSave, onCancel, onArchiveToggle = null, onDelete = null }) { const [f, setF] = useState({ name: '', ac: 10, hp_max: 10, initiative_mod: 0, notes: '', side: 'ENEMY', class_name: '', subclass_name: '', class_level: 1, class_name_2: '', subclass_name_2: '', class_level_2: 0, mini_marker: '', mod_str: 0, mod_dex: 0, mod_con: 0, mod_int: 0, mod_wis: 0, mod_cha: 0, resistances: [], immunities: [], legendary_actions_max: 0, legendary_resistances_max: 0, slots_max_1: 0, slots_max_2: 0, slots_max_3: 0, slots_max_4: 0, slots_max_5: 0, slots_max_6: 0, slots_max_7: 0, slots_max_8: 0, slots_max_9: 0, ...initial }); const set = (k, v) => setF(p => ({ ...p, [k]: v })); const DAMAGE_TYPES = ['Acid','Bludgeoning','Cold','Fire','Force','Lightning','Necrotic','Piercing','Poison','Psychic','Radiant','Slashing','Thunder']; function toggleDamageType(field, type) { const arr = f[field] || []; set(field, arr.includes(type) ? arr.filter(t => t !== type) : [...arr, type]); } return <div className="profile-form"><Field label="Type"><div style={{ display: 'flex', gap: 8 }}>{['ENEMY','NPC'].map(s => <button key={s} className="btn btn-ghost" style={{ flex: 1, borderColor: f.side === s ? 'var(--accent-blue)' : 'var(--border)', color: f.side === s ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => set('side', s)}>{s}</button>)}</div></Field><Field label="Name"><input className="form-input" value={f.name} onChange={e => set('name', e.target.value)} /></Field><div className="panel-title" style={{ marginTop: 12 }}>Class & Marker</div><Field label="Primary Class"><SelectField value={f.class_name} onChange={v => set('class_name', v)} options={CLASS_OPTIONS} /></Field><Field label="Primary Subclass"><input className="form-input" value={f.subclass_name || ''} onChange={e => set('subclass_name', e.target.value)} /></Field><Field label="Primary Level"><NumInput value={f.class_level ?? 1} onChange={v => set('class_level', v || 1)} /></Field><Field label="Secondary Class"><SelectField value={f.class_name_2} onChange={v => { set('class_name_2', v); if (!v) { set('subclass_name_2', ''); set('class_level_2', 0); } }} options={CLASS_OPTIONS} /></Field><Field label="Secondary Subclass"><input className="form-input" value={f.subclass_name_2 || ''} onChange={e => set('subclass_name_2', e.target.value)} /></Field><Field label="Secondary Level"><NumInput value={f.class_level_2 ?? 0} onChange={v => set('class_level_2', v)} /></Field><Field label="Mini Marker"><input className="form-input" value={f.mini_marker || ''} onChange={e => set('mini_marker', e.target.value.slice(0, 12))} placeholder="A, B, 1, red dot, etc." /></Field><Field label="AC"><NumInput value={f.ac} onChange={v => set('ac', v)} /></Field><Field label="HP Max"><NumInput value={f.hp_max} onChange={v => set('hp_max', v)} /></Field><Field label="Initiative Mod"><NumInput value={f.initiative_mod} onChange={v => set('initiative_mod', v)} /></Field><div className="panel-title" style={{ marginTop: 12 }}>Ability Modifiers</div><div className="saves-grid">{['str','dex','con','int','wis','cha'].map(s => <div key={s} className="form-group"><label className="form-label">{s.toUpperCase()}</label><NumInput value={f[`mod_${s}`] ?? 0} onChange={v => set(`mod_${s}`, v)} /></div>)}</div><div className="panel-title" style={{ marginTop: 12 }}>Legendary</div><div className="form-row"><div className="form-group" style={{ flex: 1 }}><label className="form-label">Legendary Actions</label><NumInput value={f.legendary_actions_max ?? 0} onChange={v => set('legendary_actions_max', v)} /></div><div className="form-group" style={{ flex: 1 }}><label className="form-label">Legendary Resistances</label><NumInput value={f.legendary_resistances_max ?? 0} onChange={v => set('legendary_resistances_max', v)} /></div></div><div className="panel-title" style={{ marginTop: 12 }}>Spell Slots (max per level)</div><div className="saves-grid">{[1,2,3,4,5,6,7,8,9].map(l => <div key={l} className="form-group"><label className="form-label">L{l}</label><NumInput value={f[`slots_max_${l}`] ?? 0} onChange={v => set(`slots_max_${l}`, v)} /></div>)}</div><div className="panel-title" style={{ marginTop: 12 }}>Resistances</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>{DAMAGE_TYPES.map(t => <button key={t} style={{ fontSize: 11, padding: '3px 8px', borderRadius: 4, fontWeight: 600, cursor: 'pointer', border: `1px solid ${(f.resistances || []).includes(t) ? 'var(--accent-blue)' : 'var(--border)'}`, background: (f.resistances || []).includes(t) ? 'rgba(74,158,255,0.2)' : 'var(--bg-panel-3)', color: (f.resistances || []).includes(t) ? 'var(--accent-blue)' : 'var(--text-secondary)' }} onClick={() => toggleDamageType('resistances', t)}>{t}</button>)}</div><div className="panel-title">Immunities</div><div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>{DAMAGE_TYPES.map(t => <button key={t} style={{ fontSize: 11, padding: '3px 8px', borderRadius: 4, fontWeight: 600, cursor: 'pointer', border: `1px solid ${(f.immunities || []).includes(t) ? 'var(--accent-gold)' : 'var(--border)'}`, background: (f.immunities || []).includes(t) ? 'rgba(240,180,41,0.15)' : 'var(--bg-panel-3)', color: (f.immunities || []).includes(t) ? 'var(--accent-gold)' : 'var(--text-secondary)' }} onClick={() => toggleDamageType('immunities', t)}>{t}</button>)}</div><Field label="Notes (DM only)"><textarea className="form-input" value={f.notes || ''} onChange={e => set('notes', e.target.value)} rows={2} /></Field><div className="form-row" style={{ marginTop: 12 }}><button className="btn btn-primary" onClick={() => onSave(f)} disabled={!f.name}>Save</button><button className="btn btn-ghost" onClick={onCancel}>Cancel</button></div>{onArchiveToggle || onDelete ? <div style={{ marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>{onArchiveToggle ? <button className="btn btn-ghost" onClick={() => onArchiveToggle(!f.archived)}>{f.archived ? 'Restore Template' : 'Archive Template'}</button> : null}{onDelete ? <button className="btn btn-danger" onClick={onDelete}>Delete Template</button> : null}</div> : null}</div>; }
 function WildShapeLibrary() { const [forms, setForms] = useState([]); const [editing, setEditing] = useState(null); useEffect(() => { load(); }, []);
   async function load() { const { data } = await supabase.from('profiles_wildshape').select('*').order('form_name'); setForms(data || []); } async function save(f) { if (f.id) await supabase.from('profiles_wildshape').update(f).eq('id', f.id); else await supabase.from('profiles_wildshape').insert(f); setEditing(null); load(); } async function remove(id) { if (!window.confirm('Delete this wild shape form?')) return; await supabase.from('profiles_wildshape').delete().eq('id', id); load(); } if (editing !== null) return <WildShapeForm initial={editing} onSave={save} onCancel={() => setEditing(null)} />; return <div>{forms.map(f => <div key={f.id} className="manage-row"><span>{f.form_name} — AC {f.ac}, HP {f.hp_max}</span><div className="form-row"><button className="btn btn-ghost" onClick={() => setEditing(f)}>Edit</button><button className="btn btn-danger" onClick={() => remove(f.id)}>Delete</button></div></div>)}<button className="btn btn-primary" style={{ marginTop: 12 }} onClick={() => setEditing({})}>+ New Form</button></div>; }
 function WildShapeForm({ initial, onSave, onCancel }) { const [f, setF] = useState({ form_name: '', ac: 10, hp_max: 10, save_str: 0, save_dex: 0, save_con: 0, save_int: 0, save_wis: 0, save_cha: 0, speed: '', notes: '', ...initial }); const set = (k, v) => setF(p => ({ ...p, [k]: v })); return <div className="profile-form"><Field label="Form Name"><input className="form-input" value={f.form_name} onChange={e => set('form_name', e.target.value)} /></Field><Field label="AC"><NumInput value={f.ac} onChange={v => set('ac', v)} /></Field><Field label="HP Max"><NumInput value={f.hp_max} onChange={v => set('hp_max', v)} /></Field><div className="panel-title" style={{ marginTop: 12 }}>Saving Throws</div><div className="saves-grid">{['str','dex','con','int','wis','cha'].map(s => <div key={s} className="form-group"><label className="form-label">{s.toUpperCase()}</label><NumInput value={f[`save_${s}`]} onChange={v => set(`save_${s}`, v)} /></div>)}</div><Field label="Speed (optional)"><input className="form-input" value={f.speed || ''} onChange={e => set('speed', e.target.value)} /></Field><Field label="Notes (optional)"><textarea className="form-input" value={f.notes || ''} onChange={e => set('notes', e.target.value)} rows={2} /></Field><div className="form-row" style={{ marginTop: 12 }}><button className="btn btn-primary" onClick={() => onSave(f)} disabled={!f.form_name}>Save</button><button className="btn btn-ghost" onClick={onCancel}>Cancel</button></div></div>; }

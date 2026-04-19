@@ -191,7 +191,7 @@ export default function WorldNpcsPanel({ role = 'dm' }) {
         <>
           <div className="world-mobile-stack">
             <input className="form-input" placeholder="Search NPCs" value={query} onChange={(event) => setQuery(event.target.value)} />
-            {canEdit ? <button className="btn btn-primary" onClick={() => setEditingNpc({})}>New NPC</button> : null}
+            {canEdit ? <button className="btn btn-primary world-action-btn-full" onClick={() => setEditingNpc({})}>New NPC</button> : null}
           </div>
           <div className="world-card-grid">
             {filtered.map((npc, index) => {

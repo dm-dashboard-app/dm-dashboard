@@ -78,6 +78,7 @@ export default function ItemImportPanel({ onImportComplete = null }) {
   const [loadingImportedRows, setLoadingImportedRows] = useState(false);
   const [importedRowsError, setImportedRowsError] = useState('');
   const [showImportedRowsList, setShowImportedRowsList] = useState(false);
+  const [showReviewPanel, setShowReviewPanel] = useState(false);
 
   const importSummary = useMemo(() => buildImportSummary(importedRows), [importedRows]);
   const importReviewReport = useMemo(() => build5etoolsReviewReport(importedRows), [importedRows]);
@@ -162,6 +163,8 @@ export default function ItemImportPanel({ onImportComplete = null }) {
         ? 'Converted item import ran with 0 rows. Regenerate docs/data/shop_5etools_items_source_split_2014.json if needed.'
         : `Item import complete: ${importedCount} rows loaded (${eligibleCount} shop-eligible).`;
       setImportStatus(baseStatus);
+      setShowReviewPanel(true);
+      await refreshImportedRows();
 
       if (onImportComplete) await onImportComplete();
     } catch (importError) {
@@ -184,18 +187,16 @@ export default function ItemImportPanel({ onImportComplete = null }) {
         >
           {importingMode === 'five_tools' ? 'Importing Items...' : 'Import Items'}
         </button>
-      </div>
-      <div className="world-shops-import-help">
-        Import the curated item catalog artifact into item_master and use the review report below to validate pricing, shop policy buckets, and mechanics coverage.
+        <button type="button" className="btn btn-ghost" style={{ width: '100%' }} onClick={() => setShowReviewPanel((curr) => !curr)}>
+          {showReviewPanel ? 'Hide Import Review' : 'Show Import Review'}
+        </button>
       </div>
       {importStatus ? <div className="world-shops-import-status">{importStatus}</div> : null}
       {error ? <div className="world-shops-error">{error}</div> : null}
 
-      <div className="panel session-subpanel world-shops-import-review-panel" style={{ marginTop: 10 }}>
+      {showReviewPanel ? (
+        <div className="panel session-subpanel world-shops-import-review-panel" style={{ marginTop: 10 }}>
         <div className="panel-title">Live Imported Item Rows</div>
-        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
-          Source-of-truth list from current item_master rows imported via the curated source-split lane (curated + generated canonical enhancement source layers).
-        </div>
         <div className="world-shops-import-actions">
           <button type="button" className="btn btn-ghost" onClick={refreshImportedRows} disabled={loadingImportedRows}>
             {loadingImportedRows ? 'Loading...' : 'View imported rows'}
@@ -319,6 +320,7 @@ export default function ItemImportPanel({ onImportComplete = null }) {
           </div>
         )}
       </div>
+      ) : null}
     </div>
   );
 }

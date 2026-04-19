@@ -204,7 +204,6 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
         <div className="world-shops-saved-list">
           <div className="world-shops-panel-title">Rewards Catalog</div>
           <input className="form-input" placeholder="Search item catalog" value={query} onChange={(event) => setQuery(event.target.value)} />
-          <div className="world-rewards-catalog-help">Tap an item to open details and assign it.</div>
           <div style={{ display: 'grid', gap: 6, marginTop: 6, maxHeight: 360, overflow: 'auto' }}>
             {catalog.map((item) => (
               <button key={item.id} className="world-shops-saved-item" onClick={() => setPreviewItem(item)}>
@@ -243,7 +242,6 @@ export default function WorldRewardsPanel({ encounterId, playerStates = [], onIn
             <input className="form-input" type="number" min={1} value={currencyAmount} onChange={(event) => setCurrencyAmount(event.target.value)} />
           </div>
           <button className="btn btn-primary" onClick={handleAwardCurrency} disabled={loading || (currencyTarget === 'single' && !targetProfileId)}>Award Currency</button>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Remainder policy: extra currency is distributed one-by-one in ascending player-profile UUID order.</div>
         </div>
       </div>
       {status ? <div className="world-shops-import-status">{status}</div> : null}

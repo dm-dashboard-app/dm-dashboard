@@ -1,6 +1,6 @@
 # DM Dashboard — Next Steps Brief
 
-Last updated: April 18, 2026 (targeted still-unpriced pricing completion pass landed)
+Last updated: April 19, 2026 (Manage/World mobile UI cleanup pass landed)
 
 Purpose: This file is the active roadmap only. It lists active next steps, intentionally parked/deferred work, and longer-range ideas.
 
@@ -62,6 +62,7 @@ Recent landing note (April 18, 2026 AC fallback baseline correction): derived AC
 Recent landing note (April 18, 2026 curated mundane armor/shield mechanics wiring): source-split conversion now emits phase-1 mechanics payloads for baseline PHB mundane armor/shield rows (including Leather/Studded Leather/Chain Shirt/Breastplate/Half Plate/Chain Mail/Splint/Plate/Shield) by deriving armor formulas and shield bonuses directly from trusted item shape fields (`type` + `ac`), so curated-lane imports no longer strand these rows in `manual_required`.
 Recent landing note (April 18, 2026 combat AC inventory-context parity + attunement-only semantics fix): initiative/combat cards now derive AC/spell stats through `buildDerivedPlayerStats(...)` with live inventory snapshots (matching player-card armor/shield layering), and source-split conversion now emits attunement-required minimal mechanics payloads for inventory-slot rows (for example Pearl of Power / dragon vessel tiers) so runtime no longer degrades those items into equip-only semantics.
 Recent landing note (April 18, 2026 NPC portrait list-load polish): World → NPC list rows now keep portrait slots visually stable with shimmer skeleton overlays, prioritize above-the-fold portrait fetches, avoid hiding portrait images until late `onLoad`, and gracefully fall back to `No portrait` on broken image URLs so list text no longer feels stalled while portraits resolve.
+Recent landing note (April 19, 2026 Manage + World mobile cleanup): DM Manage rows now use a cleaner two-line left hierarchy with right-aligned action controls, Session tab prioritizes Front Screen/Sign Out + join codes before display/map controls, Display Code revoke was removed from this surface, World shop generator was simplified to single-action Generate (no save/saved/regenerate UI), locale/NPC create buttons are full-width, Rewards/World Map helper filler copy was trimmed, and Imports review/report UI is hidden by default until explicitly revealed or after a successful import in-session.
 
 
 #### A) Durable item trail and source-of-truth model (required)
