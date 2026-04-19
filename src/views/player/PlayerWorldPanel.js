@@ -7,7 +7,7 @@ export default function PlayerWorldPanel() {
 
   return (
     <div className="world-shops-shell">
-      <div className="world-tabs-row" style={{ marginBottom: 8 }}>
+      <div className="world-tabs-row world-tabs-row--sticky" style={{ marginBottom: 8 }}>
         <button className="btn btn-ghost" data-active={tab === 'locales'} onClick={() => setTab('locales')}>Locales</button>
         <button className="btn btn-ghost" data-active={tab === 'npcs'} onClick={() => setTab('npcs')}>NPCs</button>
       </div>

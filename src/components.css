@@ -1547,6 +1547,16 @@
   background: rgba(74, 158, 255, .1);
 }
 
+.world-tabs-row--sticky {
+  position: sticky;
+  top: 92px;
+  z-index: 40;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-panel);
+}
+
 .world-sheet-backdrop {
   position: fixed;
   inset: 0;
@@ -1781,6 +1791,10 @@
   .world-tabs-row--world-main .btn {
     font-size: 10px;
     padding: 5px 2px;
+  }
+
+  .world-tabs-row--sticky {
+    top: 84px;
   }
 
   .world-npc-hero {

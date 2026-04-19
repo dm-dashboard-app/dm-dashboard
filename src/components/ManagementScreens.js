@@ -235,11 +235,15 @@ function SessionControls({ currentEncounter, displayToken, joinCodes, onGenerate
       </div>
 
       <div className="panel session-subpanel">
+        <div className="panel-title">Player Join Codes {joinCodes.length > 0 ? `(${joinCodes.length})` : ''}</div>
+        {joinCodes.length === 0 ? <div className="empty-state">No join codes for this encounter.</div> : joinCodes.map((s, i) => <div key={i} className="join-code-row"><span className="join-code-name">{s.profiles_players?.name || 'Player'}</span><span className="join-code-value">{s.join_code}</span></div>)}
+      </div>
+
+      <div className="panel session-subpanel">
         <div className="display-screen-header-row">
           <div className="panel-title" style={{ marginBottom: 0 }}>Display Screen</div>
           <div className="display-screen-header-codes">
             <span className="display-screen-header-token">{displayToken || 'Generating…'}</span>
-            {joinCodes.length === 0 ? <span className="display-screen-header-join">No join codes</span> : joinCodes.map((row, idx) => <span key={`${row.join_code}-${idx}`} className="display-screen-header-join">{row.profiles_players?.name || 'Player'}: {row.join_code}</span>)}
           </div>
         </div>
 
